@@ -18,6 +18,7 @@ import type { ProfileSectionProps } from "./types";
 export default function PersonalInfoSection({
   data,
   onChange,
+  disabled,
 }: ProfileSectionProps) {
   const update = (field: keyof SeafarerProfile, value: string) =>
     onChange({ ...data, [field]: value });
@@ -50,6 +51,7 @@ export default function PersonalInfoSection({
               value={data.last_name}
               onChange={(v) => update("last_name", v)}
               required
+              disabled={disabled}
               size="sm"
             />
             <FormField
@@ -57,12 +59,14 @@ export default function PersonalInfoSection({
               value={data.first_name}
               onChange={(v) => update("first_name", v)}
               required
+              disabled={disabled}
               size="sm"
             />
             <FormField
               label="Middle Name"
               value={data.middle_name}
               onChange={(v) => update("middle_name", v)}
+              disabled={disabled}
               size="sm"
             />
           </div>
@@ -73,12 +77,14 @@ export default function PersonalInfoSection({
               value={data.address}
               onChange={(v) => update("address", v)}
               className="col-span-2"
+              disabled={disabled}
               size="sm"
             />
             <FormField
               label="City"
               value={data.city}
               onChange={(v) => update("city", v)}
+              disabled={disabled}
               size="sm"
             />
           </div>
@@ -89,6 +95,7 @@ export default function PersonalInfoSection({
               onChange={handleBirthdateChange}
               type="date"
               required
+              disabled={disabled}
               size="sm"
             />
             <FormField
@@ -103,6 +110,7 @@ export default function PersonalInfoSection({
               value={data.gender}
               onChange={(v) => update("gender", v)}
               options={["Male", "Female"]}
+              disabled={disabled}
               size="sm"
             />
             <FormSelect
@@ -110,6 +118,7 @@ export default function PersonalInfoSection({
               value={data.marital_status}
               onChange={(v) => update("marital_status", v)}
               options={["Single", "Married", "Widowed", "Separated"]}
+              disabled={disabled}
               size="sm"
             />
           </div>
@@ -118,24 +127,28 @@ export default function PersonalInfoSection({
               label="Place of Birth"
               value={data.place_of_birth}
               onChange={(v) => update("place_of_birth", v)}
+              disabled={disabled}
               size="sm"
             />
             <FormField
               label="Religion"
               value={data.religion}
               onChange={(v) => update("religion", v)}
+              disabled={disabled}
               size="sm"
             />
             <FormField
               label="Nationality"
               value={data.nationality}
               onChange={(v) => update("nationality", v)}
+              disabled={disabled}
               size="sm"
             />
             <FormField
               label="Contact No."
               value={data.contact_no}
               onChange={(v) => update("contact_no", v)}
+              disabled={disabled}
               size="sm"
             />
           </div>

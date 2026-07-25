@@ -23,6 +23,8 @@ interface FormSelectProps {
   required?: boolean;
   /** Additional CSS classes for the container */
   className?: string;
+  /** Disables the select */
+  disabled?: boolean;
   /**
    * Visual size variant:
    * - `"sm"` — compact (h-7), used in profile forms
@@ -71,6 +73,7 @@ export function FormSelect({
   options,
   required,
   className,
+  disabled,
   size = "md",
 }: FormSelectProps) {
   return (
@@ -81,8 +84,8 @@ export function FormSelect({
           {required && <span className="text-destructive ml-0.5">*</span>}
         </Label>
       )}
-      <Select value={value ?? ""} onValueChange={(val) => onChange(val as string)}>
-        <SelectTrigger className={triggerStyles[size]}>
+      <Select value={value ?? ""} onValueChange={(val) => onChange(val as string)} disabled={disabled}>
+        <SelectTrigger className={cn(triggerStyles[size], disabled && "opacity-60 cursor-not-allowed bg-muted/20")}>
           <SelectValue placeholder="Select..." />
         </SelectTrigger>
         <SelectContent className={contentStyles[size]}>

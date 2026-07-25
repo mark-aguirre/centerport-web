@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 
 /**
@@ -29,7 +29,7 @@ export interface LocalStorageFormConfig<T> {
    */
   idField: keyof T;
 
-  /** Route to navigate back to after a successful save */
+  /** Route to navigate back to after a successful save (no longer used for navigation) */
   returnRoute: string;
 
   /**
@@ -49,7 +49,7 @@ export interface LocalStorageFormConfig<T> {
  * Return value from `useLocalStorageForm`.
  *
  * Provides everything a form page needs: current state, loading indicators,
- * edit detection, and the save handler.
+ * CRUD mode tracking, and all action handlers.
  *
  * @typeParam T - The record interface
  */
@@ -62,12 +62,24 @@ export interface UseLocalStorageFormResult<T> {
   loading: boolean;
   /** True while the save operation is in progress */
   saving: boolean;
-  /** True when editing an existing record (ID present in URL) */
-  isEditing: boolean;
+  /** Whether the form is currently in edit mode */
+  editing: boolean;
+  /** True when the current record has been persisted (exists in storage) */
+  isExistingRecord: boolean;
   /** The original record when editing, null for new records */
   existingRecord: T | null;
-  /** Validates and persists the current form data */
+  /** Clear form and enter edit mode for a new record */
+  handleNew: () => void;
+  /** Enter edit mode, snapshot current data for cancel/restore */
+  handleEdit: () => void;
+  /** Discard changes and return to view mode */
+  handleCancel: () => void;
+  /** Validate, persist, and return to view mode */
   handleSave: () => Promise<void>;
+  /** Print current record (no state change) */
+  handlePrint: () => void;
+  /** Ref for the first field — focus on New */
+  firstFieldRef: React.RefObject<HTMLInputElement | null>;
 }
 
 /**
@@ -115,12 +127,12 @@ function generateNextId<T>(
 }
 
 /**
- * Generic localStorage-backed form state hook.
+ * Generic localStorage-backed form state hook with full CRUD button behavior.
  *
- * Encapsulates the common CRUD pattern shared across all form modules:
- * - Load existing record by `id` search param (edit mode)
- * - Initialize with empty defaults (create mode)
- * - Validate, generate sequential ID, persist, and navigate on save
+ * Encapsulates the standard CRUD state machine:
+ * - View mode: fields disabled, New/Edit/Print visible
+ * - Edit mode (new): fields enabled with empty form, Save/Cancel/Print visible
+ * - Edit mode (existing): fields enabled with loaded data, Save/Cancel/Print visible
  *
  * Each form module provides a `LocalStorageFormConfig` to customize
  * storage keys, ID prefixes, validation, and success messages while
@@ -129,19 +141,7 @@ function generateNextId<T>(
  * @typeParam T - The record interface (must have optional `id`,
  *   `created_date`, and `updated_date` string fields)
  * @param config - Module-specific configuration
- * @returns Object with form state, setters, and the save handler
- *
- * @example
- * ```tsx
- * const { data, setData, loading, saving, handleSave } = useLocalStorageForm({
- *   storageKey: "medical_exam_records",
- *   emptyRecord: EMPTY_EXAM,
- *   idPrefix: "MED",
- *   idField: "exam_id",
- *   returnRoute: "/medical",
- *   validate: (d) => (!d.last_name ? "Last Name is required" : null),
- * });
- * ```
+ * @returns Object with form state, action handlers, and first-field ref
  */
 export function useLocalStorageForm<
   T extends { id?: string; created_date?: string; updated_date?: string }
@@ -151,37 +151,62 @@ export function useLocalStorageForm<
     emptyRecord,
     idPrefix,
     idField,
-    returnRoute,
     validate,
     successCreateMessage = "Record created successfully",
     successUpdateMessage = "Record updated successfully",
   } = config;
 
-  const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
 
   // Compute initial state synchronously to avoid cascading renders.
-  // localStorage is synchronous so we can resolve edit-mode data upfront.
   const initialState = (() => {
-    if (!editId) return { data: emptyRecord, existingRecord: null, loading: false };
+    if (!editId) return { data: emptyRecord, existingRecord: null };
     const all = getStoredRecords<T>(storageKey);
     const found = all.find((r) => (r as { id?: string }).id === editId) ?? null;
     if (found) {
-      return {
-        data: { ...emptyRecord, ...found },
-        existingRecord: found,
-        loading: false,
-      };
+      return { data: { ...emptyRecord, ...found }, existingRecord: found };
     }
-    return { data: emptyRecord, existingRecord: null, loading: false };
+    return { data: emptyRecord, existingRecord: null };
   })();
 
   const [data, setData] = useState<T>(initialState.data);
+  const [originalData, setOriginalData] = useState<T | null>(initialState.existingRecord);
   const [saving, setSaving] = useState(false);
-  const [existingRecord] = useState<T | null>(initialState.existingRecord);
-  const loading = false;
+  const [editing, setEditing] = useState(false);
+  const [isExistingRecord, setIsExistingRecord] = useState(!!initialState.existingRecord);
+  const [existingRecord, setExistingRecord] = useState<T | null>(initialState.existingRecord);
 
+  const firstFieldRef = useRef<HTMLInputElement | null>(null);
+
+  /** Clear form, enter edit mode for a new record. */
+  const handleNew = useCallback(() => {
+    setData(emptyRecord);
+    setOriginalData(null);
+    setEditing(true);
+    setIsExistingRecord(false);
+    setExistingRecord(null);
+    setTimeout(() => firstFieldRef.current?.focus(), 0);
+  }, [emptyRecord]);
+
+  /** Enter edit mode, snapshot current data for cancel/restore. */
+  const handleEdit = useCallback(() => {
+    setOriginalData({ ...data });
+    setEditing(true);
+  }, [data]);
+
+  /** Discard changes and return to view mode. */
+  const handleCancel = useCallback(() => {
+    if (isExistingRecord && originalData) {
+      setData(originalData);
+    } else {
+      setData(emptyRecord);
+    }
+    setOriginalData(null);
+    setEditing(false);
+  }, [isExistingRecord, originalData, emptyRecord]);
+
+  /** Validate, persist, and return to view mode. */
   const handleSave = useCallback(async () => {
     const error = validate(data);
     if (error) {
@@ -193,17 +218,17 @@ export function useLocalStorageForm<
     try {
       const all = getStoredRecords<T>(storageKey);
 
-      if (editId && existingRecord) {
+      if (isExistingRecord && existingRecord) {
         // Update existing record
+        const recordId = (existingRecord as { id?: string }).id;
         const index = all.findIndex(
-          (r) => (r as { id?: string }).id === editId
+          (r) => (r as { id?: string }).id === recordId
         );
         if (index !== -1) {
-          all[index] = {
-            ...data,
-            updated_date: new Date().toISOString(),
-          };
+          const updated = { ...data, updated_date: new Date().toISOString() };
+          all[index] = updated;
           setStoredRecords(storageKey, all);
+          setExistingRecord(updated);
           toast.success(successUpdateMessage);
         }
       } else {
@@ -218,34 +243,48 @@ export function useLocalStorageForm<
         };
         all.push(record);
         setStoredRecords(storageKey, all);
+        setData(record);
+        setExistingRecord(record);
+        setIsExistingRecord(true);
         toast.success(successCreateMessage);
       }
-      router.push(returnRoute);
+      setOriginalData(null);
+      setEditing(false);
     } catch {
       toast.error("Failed to save record");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   }, [
     data,
-    editId,
+    isExistingRecord,
     existingRecord,
-    router,
     storageKey,
     idPrefix,
     idField,
-    returnRoute,
     validate,
     successCreateMessage,
     successUpdateMessage,
   ]);
 
+  /** Print the current record (no state change). */
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
   return {
     data,
     setData,
-    loading,
+    loading: false,
     saving,
-    isEditing: !!editId,
+    editing,
+    isExistingRecord,
     existingRecord,
+    handleNew,
+    handleEdit,
+    handleCancel,
     handleSave,
+    handlePrint,
+    firstFieldRef,
   };
 }

@@ -263,7 +263,7 @@ export interface MedicalExam {
  *
  * @example
  * ```tsx
- * <PersonalInfoSection data={formData} onChange={setFormData} />
+ * <PersonalInfoSection data={formData} onChange={setFormData} disabled={!editing} />
  * ```
  */
 export interface MedicalSectionProps {
@@ -271,4 +271,6 @@ export interface MedicalSectionProps {
   data: MedicalExam;
   /** Callback to update the form state with modified data */
   onChange: (data: MedicalExam) => void;
+  /** When true, all fields in this section are read-only (view mode) */
+  disabled?: boolean;
 }

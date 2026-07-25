@@ -133,4 +133,6 @@ export interface LandbaseSectionProps {
   data: LandbasePeme;
   /** Callback to update the form state with modified data */
   onChange: (data: LandbasePeme) => void;
+  /** When true, all fields in this section are read-only (view mode) */
+  disabled?: boolean;
 }

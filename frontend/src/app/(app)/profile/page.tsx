@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -29,28 +28,29 @@ const SECTIONS: SectionEntry[] = [
 ];
 
 /**
- * Profile form content with data loading and save logic.
+ * Profile form content with full CRUD button behavior.
  *
- * Uses `useProfileForm` hook for state management. Renders animated
- * section cards with CRUD actions in the top toolbar.
+ * Uses `useProfileForm` hook for state management including
+ * New/Edit/Save/Cancel/Print actions and view/edit mode transitions.
+ * Renders animated section cards with fields disabled in view mode.
  *
- * @see useProfileForm — state and persistence logic
+ * @see useProfileForm — state, persistence, and CRUD logic
  */
 function ProfileFormContent() {
-  const router = useRouter();
-  const { data, setData, loading, saving, isEditing, existingRecord, handleSave } =
-    useProfileForm();
-  const [editing, setEditing] = useState(!isEditing);
-
-  const handleEdit = useCallback(() => setEditing(true), []);
-  const handleCancel = useCallback(() => setEditing(false), []);
-  const handleNew = useCallback(() => router.push("/profile"), [router]);
-  const handlePrint = useCallback(() => window.print(), []);
-
-  const onSave = useCallback(async () => {
-    await handleSave();
-    setEditing(false);
-  }, [handleSave]);
+  const {
+    data,
+    setData,
+    loading,
+    saving,
+    editing,
+    isExistingRecord,
+    existingRecord,
+    handleNew,
+    handleEdit,
+    handleCancel,
+    handleSave,
+    handlePrint,
+  } = useProfileForm();
 
   if (loading) {
     return (
@@ -65,13 +65,13 @@ function ProfileFormContent() {
       <FormToolbar
         editing={editing}
         saving={saving}
-        isExistingRecord={isEditing}
+        isExistingRecord={isExistingRecord}
         metadata={{
           recordId: existingRecord?.profile_id,
           createdDate: existingRecord?.created_date,
           updatedDate: existingRecord?.updated_date,
         }}
-        onSave={onSave}
+        onSave={handleSave}
         onCancel={handleCancel}
         onEdit={handleEdit}
         onNew={handleNew}
@@ -86,7 +86,7 @@ function ProfileFormContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.06, duration: 0.25 }}
           >
-            <Section data={data} onChange={setData} />
+            <Section data={data} onChange={setData} disabled={!editing} />
           </motion.div>
         ))}
       </div>

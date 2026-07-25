@@ -196,4 +196,6 @@ export interface PanamaSectionProps {
   data: PanamaCertificate;
   /** Callback to update the form state with modified data */
   onChange: (data: PanamaCertificate) => void;
+  /** When true, all fields in this section are read-only (view mode) */
+  disabled?: boolean;
 }

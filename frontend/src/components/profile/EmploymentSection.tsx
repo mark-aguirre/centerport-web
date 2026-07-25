@@ -15,6 +15,7 @@ import type { ProfileSectionProps } from "./types";
 export default function EmploymentSection({
   data,
   onChange,
+  disabled,
 }: ProfileSectionProps) {
   const update = (field: keyof SeafarerProfile, value: string) =>
     onChange({ ...data, [field]: value });
@@ -28,12 +29,14 @@ export default function EmploymentSection({
             label="Employer"
             value={data.employer}
             onChange={(v) => update("employer", v)}
+            disabled={disabled}
             size="sm"
           />
           <FormField
             label="Designation"
             value={data.designation}
             onChange={(v) => update("designation", v)}
+            disabled={disabled}
             size="sm"
           />
         </div>
@@ -42,24 +45,28 @@ export default function EmploymentSection({
             label="Passport No."
             value={data.passport_no}
             onChange={(v) => update("passport_no", v)}
+            disabled={disabled}
             size="sm"
           />
           <FormField
             label="Seaman's Book No."
             value={data.seamans_book_no}
             onChange={(v) => update("seamans_book_no", v)}
+            disabled={disabled}
             size="sm"
           />
           <FormField
             label="Position"
             value={data.position}
             onChange={(v) => update("position", v)}
+            disabled={disabled}
             size="sm"
           />
           <FormField
             label="Country"
             value={data.country}
             onChange={(v) => update("country", v)}
+            disabled={disabled}
             size="sm"
           />
         </div>
@@ -68,6 +75,7 @@ export default function EmploymentSection({
           value={data.country_of_destination}
           onChange={(v) => update("country_of_destination", v)}
           className="max-w-xs"
+          disabled={disabled}
           size="sm"
         />
       </div>

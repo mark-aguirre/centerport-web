@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -63,18 +62,27 @@ const SECTIONS: SectionEntry[] = [
 ];
 
 /**
- * MLC Health Certificate form content with data loading and save logic.
+ * MLC Health Certificate form content with full CRUD button behavior.
  *
- * Uses `useMlcForm` hook for state management. Renders animated
- * section cards with CRUD actions in the top toolbar.
+ * Uses `useMlcForm` hook for state management including
+ * New/Edit/Save/Cancel/Print actions and view/edit mode transitions.
+ * Renders animated section cards with fields disabled in view mode.
  */
 function MlcFormContent() {
-  const router = useRouter();
-  const { data, setData, loading, saving, isEditing, existingRecord, handleSave } =
-    useMlcForm();
-
-  const handleNew = useCallback(() => router.push("/mlc"), [router]);
-  const handlePrint = useCallback(() => window.print(), []);
+  const {
+    data,
+    setData,
+    loading,
+    saving,
+    editing,
+    isExistingRecord,
+    existingRecord,
+    handleNew,
+    handleEdit,
+    handleCancel,
+    handleSave,
+    handlePrint,
+  } = useMlcForm();
 
   if (loading) {
     return (
@@ -87,15 +95,17 @@ function MlcFormContent() {
   return (
     <PageContainer className="max-w-7xl">
       <FormToolbar
-        editing={true}
+        editing={editing}
         saving={saving}
-        isExistingRecord={isEditing}
+        isExistingRecord={isExistingRecord}
         metadata={{
           recordId: existingRecord?.mlc_id,
           createdDate: existingRecord?.created_date,
           createdLabel: "Created",
         }}
         onSave={handleSave}
+        onCancel={handleCancel}
+        onEdit={handleEdit}
         onNew={handleNew}
         onPrint={handlePrint}
       />
@@ -112,6 +122,7 @@ function MlcFormContent() {
             onChange={setData}
             rows={MLC_PERSONAL_ROWS}
             gridOverrides={MLC_GRID_OVERRIDES}
+            disabled={!editing}
           />
         </motion.div>
         {SECTIONS.map(({ component: Section, key }, index) => (
@@ -121,7 +132,7 @@ function MlcFormContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: (index + 1) * 0.06, duration: 0.25 }}
           >
-            <Section data={data} onChange={setData} />
+            <Section data={data} onChange={setData} disabled={!editing} />
           </motion.div>
         ))}
       </div>

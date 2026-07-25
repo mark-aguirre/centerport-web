@@ -98,7 +98,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
     return (
       <div
         key={key}
-        className="grid grid-cols-[1fr_auto] items-center py-1.5 border-b border-muted/30 gap-2"
+        className="grid grid-cols-[1fr_auto] items-center py-1.5 border-b border-muted/30 gap-8"
       >
         <span className="text-xs text-foreground/80 leading-tight">
           <span className="font-semibold text-primary/70 mr-1">{item.num}</span>
@@ -121,13 +121,14 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
         title="Examinee's Personal Declaration"
         icon={FileText}
         subtitle="Have you ever had any of the following conditions?"
+        className="mb-6"
       />
 
       {/* Conditions Grid — 2 columns */}
-      <div className="mb-4">
+      <div className="mb-4 mt-6">
         {/* Column headers */}
         <div className="grid grid-cols-2 gap-4 mb-1">
-          <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+          <div className="grid grid-cols-[1fr_auto] items-center gap-8">
             <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">
               No. Condition
             </span>
@@ -136,7 +137,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
               <span className="text-[11px] font-bold text-primary uppercase tracking-wider">NO</span>
             </div>
           </div>
-          <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+          <div className="grid grid-cols-[1fr_auto] items-center gap-8">
             <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">
               No. Condition
             </span>

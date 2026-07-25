@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { base44, type SeafarerProfile } from "@/lib/api";
@@ -60,30 +60,35 @@ function stripSystemFields(profile: SeafarerProfile): Partial<SeafarerProfile> {
   return Object.fromEntries(entries) as Partial<SeafarerProfile>;
 }
 
-interface UseProfileFormResult {
+export interface UseProfileFormResult {
   data: SeafarerProfile;
   setData: (data: SeafarerProfile) => void;
   loading: boolean;
   saving: boolean;
-  isEditing: boolean;
+  editing: boolean;
+  isExistingRecord: boolean;
   existingRecord: SeafarerProfile | null;
+  handleNew: () => void;
+  handleEdit: () => void;
+  handleCancel: () => void;
   handleSave: () => Promise<void>;
+  handlePrint: () => void;
+  firstFieldRef: React.RefObject<HTMLInputElement | null>;
 }
 
 /**
- * Manages seafarer profile form state, loading, and persistence.
+ * Manages seafarer profile form state with full CRUD button behavior.
  *
  * Handles both create and edit flows by reading the `id` search param.
- * When an ID is present, fetches the existing record and populates the form.
- * On save, validates required fields, generates a profile ID for new records,
- * and navigates back to the profile list on success.
+ * When an ID is present, fetches the existing record and starts in view mode.
+ * When no ID is present, starts in view mode with an empty form.
  *
- * State:
- * - `data` — current form values (starts as empty profile or loaded record)
- * - `loading` — true while fetching an existing record
- * - `saving` — true during save/update operation
+ * Implements the standard CRUD state machine:
+ * - View mode: fields disabled, New/Edit/Print visible
+ * - Edit mode (new): fields enabled with empty form, Save/Cancel/Print visible
+ * - Edit mode (existing): fields enabled with loaded data, Save/Cancel/Print visible
  *
- * @returns Object with form state, setters, and the save handler
+ * @returns Object with form state, action handlers, and ref for first-field focus
  */
 export function useProfileForm(): UseProfileFormResult {
   const router = useRouter();
@@ -91,72 +96,115 @@ export function useProfileForm(): UseProfileFormResult {
   const editId = searchParams.get("id");
 
   const [data, setData] = useState<SeafarerProfile>(EMPTY_PROFILE);
+  const [originalData, setOriginalData] = useState<SeafarerProfile | null>(null);
   const [loading, setLoading] = useState(!!editId);
   const [saving, setSaving] = useState(false);
-  const [existingRecord, setExistingRecord] = useState<SeafarerProfile | null>(
-    null
-  );
+  const [editing, setEditing] = useState(false);
+  const [isExistingRecord, setIsExistingRecord] = useState(!!editId);
+  const [existingRecord, setExistingRecord] = useState<SeafarerProfile | null>(null);
 
+  const firstFieldRef = useRef<HTMLInputElement | null>(null);
+
+  // Load existing record when id param is present
   useEffect(() => {
     if (editId) {
       base44.entities.SeafarerProfile.filter({ id: editId }).then((results) => {
         if (results.length > 0) {
           setExistingRecord(results[0]);
           setData({ ...EMPTY_PROFILE, ...results[0] });
+          setIsExistingRecord(true);
         }
         setLoading(false);
       });
     }
   }, [editId]);
 
-  const generateProfileId = async (): Promise<string> => {
-    const all = await base44.entities.SeafarerProfile.list(
-      "-created_date",
-      1
-    );
-    if (all.length === 0) return "CMSI00000001";
-    const lastId = all[0].profile_id || "CMSI00000000";
-    const num = parseInt(lastId.replace("CMSI", "")) + 1;
-    return `CMSI${String(num).padStart(8, "0")}`;
-  };
+  /** Clear form, enter edit mode for a new record. */
+  const handleNew = useCallback(() => {
+    setData(EMPTY_PROFILE);
+    setOriginalData(null);
+    setEditing(true);
+    setIsExistingRecord(false);
+    setExistingRecord(null);
+    // Focus first field after render
+    setTimeout(() => firstFieldRef.current?.focus(), 0);
+  }, []);
 
+  /** Enter edit mode, snapshot current data for cancel/restore. */
+  const handleEdit = useCallback(() => {
+    setOriginalData({ ...data });
+    setEditing(true);
+  }, [data]);
+
+  /** Discard changes and return to view mode. */
+  const handleCancel = useCallback(() => {
+    if (isExistingRecord && originalData) {
+      setData(originalData);
+    } else {
+      setData(EMPTY_PROFILE);
+    }
+    setOriginalData(null);
+    setEditing(false);
+  }, [isExistingRecord, originalData]);
+
+  /** Validate, persist, and return to view mode. */
   const handleSave = useCallback(async () => {
     if (!data.last_name || !data.first_name) {
-      toast.error(
-        "Please fill in the required fields (Last Name, First Name)"
-      );
+      toast.error("Please fill in the required fields (Last Name, First Name)");
       return;
     }
 
     setSaving(true);
     try {
-      if (editId && existingRecord) {
-        // Strip system-managed fields before sending update
+      if (isExistingRecord && editId && existingRecord) {
         const updateData = stripSystemFields(data);
         await base44.entities.SeafarerProfile.update(editId, updateData);
+        setExistingRecord({ ...data });
         toast.success("Profile updated successfully");
       } else {
         const profileId = await generateProfileId();
-        await base44.entities.SeafarerProfile.create({
-          ...data,
-          profile_id: profileId,
-        });
+        const created = { ...data, profile_id: profileId };
+        await base44.entities.SeafarerProfile.create(created);
+        setExistingRecord(created);
+        setIsExistingRecord(true);
         toast.success("Profile created successfully");
       }
-      router.push("/profile");
+      setOriginalData(null);
+      setEditing(false);
     } catch {
       toast.error("Failed to save profile");
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-  }, [data, editId, existingRecord, router]);
+  }, [data, isExistingRecord, editId, existingRecord]);
+
+  /** Print the current record (no state change). */
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
 
   return {
     data,
     setData,
     loading,
     saving,
-    isEditing: !!editId,
+    editing,
+    isExistingRecord,
     existingRecord,
+    handleNew,
+    handleEdit,
+    handleCancel,
     handleSave,
+    handlePrint,
+    firstFieldRef,
   };
+}
+
+/** Generate the next sequential profile ID. */
+async function generateProfileId(): Promise<string> {
+  const all = await base44.entities.SeafarerProfile.list("-created_date", 1);
+  if (all.length === 0) return "CMSI00000001";
+  const lastId = all[0].profile_id || "CMSI00000000";
+  const num = parseInt(lastId.replace("CMSI", "")) + 1;
+  return `CMSI${String(num).padStart(8, "0")}`;
 }

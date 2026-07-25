@@ -15,6 +15,7 @@ import type { ProfileSectionProps } from "./types";
 export default function FamilyDataSection({
   data,
   onChange,
+  disabled,
 }: ProfileSectionProps) {
   const update = (field: keyof SeafarerProfile, value: string) =>
     onChange({ ...data, [field]: value });
@@ -29,6 +30,7 @@ export default function FamilyDataSection({
             value={data.father_name}
             onChange={(v) => update("father_name", v)}
             className="col-span-2"
+            disabled={disabled}
             size="sm"
           />
           <FormField
@@ -36,6 +38,7 @@ export default function FamilyDataSection({
             value={data.father_occupation}
             onChange={(v) => update("father_occupation", v)}
             className="col-span-2"
+            disabled={disabled}
             size="sm"
           />
         </div>
@@ -45,6 +48,7 @@ export default function FamilyDataSection({
             value={data.mother_name}
             onChange={(v) => update("mother_name", v)}
             className="col-span-2"
+            disabled={disabled}
             size="sm"
           />
           <FormField
@@ -52,6 +56,7 @@ export default function FamilyDataSection({
             value={data.mother_occupation}
             onChange={(v) => update("mother_occupation", v)}
             className="col-span-2"
+            disabled={disabled}
             size="sm"
           />
         </div>
@@ -61,6 +66,7 @@ export default function FamilyDataSection({
             value={data.no_of_brothers}
             onChange={(v) => update("no_of_brothers", String(parseInt(v) || ""))}
             type="number"
+            disabled={disabled}
             size="sm"
           />
           <FormField
@@ -68,6 +74,7 @@ export default function FamilyDataSection({
             value={data.no_of_sisters}
             onChange={(v) => update("no_of_sisters", String(parseInt(v) || ""))}
             type="number"
+            disabled={disabled}
             size="sm"
           />
           <FormField
@@ -75,6 +82,7 @@ export default function FamilyDataSection({
             value={data.birth_order}
             onChange={(v) => update("birth_order", String(parseInt(v) || ""))}
             type="number"
+            disabled={disabled}
             size="sm"
           />
           <FormField
@@ -82,6 +90,7 @@ export default function FamilyDataSection({
             value={data.no_of_children}
             onChange={(v) => update("no_of_children", String(parseInt(v) || ""))}
             type="number"
+            disabled={disabled}
             size="sm"
           />
           <FormField
@@ -89,6 +98,7 @@ export default function FamilyDataSection({
             value={data.spouse_name}
             onChange={(v) => update("spouse_name", v)}
             className="col-span-2"
+            disabled={disabled}
             size="sm"
           />
         </div>
@@ -97,6 +107,7 @@ export default function FamilyDataSection({
           value={data.spouse_occupation}
           onChange={(v) => update("spouse_occupation", v)}
           className="max-w-sm"
+          disabled={disabled}
           size="sm"
         />
       </div>

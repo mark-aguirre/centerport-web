@@ -103,4 +103,6 @@ export interface MlcSectionProps {
   data: MlcRecord;
   /** Callback to update the form state with modified data */
   onChange: (data: MlcRecord) => void;
+  /** When true, all fields in this section are read-only (view mode) */
+  disabled?: boolean;
 }

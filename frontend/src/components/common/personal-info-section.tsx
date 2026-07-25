@@ -64,6 +64,8 @@ export interface PersonalInfoSectionProps<T extends object = Record<string, stri
   gridOverrides?: Record<number, string>;
   /** Whether to show the "Name:" inline label on the first row (default: true) */
   showNameLabel?: boolean;
+  /** When true, all fields in this section are read-only (view mode) */
+  disabled?: boolean;
 }
 
 /** Default grid class based on number of columns in a row */
@@ -109,6 +111,7 @@ export default function PersonalInfoSection<T extends object = Record<string, st
   rows,
   gridOverrides,
   showNameLabel = true,
+  disabled,
 }: PersonalInfoSectionProps<T>) {
   const update = (field: PersonalInfoField, value: string) =>
     onChange({ ...data, [field]: value } as T);
@@ -123,6 +126,7 @@ export default function PersonalInfoSection<T extends object = Record<string, st
           onChange={(v) => update(config.field, v)}
           options={config.options}
           required={config.required}
+          disabled={disabled}
         />
       );
     }
@@ -134,6 +138,7 @@ export default function PersonalInfoSection<T extends object = Record<string, st
         onChange={(v) => update(config.field, v)}
         type={config.type ?? "text"}
         required={config.required}
+        disabled={disabled}
       />
     );
   };

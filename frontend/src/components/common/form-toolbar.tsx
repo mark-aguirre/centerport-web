@@ -114,7 +114,7 @@ export function FormToolbar({
             )}
           </>
         )}
-        {onNew && (
+        {!editing && onNew && (
           <Button size="sm" variant="outline" onClick={onNew}>
             <Plus className="w-4 h-4 mr-1" />
             New

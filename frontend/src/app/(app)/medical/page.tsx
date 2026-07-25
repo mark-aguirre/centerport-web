@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -14,22 +13,14 @@ import type { MedicalSectionProps } from "@/components/medical/types";
 
 /**
  * Registry entry for a form section rendered on the Medical Examination page.
- *
- * Each entry maps a React component to a unique key used for animation
- * staggering and React reconciliation.
  */
 interface SectionEntry {
-  /** The form section component to render */
   component: React.ComponentType<MedicalSectionProps>;
-  /** Unique key for React reconciliation and animation stagger */
   key: string;
 }
 
 /**
  * Ordered list of form sections rendered on the Medical Examination page.
- *
- * Add new sections here to include them in the form. Order determines
- * visual sequence and animation stagger timing.
  */
 const SECTIONS: SectionEntry[] = [
   { component: PersonalInfoSection, key: "personal" },
@@ -37,23 +28,27 @@ const SECTIONS: SectionEntry[] = [
 ];
 
 /**
- * Medical Examination form content with data loading and save logic.
+ * Medical Examination form content with full CRUD button behavior.
  *
- * Uses `useMedicalForm` hook for state management and localStorage
- * persistence. Renders animated section cards with CRUD actions in
- * the top toolbar (save, new, print).
- *
- * @see useMedicalForm — manages form state, loading, and save
- * @see PersonalInfoSection — personal info fields
- * @see PhysicalExaminationSection — physical exam orchestrator
+ * Uses `useMedicalForm` hook for state management including
+ * New/Edit/Save/Cancel/Print actions and view/edit mode transitions.
+ * Renders animated section cards with fields disabled in view mode.
  */
 function MedicalFormContent() {
-  const router = useRouter();
-  const { data, setData, loading, saving, isEditing, existingRecord, handleSave } =
-    useMedicalForm();
-
-  const handleNew = useCallback(() => router.push("/medical"), [router]);
-  const handlePrint = useCallback(() => window.print(), []);
+  const {
+    data,
+    setData,
+    loading,
+    saving,
+    editing,
+    isExistingRecord,
+    existingRecord,
+    handleNew,
+    handleEdit,
+    handleCancel,
+    handleSave,
+    handlePrint,
+  } = useMedicalForm();
 
   if (loading) {
     return (
@@ -66,15 +61,17 @@ function MedicalFormContent() {
   return (
     <PageContainer className="max-w-7xl">
       <FormToolbar
-        editing={true}
+        editing={editing}
         saving={saving}
-        isExistingRecord={isEditing}
+        isExistingRecord={isExistingRecord}
         metadata={{
           recordId: existingRecord?.exam_id,
           createdDate: existingRecord?.created_date,
           createdLabel: "Created",
         }}
         onSave={handleSave}
+        onCancel={handleCancel}
+        onEdit={handleEdit}
         onNew={handleNew}
         onPrint={handlePrint}
       />
@@ -88,7 +85,7 @@ function MedicalFormContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.06, duration: 0.25 }}
           >
-            <Section data={data} onChange={setData} />
+            <Section data={data} onChange={setData} disabled={!editing} />
           </motion.div>
         ))}
       </div>
@@ -101,7 +98,6 @@ function MedicalFormContent() {
  *
  * Wraps the form content in a Suspense boundary to handle the
  * `useSearchParams` hook requirement in Next.js App Router.
- * Displays a spinner fallback while the client component hydrates.
  */
 export default function MedicalPage() {
   return (

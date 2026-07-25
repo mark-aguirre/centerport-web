@@ -1,7 +1,6 @@
 "use client";
 
-import { Suspense, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -33,18 +32,27 @@ const SECTIONS: SectionEntry[] = [
 ];
 
 /**
- * Landbase PEME form content with data loading and save logic.
+ * Landbase PEME form content with full CRUD button behavior.
  *
- * Uses `useLandbaseForm` hook for state management. Renders animated
- * section cards with CRUD actions in the top toolbar.
+ * Uses `useLandbaseForm` hook for state management including
+ * New/Edit/Save/Cancel/Print actions and view/edit mode transitions.
+ * Renders animated section cards with fields disabled in view mode.
  */
 function LandbaseFormContent() {
-  const router = useRouter();
-  const { data, setData, loading, saving, isEditing, existingRecord, handleSave } =
-    useLandbaseForm();
-
-  const handleNew = useCallback(() => router.push("/landbase"), [router]);
-  const handlePrint = useCallback(() => window.print(), []);
+  const {
+    data,
+    setData,
+    loading,
+    saving,
+    editing,
+    isExistingRecord,
+    existingRecord,
+    handleNew,
+    handleEdit,
+    handleCancel,
+    handleSave,
+    handlePrint,
+  } = useLandbaseForm();
 
   if (loading) {
     return (
@@ -57,15 +65,17 @@ function LandbaseFormContent() {
   return (
     <PageContainer className="max-w-7xl">
       <FormToolbar
-        editing={true}
+        editing={editing}
         saving={saving}
-        isExistingRecord={isEditing}
+        isExistingRecord={isExistingRecord}
         metadata={{
           recordId: existingRecord?.peme_id,
           createdDate: existingRecord?.created_date,
           createdLabel: "Created",
         }}
         onSave={handleSave}
+        onCancel={handleCancel}
+        onEdit={handleEdit}
         onNew={handleNew}
         onPrint={handlePrint}
       />
@@ -79,7 +89,7 @@ function LandbaseFormContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.06, duration: 0.25 }}
           >
-            <Section data={data} onChange={setData} />
+            <Section data={data} onChange={setData} disabled={!editing} />
           </motion.div>
         ))}
       </div>
