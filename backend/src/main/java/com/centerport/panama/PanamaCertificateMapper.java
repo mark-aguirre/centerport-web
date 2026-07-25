@@ -5,9 +5,17 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 /**
- * MapStruct mapper for converting between PanamaCertificate entity and PanamaCertificateDto.
- * The updateEntity method ignores system-managed fields so that id, panamaId, createdDate,
- * and updatedDate are preserved from the existing entity during PUT updates.
+ * MapStruct mapper for converting between {@link PanamaCertificate} entity
+ * and {@link PanamaCertificateDto}.
+ *
+ * System Field Protection:
+ * The {@code updateEntity} method ignores server-managed fields (id, panamaId,
+ * createdDate, updatedDate) so they are preserved from the existing entity
+ * during PUT updates. Only mutable data fields are overwritten from the DTO.
+ *
+ * @see PanamaCertificate
+ * @see PanamaCertificateDto
+ * @see PanamaCertificateService
  */
 @Mapper(componentModel = "spring")
 public interface PanamaCertificateMapper {

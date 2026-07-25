@@ -11,9 +11,20 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Data transfer object for PanamaCertificate. All field names serialize to snake_case
- * via the global JacksonConfig. System fields (id, panamaId, createdDate, updatedDate)
- * are included for response output but ignored on create/update input.
+ * Data transfer object for Panama certificate API requests and responses.
+ *
+ * All field names serialize to snake_case via the global
+ * {@link com.centerport.config.JacksonConfig}. System fields (id, panamaId,
+ * createdDate, updatedDate) are included in responses but ignored on
+ * create/update input — the service layer clears them before persistence.
+ *
+ * Validation:
+ * {@code fullName} is required on create and update operations. All other
+ * fields are optional.
+ *
+ * @see PanamaCertificate
+ * @see PanamaCertificateMapper
+ * @see PanamaCertificateService
  */
 @Data
 @NoArgsConstructor

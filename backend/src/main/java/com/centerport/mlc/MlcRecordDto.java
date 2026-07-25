@@ -11,9 +11,30 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Data transfer object for MlcRecord. All field names serialize to snake_case
- * via the global JacksonConfig. System fields (id, mlcId, createdDate, updatedDate)
- * are included for response output but ignored on create/update input.
+ * Data transfer object for MLC (Maritime Labour Convention) records.
+ *
+ * Carries the full MLC certificate dataset between the REST layer and
+ * the service layer. All field names serialize to snake_case via the
+ * global {@code JacksonConfig}.
+ *
+ * System Fields:
+ * The fields {@code id}, {@code mlcId}, {@code createdDate}, and
+ * {@code updatedDate} are included in responses but ignored on
+ * create/update input — the server manages these values.
+ *
+ * Validation:
+ * {@code lastName} is the only required field (enforced via
+ * {@code @NotBlank}). All other fields are optional.
+ *
+ * Field Groups:
+ * - Personal Information (name, demographics, contact)
+ * - Additional Seafarer Details (vessel, rank, agency)
+ * - Certificate Details (type, fitness, dates, authority)
+ * - Declaration of the Authorized Physician (standards compliance)
+ * - Final Recommendation (certification dates)
+ *
+ * @see MlcRecord
+ * @see MlcRecordMapper
  */
 @Data
 @NoArgsConstructor

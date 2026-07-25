@@ -15,9 +15,28 @@ import org.hibernate.type.SqlTypes;
 import java.util.List;
 
 /**
- * MLC (Maritime Labour Convention) record entity.
- * Covers personal information, seafarer details, certificate details,
- * physician declarations, and final recommendation fields.
+ * JPA entity representing an MLC (Maritime Labour Convention) medical certificate record.
+ *
+ * Stores the full dataset for a seafarer's MLC-compliant medical examination
+ * including personal information, seafarer details, certificate metadata,
+ * physician declarations on fitness standards, and the final recommendation.
+ *
+ * Persistence:
+ * Mapped to the {@code mlc_records} table. Inherits UUID primary key and
+ * automatic timestamp management (createdDate, updatedDate) from
+ * {@link com.centerport.common.BaseEntity}.
+ *
+ * Business ID:
+ * The {@code mlcId} field holds a human-readable sequential identifier
+ * (e.g., {@code MLC00000001}) generated at creation time via
+ * {@link com.centerport.common.BusinessIdGenerator}.
+ *
+ * JSON Columns:
+ * The {@code visualAids} field is stored as JSONB in PostgreSQL and mapped
+ * via Hibernate's {@code @JdbcTypeCode(SqlTypes.JSON)}.
+ *
+ * @see com.centerport.common.BaseEntity
+ * @see MlcRecordService
  */
 @Getter
 @Setter

@@ -3,6 +3,7 @@ package com.centerport.landbase;
 import com.centerport.common.BusinessIdGenerator;
 import com.centerport.common.NotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.UUID;
  * Manages transactional boundaries, business-ID generation (PEME prefix) on create,
  * and ensures client-supplied system fields are ignored.
  */
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -26,13 +28,22 @@ public class LandbasePemeService {
 
     /**
      * Returns all landbase PEMEs sorted by createdDate descending.
+     *
+     * @param limit optional cap on the number of results; {@code null} or non-positive returns all
+     * @return list of PEME DTOs, possibly truncated to {@code limit}
      */
     @Transactional(readOnly = true)
-    public List<LandbasePemeDto> findAll() {
-        return repository.findAll(Sort.by(Sort.Direction.DESC, "createdDate"))
+    public List<LandbasePemeDto> findAll(Integer limit) {
+        List<LandbasePemeDto> results = repository.findAll(Sort.by(Sort.Direction.DESC, "createdDate"))
                 .stream()
                 .map(mapper::toDto)
                 .toList();
+        if (limit != null && limit > 0 && limit < results.size()) {
+            log.debug("findAll truncated — total: {}, limit: {}", results.size(), limit);
+            return results.subList(0, limit);
+        }
+        log.debug("findAll completed — count: {}", results.size());
+        return results;
     }
 
     /**
@@ -40,8 +51,12 @@ public class LandbasePemeService {
      */
     @Transactional(readOnly = true)
     public LandbasePemeDto findById(UUID id) {
+        log.debug("findById — id: {}", id);
         LandbasePeme entity = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("LandbasePeme", id));
+                .orElseThrow(() -> {
+                    log.warn("Landbase PEME not found — id: {}", id);
+                    return new NotFoundException("LandbasePeme", id);
+                });
         return mapper.toDto(entity);
     }
 
@@ -59,9 +74,12 @@ public class LandbasePemeService {
         entity.setUpdatedDate(null);
 
         // Generate server-managed business ID
-        entity.setPemeId(businessIdGenerator.generateId("PEME"));
+        String pemeId = businessIdGenerator.generateId("PEME");
+        entity.setPemeId(pemeId);
 
         LandbasePeme saved = repository.save(entity);
+        log.info("Landbase PEME created — id: {}, pemeId: {}, lastName: {}",
+                saved.getId(), saved.getPemeId(), saved.getLastName());
         return mapper.toDto(saved);
     }
 
@@ -72,12 +90,16 @@ public class LandbasePemeService {
      */
     public LandbasePemeDto update(UUID id, LandbasePemeDto dto) {
         LandbasePeme existing = repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("LandbasePeme", id));
+                .orElseThrow(() -> {
+                    log.warn("Landbase PEME not found for update — id: {}", id);
+                    return new NotFoundException("LandbasePeme", id);
+                });
 
         // Update mutable fields only; system fields are ignored by the mapper
         mapper.updateEntity(dto, existing);
 
         LandbasePeme saved = repository.save(existing);
+        log.info("Landbase PEME updated — id: {}, pemeId: {}", saved.getId(), saved.getPemeId());
         return mapper.toDto(saved);
     }
 }

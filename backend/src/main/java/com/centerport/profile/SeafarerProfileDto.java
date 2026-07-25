@@ -9,9 +9,18 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Data transfer object for SeafarerProfile. All field names serialize to snake_case
- * via the global JacksonConfig. System fields (id, profileId, createdDate, updatedDate)
- * are included for response output but ignored on create/update input.
+ * Data transfer object for SeafarerProfile.
+ *
+ * All field names serialize to snake_case via the global
+ * {@link com.centerport.config.JacksonConfig}. System fields
+ * ({@code id}, {@code profileId}, {@code createdDate}, {@code updatedDate})
+ * are included in response output but ignored on create/update input.
+ *
+ * Validation:
+ * - {@code lastName} is required (must not be blank)
+ *
+ * @see SeafarerProfile the corresponding entity
+ * @see SeafarerProfileMapper entity/DTO conversion
  */
 @Data
 @NoArgsConstructor

@@ -5,9 +5,19 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 /**
- * MapStruct mapper for converting between MedicalExam entity and MedicalExamDto.
- * The updateEntity method ignores system-managed fields so that id, examId, createdDate,
- * and updatedDate are preserved from the existing entity during PUT updates.
+ * MapStruct mapper for converting between {@link MedicalExam} entity and
+ * {@link MedicalExamDto}.
+ *
+ * Mapping Behavior:
+ * - {@code toDto} — full entity-to-DTO conversion including system fields
+ * - {@code toEntity} — full DTO-to-entity conversion (used on create)
+ * - {@code updateEntity} — partial update that ignores system-managed fields
+ *   ({@code id}, {@code examId}, {@code createdDate}, {@code updatedDate})
+ *   so that existing values are preserved during PUT updates
+ *
+ * @see MedicalExam
+ * @see MedicalExamDto
+ * @see MedicalExamService
  */
 @Mapper(componentModel = "spring")
 public interface MedicalExamMapper {

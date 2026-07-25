@@ -9,7 +9,20 @@ import lombok.Setter;
 
 /**
  * Seafarer profile entity containing personal, employment, family, and education data.
+ *
  * All data fields are stored as strings to match the frontend TypeScript interface.
+ * The {@code profileId} is a human-readable business identifier generated server-side
+ * (format: {@code CMSI} + 8-digit padded number).
+ *
+ * Sections:
+ * - Personal info: name, birthdate, gender, nationality, religion, contact
+ * - Employment: employer, designation, position, passport/seaman's book
+ * - Family: parents, siblings, spouse, children
+ * - Education: elementary through college
+ * - Previous employment: dates, company, position, reason for leaving
+ *
+ * @see com.centerport.common.BaseEntity inherited audit fields (id, createdDate, updatedDate)
+ * @see SeafarerProfileService business logic and ID generation
  */
 @Getter
 @Setter

@@ -40,25 +40,45 @@ import java.util.UUID;
 @Service
 public class LocalStorageService implements StorageService {
 
+    private static final String PATH_SEPARATOR_PATTERN = "[/\\\\]";
+    private static final String DEFAULT_FILENAME = "file";
+
     private final Path uploadDir;
 
+    /**
+     * Constructs the service with the configured upload directory path.
+     *
+     * @param uploadPath base directory for file storage (property: {@code app.upload.dir})
+     */
     public LocalStorageService(@Value("${app.upload.dir:./uploads}") String uploadPath) {
         this.uploadDir = Paths.get(uploadPath).toAbsolutePath().normalize();
     }
 
     /**
      * Creates the upload directory on startup if it does not already exist.
+     *
+     * @throws IllegalStateException if the directory cannot be created
      */
     @PostConstruct
     public void init() {
         try {
             Files.createDirectories(uploadDir);
-            log.debug("Upload directory initialized: {}", uploadDir);
+            log.debug("Upload directory initialized — path: {}", uploadDir);
         } catch (IOException e) {
-            throw new RuntimeException("Could not create upload directory: " + uploadDir, e);
+            throw new IllegalStateException("Could not create upload directory: " + uploadDir, e);
         }
     }
 
+    // === StorageService Implementation ===
+
+    /**
+     * {@inheritDoc}
+     *
+     * Generates a UUID-prefixed filename and writes the file to the upload directory.
+     * The original filename is sanitized to prevent path traversal.
+     *
+     * @throws IllegalStateException if the file cannot be written to storage
+     */
     @Override
     public String store(MultipartFile file) {
         String originalFilename = sanitizeFilename(file.getOriginalFilename());
@@ -70,18 +90,25 @@ public class LocalStorageService implements StorageService {
         try (InputStream inputStream = file.getInputStream()) {
             Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to store file: " + uniqueFilename, e);
+            throw new IllegalStateException("Failed to store file: " + uniqueFilename, e);
         }
 
+        log.debug("File stored — name: {}, path: {}", uniqueFilename, targetPath);
         return uniqueFilename;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Resolves the filename against the upload directory, validates the path is
+     * contained within it, and returns a readable {@link UrlResource}.
+     */
     @Override
     public Resource loadAsResource(String filename) {
-        try {
-            Path filePath = uploadDir.resolve(filename).normalize();
-            validatePathWithinUploadDir(filePath);
+        Path filePath = uploadDir.resolve(filename).normalize();
+        validatePathWithinUploadDir(filePath);
 
+        try {
             Resource resource = new UrlResource(filePath.toUri());
             if (resource.exists() && resource.isReadable()) {
                 return resource;
@@ -96,14 +123,14 @@ public class LocalStorageService implements StorageService {
 
     private static String sanitizeFilename(String originalFilename) {
         if (originalFilename == null || originalFilename.isBlank()) {
-            return "file";
+            return DEFAULT_FILENAME;
         }
-        return originalFilename.replaceAll("[/\\\\]", "_");
+        return originalFilename.replaceAll(PATH_SEPARATOR_PATTERN, "_");
     }
 
     private void validatePathWithinUploadDir(Path targetPath) {
         if (!targetPath.startsWith(uploadDir)) {
-            throw new RuntimeException("Cannot store file outside upload directory");
+            throw new SecurityException("Path traversal attempt — resolved path is outside upload directory");
         }
     }
 }

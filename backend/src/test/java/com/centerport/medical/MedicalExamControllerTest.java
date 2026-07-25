@@ -129,7 +129,7 @@ class MedicalExamControllerTest {
 
     @Test
     void getList_returns200WithArray() throws Exception {
-        when(service.findAll()).thenReturn(List.of(sampleExam(), sampleExam()));
+        when(service.findAll(null)).thenReturn(List.of(sampleExam(), sampleExam()));
 
         mockMvc.perform(get("/api/medical-exams"))
                 .andExpect(status().isOk())

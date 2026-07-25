@@ -15,11 +15,29 @@ import org.hibernate.type.SqlTypes;
 import java.util.Map;
 
 /**
- * Panama Medical Certificate entity. Covers general information, personal declaration,
- * physical examination, laboratory results, and fitness assessment as required by the
- * Panama Maritime Authority.
+ * Panama Maritime Authority medical certificate entity.
  *
- * Dynamic maps (conditions, physical_exploration, lab_tests, lab_other_tests) are stored as JSONB.
+ * Represents a complete PEME (Pre-Employment Medical Examination) certificate
+ * as required by the Panama Maritime Authority for seafarer fitness assessment.
+ *
+ * Sections:
+ * - General Information — identity, vessel assignment, and crew position
+ * - Personal Declaration — medical history conditions (questions 1-44)
+ * - Statement — examinee and practitioner signatures with dates
+ * - Medical Examination — clinical data, sight, hearing, physical exploration
+ * - Laboratory Tests — mandatory and supplementary lab results
+ * - Other Diagnostic Tests — additional tests and observations
+ * - Assessment of Fitness — department fitness, restrictions, certificate dates
+ *
+ * JSONB Columns:
+ * Dynamic maps ({@code conditions}, {@code physical_exploration},
+ * {@code lab_tests}, {@code lab_other_tests}) are stored as PostgreSQL JSONB
+ * to accommodate variable-length key sets without schema migration.
+ *
+ * @see BaseEntity
+ * @see LabTestResult
+ * @see OtherLabTestResult
+ * @see PanamaCertificateDto
  */
 @Getter
 @Setter

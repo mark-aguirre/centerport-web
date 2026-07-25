@@ -36,10 +36,18 @@ import java.util.Map;
 public class FileUploadController {
 
     private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
+    private static final String INLINE_DISPOSITION_FORMAT = "inline; filename=\"%s\"";
 
     private final StorageService storageService;
     private final List<String> allowedTypes;
 
+    /**
+     * Constructs the controller with a storage backend and configurable allowed content types.
+     *
+     * @param storageService     the storage implementation for persisting and retrieving files
+     * @param allowedTypesConfig comma-separated list of allowed MIME types
+     *                           (property: {@code app.upload.allowed-types})
+     */
     public FileUploadController(
             StorageService storageService,
             @Value("${app.upload.allowed-types:image/jpeg,image/png,image/gif,image/webp,application/pdf}")
@@ -47,6 +55,8 @@ public class FileUploadController {
         this.storageService = storageService;
         this.allowedTypes = List.of(allowedTypesConfig.split(","));
     }
+
+    // === Endpoints ===
 
     /**
      * Uploads a single file. Validates that the file is non-empty and its content
@@ -69,7 +79,7 @@ public class FileUploadController {
 
         String storedFilename = storageService.store(file);
         String fileUrl = "/api/files/" + storedFilename;
-        log.debug("File uploaded — stored as: {}", storedFilename);
+        log.debug("File uploaded — originalName: {}, storedAs: {}", file.getOriginalFilename(), storedFilename);
 
         return ResponseEntity.ok(Map.of("file_url", fileUrl));
     }
@@ -88,7 +98,7 @@ public class FileUploadController {
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, String.format(INLINE_DISPOSITION_FORMAT, resource.getFilename()))
                 .body(resource);
     }
 
@@ -101,8 +111,8 @@ public class FileUploadController {
             if (probed != null) {
                 return probed;
             }
-        } catch (IOException ignored) {
-            // Fall back to default content type
+        } catch (IOException e) {
+            log.trace("Content type probe failed, falling back to default — resource: {}", resource.getFilename(), e);
         }
         return DEFAULT_CONTENT_TYPE;
     }

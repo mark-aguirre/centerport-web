@@ -15,9 +15,41 @@ import org.hibernate.type.SqlTypes;
 import java.util.Map;
 
 /**
- * Medical Examination entity with ~150 fields covering personal info, physical exam,
- * vision, audiometry, findings, lab results, diagnosis, and certification.
- * Dynamic maps (findings_a/b/c, questionnaire, medical_history) are stored as JSONB.
+ * JPA entity representing a comprehensive medical examination record.
+ *
+ * This entity captures the full lifecycle of a pre-employment medical
+ * examination (PEME) for maritime personnel, covering approximately 150
+ * data points organized into the following domains:
+ *
+ * Field Groups:
+ * - Personal Information — demographics, contact, employer, passport
+ * - Physical Examination — vital signs (BP, HR, temp, BMI, O2 sat)
+ * - Vision — far/near acuity (corrected and uncorrected), color, STCW
+ * - Audiometry — air/bone conduction thresholds per ear
+ * - Physical Systems — skin, HEENT, neck, chest/lungs, cardiovascular,
+ *   abdomen, extremities, neurological (each with finding + remarks)
+ * - Findings (JSONB) — dynamic boolean maps for checklist categories A/B/C
+ * - Questionnaire (JSONB) — patient-reported symptom responses
+ * - Medical History (JSONB) — past conditions, surgeries, family history
+ * - Ancillary Examinations — chest X-ray, ECG, CBC, urinalysis, etc.
+ * - Laboratory Results — structured result/remarks pairs per test type
+ * - Diagnosis and Treatment — ICD codes, medications, referrals
+ * - Certification — fitness determinations, validity dates, physician info
+ *
+ * Storage:
+ * Variable-structure data (findings, questionnaire, medical history) is
+ * persisted as PostgreSQL JSONB columns, allowing schema flexibility without
+ * additional join tables.
+ *
+ * Identity:
+ * Inherits UUID primary key and audit timestamps from {@link
+ * com.centerport.common.BaseEntity}. Additionally carries a human-readable
+ * {@code examId} (format {@code MED00000001}) generated via
+ * {@link com.centerport.common.BusinessIdGenerator}.
+ *
+ * @see com.centerport.common.BaseEntity
+ * @see MedicalExamDto
+ * @see MedicalExamMapper
  */
 @Getter
 @Setter

@@ -11,9 +11,24 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Data transfer object for MedicalExam. All field names serialize to snake_case
- * via the global JacksonConfig. System fields (id, examId, createdDate, updatedDate)
- * are included for response output but ignored on create/update input.
+ * Data transfer object for medical examination records.
+ *
+ * Mirrors the field structure of {@link MedicalExam} for REST serialization.
+ * All field names serialize to snake_case via the global
+ * {@link com.centerport.config.JacksonConfig}.
+ *
+ * System Fields:
+ * The fields {@code id}, {@code examId}, {@code createdDate}, and
+ * {@code updatedDate} are included in responses but ignored during
+ * create and update operations — the server manages these values.
+ *
+ * Validation:
+ * - {@code lastName} is required ({@code @NotBlank})
+ * - All other fields are optional
+ *
+ * @see MedicalExam
+ * @see MedicalExamMapper
+ * @see MedicalExamController
  */
 @Data
 @NoArgsConstructor

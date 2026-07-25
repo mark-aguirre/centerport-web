@@ -135,7 +135,7 @@ class LandbasePemeControllerTest {
 
     @Test
     void getList_returns200WithArray() throws Exception {
-        when(service.findAll()).thenReturn(List.of(samplePeme(), samplePeme()));
+        when(service.findAll(null)).thenReturn(List.of(samplePeme(), samplePeme()));
 
         mockMvc.perform(get("/api/landbase-pemes"))
                 .andExpect(status().isOk())
