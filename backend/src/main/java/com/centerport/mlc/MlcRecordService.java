@@ -1,10 +1,13 @@
 package com.centerport.mlc;
 
-import com.centerport.common.BusinessIdGenerator;
-import com.centerport.common.NotFoundException;
+import com.centerport.common.dto.PagedResponse;
+import com.centerport.common.exception.NotFoundException;
+import com.centerport.common.util.BusinessIdGenerator;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,17 +23,13 @@ import java.util.UUID;
  * - Enforcement that client-supplied system fields are never persisted
  * - Mapping between entity and DTO via {@link MlcRecordMapper}
  *
- * Business ID:
- * Each new record receives a unique sequential ID in the format
- * {@code MLC00000001} generated from the PostgreSQL sequence {@code mlc_seq}.
- *
  * @see MlcRecordRepository
  * @see MlcRecordMapper
- * @see com.centerport.common.BusinessIdGenerator
+ * @see BusinessIdGenerator
  */
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MlcRecordService {
 
@@ -40,32 +39,20 @@ public class MlcRecordService {
     private final MlcRecordMapper mapper;
     private final BusinessIdGenerator businessIdGenerator;
 
-    // =======================================================================
-    // Query Operations
-    // =======================================================================
+    // === Queries ===
 
     /**
-     * Returns all MLC records sorted by creation date descending.
+     * Returns paginated MLC records.
      *
-     * @param limit optional cap on the number of results; {@code null} or
-     *              non-positive returns all
-     * @return list of MLC record DTOs, possibly truncated to {@code limit}
+     * @param pageable pagination and sorting parameters
+     * @return paged response of MLC record DTOs
      */
-    @Transactional(readOnly = true)
-    public List<MlcRecordDto> findAll(Integer limit) {
-        List<MlcRecordDto> results = repository
-                .findAll(Sort.by(Sort.Direction.DESC, "createdDate"))
-                .stream()
+    public PagedResponse<MlcRecordDto> findAll(Pageable pageable) {
+        Page<MlcRecord> page = repository.findAll(pageable);
+        List<MlcRecordDto> content = page.getContent().stream()
                 .map(mapper::toDto)
                 .toList();
-
-        if (limit != null && limit > 0 && limit < results.size()) {
-            log.debug("findAll truncated — total: {}, limit applied: {}", results.size(), limit);
-            return results.subList(0, limit);
-        }
-
-        log.debug("findAll completed — count: {}", results.size());
-        return results;
+        return PagedResponse.of(content, page);
     }
 
     /**
@@ -75,7 +62,6 @@ public class MlcRecordService {
      * @return the matching MLC record DTO
      * @throws NotFoundException if no record exists with the given ID
      */
-    @Transactional(readOnly = true)
     public MlcRecordDto findById(UUID id) {
         MlcRecord entity = repository.findById(id)
                 .orElseThrow(() -> {
@@ -85,19 +71,15 @@ public class MlcRecordService {
         return mapper.toDto(entity);
     }
 
-    // =======================================================================
-    // Mutation Operations
-    // =======================================================================
+    // === Commands ===
 
     /**
      * Creates a new MLC record.
      *
-     * Client-supplied system fields (id, mlcId, createdDate, updatedDate) are
-     * cleared before persistence. A business ID is generated server-side.
-     *
      * @param dto the MLC record data to persist
      * @return the created record including server-generated system fields
      */
+    @Transactional
     public MlcRecordDto create(MlcRecordDto dto) {
         MlcRecord entity = mapper.toEntity(dto);
         clearSystemFields(entity);
@@ -115,15 +97,12 @@ public class MlcRecordService {
     /**
      * Updates an existing MLC record.
      *
-     * Mutable data fields are updated from the DTO; system fields (id, mlcId,
-     * createdDate) are preserved. {@code updatedDate} is refreshed automatically
-     * via {@link com.centerport.common.BaseEntity#onUpdate()}.
-     *
      * @param id  the record's primary key
      * @param dto the updated record data
      * @return the updated MLC record DTO
      * @throws NotFoundException if no record exists with the given ID
      */
+    @Transactional
     public MlcRecordDto update(UUID id, MlcRecordDto dto) {
         MlcRecord existing = repository.findById(id)
                 .orElseThrow(() -> {
@@ -138,14 +117,8 @@ public class MlcRecordService {
         return mapper.toDto(saved);
     }
 
-    // =======================================================================
-    // Private Helpers
-    // =======================================================================
+    // === Helpers ===
 
-    /**
-     * Clears server-managed system fields to prevent client-supplied values
-     * from being persisted.
-     */
     private void clearSystemFields(MlcRecord entity) {
         entity.setId(null);
         entity.setMlcId(null);

@@ -1,11 +1,13 @@
 package com.centerport.profile;
 
-import com.centerport.common.BusinessIdGenerator;
-import com.centerport.common.NotFoundException;
+import com.centerport.common.dto.PagedResponse;
+import com.centerport.common.exception.NotFoundException;
+import com.centerport.common.util.BusinessIdGenerator;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,12 +29,11 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class SeafarerProfileService {
 
     private static final String BUSINESS_ID_PREFIX = "CMSI";
-    private static final Sort DEFAULT_SORT = Sort.by(Sort.Direction.DESC, "createdDate");
 
     private final SeafarerProfileRepository repository;
     private final SeafarerProfileMapper mapper;
@@ -41,30 +42,17 @@ public class SeafarerProfileService {
     // === Queries ===
 
     /**
-     * Returns all profiles sorted by {@code createdDate} descending.
+     * Returns paginated profiles.
      *
-     * @return list of all profiles as DTOs
+     * @param pageable pagination and sorting parameters
+     * @return paged response of profile DTOs
      */
-    @Transactional(readOnly = true)
-    public List<SeafarerProfileDto> findAll() {
-        return repository.findAll(DEFAULT_SORT)
-                .stream()
+    public PagedResponse<SeafarerProfileDto> findAll(Pageable pageable) {
+        Page<SeafarerProfile> page = repository.findAll(pageable);
+        List<SeafarerProfileDto> content = page.getContent().stream()
                 .map(mapper::toDto)
                 .toList();
-    }
-
-    /**
-     * Returns up to {@code limit} profiles sorted by {@code createdDate} descending.
-     *
-     * @param limit maximum number of profiles to return
-     * @return list of profiles capped at the given limit
-     */
-    @Transactional(readOnly = true)
-    public List<SeafarerProfileDto> findAll(int limit) {
-        return repository.findAll(PageRequest.of(0, limit, DEFAULT_SORT))
-                .stream()
-                .map(mapper::toDto)
-                .toList();
+        return PagedResponse.of(content, page);
     }
 
     /**
@@ -74,7 +62,6 @@ public class SeafarerProfileService {
      * @return the matching profile DTO
      * @throws NotFoundException if no profile exists with the given ID
      */
-    @Transactional(readOnly = true)
     public SeafarerProfileDto findById(UUID id) {
         SeafarerProfile entity = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("SeafarerProfile", id));
@@ -93,6 +80,7 @@ public class SeafarerProfileService {
      * @param dto the profile data from the client
      * @return the persisted profile with server-generated fields populated
      */
+    @Transactional
     public SeafarerProfileDto create(SeafarerProfileDto dto) {
         SeafarerProfile entity = mapper.toEntity(dto);
         clearSystemFields(entity);
@@ -115,6 +103,7 @@ public class SeafarerProfileService {
      * @return the updated profile DTO
      * @throws NotFoundException if no profile exists with the given ID
      */
+    @Transactional
     public SeafarerProfileDto update(UUID id, SeafarerProfileDto dto) {
         SeafarerProfile existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("SeafarerProfile", id));

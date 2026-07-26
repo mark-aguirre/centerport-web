@@ -1,10 +1,13 @@
 package com.centerport.medical;
 
-import com.centerport.common.BusinessIdGenerator;
-import com.centerport.common.NotFoundException;
+import com.centerport.common.dto.PagedResponse;
+import com.centerport.common.exception.NotFoundException;
+import com.centerport.common.util.BusinessIdGenerator;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,11 +29,11 @@ import java.util.UUID;
  *
  * @see MedicalExamRepository
  * @see MedicalExamMapper
- * @see com.centerport.common.BusinessIdGenerator
+ * @see com.centerport.common.util.BusinessIdGenerator
  */
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class MedicalExamService {
 
@@ -45,27 +48,17 @@ public class MedicalExamService {
     // =======================================================================
 
     /**
-     * Returns all medical exams sorted by creation date descending.
+     * Returns paginated medical exams.
      *
-     * @param limit optional cap on the number of results; {@code null} or
-     *              non-positive returns all
-     * @return list of exam DTOs, possibly truncated to {@code limit}
+     * @param pageable pagination and sorting parameters
+     * @return paged response of exam DTOs
      */
-    @Transactional(readOnly = true)
-    public List<MedicalExamDto> findAll(Integer limit) {
-        List<MedicalExamDto> results = repository
-                .findAll(Sort.by(Sort.Direction.DESC, "createdDate"))
-                .stream()
+    public PagedResponse<MedicalExamDto> findAll(Pageable pageable) {
+        Page<MedicalExam> page = repository.findAll(pageable);
+        List<MedicalExamDto> content = page.getContent().stream()
                 .map(mapper::toDto)
                 .toList();
-
-        if (limit != null && limit > 0 && limit < results.size()) {
-            log.debug("findAll truncated — total: {}, limit applied: {}", results.size(), limit);
-            return results.subList(0, limit);
-        }
-
-        log.debug("findAll completed — count: {}", results.size());
-        return results;
+        return PagedResponse.of(content, page);
     }
 
     /**
@@ -75,7 +68,6 @@ public class MedicalExamService {
      * @return the matching exam DTO
      * @throws NotFoundException if no exam exists with the given ID
      */
-    @Transactional(readOnly = true)
     public MedicalExamDto findById(UUID id) {
         MedicalExam entity = repository.findById(id)
                 .orElseThrow(() -> {
@@ -98,6 +90,7 @@ public class MedicalExamService {
      * @param dto the exam data to persist
      * @return the created exam including server-generated system fields
      */
+    @Transactional
     public MedicalExamDto create(MedicalExamDto dto) {
         MedicalExam entity = mapper.toEntity(dto);
         clearSystemFields(entity);
@@ -124,6 +117,7 @@ public class MedicalExamService {
      * @return the updated exam DTO
      * @throws NotFoundException if no exam exists with the given ID
      */
+    @Transactional
     public MedicalExamDto update(UUID id, MedicalExamDto dto) {
         MedicalExam existing = repository.findById(id)
                 .orElseThrow(() -> {

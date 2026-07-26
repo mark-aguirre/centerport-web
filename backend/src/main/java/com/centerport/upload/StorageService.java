@@ -29,7 +29,7 @@ public interface StorageService {
      *
      * @param filename the stored filename (as returned by {@link #store(MultipartFile)})
      * @return the file as a readable Resource
-     * @throws com.centerport.common.NotFoundException if the file does not exist or is unreadable
+     * @throws com.centerport.common.exception.NotFoundException if the file does not exist or is unreadable
      */
     Resource loadAsResource(String filename);
 }

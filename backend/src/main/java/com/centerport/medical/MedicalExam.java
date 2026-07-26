@@ -1,6 +1,6 @@
 package com.centerport.medical;
 
-import com.centerport.common.BaseEntity;
+import com.centerport.common.entity.BaseEntity;
 import com.centerport.common.enums.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -45,7 +45,7 @@ import java.util.Map;
  * Inherits UUID primary key and audit timestamps from {@link
  * com.centerport.common.BaseEntity}. Additionally carries a human-readable
  * {@code examId} (format {@code MED00000001}) generated via
- * {@link com.centerport.common.BusinessIdGenerator}.
+ * {@link com.centerport.common.util.BusinessIdGenerator}.
  *
  * @see com.centerport.common.BaseEntity
  * @see MedicalExamDto

@@ -1,10 +1,13 @@
 package com.centerport.panama;
 
-import com.centerport.common.BusinessIdGenerator;
-import com.centerport.common.NotFoundException;
+import com.centerport.common.dto.PagedResponse;
+import com.centerport.common.exception.NotFoundException;
+import com.centerport.common.util.BusinessIdGenerator;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,17 +23,13 @@ import java.util.UUID;
  * - Enforcement that client-supplied system fields are never persisted
  * - Mapping between entity and DTO via {@link PanamaCertificateMapper}
  *
- * Business ID:
- * Each new certificate receives a unique sequential ID in the format
- * {@code PAN00000001} generated from the PostgreSQL sequence {@code pan_seq}.
- *
  * @see PanamaCertificateRepository
  * @see PanamaCertificateMapper
- * @see com.centerport.common.BusinessIdGenerator
+ * @see BusinessIdGenerator
  */
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class PanamaCertificateService {
 
@@ -40,32 +39,20 @@ public class PanamaCertificateService {
     private final PanamaCertificateMapper mapper;
     private final BusinessIdGenerator businessIdGenerator;
 
-    // =======================================================================
-    // Query Operations
-    // =======================================================================
+    // === Queries ===
 
     /**
-     * Returns all Panama certificates sorted by creation date descending.
+     * Returns paginated Panama certificates.
      *
-     * @param limit optional cap on the number of results; {@code null} or
-     *              non-positive returns all
-     * @return list of Panama certificate DTOs, possibly truncated to {@code limit}
+     * @param pageable pagination and sorting parameters
+     * @return paged response of certificate DTOs
      */
-    @Transactional(readOnly = true)
-    public List<PanamaCertificateDto> findAll(Integer limit) {
-        List<PanamaCertificateDto> results = repository
-                .findAll(Sort.by(Sort.Direction.DESC, "createdDate"))
-                .stream()
+    public PagedResponse<PanamaCertificateDto> findAll(Pageable pageable) {
+        Page<PanamaCertificate> page = repository.findAll(pageable);
+        List<PanamaCertificateDto> content = page.getContent().stream()
                 .map(mapper::toDto)
                 .toList();
-
-        if (limit != null && limit > 0 && limit < results.size()) {
-            log.debug("findAll truncated — total: {}, limit applied: {}", results.size(), limit);
-            return results.subList(0, limit);
-        }
-
-        log.debug("findAll completed — count: {}", results.size());
-        return results;
+        return PagedResponse.of(content, page);
     }
 
     /**
@@ -75,7 +62,6 @@ public class PanamaCertificateService {
      * @return the matching Panama certificate DTO
      * @throws NotFoundException if no certificate exists with the given ID
      */
-    @Transactional(readOnly = true)
     public PanamaCertificateDto findById(UUID id) {
         PanamaCertificate entity = repository.findById(id)
                 .orElseThrow(() -> {
@@ -85,19 +71,15 @@ public class PanamaCertificateService {
         return mapper.toDto(entity);
     }
 
-    // =======================================================================
-    // Mutation Operations
-    // =======================================================================
+    // === Commands ===
 
     /**
      * Creates a new Panama certificate.
      *
-     * Client-supplied system fields (id, panamaId, createdDate, updatedDate)
-     * are cleared before persistence. A business ID is generated server-side.
-     *
      * @param dto the Panama certificate data to persist
      * @return the created certificate including server-generated system fields
      */
+    @Transactional
     public PanamaCertificateDto create(PanamaCertificateDto dto) {
         PanamaCertificate entity = mapper.toEntity(dto);
         clearSystemFields(entity);
@@ -115,15 +97,12 @@ public class PanamaCertificateService {
     /**
      * Updates an existing Panama certificate.
      *
-     * Mutable data fields are updated from the DTO; system fields (id, panamaId,
-     * createdDate) are preserved. {@code updatedDate} is refreshed automatically
-     * via {@link com.centerport.common.BaseEntity#onUpdate()}.
-     *
      * @param id  the certificate's primary key
      * @param dto the updated certificate data
      * @return the updated Panama certificate DTO
      * @throws NotFoundException if no certificate exists with the given ID
      */
+    @Transactional
     public PanamaCertificateDto update(UUID id, PanamaCertificateDto dto) {
         PanamaCertificate existing = repository.findById(id)
                 .orElseThrow(() -> {
@@ -139,14 +118,8 @@ public class PanamaCertificateService {
         return mapper.toDto(saved);
     }
 
-    // =======================================================================
-    // Private Helpers
-    // =======================================================================
+    // === Helpers ===
 
-    /**
-     * Clears server-managed system fields to prevent client-supplied values
-     * from being persisted.
-     */
     private void clearSystemFields(PanamaCertificate entity) {
         entity.setId(null);
         entity.setPanamaId(null);

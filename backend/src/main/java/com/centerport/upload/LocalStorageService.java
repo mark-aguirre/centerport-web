@@ -1,6 +1,5 @@
 package com.centerport.upload;
 
-import com.centerport.common.NotFoundException;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -8,6 +7,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.centerport.common.exception.NotFoundException;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,6 +1,6 @@
 package com.centerport.profile;
 
-import com.centerport.common.BaseEntity;
+import com.centerport.common.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

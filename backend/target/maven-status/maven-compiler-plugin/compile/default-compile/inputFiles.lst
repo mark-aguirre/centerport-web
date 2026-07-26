@@ -1,6 +1,7 @@
 C:\code_area\centerport\backend\src\main\java\com\centerport\CenterportApplication.java
-C:\code_area\centerport\backend\src\main\java\com\centerport\common\BaseEntity.java
-C:\code_area\centerport\backend\src\main\java\com\centerport\common\BusinessIdGenerator.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\dto\ApiResponse.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\dto\PagedResponse.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\entity\BaseEntity.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\BloodType.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\BPClassification.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\CertificateType.java
@@ -22,8 +23,12 @@ C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\TradeA
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\VisualAcuityResult.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\VisualAid.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\YesNo.java
-C:\code_area\centerport\backend\src\main\java\com\centerport\common\GlobalExceptionHandler.java
-C:\code_area\centerport\backend\src\main\java\com\centerport\common\NotFoundException.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\exception\BadRequestException.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\exception\ConflictException.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\exception\GlobalExceptionHandler.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\exception\NotFoundException.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\filter\RequestIdFilter.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\util\BusinessIdGenerator.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\config\CorsConfig.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\config\JacksonConfig.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\config\OpenApiConfig.java

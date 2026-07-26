@@ -1,4 +1,4 @@
-package com.centerport.common;
+package com.centerport.common.util;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;

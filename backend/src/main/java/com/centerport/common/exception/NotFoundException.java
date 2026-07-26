@@ -1,4 +1,4 @@
-package com.centerport.common;
+package com.centerport.common.exception;
 
 /**
  * Thrown when a requested resource cannot be found. Mapped to HTTP 404 by the

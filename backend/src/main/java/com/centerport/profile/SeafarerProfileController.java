@@ -1,11 +1,22 @@
 package com.centerport.profile;
 
+import com.centerport.common.dto.ApiResponse;
+import com.centerport.common.dto.PagedResponse;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.List;
+import java.net.URI;
 import java.util.UUID;
 
 /**
@@ -14,34 +25,35 @@ import java.util.UUID;
  * Exposes endpoints at {@code /api/profiles} for listing, fetching,
  * creating, and updating seafarer profiles.
  *
- * Endpoints:
- * - GET  /api/profiles       — list all profiles (optional {@code limit} param)
- * - GET  /api/profiles/{id}  — fetch a single profile by UUID
- * - POST /api/profiles       — create a new profile
- * - PUT  /api/profiles/{id}  — update an existing profile
- *
  * @see SeafarerProfileService
  */
 @RestController
 @RequestMapping("/api/profiles")
 @RequiredArgsConstructor
+@Tag(name = "Seafarer Profiles", description = "CRUD operations for seafarer demographic and employment data")
 public class SeafarerProfileController {
 
     private final SeafarerProfileService service;
 
     /**
-     * Returns all profiles sorted by {@code createdDate} descending.
-     * When a positive {@code limit} is supplied, at most that many profiles are returned.
+     * Returns paginated profiles sorted by creation date descending.
      *
-     * @param limit optional cap on the number of results (database-level)
-     * @return list of profiles
+     * @param pageable pagination and sorting parameters
+     * @return paged list of profiles
      */
     @GetMapping
-    public List<SeafarerProfileDto> list(@RequestParam(required = false) Integer limit) {
-        if (limit != null && limit > 0) {
-            return service.findAll(limit);
-        }
-        return service.findAll();
+    @Operation(summary = "List all profiles with pagination",
+               description = "Returns paginated seafarer profiles. Default sort: createdDate DESC.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Profiles retrieved")
+    })
+    public ResponseEntity<ApiResponse<PagedResponse<SeafarerProfileDto>>> list(
+            @ParameterObject
+            @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+
+        PagedResponse<SeafarerProfileDto> page = service.findAll(pageable);
+        return ResponseEntity.ok(ApiResponse.success(page));
     }
 
     /**
@@ -51,8 +63,14 @@ public class SeafarerProfileController {
      * @return the matching profile
      */
     @GetMapping("/{id}")
-    public SeafarerProfileDto getById(@PathVariable UUID id) {
-        return service.findById(id);
+    @Operation(summary = "Get profile by UUID")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Profile found"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Profile not found")
+    })
+    public ResponseEntity<ApiResponse<SeafarerProfileDto>> getById(@PathVariable UUID id) {
+        SeafarerProfileDto profile = service.findById(id);
+        return ResponseEntity.ok(ApiResponse.success(profile));
     }
 
     /**
@@ -63,9 +81,22 @@ public class SeafarerProfileController {
      * @return the persisted profile DTO
      */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public SeafarerProfileDto create(@Valid @RequestBody SeafarerProfileDto dto) {
-        return service.create(dto);
+    @Operation(summary = "Create a new seafarer profile")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Profile created"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error")
+    })
+    public ResponseEntity<ApiResponse<SeafarerProfileDto>> create(@Valid @RequestBody SeafarerProfileDto dto) {
+        SeafarerProfileDto created = service.create(dto);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+
+        return ResponseEntity.created(location)
+                .body(ApiResponse.success(created, "Profile created successfully"));
     }
 
     /**
@@ -77,7 +108,17 @@ public class SeafarerProfileController {
      * @return the updated profile DTO
      */
     @PutMapping("/{id}")
-    public SeafarerProfileDto update(@PathVariable UUID id, @Valid @RequestBody SeafarerProfileDto dto) {
-        return service.update(id, dto);
+    @Operation(summary = "Update an existing seafarer profile")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Profile updated"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Profile not found"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error")
+    })
+    public ResponseEntity<ApiResponse<SeafarerProfileDto>> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody SeafarerProfileDto dto) {
+
+        SeafarerProfileDto updated = service.update(id, dto);
+        return ResponseEntity.ok(ApiResponse.success(updated, "Profile updated successfully"));
     }
 }

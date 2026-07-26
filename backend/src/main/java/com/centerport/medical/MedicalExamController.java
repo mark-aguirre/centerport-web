@@ -1,12 +1,23 @@
 package com.centerport.medical;
 
+import com.centerport.common.dto.ApiResponse;
+import com.centerport.common.dto.PagedResponse;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.util.List;
+import java.net.URI;
 import java.util.UUID;
 
 /**
@@ -15,15 +26,6 @@ import java.util.UUID;
  * Exposes endpoints under {@code /api/medical-exams} for listing, fetching,
  * creating, and updating medical examination records.
  *
- * Pagination:
- * The list endpoint accepts an optional {@code limit} query parameter to cap
- * the number of results returned. Results are always sorted by creation date
- * descending (most recent first).
- *
- * Validation:
- * Create and update operations validate the request body via Jakarta Bean
- * Validation — at minimum, {@code last_name} is required.
- *
  * @see MedicalExamService
  * @see MedicalExamDto
  */
@@ -31,23 +33,30 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/medical-exams")
 @RequiredArgsConstructor
+@Tag(name = "Medical Exams", description = "CRUD operations for pre-employment medical examination records")
 public class MedicalExamController {
 
     private final MedicalExamService service;
 
     /**
-     * Returns all medical exams sorted by creation date descending.
+     * Returns paginated medical exams sorted by creation date descending.
      *
-     * @param limit optional cap on the number of results; {@code null} or
-     *              non-positive returns all
-     * @return list of exam DTOs, possibly truncated to {@code limit}
+     * @param pageable pagination and sorting parameters
+     * @return paged list of exam DTOs
      */
     @GetMapping
-    public List<MedicalExamDto> list(@RequestParam(required = false) Integer limit) {
-        log.debug("GET /api/medical-exams — limit: {}", limit);
-        List<MedicalExamDto> results = service.findAll(limit);
-        log.debug("Medical exams listed — count: {}", results.size());
-        return results;
+    @Operation(summary = "List all medical exams with pagination",
+               description = "Returns paginated medical exams. Default sort: createdDate DESC.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Exams retrieved")
+    })
+    public ResponseEntity<ApiResponse<PagedResponse<MedicalExamDto>>> list(
+            @ParameterObject
+            @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+
+        PagedResponse<MedicalExamDto> page = service.findAll(pageable);
+        return ResponseEntity.ok(ApiResponse.success(page));
     }
 
     /**
@@ -55,13 +64,16 @@ public class MedicalExamController {
      *
      * @param id the exam's primary key
      * @return the matching exam DTO
-     * @throws com.centerport.common.NotFoundException if no exam exists
-     *         with the given ID
      */
     @GetMapping("/{id}")
-    public MedicalExamDto getById(@PathVariable UUID id) {
-        log.debug("GET /api/medical-exams/{} — fetching by id", id);
-        return service.findById(id);
+    @Operation(summary = "Get medical exam by UUID")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Exam found"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Exam not found")
+    })
+    public ResponseEntity<ApiResponse<MedicalExamDto>> getById(@PathVariable UUID id) {
+        MedicalExamDto exam = service.findById(id);
+        return ResponseEntity.ok(ApiResponse.success(exam));
     }
 
     /**
@@ -74,12 +86,23 @@ public class MedicalExamController {
      * @return the created exam including server-generated system fields
      */
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public MedicalExamDto create(@Valid @RequestBody MedicalExamDto dto) {
+    @Operation(summary = "Create a new medical exam record")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Exam created"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error")
+    })
+    public ResponseEntity<ApiResponse<MedicalExamDto>> create(@Valid @RequestBody MedicalExamDto dto) {
         log.info("Medical exam creation requested — lastName: {}", dto.getLastName());
         MedicalExamDto created = service.create(dto);
-        log.info("Medical exam created — examId: {}, id: {}", created.getExamId(), created.getId());
-        return created;
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(created.getId())
+                .toUri();
+
+        return ResponseEntity.created(location)
+                .body(ApiResponse.success(created, "Medical exam created successfully"));
     }
 
     /**
@@ -91,15 +114,20 @@ public class MedicalExamController {
      * @param id  the exam's primary key
      * @param dto the updated exam data
      * @return the updated exam DTO
-     * @throws com.centerport.common.NotFoundException if no exam exists
-     *         with the given ID
      */
     @PutMapping("/{id}")
-    public MedicalExamDto update(@PathVariable UUID id,
-                                 @Valid @RequestBody MedicalExamDto dto) {
+    @Operation(summary = "Update an existing medical exam record")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Exam updated"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Exam not found"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error")
+    })
+    public ResponseEntity<ApiResponse<MedicalExamDto>> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody MedicalExamDto dto) {
+
         log.info("Medical exam update requested — id: {}", id);
         MedicalExamDto updated = service.update(id, dto);
-        log.info("Medical exam updated — examId: {}, id: {}", updated.getExamId(), id);
-        return updated;
+        return ResponseEntity.ok(ApiResponse.success(updated, "Medical exam updated successfully"));
     }
 }

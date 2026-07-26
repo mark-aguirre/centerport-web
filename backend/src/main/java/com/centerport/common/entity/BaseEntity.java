@@ -1,4 +1,4 @@
-package com.centerport.common;
+package com.centerport.common.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;

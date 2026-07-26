@@ -1,6 +1,5 @@
 package com.centerport;
 
-import com.centerport.common.BusinessIdGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
@@ -12,6 +11,8 @@ import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import com.centerport.common.util.BusinessIdGenerator;
 
 import java.util.List;
 import java.util.Set;

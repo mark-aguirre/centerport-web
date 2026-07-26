@@ -1,7 +1,7 @@
 package com.centerport.upload;
 
-import com.centerport.common.GlobalExceptionHandler;
-import com.centerport.common.NotFoundException;
+import com.centerport.common.exception.GlobalExceptionHandler;
+import com.centerport.common.exception.NotFoundException;
 import com.centerport.config.JacksonConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

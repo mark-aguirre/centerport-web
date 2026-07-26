@@ -1,7 +1,8 @@
 package com.centerport.profile;
 
-import com.centerport.common.GlobalExceptionHandler;
-import com.centerport.common.NotFoundException;
+import com.centerport.common.dto.PagedResponse;
+import com.centerport.common.exception.GlobalExceptionHandler;
+import com.centerport.common.exception.NotFoundException;
 import com.centerport.config.JacksonConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -63,9 +65,9 @@ class SeafarerProfileControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value("11111111-1111-1111-1111-111111111111"))
-                .andExpect(jsonPath("$.profile_id").value("CMSI00000001"))
-                .andExpect(jsonPath("$.last_name").value("Dela Cruz"));
+                .andExpect(jsonPath("$.data.id").value("11111111-1111-1111-1111-111111111111"))
+                .andExpect(jsonPath("$.data.profile_id").value("CMSI00000001"))
+                .andExpect(jsonPath("$.data.last_name").value("Dela Cruz"));
     }
 
     @Test
@@ -78,7 +80,7 @@ class SeafarerProfileControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").isNotEmpty());
+                .andExpect(jsonPath("$.detail").isNotEmpty());
     }
 
     @Test
@@ -100,8 +102,8 @@ class SeafarerProfileControllerTest {
 
         mockMvc.perform(get("/api/profiles/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.last_name").value("Dela Cruz"));
+                .andExpect(jsonPath("$.data.id").value(id.toString()))
+                .andExpect(jsonPath("$.data.last_name").value("Dela Cruz"));
     }
 
     @Test
@@ -112,18 +114,29 @@ class SeafarerProfileControllerTest {
         mockMvc.perform(get("/api/profiles/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message", containsString("not found")));
+                .andExpect(jsonPath("$.title").value("Resource Not Found"))
+                .andExpect(jsonPath("$.detail", containsString("not found")));
     }
 
     @Test
     void getList_returns200WithArray() throws Exception {
-        when(service.findAll()).thenReturn(List.of(sampleProfile(), sampleProfile()));
+        PagedResponse<SeafarerProfileDto> pagedResponse = PagedResponse.<SeafarerProfileDto>builder()
+                .content(List.of(sampleProfile(), sampleProfile()))
+                .page(0)
+                .size(20)
+                .totalElements(2)
+                .totalPages(1)
+                .first(true)
+                .last(true)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+        when(service.findAll(any(Pageable.class))).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/profiles"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content", hasSize(2)));
     }
 
     @Test
@@ -137,7 +150,7 @@ class SeafarerProfileControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.last_name").value("Garcia"));
+                .andExpect(jsonPath("$.data.last_name").value("Garcia"));
     }
 
     @Test
@@ -151,7 +164,7 @@ class SeafarerProfileControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").isNotEmpty());
+                .andExpect(jsonPath("$.detail").isNotEmpty());
     }
 
     @Test
@@ -162,18 +175,18 @@ class SeafarerProfileControllerTest {
         mockMvc.perform(get("/api/profiles/{id}", id))
                 .andExpect(status().isOk())
                 // Verify snake_case fields are present
-                .andExpect(jsonPath("$.profile_id").exists())
-                .andExpect(jsonPath("$.created_date").exists())
-                .andExpect(jsonPath("$.updated_date").exists())
-                .andExpect(jsonPath("$.last_name").exists())
-                .andExpect(jsonPath("$.first_name").exists())
-                .andExpect(jsonPath("$.middle_name").exists())
+                .andExpect(jsonPath("$.data.profile_id").exists())
+                .andExpect(jsonPath("$.data.created_date").exists())
+                .andExpect(jsonPath("$.data.updated_date").exists())
+                .andExpect(jsonPath("$.data.last_name").exists())
+                .andExpect(jsonPath("$.data.first_name").exists())
+                .andExpect(jsonPath("$.data.middle_name").exists())
                 // Verify camelCase fields are NOT present
-                .andExpect(jsonPath("$.profileId").doesNotExist())
-                .andExpect(jsonPath("$.createdDate").doesNotExist())
-                .andExpect(jsonPath("$.updatedDate").doesNotExist())
-                .andExpect(jsonPath("$.lastName").doesNotExist())
-                .andExpect(jsonPath("$.firstName").doesNotExist())
-                .andExpect(jsonPath("$.middleName").doesNotExist());
+                .andExpect(jsonPath("$.data.profileId").doesNotExist())
+                .andExpect(jsonPath("$.data.createdDate").doesNotExist())
+                .andExpect(jsonPath("$.data.updatedDate").doesNotExist())
+                .andExpect(jsonPath("$.data.lastName").doesNotExist())
+                .andExpect(jsonPath("$.data.firstName").doesNotExist())
+                .andExpect(jsonPath("$.data.middleName").doesNotExist());
     }
 }

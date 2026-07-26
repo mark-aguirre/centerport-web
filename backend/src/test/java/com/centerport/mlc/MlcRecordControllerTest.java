@@ -1,8 +1,9 @@
 package com.centerport.mlc;
 
-import com.centerport.common.GlobalExceptionHandler;
-import com.centerport.common.NotFoundException;
+import com.centerport.common.dto.PagedResponse;
+import com.centerport.common.exception.GlobalExceptionHandler;
 import com.centerport.common.enums.*;
+import com.centerport.common.exception.NotFoundException;
 import com.centerport.config.JacksonConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -106,9 +108,9 @@ class MlcRecordControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value("22222222-2222-2222-2222-222222222222"))
-                .andExpect(jsonPath("$.mlc_id").value("MLC00000001"))
-                .andExpect(jsonPath("$.last_name").value("Santos"));
+                .andExpect(jsonPath("$.data.id").value("22222222-2222-2222-2222-222222222222"))
+                .andExpect(jsonPath("$.data.mlc_id").value("MLC00000001"))
+                .andExpect(jsonPath("$.data.last_name").value("Santos"));
     }
 
     @Test
@@ -121,7 +123,7 @@ class MlcRecordControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").isNotEmpty());
+                .andExpect(jsonPath("$.detail").isNotEmpty());
     }
 
     @Test
@@ -143,8 +145,8 @@ class MlcRecordControllerTest {
 
         mockMvc.perform(get("/api/mlc-records/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.last_name").value("Santos"));
+                .andExpect(jsonPath("$.data.id").value(id.toString()))
+                .andExpect(jsonPath("$.data.last_name").value("Santos"));
     }
 
     @Test
@@ -155,18 +157,29 @@ class MlcRecordControllerTest {
         mockMvc.perform(get("/api/mlc-records/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message", containsString("not found")));
+                .andExpect(jsonPath("$.title").value("Resource Not Found"))
+                .andExpect(jsonPath("$.detail", containsString("not found")));
     }
 
     @Test
     void getList_returns200WithArray() throws Exception {
-        when(service.findAll()).thenReturn(List.of(sampleRecord(), sampleRecord()));
+        PagedResponse<MlcRecordDto> pagedResponse = PagedResponse.<MlcRecordDto>builder()
+                .content(List.of(sampleRecord(), sampleRecord()))
+                .page(0)
+                .size(20)
+                .totalElements(2)
+                .totalPages(1)
+                .first(true)
+                .last(true)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+        when(service.findAll(any(Pageable.class))).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/mlc-records"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content", hasSize(2)));
     }
 
     @Test
@@ -180,7 +193,7 @@ class MlcRecordControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.last_name").value("Garcia"));
+                .andExpect(jsonPath("$.data.last_name").value("Garcia"));
     }
 
     @Test
@@ -191,31 +204,31 @@ class MlcRecordControllerTest {
         mockMvc.perform(get("/api/mlc-records/{id}", id))
                 .andExpect(status().isOk())
                 // Verify snake_case fields are present
-                .andExpect(jsonPath("$.mlc_id").exists())
-                .andExpect(jsonPath("$.created_date").exists())
-                .andExpect(jsonPath("$.updated_date").exists())
-                .andExpect(jsonPath("$.last_name").exists())
-                .andExpect(jsonPath("$.first_name").exists())
-                .andExpect(jsonPath("$.date_of_birth").exists())
-                .andExpect(jsonPath("$.vessel_name").exists())
-                .andExpect(jsonPath("$.certificate_type").exists())
-                .andExpect(jsonPath("$.fitness_determination").exists())
-                .andExpect(jsonPath("$.visual_aids").exists())
-                .andExpect(jsonPath("$.id_documents_checked").exists())
-                .andExpect(jsonPath("$.valid_until_date").exists())
+                .andExpect(jsonPath("$.data.mlc_id").exists())
+                .andExpect(jsonPath("$.data.created_date").exists())
+                .andExpect(jsonPath("$.data.updated_date").exists())
+                .andExpect(jsonPath("$.data.last_name").exists())
+                .andExpect(jsonPath("$.data.first_name").exists())
+                .andExpect(jsonPath("$.data.date_of_birth").exists())
+                .andExpect(jsonPath("$.data.vessel_name").exists())
+                .andExpect(jsonPath("$.data.certificate_type").exists())
+                .andExpect(jsonPath("$.data.fitness_determination").exists())
+                .andExpect(jsonPath("$.data.visual_aids").exists())
+                .andExpect(jsonPath("$.data.id_documents_checked").exists())
+                .andExpect(jsonPath("$.data.valid_until_date").exists())
                 // Verify camelCase fields are NOT present
-                .andExpect(jsonPath("$.mlcId").doesNotExist())
-                .andExpect(jsonPath("$.createdDate").doesNotExist())
-                .andExpect(jsonPath("$.updatedDate").doesNotExist())
-                .andExpect(jsonPath("$.lastName").doesNotExist())
-                .andExpect(jsonPath("$.firstName").doesNotExist())
-                .andExpect(jsonPath("$.dateOfBirth").doesNotExist())
-                .andExpect(jsonPath("$.vesselName").doesNotExist())
-                .andExpect(jsonPath("$.certificateType").doesNotExist())
-                .andExpect(jsonPath("$.fitnessDetermination").doesNotExist())
-                .andExpect(jsonPath("$.visualAids").doesNotExist())
-                .andExpect(jsonPath("$.idDocumentsChecked").doesNotExist())
-                .andExpect(jsonPath("$.validUntilDate").doesNotExist());
+                .andExpect(jsonPath("$.data.mlcId").doesNotExist())
+                .andExpect(jsonPath("$.data.createdDate").doesNotExist())
+                .andExpect(jsonPath("$.data.updatedDate").doesNotExist())
+                .andExpect(jsonPath("$.data.lastName").doesNotExist())
+                .andExpect(jsonPath("$.data.firstName").doesNotExist())
+                .andExpect(jsonPath("$.data.dateOfBirth").doesNotExist())
+                .andExpect(jsonPath("$.data.vesselName").doesNotExist())
+                .andExpect(jsonPath("$.data.certificateType").doesNotExist())
+                .andExpect(jsonPath("$.data.fitnessDetermination").doesNotExist())
+                .andExpect(jsonPath("$.data.visualAids").doesNotExist())
+                .andExpect(jsonPath("$.data.idDocumentsChecked").doesNotExist())
+                .andExpect(jsonPath("$.data.validUntilDate").doesNotExist());
     }
 
     @Test
@@ -230,9 +243,9 @@ class MlcRecordControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.visual_aids").isArray())
-                .andExpect(jsonPath("$.visual_aids", hasSize(2)))
-                .andExpect(jsonPath("$.visual_aids[0]").value("spectacles"))
-                .andExpect(jsonPath("$.visual_aids[1]").value("contact_lenses"));
+                .andExpect(jsonPath("$.data.visual_aids").isArray())
+                .andExpect(jsonPath("$.data.visual_aids", hasSize(2)))
+                .andExpect(jsonPath("$.data.visual_aids[0]").value("spectacles"))
+                .andExpect(jsonPath("$.data.visual_aids[1]").value("contact_lenses"));
     }
 }

@@ -1,7 +1,8 @@
 package com.centerport.medical;
 
-import com.centerport.common.GlobalExceptionHandler;
-import com.centerport.common.NotFoundException;
+import com.centerport.common.dto.PagedResponse;
+import com.centerport.common.exception.GlobalExceptionHandler;
+import com.centerport.common.exception.NotFoundException;
 import com.centerport.config.JacksonConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -69,13 +71,13 @@ class MedicalExamControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value("22222222-2222-2222-2222-222222222222"))
-                .andExpect(jsonPath("$.exam_id").value("MED00000001"))
-                .andExpect(jsonPath("$.last_name").value("Santos"))
-                .andExpect(jsonPath("$.findings_a.headache").value(true))
-                .andExpect(jsonPath("$.findings_a.dizziness").value(false))
-                .andExpect(jsonPath("$.questionnaire.q1").value("yes"))
-                .andExpect(jsonPath("$.medical_history.diabetes").value("none"));
+                .andExpect(jsonPath("$.data.id").value("22222222-2222-2222-2222-222222222222"))
+                .andExpect(jsonPath("$.data.exam_id").value("MED00000001"))
+                .andExpect(jsonPath("$.data.last_name").value("Santos"))
+                .andExpect(jsonPath("$.data.findings_a.headache").value(true))
+                .andExpect(jsonPath("$.data.findings_a.dizziness").value(false))
+                .andExpect(jsonPath("$.data.questionnaire.q1").value("yes"))
+                .andExpect(jsonPath("$.data.medical_history.diabetes").value("none"));
     }
 
     @Test
@@ -88,7 +90,7 @@ class MedicalExamControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").isNotEmpty());
+                .andExpect(jsonPath("$.detail").isNotEmpty());
     }
 
     @Test
@@ -110,9 +112,9 @@ class MedicalExamControllerTest {
 
         mockMvc.perform(get("/api/medical-exams/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.last_name").value("Santos"))
-                .andExpect(jsonPath("$.exam_id").value("MED00000001"));
+                .andExpect(jsonPath("$.data.id").value(id.toString()))
+                .andExpect(jsonPath("$.data.last_name").value("Santos"))
+                .andExpect(jsonPath("$.data.exam_id").value("MED00000001"));
     }
 
     @Test
@@ -123,18 +125,29 @@ class MedicalExamControllerTest {
         mockMvc.perform(get("/api/medical-exams/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message", containsString("not found")));
+                .andExpect(jsonPath("$.title").value("Resource Not Found"))
+                .andExpect(jsonPath("$.detail", containsString("not found")));
     }
 
     @Test
     void getList_returns200WithArray() throws Exception {
-        when(service.findAll(null)).thenReturn(List.of(sampleExam(), sampleExam()));
+        PagedResponse<MedicalExamDto> pagedResponse = PagedResponse.<MedicalExamDto>builder()
+                .content(List.of(sampleExam(), sampleExam()))
+                .page(0)
+                .size(20)
+                .totalElements(2)
+                .totalPages(1)
+                .first(true)
+                .last(true)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+        when(service.findAll(any(Pageable.class))).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/medical-exams"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content", hasSize(2)));
     }
 
     @Test
@@ -148,7 +161,7 @@ class MedicalExamControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.last_name").value("Garcia"));
+                .andExpect(jsonPath("$.data.last_name").value("Garcia"));
     }
 
     @Test
@@ -162,7 +175,7 @@ class MedicalExamControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").isNotEmpty());
+                .andExpect(jsonPath("$.detail").isNotEmpty());
     }
 
     @Test
@@ -173,24 +186,24 @@ class MedicalExamControllerTest {
         mockMvc.perform(get("/api/medical-exams/{id}", id))
                 .andExpect(status().isOk())
                 // Verify snake_case fields are present
-                .andExpect(jsonPath("$.exam_id").exists())
-                .andExpect(jsonPath("$.created_date").exists())
-                .andExpect(jsonPath("$.updated_date").exists())
-                .andExpect(jsonPath("$.last_name").exists())
-                .andExpect(jsonPath("$.first_name").exists())
-                .andExpect(jsonPath("$.findings_a").exists())
-                .andExpect(jsonPath("$.findings_b").exists())
-                .andExpect(jsonPath("$.findings_c").exists())
-                .andExpect(jsonPath("$.medical_history").exists())
+                .andExpect(jsonPath("$.data.exam_id").exists())
+                .andExpect(jsonPath("$.data.created_date").exists())
+                .andExpect(jsonPath("$.data.updated_date").exists())
+                .andExpect(jsonPath("$.data.last_name").exists())
+                .andExpect(jsonPath("$.data.first_name").exists())
+                .andExpect(jsonPath("$.data.findings_a").exists())
+                .andExpect(jsonPath("$.data.findings_b").exists())
+                .andExpect(jsonPath("$.data.findings_c").exists())
+                .andExpect(jsonPath("$.data.medical_history").exists())
                 // Verify camelCase fields are NOT present
-                .andExpect(jsonPath("$.examId").doesNotExist())
-                .andExpect(jsonPath("$.createdDate").doesNotExist())
-                .andExpect(jsonPath("$.updatedDate").doesNotExist())
-                .andExpect(jsonPath("$.lastName").doesNotExist())
-                .andExpect(jsonPath("$.firstName").doesNotExist())
-                .andExpect(jsonPath("$.findingsA").doesNotExist())
-                .andExpect(jsonPath("$.findingsB").doesNotExist())
-                .andExpect(jsonPath("$.findingsC").doesNotExist())
-                .andExpect(jsonPath("$.medicalHistory").doesNotExist());
+                .andExpect(jsonPath("$.data.examId").doesNotExist())
+                .andExpect(jsonPath("$.data.createdDate").doesNotExist())
+                .andExpect(jsonPath("$.data.updatedDate").doesNotExist())
+                .andExpect(jsonPath("$.data.lastName").doesNotExist())
+                .andExpect(jsonPath("$.data.firstName").doesNotExist())
+                .andExpect(jsonPath("$.data.findingsA").doesNotExist())
+                .andExpect(jsonPath("$.data.findingsB").doesNotExist())
+                .andExpect(jsonPath("$.data.findingsC").doesNotExist())
+                .andExpect(jsonPath("$.data.medicalHistory").doesNotExist());
     }
 }

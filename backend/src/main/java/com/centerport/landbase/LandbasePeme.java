@@ -1,6 +1,6 @@
 package com.centerport.landbase;
 
-import com.centerport.common.BaseEntity;
+import com.centerport.common.entity.BaseEntity;
 import com.centerport.common.enums.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

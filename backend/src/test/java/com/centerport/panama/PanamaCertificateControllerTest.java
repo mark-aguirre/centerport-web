@@ -1,8 +1,9 @@
 package com.centerport.panama;
 
-import com.centerport.common.GlobalExceptionHandler;
-import com.centerport.common.NotFoundException;
+import com.centerport.common.dto.PagedResponse;
+import com.centerport.common.exception.GlobalExceptionHandler;
 import com.centerport.common.enums.*;
+import com.centerport.common.exception.NotFoundException;
 import com.centerport.config.JacksonConfig;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -82,9 +84,9 @@ class PanamaCertificateControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value("22222222-2222-2222-2222-222222222222"))
-                .andExpect(jsonPath("$.panama_id").value("PAN00000001"))
-                .andExpect(jsonPath("$.full_name").value("Juan Dela Cruz"));
+                .andExpect(jsonPath("$.data.id").value("22222222-2222-2222-2222-222222222222"))
+                .andExpect(jsonPath("$.data.panama_id").value("PAN00000001"))
+                .andExpect(jsonPath("$.data.full_name").value("Juan Dela Cruz"));
     }
 
     @Test
@@ -97,7 +99,7 @@ class PanamaCertificateControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").isNotEmpty());
+                .andExpect(jsonPath("$.detail").isNotEmpty());
     }
 
     @Test
@@ -119,8 +121,8 @@ class PanamaCertificateControllerTest {
 
         mockMvc.perform(get("/api/panama-certificates/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id.toString()))
-                .andExpect(jsonPath("$.full_name").value("Juan Dela Cruz"));
+                .andExpect(jsonPath("$.data.id").value(id.toString()))
+                .andExpect(jsonPath("$.data.full_name").value("Juan Dela Cruz"));
     }
 
     @Test
@@ -131,18 +133,29 @@ class PanamaCertificateControllerTest {
         mockMvc.perform(get("/api/panama-certificates/{id}", id))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
-                .andExpect(jsonPath("$.error").value("Not Found"))
-                .andExpect(jsonPath("$.message", containsString("not found")));
+                .andExpect(jsonPath("$.title").value("Resource Not Found"))
+                .andExpect(jsonPath("$.detail", containsString("not found")));
     }
 
     @Test
     void getList_returns200WithArray() throws Exception {
-        when(service.findAll()).thenReturn(List.of(sampleCertificate(), sampleCertificate()));
+        PagedResponse<PanamaCertificateDto> pagedResponse = PagedResponse.<PanamaCertificateDto>builder()
+                .content(List.of(sampleCertificate(), sampleCertificate()))
+                .page(0)
+                .size(20)
+                .totalElements(2)
+                .totalPages(1)
+                .first(true)
+                .last(true)
+                .hasNext(false)
+                .hasPrevious(false)
+                .build();
+        when(service.findAll(any(Pageable.class))).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/panama-certificates"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$.data.content").isArray())
+                .andExpect(jsonPath("$.data.content", hasSize(2)));
     }
 
     @Test
@@ -153,22 +166,22 @@ class PanamaCertificateControllerTest {
         mockMvc.perform(get("/api/panama-certificates/{id}", id))
                 .andExpect(status().isOk())
                 // Verify snake_case fields are present
-                .andExpect(jsonPath("$.panama_id").exists())
-                .andExpect(jsonPath("$.created_date").exists())
-                .andExpect(jsonPath("$.updated_date").exists())
-                .andExpect(jsonPath("$.full_name").exists())
-                .andExpect(jsonPath("$.type_of_ship").exists())
-                .andExpect(jsonPath("$.trade_area").exists())
-                .andExpect(jsonPath("$.fitness_visual_aid").exists())
-                .andExpect(jsonPath("$.fitness_deck_fit").exists())
-                .andExpect(jsonPath("$.blood_pressure_systolic").doesNotExist()) // not set
+                .andExpect(jsonPath("$.data.panama_id").exists())
+                .andExpect(jsonPath("$.data.created_date").exists())
+                .andExpect(jsonPath("$.data.updated_date").exists())
+                .andExpect(jsonPath("$.data.full_name").exists())
+                .andExpect(jsonPath("$.data.type_of_ship").exists())
+                .andExpect(jsonPath("$.data.trade_area").exists())
+                .andExpect(jsonPath("$.data.fitness_visual_aid").exists())
+                .andExpect(jsonPath("$.data.fitness_deck_fit").exists())
+                .andExpect(jsonPath("$.data.blood_pressure_systolic").doesNotExist()) // not set
                 // Verify camelCase fields are NOT present
-                .andExpect(jsonPath("$.panamaId").doesNotExist())
-                .andExpect(jsonPath("$.createdDate").doesNotExist())
-                .andExpect(jsonPath("$.updatedDate").doesNotExist())
-                .andExpect(jsonPath("$.fullName").doesNotExist())
-                .andExpect(jsonPath("$.typeOfShip").doesNotExist())
-                .andExpect(jsonPath("$.tradeArea").doesNotExist());
+                .andExpect(jsonPath("$.data.panamaId").doesNotExist())
+                .andExpect(jsonPath("$.data.createdDate").doesNotExist())
+                .andExpect(jsonPath("$.data.updatedDate").doesNotExist())
+                .andExpect(jsonPath("$.data.fullName").doesNotExist())
+                .andExpect(jsonPath("$.data.typeOfShip").doesNotExist())
+                .andExpect(jsonPath("$.data.tradeArea").doesNotExist());
     }
 
     @Test
@@ -178,8 +191,8 @@ class PanamaCertificateControllerTest {
 
         mockMvc.perform(get("/api/panama-certificates/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.conditions.headaches").value("yes"))
-                .andExpect(jsonPath("$.conditions.diabetes").value("no"));
+                .andExpect(jsonPath("$.data.conditions.headaches").value("yes"))
+                .andExpect(jsonPath("$.data.conditions.diabetes").value("no"));
     }
 
     @Test
@@ -189,8 +202,8 @@ class PanamaCertificateControllerTest {
 
         mockMvc.perform(get("/api/panama-certificates/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.physical_exploration.skin").value("N"))
-                .andExpect(jsonPath("$.physical_exploration.eyes").value("A"));
+                .andExpect(jsonPath("$.data.physical_exploration.skin").value("N"))
+                .andExpect(jsonPath("$.data.physical_exploration.eyes").value("A"));
     }
 
     @Test
@@ -200,10 +213,10 @@ class PanamaCertificateControllerTest {
 
         mockMvc.perform(get("/api/panama-certificates/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lab_tests.cbc.normal").value("normal"))
-                .andExpect(jsonPath("$.lab_tests.cbc.observations").value("all good"))
-                .andExpect(jsonPath("$.lab_tests.urinalysis.abnormal").value("abnormal"))
-                .andExpect(jsonPath("$.lab_tests.urinalysis.observations").value("trace protein"));
+                .andExpect(jsonPath("$.data.lab_tests.cbc.normal").value("normal"))
+                .andExpect(jsonPath("$.data.lab_tests.cbc.observations").value("all good"))
+                .andExpect(jsonPath("$.data.lab_tests.urinalysis.abnormal").value("abnormal"))
+                .andExpect(jsonPath("$.data.lab_tests.urinalysis.observations").value("trace protein"));
     }
 
     @Test
@@ -213,9 +226,9 @@ class PanamaCertificateControllerTest {
 
         mockMvc.perform(get("/api/panama-certificates/{id}", id))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.lab_other_tests.hiv.checked").value(true))
-                .andExpect(jsonPath("$.lab_other_tests.hiv.normal").value("normal"))
-                .andExpect(jsonPath("$.lab_other_tests.hiv.observations").value("non-reactive"));
+                .andExpect(jsonPath("$.data.lab_other_tests.hiv.checked").value(true))
+                .andExpect(jsonPath("$.data.lab_other_tests.hiv.normal").value("normal"))
+                .andExpect(jsonPath("$.data.lab_other_tests.hiv.observations").value("non-reactive"));
     }
 
     @Test
@@ -229,7 +242,7 @@ class PanamaCertificateControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.full_name").value("Maria Santos"));
+                .andExpect(jsonPath("$.data.full_name").value("Maria Santos"));
     }
 
     @Test
@@ -243,6 +256,6 @@ class PanamaCertificateControllerTest {
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").isNotEmpty());
+                .andExpect(jsonPath("$.detail").isNotEmpty());
     }
 }

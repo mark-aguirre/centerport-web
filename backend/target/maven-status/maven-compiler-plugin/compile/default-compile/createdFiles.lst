@@ -28,7 +28,6 @@ com\centerport\landbase\LandbasePemeController.class
 com\centerport\common\enums\BPClassification.class
 com\centerport\landbase\LandbasePemeDto.class
 com\centerport\landbase\LandbasePemeMapper.class
-com\centerport\common\BaseEntity.class
 com\centerport\common\enums\BloodType.class
 com\centerport\common\enums\PsychologicalTestResult.class
 com\centerport\common\enums\PhysicalExplorationValue.class
@@ -48,15 +47,12 @@ com\centerport\mlc\MlcRecordRepository.class
 com\centerport\medical\MedicalExamController.class
 com\centerport\panama\PanamaCertificateMapperImpl.class
 com\centerport\medical\MedicalExamDto.class
-com\centerport\common\BusinessIdGenerator.class
 com\centerport\landbase\LandbasePemeMapperImpl.class
 com\centerport\common\enums\PassStatus.class
-com\centerport\common\NotFoundException.class
 com\centerport\mlc\MlcRecord.class
 com\centerport\mlc\MlcRecordMapper.class
 com\centerport\CenterportApplication.class
 com\centerport\common\enums\VisualAid.class
-com\centerport\common\GlobalExceptionHandler.class
 com\centerport\panama\PanamaCertificateService.class
 com\centerport\upload\FileUploadController.class
 com\centerport\common\enums\LabStatus.class

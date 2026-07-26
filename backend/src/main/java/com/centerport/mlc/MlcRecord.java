@@ -1,6 +1,6 @@
 package com.centerport.mlc;
 
-import com.centerport.common.BaseEntity;
+import com.centerport.common.entity.BaseEntity;
 import com.centerport.common.enums.*;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +29,7 @@ import java.util.List;
  * Business ID:
  * The {@code mlcId} field holds a human-readable sequential identifier
  * (e.g., {@code MLC00000001}) generated at creation time via
- * {@link com.centerport.common.BusinessIdGenerator}.
+ * {@link com.centerport.common.util.BusinessIdGenerator}.
  *
  * JSON Columns:
  * The {@code visualAids} field is stored as JSONB in PostgreSQL and mapped
