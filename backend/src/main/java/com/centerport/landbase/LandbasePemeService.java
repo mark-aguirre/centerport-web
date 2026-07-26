@@ -3,9 +3,12 @@ package com.centerport.landbase;
 import com.centerport.common.dto.PagedResponse;
 import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
+import com.centerport.landbase.event.LandbasePemeCreatedEvent;
+import com.centerport.landbase.event.LandbasePemeUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,7 @@ public class LandbasePemeService {
     private final LandbasePemeRepository repository;
     private final LandbasePemeMapper mapper;
     private final BusinessIdGenerator businessIdGenerator;
+    private final ApplicationEventPublisher eventPublisher;
 
     // === Queries ===
 
@@ -85,6 +89,11 @@ public class LandbasePemeService {
         entity.setPemeId(pemeId);
 
         LandbasePeme saved = repository.save(entity);
+
+        eventPublisher.publishEvent(new LandbasePemeCreatedEvent(
+                saved.getId(), saved.getPemeId(),
+                saved.getLastName(), saved.getFirstName()));
+
         log.info("Landbase PEME created — id: {}, pemeId: {}, lastName: {}",
                 saved.getId(), saved.getPemeId(), saved.getLastName());
         return mapper.toDto(saved);
@@ -110,6 +119,10 @@ public class LandbasePemeService {
         mapper.updateEntity(dto, existing);
 
         LandbasePeme saved = repository.save(existing);
+
+        eventPublisher.publishEvent(new LandbasePemeUpdatedEvent(
+                saved.getId(), saved.getPemeId()));
+
         log.info("Landbase PEME updated — id: {}, pemeId: {}", saved.getId(), saved.getPemeId());
         return mapper.toDto(saved);
     }

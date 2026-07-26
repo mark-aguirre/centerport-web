@@ -3,9 +3,12 @@ package com.centerport.profile;
 import com.centerport.common.dto.PagedResponse;
 import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
+import com.centerport.profile.event.SeafarerProfileCreatedEvent;
+import com.centerport.profile.event.SeafarerProfileUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,7 @@ public class SeafarerProfileService {
     private final SeafarerProfileRepository repository;
     private final SeafarerProfileMapper mapper;
     private final BusinessIdGenerator businessIdGenerator;
+    private final ApplicationEventPublisher eventPublisher;
 
     // === Queries ===
 
@@ -87,6 +91,11 @@ public class SeafarerProfileService {
         entity.setProfileId(businessIdGenerator.generateId(BUSINESS_ID_PREFIX));
 
         SeafarerProfile saved = repository.save(entity);
+
+        eventPublisher.publishEvent(new SeafarerProfileCreatedEvent(
+                saved.getId(), saved.getProfileId(),
+                saved.getLastName(), saved.getFirstName()));
+
         log.info("Profile created — profileId: {}, lastName: {}", saved.getProfileId(), saved.getLastName());
         return mapper.toDto(saved);
     }
@@ -111,6 +120,10 @@ public class SeafarerProfileService {
         mapper.updateEntity(dto, existing);
 
         SeafarerProfile saved = repository.save(existing);
+
+        eventPublisher.publishEvent(new SeafarerProfileUpdatedEvent(
+                saved.getId(), saved.getProfileId()));
+
         log.info("Profile updated — profileId: {}, id: {}", saved.getProfileId(), id);
         return mapper.toDto(saved);
     }

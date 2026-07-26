@@ -92,7 +92,7 @@ public class MedicalExamController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error")
     })
     public ResponseEntity<ApiResponse<MedicalExamDto>> create(@Valid @RequestBody MedicalExamDto dto) {
-        log.info("Medical exam creation requested — lastName: {}", dto.getLastName());
+        log.debug("Medical exam creation requested — lastName: {}", dto.getLastName());
         MedicalExamDto created = service.create(dto);
 
         URI location = ServletUriComponentsBuilder
@@ -126,7 +126,7 @@ public class MedicalExamController {
             @PathVariable UUID id,
             @Valid @RequestBody MedicalExamDto dto) {
 
-        log.info("Medical exam update requested — id: {}", id);
+        log.debug("Medical exam update requested — id: {}", id);
         MedicalExamDto updated = service.update(id, dto);
         return ResponseEntity.ok(ApiResponse.success(updated, "Medical exam updated successfully"));
     }

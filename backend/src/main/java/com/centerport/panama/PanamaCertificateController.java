@@ -91,7 +91,7 @@ public class PanamaCertificateController {
     public ResponseEntity<ApiResponse<PanamaCertificateDto>> create(
             @Valid @RequestBody PanamaCertificateDto dto) {
 
-        log.info("Panama certificate creation requested — fullName: {}", dto.getFullName());
+        log.debug("Panama certificate creation requested — fullName: {}", dto.getFullName());
         PanamaCertificateDto created = service.create(dto);
 
         URI location = ServletUriComponentsBuilder
@@ -122,7 +122,7 @@ public class PanamaCertificateController {
             @PathVariable UUID id,
             @Valid @RequestBody PanamaCertificateDto dto) {
 
-        log.info("Panama certificate update requested — id: {}", id);
+        log.debug("Panama certificate update requested — id: {}", id);
         PanamaCertificateDto updated = service.update(id, dto);
         return ResponseEntity.ok(ApiResponse.success(updated, "Panama certificate updated successfully"));
     }

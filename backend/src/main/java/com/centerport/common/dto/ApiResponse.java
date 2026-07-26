@@ -12,15 +12,11 @@ import java.time.LocalDateTime;
  * for all successful endpoint responses.
  *
  * Response format:
- * <pre>
- * {
- *   "success": true,
- *   "message": "optional message",
- *   "data": { ... },
- *   "timestamp": "2024-01-15T10:30:00",
- *   "request_id": "uuid"
- * }
- * </pre>
+ * - {@code success} — boolean indicating operation outcome
+ * - {@code message} — optional human-readable message
+ * - {@code data} — the response payload (generic type T)
+ * - {@code timestamp} — ISO-8601 datetime of the response
+ * - {@code request_id} — correlation UUID from the request
  *
  * @param <T> the type of the response payload
  */

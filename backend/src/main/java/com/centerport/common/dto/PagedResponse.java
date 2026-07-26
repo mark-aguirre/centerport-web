@@ -10,20 +10,14 @@ import java.util.List;
  * Pagination wrapper that provides a clean DTO structure for paginated
  * endpoint responses.
  *
- * Response format:
- * <pre>
- * {
- *   "content": [...],
- *   "page": 0,
- *   "size": 20,
- *   "total_elements": 45,
- *   "total_pages": 3,
- *   "first": true,
- *   "last": false,
- *   "has_next": true,
- *   "has_previous": false
- * }
- * </pre>
+ * Response fields:
+ * - {@code content} — list of items for the current page
+ * - {@code page} — zero-based page index
+ * - {@code size} — requested page size
+ * - {@code total_elements} — total matching records across all pages
+ * - {@code total_pages} — total number of pages
+ * - {@code first} / {@code last} — boundary indicators
+ * - {@code has_next} / {@code has_previous} — navigation indicators
  *
  * @param <T> the type of the content elements
  */

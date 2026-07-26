@@ -25,17 +25,13 @@ import java.util.Objects;
 /**
  * Centralized exception handler returning RFC 9457 ProblemDetail responses.
  *
- * All error responses follow the standard structure:
- * <pre>
- * {
- *   "type": "...",
- *   "title": "...",
- *   "status": 400,
- *   "detail": "...",
- *   "instance": "/api/...",
- *   "requestId": "uuid"
- * }
- * </pre>
+ * All error responses follow a consistent structure:
+ * - {@code type} — problem type URI
+ * - {@code title} — short human-readable summary
+ * - {@code status} — HTTP status code
+ * - {@code detail} — explanation of what went wrong
+ * - {@code instance} — request URI that triggered the error
+ * - {@code requestId} — correlation UUID for log tracing
  *
  * @see <a href="https://www.rfc-editor.org/rfc/rfc9457">RFC 9457 - Problem Details for HTTP APIs</a>
  */
@@ -151,15 +147,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     // --- File Upload ---
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public ProblemDetail handleMaxUploadSize(MaxUploadSizeExceededException ex,
-                                             HttpServletRequest request) {
+    public org.springframework.http.ResponseEntity<Object> handleMaxUploadSize(
+            MaxUploadSizeExceededException ex) {
+
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, "File size exceeds the maximum allowed upload size");
         problem.setTitle("Upload Too Large");
-        problem.setInstance(URI.create(request.getRequestURI()));
         problem.setProperty("requestId", MDC.get("requestId"));
 
-        return problem;
+        return org.springframework.http.ResponseEntity.badRequest().body(problem);
     }
 
     // --- Catch-All ---

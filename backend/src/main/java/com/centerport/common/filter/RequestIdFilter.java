@@ -18,12 +18,12 @@ import java.util.UUID;
  * Servlet filter that ensures every request has a unique correlation ID.
  *
  * Behavior:
- * <ol>
- *   <li>If the incoming request carries an {@code X-Request-Id} header, that value is used.</li>
- *   <li>Otherwise, a new UUID is generated.</li>
- *   <li>The ID is placed into SLF4J MDC (key: {@code requestId}) for log correlation.</li>
- *   <li>The ID is echoed back in the response {@code X-Request-Id} header.</li>
- * </ol>
+ * - If the incoming request carries an {@code X-Request-Id} header, that
+ *   value is used
+ * - Otherwise, a new UUID is generated
+ * - The ID is placed into SLF4J MDC (key: {@code requestId}) for log
+ *   correlation
+ * - The ID is echoed back in the response {@code X-Request-Id} header
  *
  * Runs at highest precedence so all downstream filters and handlers benefit
  * from the MDC value.

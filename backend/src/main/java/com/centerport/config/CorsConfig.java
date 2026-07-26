@@ -11,20 +11,23 @@ import java.util.List;
  * Global CORS configuration for all API endpoints.
  *
  * Allowed Origins:
- * Configurable via {@code app.cors.allowed-origins} property (comma-separated list).
- * Defaults to {@code http://localhost:3000} for local frontend development.
+ * Configurable via {@code app.cors.allowed-origins} property (comma-separated
+ * list). Defaults to {@code http://localhost:3000} for local frontend
+ * development.
  *
  * Permitted Methods:
- * GET, POST, PUT, DELETE, OPTIONS — covering full CRUD plus preflight requests.
+ * GET, POST, PUT, DELETE, OPTIONS — covering full CRUD plus preflight.
  *
  * Credentials:
- * Enabled to support cookie-based sessions or Authorization headers from the
- * frontend SPA.
+ * Enabled to support cookie-based sessions or Authorization headers from
+ * the frontend SPA.
  *
  * @see com.centerport.config.JacksonConfig
  */
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
+
+    private static final String[] ALLOWED_METHODS = {"GET", "POST", "PUT", "DELETE", "OPTIONS"};
 
     @Value("${app.cors.allowed-origins:http://localhost:3000}")
     private List<String> allowedOrigins;
@@ -33,7 +36,7 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(allowedOrigins.toArray(String[]::new))
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods(ALLOWED_METHODS)
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }

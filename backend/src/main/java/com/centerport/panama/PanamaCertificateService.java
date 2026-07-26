@@ -3,9 +3,12 @@ package com.centerport.panama;
 import com.centerport.common.dto.PagedResponse;
 import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
+import com.centerport.panama.event.PanamaCertificateCreatedEvent;
+import com.centerport.panama.event.PanamaCertificateUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,7 @@ public class PanamaCertificateService {
     private final PanamaCertificateRepository repository;
     private final PanamaCertificateMapper mapper;
     private final BusinessIdGenerator businessIdGenerator;
+    private final ApplicationEventPublisher eventPublisher;
 
     // === Queries ===
 
@@ -89,6 +93,10 @@ public class PanamaCertificateService {
         log.debug("Business ID generated — panamaId: {}", panamaId);
 
         PanamaCertificate saved = repository.save(entity);
+
+        eventPublisher.publishEvent(new PanamaCertificateCreatedEvent(
+                saved.getId(), saved.getPanamaId(), saved.getFullName()));
+
         log.info("Panama certificate created — panamaId: {}, id: {}, patient: {}",
                 saved.getPanamaId(), saved.getId(), saved.getFullName());
         return mapper.toDto(saved);
@@ -113,6 +121,10 @@ public class PanamaCertificateService {
         mapper.updateEntity(dto, existing);
 
         PanamaCertificate saved = repository.save(existing);
+
+        eventPublisher.publishEvent(new PanamaCertificateUpdatedEvent(
+                saved.getId(), saved.getPanamaId()));
+
         log.info("Panama certificate updated — panamaId: {}, id: {}",
                 saved.getPanamaId(), id);
         return mapper.toDto(saved);

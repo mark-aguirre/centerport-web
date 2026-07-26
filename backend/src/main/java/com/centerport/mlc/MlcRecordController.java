@@ -89,7 +89,7 @@ public class MlcRecordController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error")
     })
     public ResponseEntity<ApiResponse<MlcRecordDto>> create(@Valid @RequestBody MlcRecordDto dto) {
-        log.info("MLC record creation requested — lastName: {}", dto.getLastName());
+        log.debug("MLC record creation requested — lastName: {}", dto.getLastName());
         MlcRecordDto created = service.create(dto);
 
         URI location = ServletUriComponentsBuilder
@@ -120,7 +120,7 @@ public class MlcRecordController {
             @PathVariable UUID id,
             @Valid @RequestBody MlcRecordDto dto) {
 
-        log.info("MLC record update requested — id: {}", id);
+        log.debug("MLC record update requested — id: {}", id);
         MlcRecordDto updated = service.update(id, dto);
         return ResponseEntity.ok(ApiResponse.success(updated, "MLC record updated successfully"));
     }

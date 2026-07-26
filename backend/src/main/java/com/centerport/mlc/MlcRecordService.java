@@ -3,9 +3,12 @@ package com.centerport.mlc;
 import com.centerport.common.dto.PagedResponse;
 import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
+import com.centerport.mlc.event.MlcRecordCreatedEvent;
+import com.centerport.mlc.event.MlcRecordUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,6 +41,7 @@ public class MlcRecordService {
     private final MlcRecordRepository repository;
     private final MlcRecordMapper mapper;
     private final BusinessIdGenerator businessIdGenerator;
+    private final ApplicationEventPublisher eventPublisher;
 
     // === Queries ===
 
@@ -89,6 +93,11 @@ public class MlcRecordService {
         log.debug("Business ID generated — mlcId: {}", mlcId);
 
         MlcRecord saved = repository.save(entity);
+
+        eventPublisher.publishEvent(new MlcRecordCreatedEvent(
+                saved.getId(), saved.getMlcId(),
+                saved.getLastName(), saved.getFirstName()));
+
         log.info("MLC record created — mlcId: {}, id: {}, patient: {}",
                 saved.getMlcId(), saved.getId(), saved.getLastName());
         return mapper.toDto(saved);
@@ -113,6 +122,10 @@ public class MlcRecordService {
         mapper.updateEntity(dto, existing);
 
         MlcRecord saved = repository.save(existing);
+
+        eventPublisher.publishEvent(new MlcRecordUpdatedEvent(
+                saved.getId(), saved.getMlcId()));
+
         log.info("MLC record updated — mlcId: {}, id: {}", saved.getMlcId(), id);
         return mapper.toDto(saved);
     }

@@ -3,9 +3,12 @@ package com.centerport.medical;
 import com.centerport.common.dto.PagedResponse;
 import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
+import com.centerport.medical.event.MedicalExamCreatedEvent;
+import com.centerport.medical.event.MedicalExamUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -42,6 +45,7 @@ public class MedicalExamService {
     private final MedicalExamRepository repository;
     private final MedicalExamMapper mapper;
     private final BusinessIdGenerator businessIdGenerator;
+    private final ApplicationEventPublisher eventPublisher;
 
     // =======================================================================
     // Query Operations
@@ -100,6 +104,11 @@ public class MedicalExamService {
         log.debug("Business ID generated — examId: {}", examId);
 
         MedicalExam saved = repository.save(entity);
+
+        eventPublisher.publishEvent(new MedicalExamCreatedEvent(
+                saved.getId(), saved.getExamId(),
+                saved.getLastName(), saved.getFirstName()));
+
         log.info("Medical exam created — examId: {}, id: {}, patient: {}",
                 saved.getExamId(), saved.getId(), saved.getLastName());
         return mapper.toDto(saved);
@@ -128,6 +137,10 @@ public class MedicalExamService {
         mapper.updateEntity(dto, existing);
 
         MedicalExam saved = repository.save(existing);
+
+        eventPublisher.publishEvent(new MedicalExamUpdatedEvent(
+                saved.getId(), saved.getExamId()));
+
         log.info("Medical exam updated — examId: {}, id: {}", saved.getExamId(), id);
         return mapper.toDto(saved);
     }
