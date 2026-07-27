@@ -41,6 +41,8 @@ interface YesNoRadioProps {
   labelNo?: string;
   /** Render labels in uppercase (default: false) */
   uppercase?: boolean;
+  /** Disables both radio inputs */
+  disabled?: boolean;
 }
 
 export function YesNoRadio({
@@ -51,13 +53,14 @@ export function YesNoRadio({
   labelYes = "Yes",
   labelNo = "No",
   uppercase = false,
+  disabled = false,
 }: YesNoRadioProps) {
   const yesText = uppercase ? labelYes.toUpperCase() : labelYes;
   const noText = uppercase ? labelNo.toUpperCase() : labelNo;
 
   return (
     <div
-      className="flex items-center gap-2 shrink-0"
+      className={`flex items-center gap-2 shrink-0 ${disabled ? "pointer-events-none" : ""}`}
       role="radiogroup"
       aria-label={ariaLabel}
     >
@@ -69,6 +72,7 @@ export function YesNoRadio({
           onChange={() => onChange("yes")}
           className="w-4 h-4 accent-primary"
           aria-label={`${ariaLabel} - ${labelYes}`}
+          tabIndex={disabled ? -1 : undefined}
         />
         <span className="text-xs text-foreground/80">{yesText}</span>
       </label>
@@ -80,6 +84,7 @@ export function YesNoRadio({
           onChange={() => onChange("no")}
           className="w-4 h-4 accent-primary"
           aria-label={`${ariaLabel} - ${labelNo}`}
+          tabIndex={disabled ? -1 : undefined}
         />
         <span className="text-xs text-foreground/80">{noText}</span>
       </label>

@@ -2,6 +2,7 @@ package com.centerport.panama;
 
 import com.centerport.common.enums.*;
 import com.centerport.profile.SeafarerProfileDto;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -59,28 +60,46 @@ public class PanamaCertificateDto {
     private String conditionsDetails;
 
     // --- Additional Questions (37–44) ---
+    @JsonProperty("question_37")
     private YesNo question37;
+    @JsonProperty("question_38")
     private YesNo question38;
+    @JsonProperty("question_39")
     private YesNo question39;
+    @JsonProperty("question_40")
     private YesNo question40;
+    @JsonProperty("question_41")
     private YesNo question41;
+    @JsonProperty("question_42")
     private YesNo question42;
+    @JsonProperty("question_43")
     private YesNo question43;
+    @JsonProperty("question_44")
     private YesNo question44;
     private String declarationComments;
 
     // --- Medication Question (45) ---
+    @JsonProperty("question_45")
     private YesNo question45;
+    @JsonProperty("question_45_details")
     private String question45Details;
 
     // --- Covid-19 ---
+    @JsonProperty("covid_1")
     private YesNo covid1;
+    @JsonProperty("covid_2")
     private YesNo covid2;
+    @JsonProperty("covid_3_date")
     private String covid3Date;
+    @JsonProperty("covid_4")
     private YesNo covid4;
+    @JsonProperty("covid_5")
     private YesNo covid5;
+    @JsonProperty("covid_6_vaccine_type")
     private String covid6VaccineType;
+    @JsonProperty("covid_6_num_doses")
     private String covid6NumDoses;
+    @JsonProperty("covid_6_boosters")
     private String covid6Boosters;
 
     // --- III. Statement ---
@@ -126,19 +145,33 @@ public class PanamaCertificateDto {
     private String sightColorMethod;
 
     // --- Hearing ---
+    @JsonProperty("hearing_right_500")
     private String hearingRight500;
+    @JsonProperty("hearing_right_1000")
     private String hearingRight1000;
+    @JsonProperty("hearing_right_2000")
     private String hearingRight2000;
+    @JsonProperty("hearing_right_3000")
     private String hearingRight3000;
+    @JsonProperty("hearing_right_4000")
     private String hearingRight4000;
+    @JsonProperty("hearing_right_6000")
     private String hearingRight6000;
+    @JsonProperty("hearing_right_8000")
     private String hearingRight8000;
+    @JsonProperty("hearing_left_500")
     private String hearingLeft500;
+    @JsonProperty("hearing_left_1000")
     private String hearingLeft1000;
+    @JsonProperty("hearing_left_2000")
     private String hearingLeft2000;
+    @JsonProperty("hearing_left_3000")
     private String hearingLeft3000;
+    @JsonProperty("hearing_left_4000")
     private String hearingLeft4000;
+    @JsonProperty("hearing_left_6000")
     private String hearingLeft6000;
+    @JsonProperty("hearing_left_8000")
     private String hearingLeft8000;
 
     // --- Physical Exploration ---

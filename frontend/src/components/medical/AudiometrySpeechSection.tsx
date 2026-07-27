@@ -1,6 +1,7 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
@@ -18,12 +19,28 @@ export function AudiometrySpeechSection({ data, onChange, disabled }: MedicalSec
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
+  /** Set all audiometry and speech fields to normal/adequate defaults. */
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      audio_as_right_1: "adequate",
+      audio_as_left_1: "adequate",
+      audio_ad_right_1: "adequate",
+      audio_ad_left_1: "adequate",
+      audio_satisfactory: "yes",
+      speech_impaired_hearing: "adequate",
+    });
+  };
+
   return (
     <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
       <div className="grid grid-cols-2 gap-4">
         {/* Audiometry */}
         <div>
-          <SectionHeader title="Audiometry" />
+          <SectionHeader
+            title="Audiometry"
+            action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+          />
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Label className="text-[11px] font-semibold text-foreground/70">Hearing by Audio Meter</Label>
@@ -101,7 +118,10 @@ export function AudiometrySpeechSection({ data, onChange, disabled }: MedicalSec
 
         {/* Speech */}
         <div>
-          <SectionHeader title="Speech" />
+          <SectionHeader
+            title="Speech"
+            action={<SetNormalButton onClick={() => update("speech_impaired_hearing", "adequate")} disabled={disabled} />}
+          />
           <div className="flex items-center gap-3">
             <Label className="text-[11px] font-semibold text-foreground/70">Impaired Hearing Satisfactory:</Label>
             <label className="flex items-center gap-1.5 cursor-pointer">

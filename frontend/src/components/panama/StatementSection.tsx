@@ -22,7 +22,7 @@ const MONTH_OPTIONS = [
  * - Approved medical practitioner details
  * - Previous medical examination details
  */
-export default function StatementSection({ data, onChange }: PanamaSectionProps) {
+export default function StatementSection({ data, onChange, disabled }: PanamaSectionProps) {
   const update = (field: keyof PanamaCertificate, value: string) =>
     onChange({ ...data, [field]: value });
 
@@ -46,11 +46,13 @@ export default function StatementSection({ data, onChange }: PanamaSectionProps)
             label="Name and signature of person undergoing examination"
             value={data.statement_name}
             onChange={(v) => update("statement_name", v)}
+            disabled={disabled}
           />
           <FormField
             label="Signature"
             value={data.statement_signature}
             onChange={(v) => update("statement_signature", v)}
+            disabled={disabled}
           />
         </div>
 
@@ -61,18 +63,21 @@ export default function StatementSection({ data, onChange }: PanamaSectionProps)
             value={data.statement_day}
             onChange={(v) => update("statement_day", v)}
             type="number"
+            disabled={disabled}
           />
           <FormSelect
             label="Month"
             value={data.statement_month}
             onChange={(v) => update("statement_month", v)}
             options={MONTH_OPTIONS}
+            disabled={disabled}
           />
           <FormField
             label="Year"
             value={data.statement_year}
             onChange={(v) => update("statement_year", v)}
             type="number"
+            disabled={disabled}
           />
           <div />
         </div>
@@ -82,6 +87,7 @@ export default function StatementSection({ data, onChange }: PanamaSectionProps)
           label="Name and signature of Witness (Print name)"
           value={data.statement_witness_name}
           onChange={(v) => update("statement_witness_name", v)}
+          disabled={disabled}
         />
 
         {/* Authorization text */}
@@ -99,11 +105,13 @@ export default function StatementSection({ data, onChange }: PanamaSectionProps)
             label="Name and signature of person undergoing examination"
             value={data.statement_practitioner_name}
             onChange={(v) => update("statement_practitioner_name", v)}
+            disabled={disabled}
           />
           <FormField
             label="Signature"
             value={data.statement_practitioner_signature}
             onChange={(v) => update("statement_practitioner_signature", v)}
+            disabled={disabled}
           />
         </div>
 
@@ -114,18 +122,21 @@ export default function StatementSection({ data, onChange }: PanamaSectionProps)
             value={data.statement_practitioner_date_day}
             onChange={(v) => update("statement_practitioner_date_day", v)}
             type="number"
+            disabled={disabled}
           />
           <FormSelect
             label="Month"
             value={data.statement_practitioner_date_month}
             onChange={(v) => update("statement_practitioner_date_month", v)}
             options={MONTH_OPTIONS}
+            disabled={disabled}
           />
           <FormField
             label="Year"
             value={data.statement_practitioner_date_year}
             onChange={(v) => update("statement_practitioner_date_year", v)}
             type="number"
+            disabled={disabled}
           />
           <div />
         </div>
@@ -135,6 +146,7 @@ export default function StatementSection({ data, onChange }: PanamaSectionProps)
           label="Name and signature of Witness (print name)"
           value={data.statement_practitioner_witness}
           onChange={(v) => update("statement_practitioner_witness", v)}
+          disabled={disabled}
         />
 
         {/* Previous exam details */}
@@ -142,6 +154,7 @@ export default function StatementSection({ data, onChange }: PanamaSectionProps)
           label="Date and contact details for previous medical examination (if known)"
           value={data.statement_previous_exam_details}
           onChange={(v) => update("statement_previous_exam_details", v)}
+          disabled={disabled}
         />
       </div>
     </div>

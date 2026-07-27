@@ -1,12 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams } from "next/navigation";
-import { toast } from "sonner";
 import { api, type SeafarerProfile } from "@/lib/api";
-import { ApiError } from "@/lib/http-client";
-import { useProfileSearch } from "./use-profile-search";
+import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import type { MedicalExam } from "@/components/medical/types";
+import type { RecordSummary } from "@/components/common/record-selector";
+import { coerceNulls } from "@/lib/form-utils";
+
+// ---------------------------------------------------------------------------
+// Empty record constant
+// ---------------------------------------------------------------------------
 
 /** Empty default state for a new Medical Examination record */
 export const EMPTY_EXAM: MedicalExam = {
@@ -120,7 +122,7 @@ export const EMPTY_EXAM: MedicalExam = {
   questionnaire_comments: "",
   questionnaire_medications_detail: "",
 
-  // Past Medical History (used by Physical Examination sub-section)
+  // Past Medical History
   medical_history: {},
   medical_history_others: "",
   consulted_doctor_past: "",
@@ -171,70 +173,29 @@ export const EMPTY_EXAM: MedicalExam = {
   medical_certification_no: "",
   medical_director: "",
 
-
-
   // Physician
   examining_physician: "",
   license_no: "",
 };
 
-export interface UseMedicalFormResult {
-  /** Current form data. */
-  data: MedicalExam;
-  /** Replace form data directly (used by section onChange callbacks). */
-  setData: (data: MedicalExam) => void;
-  /** True while the initial record is being fetched. */
-  loading: boolean;
-  /** True while a save operation is in-flight. */
-  saving: boolean;
-  /** True when the form is in edit mode (fields enabled). */
-  editing: boolean;
-  /** True when viewing/editing a persisted record (vs a new unsaved one). */
-  isExistingRecord: boolean;
-  /** The persisted record currently loaded (null when creating new). */
-  existingRecord: MedicalExam | null;
-  /** Reset form to empty and enter new-record edit mode. */
-  handleNew: () => void;
-  /** Enter edit mode for the currently loaded record. */
-  handleEdit: () => void;
-  /** Discard changes and return to view mode. */
-  handleCancel: () => void;
-  /** Validate and persist the current form data. */
-  handleSave: () => Promise<void>;
-  /** Trigger browser print dialog. */
-  handlePrint: () => void;
-  /** Ref for the first focusable field (auto-focused on New). */
-  firstFieldRef: React.RefObject<HTMLInputElement | null>;
-  /** Search results from seafarer profiles. */
-  searchResults: SeafarerProfile[];
-  /** Whether a search request is in-flight. */
-  searchLoading: boolean;
-  /** Trigger a profile search by keyword (debounced). */
-  handleSearch: (keyword: string) => void;
-  /** Load a selected profile result into the form's personal info. */
-  handleSelectResult: (profile: SeafarerProfile) => void;
-  /** Transient error message shown when save is blocked (auto-clears). */
-  saveAlert: string | null;
-}
+// ---------------------------------------------------------------------------
+// Response flattening
+// ---------------------------------------------------------------------------
 
-/** Fields that are server-managed and should not be sent on create/update. */
+/** System fields to strip before API mutation. */
 const SYSTEM_FIELDS = ["id", "exam_id", "created_date", "updated_date", "seafarer_profile"] as const;
 
-/**
- * Strip system fields from the payload before sending to the backend.
- */
-function stripSystemFields(record: MedicalExam): Partial<MedicalExam> {
-  const payload = { ...record };
-  for (const field of SYSTEM_FIELDS) {
-    delete (payload as Record<string, unknown>)[field];
-  }
-  return payload;
-}
+/** Field defaults for null coercion (non-string fields). */
+const FIELD_DEFAULTS: Record<string, unknown> = {
+  findings_a: {},
+  findings_b: {},
+  findings_c: {},
+  questionnaire: {},
+  medical_history: {},
+};
 
 /**
  * Flatten the nested seafarer_profile response into top-level personal info fields.
- * The backend returns `seafarer_profile: { last_name, first_name, ... }` alongside
- * the exam record. We merge those into the flat form shape.
  */
 function flattenResponse(record: MedicalExam): MedicalExam {
   const raw = record as MedicalExam & {
@@ -259,11 +220,17 @@ function flattenResponse(record: MedicalExam): MedicalExam {
   };
 
   const profile = raw.seafarer_profile;
-  if (!profile) return { ...EMPTY_EXAM, ...record };
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { seafarer_profile: _, ...rest } = raw;
+  const coerced = coerceNulls(rest as Record<string, unknown>, FIELD_DEFAULTS);
+
+  if (!profile) return { ...EMPTY_EXAM, ...coerced };
 
   return {
     ...EMPTY_EXAM,
-    ...record,
+    ...coerced,
+    seafarer_profile_id: profile.id ?? record.seafarer_profile_id,
     last_name: record.last_name || profile.last_name || "",
     first_name: record.first_name || profile.first_name || "",
     middle_name: record.middle_name || profile.middle_name || "",
@@ -282,243 +249,98 @@ function flattenResponse(record: MedicalExam): MedicalExam {
   };
 }
 
+/** Strip system fields from the payload. */
+function stripSystemFields(record: MedicalExam): Partial<MedicalExam> {
+  const payload = { ...record };
+  for (const field of SYSTEM_FIELDS) {
+    delete (payload as Record<string, unknown>)[field];
+  }
+  return payload;
+}
+
+/** Sanitize payload (empty strings → null). */
+function sanitizePayload(record: Partial<MedicalExam>): Partial<MedicalExam> {
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(record as Record<string, unknown>)) {
+    result[key] = value === "" ? null : value;
+  }
+  return result as Partial<MedicalExam>;
+}
+
+// ---------------------------------------------------------------------------
+// Entity form configuration
+// ---------------------------------------------------------------------------
+
+const medicalConfig: EntityFormConfig<MedicalExam> = {
+  entityApi: api.entities.MedicalExam,
+  emptyRecord: EMPTY_EXAM,
+  flattenResponse,
+  stripSystemFields,
+  sanitizePayload,
+
+  validate: (data) => {
+    if (!data.seafarer_profile_id) {
+      return "Please select a patient before saving.";
+    }
+    return null;
+  },
+
+  buildPersonalData: (profile: SeafarerProfile): Partial<MedicalExam> => ({
+    seafarer_profile_id: profile.id,
+    last_name: profile.last_name ?? "",
+    first_name: profile.first_name ?? "",
+    middle_name: profile.middle_name ?? "",
+    place_of_birth: profile.place_of_birth ?? "",
+    passport_no: profile.passport_no ?? "",
+    religion: profile.religion ?? "",
+    nationality: profile.nationality ?? "",
+    gender: (profile.gender ?? "") as MedicalExam["gender"],
+    civil_status: (profile.marital_status ?? "") as MedicalExam["civil_status"],
+    address: profile.address ?? "",
+    contact_no: profile.contact_no ?? "",
+    employer: profile.employer ?? "",
+    position: profile.position ?? "",
+    date_of_birth: profile.birthdate ?? "",
+    age: profile.age ?? "",
+  }),
+
+  matchRecordToProfile: (record, profile) => {
+    if (record.seafarer_profile_id === profile.id) return true;
+    return (
+      record.last_name?.toLowerCase() === profile.last_name?.toLowerCase() &&
+      record.first_name?.toLowerCase() === profile.first_name?.toLowerCase()
+    );
+  },
+
+  getRecordId: (record) => record.id,
+  getProfileId: (record) => record.seafarer_profile_id,
+  getBusinessId: (record) => record.exam_id,
+  getCreatedDate: (record) => record.created_date,
+
+  successMessages: {
+    create: "Medical exam created successfully",
+    update: "Medical exam updated successfully",
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Public hook & types
+// ---------------------------------------------------------------------------
+
+export interface UseMedicalFormResult extends UseEntityFormResult<MedicalExam> {
+  /** List of record summaries for the current patient (for the dropdown). */
+  profileRecords: RecordSummary[];
+  /** Switch to a different record by its UUID. */
+  handleSelectRecord: (id: string) => void;
+}
+
 /**
  * Manages Medical Examination form state with full CRUD button behavior.
  *
- * Handles both create and edit flows by reading the `id` search param.
- * When an ID is present, fetches that specific record from the backend.
- * When no ID is present, loads the most recently updated exam from the
- * database. If the database is empty, shows an empty form ready for new entry.
+ * Delegates to the generic `useEntityForm` with medical-specific config.
  *
  * @returns Object with form state, action handlers, and ref for first-field focus
  */
 export function useMedicalForm(): UseMedicalFormResult {
-  const searchParams = useSearchParams();
-  const editId = searchParams.get("id");
-
-  const [data, setData] = useState<MedicalExam>(EMPTY_EXAM);
-  const [originalData, setOriginalData] = useState<MedicalExam | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [isExistingRecord, setIsExistingRecord] = useState(!!editId);
-  const [existingRecord, setExistingRecord] = useState<MedicalExam | null>(null);
-  const [saveAlert, setSaveAlert] = useState<string | null>(null);
-
-  const firstFieldRef = useRef<HTMLInputElement | null>(null);
-
-  const {
-    searchResults: profileSearchResults,
-    searchLoading: profileSearchLoading,
-    handleSearch,
-    clearSearch,
-  } = useProfileSearch();
-
-  // --- Initial data load ---
-  useEffect(() => {
-    const loadRecord = async () => {
-      try {
-        let results: MedicalExam[];
-        if (editId) {
-          results = await api.entities.MedicalExam.filter({ id: editId });
-        } else {
-          results = await api.entities.MedicalExam.list("-updated_date", 1);
-        }
-
-        if (results.length > 0) {
-          const flattened = flattenResponse(results[0]);
-          setExistingRecord(flattened);
-          setData(flattened);
-          setIsExistingRecord(true);
-        }
-      } catch {
-        // Silently handle — form stays empty for new entry
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadRecord();
-  }, [editId]);
-
-  /** Clear form, enter edit mode for a new record. */
-  const handleNew = useCallback(() => {
-    setData(EMPTY_EXAM);
-    setOriginalData(null);
-    setEditing(true);
-    setIsExistingRecord(false);
-    setExistingRecord(null);
-    setTimeout(() => firstFieldRef.current?.focus(), 0);
-  }, []);
-
-  /** Enter edit mode, snapshot current data for cancel/restore. */
-  const handleEdit = useCallback(() => {
-    setOriginalData({ ...data });
-    setEditing(true);
-  }, [data]);
-
-  /** Discard changes and return to view mode. */
-  const handleCancel = useCallback(() => {
-    if (isExistingRecord && originalData) {
-      setData(originalData);
-    } else if (isExistingRecord && existingRecord) {
-      setData(existingRecord);
-    } else {
-      setData(EMPTY_EXAM);
-    }
-    setOriginalData(null);
-    setEditing(false);
-  }, [isExistingRecord, originalData, existingRecord]);
-
-  /** Validate, persist via API, and return to view mode. */
-  const handleSave = useCallback(async () => {
-    // Validation: require a linked seafarer profile
-    if (!data.seafarer_profile_id) {
-      setSaveAlert("Please select a patient before saving.");
-      setTimeout(() => setSaveAlert(null), 2000);
-      return;
-    }
-    // Validation: require name fields
-    if (!data.last_name || !data.first_name) {
-      toast.error("Please fill in the required fields (Last Name, First Name)");
-      return;
-    }
-
-    setSaving(true);
-    try {
-      const payload = stripSystemFields(data);
-      let persisted: MedicalExam;
-
-      if (isExistingRecord && existingRecord?.id) {
-        persisted = await api.entities.MedicalExam.update(
-          existingRecord.id,
-          payload
-        );
-        toast.success("Medical exam updated successfully");
-      } else {
-        persisted = await api.entities.MedicalExam.create(
-          payload as MedicalExam
-        );
-        setIsExistingRecord(true);
-        toast.success("Medical exam created successfully");
-      }
-
-      const flattened = flattenResponse(persisted);
-      setData(flattened);
-      setExistingRecord(flattened);
-      setOriginalData(null);
-      setEditing(false);
-    } catch (error) {
-      if (error instanceof ApiError && error.violations.length > 0) {
-        error.violations.forEach((v) => {
-          toast.error(`${v.field}: ${v.message}`);
-        });
-      } else if (error instanceof ApiError) {
-        toast.error(error.message);
-      } else {
-        toast.error("Failed to save medical exam record");
-      }
-    } finally {
-      setSaving(false);
-    }
-  }, [data, isExistingRecord, existingRecord]);
-
-  /** Trigger browser print dialog. */
-  const handlePrint = useCallback(() => {
-    window.print();
-  }, []);
-
-  /**
-   * Load a selected seafarer profile into the form.
-   *
-   * Searches for an existing Medical Exam linked to that seafarer. If found,
-   * loads the full record. Otherwise populates only personal info fields
-   * so the user can create a new exam for this seafarer.
-   */
-  const handleSelectResult = useCallback(
-    (profile: SeafarerProfile) => {
-      const personalData: Partial<MedicalExam> = {
-        seafarer_profile_id: profile.id,
-        last_name: profile.last_name ?? "",
-        first_name: profile.first_name ?? "",
-        middle_name: profile.middle_name ?? "",
-        place_of_birth: profile.place_of_birth ?? "",
-        passport_no: profile.passport_no ?? "",
-        religion: profile.religion ?? "",
-        nationality: profile.nationality ?? "",
-        gender: (profile.gender ?? "") as MedicalExam["gender"],
-        civil_status: (profile.marital_status ?? "") as MedicalExam["civil_status"],
-        address: profile.address ?? "",
-        contact_no: profile.contact_no ?? "",
-        employer: profile.employer ?? "",
-        position: profile.position ?? "",
-        date_of_birth: profile.birthdate ?? "",
-        age: profile.age ?? "",
-      };
-
-      const applyPersonalOnly = () => {
-        if (editing) {
-          setData((prev) => ({ ...prev, ...personalData }));
-        } else {
-          setData({ ...EMPTY_EXAM, ...personalData });
-          setIsExistingRecord(false);
-          setExistingRecord(null);
-          setEditing(true);
-        }
-      };
-
-      const searchName = (profile.last_name ?? "").trim();
-      if (searchName) {
-        api.entities.MedicalExam.search(searchName, 10)
-          .then((results) => {
-            const match = results.find(
-              (r) =>
-                r.seafarer_profile_id === profile.id ||
-                (r.last_name?.toLowerCase() === profile.last_name?.toLowerCase() &&
-                  r.first_name?.toLowerCase() === profile.first_name?.toLowerCase())
-            );
-
-            if (match) {
-              const flattened = flattenResponse(match);
-              setData(flattened);
-              setExistingRecord(flattened);
-              setIsExistingRecord(true);
-              setEditing(false);
-              setOriginalData(null);
-            } else {
-              applyPersonalOnly();
-            }
-          })
-          .catch(() => {
-            applyPersonalOnly();
-          });
-      } else {
-        applyPersonalOnly();
-      }
-
-      clearSearch();
-    },
-    [editing, clearSearch]
-  );
-
-  return {
-    data,
-    setData,
-    loading,
-    saving,
-    editing,
-    isExistingRecord,
-    existingRecord,
-    handleNew,
-    handleEdit,
-    handleCancel,
-    handleSave,
-    handlePrint,
-    firstFieldRef,
-    searchResults: profileSearchResults,
-    searchLoading: profileSearchLoading,
-    handleSearch,
-    handleSelectResult,
-    saveAlert,
-  };
+  return useEntityForm(medicalConfig);
 }

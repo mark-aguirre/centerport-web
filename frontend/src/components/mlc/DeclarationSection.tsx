@@ -1,6 +1,7 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormField } from "@/components/common/form-field";
 import { ClipboardCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,23 @@ export default function DeclarationSection({
   const update = (field: keyof MlcRecord, value: string) =>
     onChange({ ...data, [field]: value });
 
+  /** Set all declaration fields to "normal" healthy defaults. */
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      id_documents_checked: "yes",
+      hearing_meets_standards: "yes",
+      unaided_hearing_satisfactory: "yes",
+      visual_acuity_meets_standards: "yes",
+      colour_vision_meets_standards: "yes",
+      visual_aids: ["none"],
+      fit_for_lookout: "yes",
+      no_limitations: "yes",
+      limitations_details: "",
+      applicant_condition_risk: "no",
+    });
+  };
+
   const toggleVisualAid = (aid: VisualAid) => {
     if (disabled) return;
     const current = data.visual_aids ?? [];
@@ -68,7 +86,11 @@ export default function DeclarationSection({
 
   return (
     <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-      <SectionHeader title="Declaration of the Authorized Physician" icon={ClipboardCheck} />
+      <SectionHeader
+        title="Declaration of the Authorized Physician"
+        icon={ClipboardCheck}
+        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+      />
       <div className="space-y-2">
         {/* Y/N Condition Rows */}
         <div className="border border-primary/10 rounded-md overflow-hidden">

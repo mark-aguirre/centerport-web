@@ -3,7 +3,6 @@ import {
   User,
   HeartPulse,
   FlaskConical,
-  Ship,
   ClipboardCheck,
   Globe,
   Building2,
@@ -37,7 +36,7 @@ export const navigation: NavigationItem[] = [
   },
   {
     title: "Seafarer's Medical Examination Certificate",
-    shortTitle: "Medical",
+    shortTitle: "Seabase",
     subtitle: "Seafarer's Medical Examination — ILO/WHO",
     href: "/medical",
     icon: HeartPulse,
@@ -46,11 +45,6 @@ export const navigation: NavigationItem[] = [
     title: "Laboratory",
     href: "/laboratory",
     icon: FlaskConical,
-  },
-  {
-    title: "Seabase",
-    href: "/seabase",
-    icon: Ship,
   },
   {
     title: "Seafarer's Medical Examination Certificate",

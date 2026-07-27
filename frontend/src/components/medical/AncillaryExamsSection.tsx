@@ -53,71 +53,71 @@ export function AncillaryExamsSection({ data, onChange, disabled }: MedicalSecti
           <Input value={data.xray_no} onChange={(e) => update("xray_no", e.target.value)} className="h-7 text-xs w-24" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2">
           {/* Row: Chest X-ray */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">A. Chest X-ray</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_cxr" checked={data.ancillary_chest_xray === "normal"} onChange={() => update("ancillary_chest_xray", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_cxr" checked={data.ancillary_chest_xray === "with_findings"} onChange={() => update("ancillary_chest_xray", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">A. Chest X-ray</span>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_cxr" checked={data.ancillary_chest_xray === "normal"} onChange={() => update("ancillary_chest_xray", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_cxr" checked={data.ancillary_chest_xray === "with_findings"} onChange={() => update("ancillary_chest_xray", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
           </div>
           {/* Row: Urinalysis */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">E. Urinalysis</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_uri" checked={data.ancillary_urinalysis === "normal"} onChange={() => update("ancillary_urinalysis", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_uri" checked={data.ancillary_urinalysis === "with_findings"} onChange={() => update("ancillary_urinalysis", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">E. Urinalysis</span>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_uri" checked={data.ancillary_urinalysis === "normal"} onChange={() => update("ancillary_urinalysis", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_uri" checked={data.ancillary_urinalysis === "with_findings"} onChange={() => update("ancillary_urinalysis", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
           </div>
           {/* Row: RPR */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">I. RPR</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_rpr" checked={data.ancillary_rpr === "reactive"} onChange={() => update("ancillary_rpr", "reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Reactive</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_rpr" checked={data.ancillary_rpr === "non_reactive"} onChange={() => update("ancillary_rpr", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">I. RPR</span>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_rpr" checked={data.ancillary_rpr === "reactive"} onChange={() => update("ancillary_rpr", "reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Reactive</span></label>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_rpr" checked={data.ancillary_rpr === "non_reactive"} onChange={() => update("ancillary_rpr", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
           </div>
 
           {/* Row: ECG */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">B. ECG</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_ecg" checked={data.ancillary_ecg === "normal"} onChange={() => update("ancillary_ecg", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_ecg" checked={data.ancillary_ecg === "with_findings"} onChange={() => update("ancillary_ecg", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">B. ECG</span>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_ecg" checked={data.ancillary_ecg === "normal"} onChange={() => update("ancillary_ecg", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_ecg" checked={data.ancillary_ecg === "with_findings"} onChange={() => update("ancillary_ecg", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
           </div>
           {/* Row: Stool Exam */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">F. Stool Exam</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_stool" checked={data.ancillary_stool_exam === "normal"} onChange={() => update("ancillary_stool_exam", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_stool" checked={data.ancillary_stool_exam === "non_reactive"} onChange={() => update("ancillary_stool_exam", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">F. Stool Exam</span>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_stool" checked={data.ancillary_stool_exam === "normal"} onChange={() => update("ancillary_stool_exam", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_stool" checked={data.ancillary_stool_exam === "non_reactive"} onChange={() => update("ancillary_stool_exam", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
           </div>
           {/* Row: Blood Type */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">J. Blood Type</span>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">J. Blood Type</span>
             <FormSelect label="" value={data.ancillary_blood_type} onChange={(v) => update("ancillary_blood_type", v)} options={["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]} />
           </div>
 
           {/* Row: CBC */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">C. CBC</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_cbc" checked={data.ancillary_cbc === "normal"} onChange={() => update("ancillary_cbc", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_cbc" checked={data.ancillary_cbc === "with_findings"} onChange={() => update("ancillary_cbc", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">C. CBC</span>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_cbc" checked={data.ancillary_cbc === "normal"} onChange={() => update("ancillary_cbc", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_cbc" checked={data.ancillary_cbc === "with_findings"} onChange={() => update("ancillary_cbc", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
           </div>
           {/* Row: HbsAg */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">G. HbsAg</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_hbs" checked={data.ancillary_hbsag === "reactive"} onChange={() => update("ancillary_hbsag", "reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Reactive</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_hbs" checked={data.ancillary_hbsag === "non_reactive"} onChange={() => update("ancillary_hbsag", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">G. HbsAg</span>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_hbs" checked={data.ancillary_hbsag === "reactive"} onChange={() => update("ancillary_hbsag", "reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Reactive</span></label>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_hbs" checked={data.ancillary_hbsag === "non_reactive"} onChange={() => update("ancillary_hbsag", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
           </div>
           {/* Spacer */}
-          <div />
+          <div className="hidden xl:block" />
 
           {/* Row: Pregnancy Test */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">D. Pregnancy Test</span>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">D. Pregnancy Test</span>
             <FormSelect label="" value={data.ancillary_pregnancy_test} onChange={(v) => update("ancillary_pregnancy_test", v)} options={["Positive", "Negative", "N/A"]} />
           </div>
           {/* Row: HIV/AIDS test */}
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-foreground/70 w-20 shrink-0">H. HIV/AIDS test</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_hiv" checked={data.ancillary_hiv_aids === "reactive"} onChange={() => update("ancillary_hiv_aids", "reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Reactive</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="anc_hiv" checked={data.ancillary_hiv_aids === "non_reactive"} onChange={() => update("ancillary_hiv_aids", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">H. HIV/AIDS test</span>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_hiv" checked={data.ancillary_hiv_aids === "reactive"} onChange={() => update("ancillary_hiv_aids", "reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Reactive</span></label>
+            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_hiv" checked={data.ancillary_hiv_aids === "non_reactive"} onChange={() => update("ancillary_hiv_aids", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
           </div>
-          <div />
+          <div className="hidden xl:block" />
         </div>
 
         {/* Psychological Test */}

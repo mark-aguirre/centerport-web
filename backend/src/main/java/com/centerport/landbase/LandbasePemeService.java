@@ -1,20 +1,15 @@
 package com.centerport.landbase;
 
-import com.centerport.common.dto.PagedResponse;
-import com.centerport.common.exception.NotFoundException;
+import com.centerport.common.service.AbstractProfileLinkedService;
 import com.centerport.common.util.BusinessIdGenerator;
 import com.centerport.landbase.event.LandbasePemeCreatedEvent;
 import com.centerport.landbase.event.LandbasePemeUpdatedEvent;
 import com.centerport.profile.SeafarerProfile;
 import com.centerport.profile.SeafarerProfileRepository;
 
-import jakarta.persistence.criteria.Join;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,169 +18,118 @@ import java.util.UUID;
 
 /**
  * Service layer for LandbasePeme CRUD operations.
- * Manages transactional boundaries, business-ID generation (PEME prefix) on create,
- * seafarer profile resolution, and search across profile fields.
  *
+ * Extends {@link AbstractProfileLinkedService} to inherit the standard
+ * profile-linked CRUD lifecycle (paginated search, find-by-id, find-by-profile,
+ * create with business-ID generation, and update with profile re-linking).
+ *
+ * Business ID:
+ * Each new PEME record receives a unique sequential ID in the format
+ * {@code PEME00000001} generated from the PostgreSQL sequence {@code peme_seq}.
+ *
+ * @see AbstractProfileLinkedService
  * @see LandbasePemeRepository
  * @see LandbasePemeMapper
- * @see BusinessIdGenerator
  */
 @Slf4j
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
-public class LandbasePemeService {
+public class LandbasePemeService extends AbstractProfileLinkedService<LandbasePeme, LandbasePemeDto> {
 
     private static final String BUSINESS_ID_PREFIX = "PEME";
+    private static final String ENTITY_NAME = "LandbasePeme";
+    private static final String BUSINESS_ID_FIELD = "pemeId";
 
     private final LandbasePemeRepository repository;
     private final LandbasePemeMapper mapper;
-    private final BusinessIdGenerator businessIdGenerator;
-    private final ApplicationEventPublisher eventPublisher;
-    private final SeafarerProfileRepository profileRepository;
 
-    // === Queries ===
-
-    /**
-     * Returns paginated landbase PEMEs, optionally filtered by a search keyword.
-     *
-     * When a search term is provided, records are matched against the linked
-     * seafarer profile's lastName, firstName, or the PEME's pemeId using
-     * case-insensitive LIKE.
-     *
-     * @param search   optional keyword (null or blank returns all)
-     * @param pageable pagination and sorting parameters
-     * @return paged response of PEME DTOs
-     */
-    public PagedResponse<LandbasePemeDto> findAll(String search, Pageable pageable) {
-        Specification<LandbasePeme> spec = buildSearchSpec(search);
-        Page<LandbasePeme> page = repository.findAll(spec, pageable);
-        List<LandbasePemeDto> content = page.getContent().stream()
-                .map(mapper::toDto)
-                .toList();
-        return PagedResponse.of(content, page);
+    public LandbasePemeService(LandbasePemeRepository repository,
+                               LandbasePemeMapper mapper,
+                               BusinessIdGenerator businessIdGenerator,
+                               ApplicationEventPublisher eventPublisher,
+                               SeafarerProfileRepository profileRepository) {
+        super(businessIdGenerator, eventPublisher, profileRepository);
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
-    /**
-     * Finds a landbase PEME by UUID or throws NotFoundException.
-     *
-     * @param id the record UUID
-     * @return the matching PEME DTO
-     * @throws NotFoundException if no record exists with the given ID
-     */
-    public LandbasePemeDto findById(UUID id) {
-        LandbasePeme entity = repository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Landbase PEME not found — id: {}", id);
-                    return new NotFoundException("LandbasePeme", id);
-                });
+    // =======================================================================
+    // Template Method Implementations
+    // =======================================================================
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected LandbasePemeRepository getRepository() {
+        return repository;
+    }
+
+    @Override
+    protected String getBusinessIdPrefix() {
+        return BUSINESS_ID_PREFIX;
+    }
+
+    @Override
+    protected String getEntityName() {
+        return ENTITY_NAME;
+    }
+
+    @Override
+    protected String getBusinessIdField() {
+        return BUSINESS_ID_FIELD;
+    }
+
+    @Override
+    protected LandbasePemeDto toDto(LandbasePeme entity) {
         return mapper.toDto(entity);
     }
 
-    // === Commands ===
+    @Override
+    protected LandbasePeme toEntity(LandbasePemeDto dto) {
+        return mapper.toEntity(dto);
+    }
 
-    /**
-     * Creates a new landbase PEME. Client-supplied system fields (id, pemeId, createdDate,
-     * updatedDate) are ignored. A business ID with prefix PEME is generated server-side.
-     * The seafarer profile is resolved from the provided seafarerProfileId.
-     *
-     * @param dto the PEME data from the client
-     * @return the persisted PEME with server-generated fields populated
-     * @throws NotFoundException if the referenced seafarer profile does not exist
-     */
-    @Transactional
-    public LandbasePemeDto create(LandbasePemeDto dto) {
-        SeafarerProfile profile = resolveProfile(dto.getSeafarerProfileId());
+    @Override
+    protected void updateEntityFromDto(LandbasePemeDto dto, LandbasePeme entity) {
+        mapper.updateEntity(dto, entity);
+    }
 
-        LandbasePeme entity = mapper.toEntity(dto);
-        clearSystemFields(entity);
+    @Override
+    protected void setBusinessId(LandbasePeme entity, String businessId) {
+        entity.setPemeId(businessId);
+    }
+
+    @Override
+    protected void setEntityProfile(LandbasePeme entity, SeafarerProfile profile) {
         entity.setSeafarerProfile(profile);
+    }
 
-        String pemeId = businessIdGenerator.generateId(BUSINESS_ID_PREFIX);
-        entity.setPemeId(pemeId);
+    @Override
+    protected UUID getProfileId(LandbasePemeDto dto) {
+        return dto.getSeafarerProfileId();
+    }
 
-        LandbasePeme saved = repository.save(entity);
+    @Override
+    protected List<LandbasePeme> findEntitiesByProfileId(UUID profileId) {
+        return repository.findBySeafarerProfileId(profileId,
+                Sort.by(Sort.Direction.DESC, "createdDate"));
+    }
 
+    @Override
+    protected void publishCreatedEvent(LandbasePeme entity, SeafarerProfile profile) {
         eventPublisher.publishEvent(new LandbasePemeCreatedEvent(
-                saved.getId(), saved.getPemeId(),
+                entity.getId(), entity.getPemeId(),
                 profile.getLastName(), profile.getFirstName()));
-
-        log.info("Landbase PEME created — id: {}, pemeId: {}, profileId: {}",
-                saved.getId(), saved.getPemeId(), profile.getProfileId());
-        return mapper.toDto(saved);
     }
 
-    /**
-     * Updates an existing landbase PEME. Mutable data fields are updated from the DTO;
-     * system fields (id, pemeId, createdDate) are preserved. If a different
-     * seafarerProfileId is provided, the profile link is updated.
-     *
-     * @param id  the UUID of the record to update
-     * @param dto the updated PEME data
-     * @return the updated PEME DTO
-     * @throws NotFoundException if no record exists with the given ID or profile not found
-     */
-    @Transactional
-    public LandbasePemeDto update(UUID id, LandbasePemeDto dto) {
-        LandbasePeme existing = repository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Landbase PEME not found for update — id: {}", id);
-                    return new NotFoundException("LandbasePeme", id);
-                });
-
-        SeafarerProfile profile = resolveProfile(dto.getSeafarerProfileId());
-        existing.setSeafarerProfile(profile);
-
-        mapper.updateEntity(dto, existing);
-
-        LandbasePeme saved = repository.save(existing);
-
+    @Override
+    protected void publishUpdatedEvent(LandbasePeme entity) {
         eventPublisher.publishEvent(new LandbasePemeUpdatedEvent(
-                saved.getId(), saved.getPemeId()));
-
-        log.info("Landbase PEME updated — id: {}, pemeId: {}", saved.getId(), saved.getPemeId());
-        return mapper.toDto(saved);
+                entity.getId(), entity.getPemeId()));
     }
 
-    // === Helpers ===
-
-    private SeafarerProfile resolveProfile(UUID profileId) {
-        return profileRepository.findById(profileId)
-                .orElseThrow(() -> {
-                    log.warn("Seafarer profile not found — id: {}", profileId);
-                    return new NotFoundException("SeafarerProfile", profileId);
-                });
-    }
-
-    private void clearSystemFields(LandbasePeme entity) {
-        entity.setId(null);
+    @Override
+    protected void clearSystemFields(LandbasePeme entity) {
+        super.clearSystemFields(entity);
         entity.setPemeId(null);
-        entity.setCreatedDate(null);
-        entity.setUpdatedDate(null);
-    }
-
-    /**
-     * Builds a JPA Specification for searching PEME records by keyword.
-     *
-     * Matches the search term (case-insensitive) against the linked seafarer
-     * profile's lastName, firstName, or the PEME's pemeId.
-     * Returns an unrestricted spec when the search term is null or blank.
-     *
-     * @param search the keyword to match
-     * @return a Specification for filtering
-     */
-    private Specification<LandbasePeme> buildSearchSpec(String search) {
-        if (search == null || search.isBlank()) {
-            return Specification.where(null);
-        }
-        String pattern = "%" + search.trim().toLowerCase() + "%";
-        return (root, query, cb) -> {
-            Join<LandbasePeme, SeafarerProfile> profile = root.join("seafarerProfile");
-            return cb.or(
-                    cb.like(cb.lower(profile.get("lastName")), pattern),
-                    cb.like(cb.lower(profile.get("firstName")), pattern),
-                    cb.like(cb.lower(root.get("pemeId")), pattern)
-            );
-        };
     }
 }

@@ -1,20 +1,26 @@
 /**
  * Utility functions for MLC form data transformation.
  *
- * Handles flattening nested API responses, sanitizing payloads for
- * backend submission, and field-level formatting helpers.
+ * Handles flattening nested API responses into flat form models.
+ * Generic utilities are re-exported from `@/lib/form-utils`.
  */
 
 import { EMPTY_MLC, type MlcRecord } from "./types";
+import {
+  stripSystemFields as genericStrip,
+  sanitizePayload as genericSanitize,
+  createFieldUpdater as genericUpdater,
+  coerceNulls,
+} from "@/lib/form-utils";
+
+// Re-export shared utilities
+export { humanizeField } from "@/lib/form-utils";
 
 /** System-managed fields excluded from MLC update payloads. */
 const SYSTEM_FIELDS = ["id", "mlc_id", "created_date", "updated_date"] as const;
 
 /**
  * Shape of the nested seafarer profile returned by the MLC API.
- *
- * The backend embeds the linked SeafarerProfile as a nested object
- * within the MLC response. This interface types that nested shape.
  */
 interface NestedSeafarerProfile {
   id?: string;
@@ -37,22 +43,20 @@ interface NestedSeafarerProfile {
 
 /**
  * Raw MLC record shape as returned by the API before flattening.
- *
- * The API returns personal info nested inside `seafarer_profile`.
- * This type represents that raw response shape.
  */
 export interface RawMlcResponse extends Partial<MlcRecord> {
   seafarer_profile?: NestedSeafarerProfile;
   seafarer_profile_id?: string;
 }
 
+/** Field defaults for null coercion (non-string fields). */
+const FIELD_DEFAULTS: Record<string, unknown> = {
+  visual_aids: [],
+};
+
 /**
  * Flatten the nested `seafarer_profile` from the API response into
  * top-level personal info fields expected by the form.
- *
- * The backend stores personal info on the SeafarerProfile entity and
- * nests it in the MLC DTO response. This function merges those nested
- * fields onto the flat form model.
  *
  * @param record - Raw API response with optional nested profile
  * @returns Flat MlcRecord with personal info at top level
@@ -80,76 +84,27 @@ export function flattenProfileIntoRecord(record: RawMlcResponse): MlcRecord {
       }
     : {};
 
-  // Omit the nested profile before spreading to avoid leftover keys
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { seafarer_profile: _, ...rest } = record;
-
-  // Coerce null values to empty strings so form controls work correctly
-  // Preserve arrays (visual_aids) as-is
-  const coerced: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(rest)) {
-    if (value === null || value === undefined) {
-      coerced[key] = key === "visual_aids" ? [] : "";
-    } else {
-      coerced[key] = value;
-    }
-  }
+  const coerced = coerceNulls(rest as Record<string, unknown>, FIELD_DEFAULTS);
 
   return { ...EMPTY_MLC, ...coerced, ...personalData } as MlcRecord;
 }
 
-/**
- * Strip system-managed fields from an MLC record for API mutations.
- *
- * Removes `id`, `mlc_id`, `created_date`, and `updated_date` which
- * are server-generated and must not be sent in create/update payloads.
- *
- * @param record - Full MLC record from form state
- * @returns Record without system fields
- */
+/** Strip system-managed fields from an MLC record for API mutations. */
 export function stripSystemFields(record: MlcRecord): Partial<MlcRecord> {
-  const entries = Object.entries(record).filter(
-    ([key]) => !(SYSTEM_FIELDS as readonly string[]).includes(key)
-  );
-  return Object.fromEntries(entries) as Partial<MlcRecord>;
+  return genericStrip(record, SYSTEM_FIELDS);
 }
 
-/**
- * Sanitize payload before sending to the backend.
- *
- * Converts empty strings to null for enum-typed and optional fields
- * so the backend doesn't reject them during deserialization.
- * Preserves arrays (visual_aids) even if empty.
- *
- * @param record - Partial MLC record to sanitize
- * @returns Sanitized record with empty strings replaced by null
- */
+/** Sanitize payload before sending to the backend. */
 export function sanitizePayload(record: Partial<MlcRecord>): Partial<MlcRecord> {
-  const result: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(record)) {
-    if (Array.isArray(value)) {
-      result[key] = value;
-    } else {
-      result[key] = value === "" ? null : value;
-    }
-  }
-  return result as Partial<MlcRecord>;
+  return genericSanitize(record, { preserveArrayFields: ["visual_aids"] });
 }
 
-/**
- * Create a field updater function for section components.
- *
- * Returns a callback that updates a single field on the MlcRecord
- * and calls the parent onChange with the new state.
- *
- * @param data - Current form data
- * @param onChange - Parent state setter
- * @returns Updater function accepting a field key and new value
- */
+/** Create a field updater for MLC section components. */
 export function createFieldUpdater(
   data: MlcRecord,
   onChange: (data: MlcRecord) => void
 ): (field: keyof MlcRecord, value: string | boolean | string[]) => void {
-  return (field, value) =>
-    onChange({ ...data, [field]: value } as MlcRecord);
+  return genericUpdater(data, onChange) as (field: keyof MlcRecord, value: string | boolean | string[]) => void;
 }

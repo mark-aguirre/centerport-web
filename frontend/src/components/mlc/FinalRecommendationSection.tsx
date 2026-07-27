@@ -9,7 +9,7 @@ import {
 } from "@/components/common/certification-details-fields";
 import { Award } from "lucide-react";
 import { createFieldUpdater } from "./utils";
-import type { MlcSectionProps } from "./types";
+import type { MlcSectionProps, MlcRecord } from "./types";
 
 /** Fitness determination options per MLC standards. */
 const FITNESS_OPTIONS = [
@@ -51,7 +51,7 @@ export default function FinalRecommendationSection({
   };
 
   const handleCertChange = (field: keyof CertificationDetailsValues, value: string) => {
-    updateField(FIELD_MAP[field], value);
+    updateField(FIELD_MAP[field] as keyof MlcRecord, value);
   };
 
   return (

@@ -1,33 +1,41 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface SetNormalButtonProps {
-  /** Callback fired when the button is clicked */
+  /** Callback fired when the button is clicked. */
   onClick: () => void;
-  /** When true, the button is hidden (view mode) */
+  /** When true, the button is hidden (e.g. in view mode). */
   disabled?: boolean;
+  /** Additional CSS classes. */
+  className?: string;
 }
 
 /**
- * Compact "Set Normal" button shown in section headers during edit mode.
+ * Small "Set Normal" button placed in section headers.
  *
- * Fills the section's fields with their normal/default values (e.g. "Normal",
- * "No", "Passed", "Non Reactive") with a single click. Hidden when the form
- * is in view mode (disabled).
+ * Sets all fields in the parent section to their "normal" default values
+ * (e.g. all conditions to "no", physical exploration to "N", lab tests
+ * to "normal"). Only visible when the form is in edit mode.
  */
-export function SetNormalButton({ onClick, disabled }: SetNormalButtonProps) {
-  if (disabled) return null;
-
+export function SetNormalButton({ onClick, disabled, className }: SetNormalButtonProps) {
   return (
-    <button
+    <Button
       type="button"
+      size="sm"
+      variant="outline"
       onClick={onClick}
-      className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium text-primary/80 bg-primary/5 border border-primary/20 rounded hover:bg-primary/10 hover:text-primary transition-colors uppercase tracking-wide"
-      title="Set all fields in this section to normal values"
+      disabled={disabled}
+      className={cn(
+        "h-6 px-2 text-[10px] font-bold uppercase tracking-wider text-primary border-primary/30 hover:bg-primary/10",
+        disabled && "opacity-50 cursor-not-allowed",
+        className
+      )}
     >
-      <RotateCcw className="w-3 h-3" />
+      <RotateCcw className="w-3 h-3 mr-1" />
       Set Normal
-    </button>
+    </Button>
   );
 }

@@ -66,11 +66,11 @@ export default function PhotoUpload({
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative w-20 h-24 rounded border border-primary/20 overflow-hidden bg-secondary flex items-center justify-center flex-shrink-0">
+      <div className="relative w-32 h-40 rounded border border-primary/20 overflow-hidden bg-secondary flex items-center justify-center flex-shrink-0">
         {photoUrl ? (
           <Image src={resolvePhotoUrl(photoUrl)} alt="Profile" fill className="object-cover" unoptimized />
         ) : (
-          <User className="w-7 h-7 text-primary/30" />
+          <User className="w-12 h-12 text-primary/30" />
         )}
       </div>
       <input

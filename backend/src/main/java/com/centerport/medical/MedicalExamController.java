@@ -61,6 +61,24 @@ public class MedicalExamController {
     }
 
     /**
+     * Retrieves all medical exam records linked to a specific seafarer profile.
+     *
+     * @param profileId the seafarer profile UUID
+     * @return list of exam records for the given profile
+     */
+    @GetMapping("/by-profile/{profileId}")
+    @Operation(summary = "List all medical exams for a specific seafarer profile",
+               description = "Returns all medical exam records linked to the given seafarer profile UUID, sorted by creation date descending.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Records retrieved")
+    })
+    public ResponseEntity<ApiResponse<java.util.List<MedicalExamDto>>> getByProfile(
+            @PathVariable UUID profileId) {
+        java.util.List<MedicalExamDto> records = service.findByProfileId(profileId);
+        return ResponseEntity.ok(ApiResponse.success(records));
+    }
+
+    /**
      * Returns a single medical exam by its UUID.
      *
      * @param id the exam's primary key

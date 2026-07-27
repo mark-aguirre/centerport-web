@@ -32,6 +32,10 @@ const TRADE_AREA_OPTIONS = [
  * date of birth, sex, RH typing, passport/seaman number, home address,
  * department, crew position, lookout duties, routine & emergency duties,
  * type of ship, and trade area.
+ *
+ * This section is always read-only because the personal info fields are
+ * populated from the selected seafarer profile and should not be edited
+ * directly on the certificate form.
  */
 export default function GeneralInfoSection({ data, onChange }: PanamaSectionProps) {
   const update = (field: keyof PanamaCertificate, value: string) =>
@@ -49,6 +53,7 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
             value={data.full_name}
             onChange={(v) => update("full_name", v)}
             required
+            disabled
           />
         </div>
 
@@ -59,24 +64,27 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
             value={data.day}
             onChange={(v) => update("day", v)}
             type="number"
+            disabled
           />
           <FormSelect
             label="Month"
             value={data.month}
             onChange={(v) => update("month", v)}
             options={MONTH_OPTIONS}
+            disabled
           />
           <FormField
             label="Year"
             value={data.year}
             onChange={(v) => update("year", v)}
             type="number"
+            disabled
           />
           <div className="space-y-0.5">
             <span className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
               Sex
             </span>
-            <div className="flex items-center gap-4 h-8" role="radiogroup" aria-label="Sex">
+            <div className="flex items-center gap-4 h-8 pointer-events-none" role="radiogroup" aria-label="Sex">
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="radio"
@@ -85,6 +93,7 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
                   onChange={() => update("sex", "Male")}
                   className="w-4 h-4 accent-primary"
                   aria-label="Sex - Male"
+                  tabIndex={-1}
                 />
                 <span className="text-xs text-foreground/80">Male</span>
               </label>
@@ -96,6 +105,7 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
                   onChange={() => update("sex", "Female")}
                   className="w-4 h-4 accent-primary"
                   aria-label="Sex - Female"
+                  tabIndex={-1}
                 />
                 <span className="text-xs text-foreground/80">Female</span>
               </label>
@@ -109,11 +119,13 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
             label="RH Typing"
             value={data.rh_typing}
             onChange={(v) => update("rh_typing", v)}
+            disabled
           />
           <FormField
             label="Passport / Seaman No."
             value={data.passport_seaman_no}
             onChange={(v) => update("passport_seaman_no", v)}
+            disabled
           />
         </div>
 
@@ -123,6 +135,7 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
             label="Home Address"
             value={data.home_address}
             onChange={(v) => update("home_address", v)}
+            disabled
           />
         </div>
 
@@ -132,11 +145,13 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
             label="Department"
             value={data.department}
             onChange={(v) => update("department", v)}
+            disabled
           />
           <FormField
             label="Crew Position"
             value={data.crew_position}
             onChange={(v) => update("crew_position", v)}
+            disabled
           />
         </div>
 
@@ -146,11 +161,13 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
             label="Lookout Duties"
             value={data.lookout_duties}
             onChange={(v) => update("lookout_duties", v)}
+            disabled
           />
           <FormField
             label="Routine & Emergency Duties"
             value={data.routine_emergency_duties}
             onChange={(v) => update("routine_emergency_duties", v)}
+            disabled
           />
         </div>
 
@@ -163,6 +180,7 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
             onChange={(v) => update("type_of_ship", v)}
             options={SHIP_TYPE_OPTIONS}
             ariaLabel="Type of Ship"
+            disabled
           />
           <RadioGroup
             label="Trade Area"
@@ -171,6 +189,7 @@ export default function GeneralInfoSection({ data, onChange }: PanamaSectionProp
             onChange={(v) => update("trade_area", v)}
             options={TRADE_AREA_OPTIONS}
             ariaLabel="Trade Area"
+            disabled
           />
         </div>
       </div>

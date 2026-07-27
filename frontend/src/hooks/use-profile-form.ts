@@ -225,15 +225,17 @@ export function useProfileForm(): UseProfileFormResult {
   /** Debounced search — triggers API call after 300ms of inactivity. */
   // handleSearch is provided by useProfileSearch
 
-  /** Load a selected profile from search results into the form (view mode). */
+  /** Load a selected profile from search results into the form. */
   const handleSelectResult = useCallback((profile: SeafarerProfile) => {
     setExistingRecord(profile);
     setData({ ...EMPTY_PROFILE, ...profile });
     setIsExistingRecord(true);
-    setEditing(false);
+    if (!editing) {
+      setEditing(false);
+    }
     setOriginalData(null);
     clearSearch();
-  }, [clearSearch]);
+  }, [editing, clearSearch]);
 
   return {
     data,

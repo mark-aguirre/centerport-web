@@ -1,11 +1,13 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormField } from "@/components/common/form-field";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FlaskConical } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { PanamaSectionProps, PanamaCertificate, LabTestResult, OtherLabTestResult } from "./types";
 
 /** Lab test categories with their items */
@@ -72,7 +74,7 @@ const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abn
  * columns, plus an "Other test" section with checkboxes and a section for
  * additional diagnostic tests with practitioner comments.
  */
-export default function DiagnosticTestsSection({ data, onChange }: PanamaSectionProps) {
+export default function DiagnosticTestsSection({ data, onChange, disabled }: PanamaSectionProps) {
   const update = (field: keyof PanamaCertificate, value: string) =>
     onChange({ ...data, [field]: value });
 
@@ -88,12 +90,37 @@ export default function DiagnosticTestsSection({ data, onChange }: PanamaSection
     onChange({ ...data, lab_other_tests: updated });
   };
 
+  /** Set all lab tests to "normal" and other tests to normal with checked. */
+  const handleSetNormal = () => {
+    const normalLabTests: Record<string, LabTestResult> = {};
+    LAB_CATEGORIES.forEach((cat) => {
+      cat.items.forEach((item) => {
+        normalLabTests[item.key] = { normal: "X", abnormal: "", observations: "" };
+      });
+    });
+
+    const normalOtherTests: Record<string, OtherLabTestResult> = {};
+    OTHER_TESTS.forEach((item) => {
+      normalOtherTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "" };
+    });
+
+    onChange({
+      ...data,
+      lab_tests: normalLabTests,
+      lab_other_tests: normalOtherTests,
+      other_diag_test: "",
+      other_diag_result: "",
+      other_diag_comments: "",
+    });
+  };
+
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
         title="Diagnostic Test and Results"
         icon={FlaskConical}
         subtitle="at medical discretion"
+        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
       />
 
       {/* Laboratory Test heading */}
@@ -125,33 +152,37 @@ export default function DiagnosticTestsSection({ data, onChange }: PanamaSection
               const result = data.lab_tests[item.key] || EMPTY_LAB_RESULT;
               return (
                 <div key={item.key} className="grid grid-cols-[2fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-                  <label className="flex items-center gap-2 cursor-pointer pl-10">
+                  <label className={cn("flex items-center gap-2 cursor-pointer pl-10", disabled && "pointer-events-none")}>
                     <input
                       type="checkbox"
                       checked={!!result.normal || !!result.abnormal}
                       readOnly
                       className="w-4 h-4 accent-primary rounded"
                       aria-label={item.label}
+                      tabIndex={disabled ? -1 : undefined}
                     />
                     <span className="text-xs text-foreground/80">{item.label}</span>
                   </label>
                   <Input
                     value={result.normal}
                     onChange={(e) => updateLabTest(item.key, "normal", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label={`${item.label} - Normal`}
+                    readOnly={disabled}
                   />
                   <Input
                     value={result.abnormal}
                     onChange={(e) => updateLabTest(item.key, "abnormal", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label={`${item.label} - Abnormal`}
+                    readOnly={disabled}
                   />
                   <Input
                     value={result.observations}
                     onChange={(e) => updateLabTest(item.key, "observations", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label={`${item.label} - Observations`}
+                    readOnly={disabled}
                   />
                 </div>
               );
@@ -179,33 +210,37 @@ export default function DiagnosticTestsSection({ data, onChange }: PanamaSection
           const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
           return (
             <div key={item.key} className="grid grid-cols-[2fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-              <label className="flex items-center gap-2 cursor-pointer pl-10">
+              <label className={cn("flex items-center gap-2 cursor-pointer pl-10", disabled && "pointer-events-none")}>
                 <input
                   type="checkbox"
                   checked={result.checked}
                   onChange={(e) => updateOtherTest(item.key, "checked", e.target.checked)}
                   className="w-4 h-4 accent-primary rounded"
                   aria-label={item.label}
+                  tabIndex={disabled ? -1 : undefined}
                 />
                 <span className="text-xs text-foreground/80">{item.label}</span>
               </label>
               <Input
                 value={result.normal}
                 onChange={(e) => updateOtherTest(item.key, "normal", e.target.value)}
-                className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                 aria-label={`${item.label} - Normal`}
+                readOnly={disabled}
               />
               <Input
                 value={result.abnormal}
                 onChange={(e) => updateOtherTest(item.key, "abnormal", e.target.value)}
-                className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                 aria-label={`${item.label} - Abnormal`}
+                readOnly={disabled}
               />
               <Input
                 value={result.observations}
                 onChange={(e) => updateOtherTest(item.key, "observations", e.target.value)}
-                className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                 aria-label={`${item.label} - Observations`}
+                readOnly={disabled}
               />
             </div>
           );
@@ -223,11 +258,13 @@ export default function DiagnosticTestsSection({ data, onChange }: PanamaSection
             label="Test"
             value={data.other_diag_test}
             onChange={(v) => update("other_diag_test", v)}
+            disabled={disabled}
           />
           <FormField
             label="Result"
             value={data.other_diag_result}
             onChange={(v) => update("other_diag_result", v)}
+            disabled={disabled}
           />
         </div>
 
@@ -238,8 +275,12 @@ export default function DiagnosticTestsSection({ data, onChange }: PanamaSection
           <Textarea
             value={data.other_diag_comments}
             onChange={(e) => update("other_diag_comments", e.target.value)}
-            className="h-24 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none"
+            className={cn(
+              "h-24 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
+              disabled && "pointer-events-none"
+            )}
             placeholder=""
+            readOnly={disabled}
           />
         </div>
       </div>

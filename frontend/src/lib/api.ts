@@ -9,6 +9,7 @@ import { httpClient } from "./http-client";
 import type { LandbasePeme } from "@/components/landbase/types";
 import type { MedicalExam } from "@/components/medical/types";
 import type { MlcRecord } from "@/components/mlc/types";
+import type { PanamaCertificate } from "@/components/panama/types";
 
 /**
  * Complete seafarer profile record.
@@ -258,6 +259,20 @@ export const api = {
         );
         return paged.content;
       },
+
+      /**
+       * Fetch all PEME records linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of PEME records for that profile
+       */
+      async listByProfile(profileId: string): Promise<LandbasePeme[]> {
+        const response = await httpClient.get<LandbasePeme[]>(
+          `/api/landbase-pemes/by-profile/${profileId}`
+        );
+        return response;
+      },
     },
 
     MedicalExam: {
@@ -340,6 +355,19 @@ export const api = {
         );
         return paged.content;
       },
+
+      /**
+       * Fetch all medical exam records linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of medical exam records for that profile
+       */
+      async listByProfile(profileId: string): Promise<MedicalExam[]> {
+        return httpClient.get<MedicalExam[]>(
+          `/api/medical-exams/by-profile/${profileId}`
+        );
+      },
     },
 
     MlcRecord: {
@@ -421,6 +449,116 @@ export const api = {
           }
         );
         return paged.content;
+      },
+
+      /**
+       * Fetch all MLC records linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of MLC records for that profile
+       */
+      async listByProfile(profileId: string): Promise<MlcRecord[]> {
+        return httpClient.get<MlcRecord[]>(
+          `/api/mlc-records/by-profile/${profileId}`
+        );
+      },
+    },
+    PanamaCertificate: {
+      /**
+       * Filter Panama certificates. When `id` is provided, fetches a single record by UUID.
+       * Otherwise returns all records (first page, up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<PanamaCertificate[]> {
+        if (filters.id) {
+          const record = await httpClient.get<PanamaCertificate>(
+            `/api/panama-certificates/${filters.id}`
+          );
+          return [record];
+        }
+        const paged = await httpClient.get<PagedResponse<PanamaCertificate>>(
+          "/api/panama-certificates",
+          { size: 100 }
+        );
+        return paged.content;
+      },
+
+      /**
+       * List Panama certificates with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-created_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<PanamaCertificate[]> {
+        let sortField = orderBy;
+        let direction = "asc";
+        if (orderBy.startsWith("-")) {
+          sortField = orderBy.slice(1);
+          direction = "desc";
+        }
+
+        const fieldMap: Record<string, string> = {
+          created_date: "createdDate",
+          updated_date: "updatedDate",
+          panama_id: "panamaId",
+        };
+        const backendField = fieldMap[sortField] ?? sortField;
+
+        const paged = await httpClient.get<PagedResponse<PanamaCertificate>>(
+          "/api/panama-certificates",
+          {
+            size: limit,
+            page: 0,
+            sort: `${backendField},${direction}`,
+          }
+        );
+        return paged.content;
+      },
+
+      /** Create a new Panama certificate. Returns the persisted record with server-generated fields. */
+      async create(data: PanamaCertificate): Promise<PanamaCertificate> {
+        return httpClient.post<PanamaCertificate>("/api/panama-certificates", data);
+      },
+
+      /** Update an existing Panama certificate by UUID. Returns the updated record. */
+      async update(
+        id: string,
+        data: Partial<PanamaCertificate>
+      ): Promise<PanamaCertificate> {
+        return httpClient.put<PanamaCertificate>(`/api/panama-certificates/${id}`, data);
+      },
+
+      /**
+       * Search Panama certificates by keyword (matches last name, first name, or Panama ID).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       * @returns matching records sorted by most recently updated first
+       */
+      async search(keyword: string, limit: number = 10): Promise<PanamaCertificate[]> {
+        const paged = await httpClient.get<PagedResponse<PanamaCertificate>>(
+          "/api/panama-certificates",
+          {
+            search: keyword,
+            size: limit,
+            page: 0,
+            sort: "updatedDate,desc",
+          }
+        );
+        return paged.content;
+      },
+
+      /**
+       * Fetch all Panama certificates linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of Panama certificates for that profile
+       */
+      async listByProfile(profileId: string): Promise<PanamaCertificate[]> {
+        return httpClient.get<PanamaCertificate[]>(
+          `/api/panama-certificates/by-profile/${profileId}`
+        );
       },
     },
   },

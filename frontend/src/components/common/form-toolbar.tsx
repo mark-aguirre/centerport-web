@@ -41,6 +41,9 @@ export interface FormToolbarProps {
   /** Metadata badges to display (record ID, timestamps). */
   metadata?: FormToolbarMetadata;
 
+  /** Optional custom element rendered inline in the metadata area (e.g. PEME selector dropdown). */
+  metadataSlot?: React.ReactNode;
+
   // Action handlers — only rendered when provided
   onSave?: () => void;
   onCancel?: () => void;
@@ -77,6 +80,7 @@ export function FormToolbar({
   saving = false,
   isExistingRecord = false,
   metadata,
+  metadataSlot,
   onSave,
   onCancel,
   onEdit,
@@ -166,20 +170,21 @@ export function FormToolbar({
   return (
     <div className="flex items-center gap-3 mb-4">
       {/* Metadata */}
-      {metadata && (
+      {(metadata || metadataSlot) && (
         <div className="flex items-center gap-3">
-          {metadata.recordId && (
+          {metadata?.recordId && (
             <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded tracking-widest">
               {metadata.recordId}
             </span>
           )}
-          {metadata.createdDate && (
+          {metadataSlot}
+          {metadata?.createdDate && (
             <span className="text-[10px] text-muted-foreground">
               {metadata.createdLabel ?? "Registered"}:{" "}
               {format(new Date(metadata.createdDate), "MMM d, yyyy h:mm a")}
             </span>
           )}
-          {metadata.updatedDate && (
+          {metadata?.updatedDate && (
             <span className="text-[10px] text-muted-foreground">
               {metadata.updatedLabel ?? "Updated"}:{" "}
               {format(new Date(metadata.updatedDate), "MMM d, yyyy h:mm a")}

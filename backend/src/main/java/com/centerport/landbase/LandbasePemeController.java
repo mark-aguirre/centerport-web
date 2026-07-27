@@ -66,6 +66,25 @@ public class LandbasePemeController {
     }
 
     /**
+     * Retrieves all PEME records linked to a specific seafarer profile.
+     * Returns a lightweight list sorted by creation date descending.
+     *
+     * @param profileId the seafarer profile UUID
+     * @return list of PEME records for the given profile
+     */
+    @GetMapping("/by-profile/{profileId}")
+    @Operation(summary = "List all PEMEs for a specific seafarer profile",
+               description = "Returns all PEME records linked to the given seafarer profile UUID, sorted by creation date descending.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Records retrieved")
+    })
+    public ResponseEntity<ApiResponse<java.util.List<LandbasePemeDto>>> getByProfile(
+            @PathVariable UUID profileId) {
+        java.util.List<LandbasePemeDto> records = service.findByProfileId(profileId);
+        return ResponseEntity.ok(ApiResponse.success(records));
+    }
+
+    /**
      * Retrieves a single landbase PEME by its UUID.
      *
      * @param id the record UUID

@@ -1,16 +1,15 @@
 package com.centerport.panama;
 
-import com.centerport.common.dto.PagedResponse;
-import com.centerport.common.exception.NotFoundException;
+import com.centerport.common.service.AbstractProfileLinkedService;
 import com.centerport.common.util.BusinessIdGenerator;
 import com.centerport.panama.event.PanamaCertificateCreatedEvent;
 import com.centerport.panama.event.PanamaCertificateUpdatedEvent;
+import com.centerport.profile.SeafarerProfile;
+import com.centerport.profile.SeafarerProfileRepository;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,124 +19,117 @@ import java.util.UUID;
 /**
  * Service layer for Panama certificate CRUD operations.
  *
- * Responsibilities:
- * - Transactional boundary management for all persistence operations
- * - Business-ID generation with prefix {@code PAN} on certificate creation
- * - Enforcement that client-supplied system fields are never persisted
- * - Mapping between entity and DTO via {@link PanamaCertificateMapper}
+ * Extends {@link AbstractProfileLinkedService} to inherit the standard
+ * profile-linked CRUD lifecycle (paginated search, find-by-id, find-by-profile,
+ * create with business-ID generation, and update with profile re-linking).
  *
+ * Business ID:
+ * Each new certificate receives a unique sequential ID in the format
+ * {@code PAN00000001} generated from the PostgreSQL sequence {@code pan_seq}.
+ *
+ * @see AbstractProfileLinkedService
  * @see PanamaCertificateRepository
  * @see PanamaCertificateMapper
- * @see BusinessIdGenerator
  */
 @Slf4j
 @Service
 @Transactional(readOnly = true)
-@RequiredArgsConstructor
-public class PanamaCertificateService {
+public class PanamaCertificateService extends AbstractProfileLinkedService<PanamaCertificate, PanamaCertificateDto> {
 
     private static final String BUSINESS_ID_PREFIX = "PAN";
+    private static final String ENTITY_NAME = "PanamaCertificate";
+    private static final String BUSINESS_ID_FIELD = "panamaId";
 
     private final PanamaCertificateRepository repository;
     private final PanamaCertificateMapper mapper;
-    private final BusinessIdGenerator businessIdGenerator;
-    private final ApplicationEventPublisher eventPublisher;
 
-    // === Queries ===
-
-    /**
-     * Returns paginated Panama certificates.
-     *
-     * @param pageable pagination and sorting parameters
-     * @return paged response of certificate DTOs
-     */
-    public PagedResponse<PanamaCertificateDto> findAll(Pageable pageable) {
-        Page<PanamaCertificate> page = repository.findAll(pageable);
-        List<PanamaCertificateDto> content = page.getContent().stream()
-                .map(mapper::toDto)
-                .toList();
-        return PagedResponse.of(content, page);
+    public PanamaCertificateService(PanamaCertificateRepository repository,
+                                    PanamaCertificateMapper mapper,
+                                    BusinessIdGenerator businessIdGenerator,
+                                    ApplicationEventPublisher eventPublisher,
+                                    SeafarerProfileRepository profileRepository) {
+        super(businessIdGenerator, eventPublisher, profileRepository);
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
-    /**
-     * Finds a Panama certificate by UUID.
-     *
-     * @param id the certificate's primary key
-     * @return the matching Panama certificate DTO
-     * @throws NotFoundException if no certificate exists with the given ID
-     */
-    public PanamaCertificateDto findById(UUID id) {
-        PanamaCertificate entity = repository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Panama certificate not found — id: {}", id);
-                    return new NotFoundException("PanamaCertificate", id);
-                });
+    // =======================================================================
+    // Template Method Implementations
+    // =======================================================================
+
+    @Override
+    @SuppressWarnings("unchecked")
+    protected PanamaCertificateRepository getRepository() {
+        return repository;
+    }
+
+    @Override
+    protected String getBusinessIdPrefix() {
+        return BUSINESS_ID_PREFIX;
+    }
+
+    @Override
+    protected String getEntityName() {
+        return ENTITY_NAME;
+    }
+
+    @Override
+    protected String getBusinessIdField() {
+        return BUSINESS_ID_FIELD;
+    }
+
+    @Override
+    protected PanamaCertificateDto toDto(PanamaCertificate entity) {
         return mapper.toDto(entity);
     }
 
-    // === Commands ===
+    @Override
+    protected PanamaCertificate toEntity(PanamaCertificateDto dto) {
+        return mapper.toEntity(dto);
+    }
 
-    /**
-     * Creates a new Panama certificate.
-     *
-     * @param dto the Panama certificate data to persist
-     * @return the created certificate including server-generated system fields
-     */
-    @Transactional
-    public PanamaCertificateDto create(PanamaCertificateDto dto) {
-        PanamaCertificate entity = mapper.toEntity(dto);
-        clearSystemFields(entity);
+    @Override
+    protected void updateEntityFromDto(PanamaCertificateDto dto, PanamaCertificate entity) {
+        mapper.updateEntity(dto, entity);
+    }
 
-        String panamaId = businessIdGenerator.generateId(BUSINESS_ID_PREFIX);
-        entity.setPanamaId(panamaId);
-        log.debug("Business ID generated — panamaId: {}", panamaId);
+    @Override
+    protected void setBusinessId(PanamaCertificate entity, String businessId) {
+        entity.setPanamaId(businessId);
+    }
 
-        PanamaCertificate saved = repository.save(entity);
+    @Override
+    protected void setEntityProfile(PanamaCertificate entity, SeafarerProfile profile) {
+        entity.setSeafarerProfile(profile);
+    }
 
+    @Override
+    protected UUID getProfileId(PanamaCertificateDto dto) {
+        return dto.getSeafarerProfileId();
+    }
+
+    @Override
+    protected List<PanamaCertificate> findEntitiesByProfileId(UUID profileId) {
+        return repository.findBySeafarerProfileId(profileId,
+                Sort.by(Sort.Direction.DESC, "createdDate"));
+    }
+
+    @Override
+    protected void publishCreatedEvent(PanamaCertificate entity, SeafarerProfile profile) {
         eventPublisher.publishEvent(new PanamaCertificateCreatedEvent(
-                saved.getId(), saved.getPanamaId(),
-                saved.getSeafarerProfile().getLastName() + " " + saved.getSeafarerProfile().getFirstName()));
-
-        log.info("Panama certificate created — panamaId: {}, id: {}, patient: {}",
-                saved.getPanamaId(), saved.getId(),
-                saved.getSeafarerProfile().getLastName());
-        return mapper.toDto(saved);
+                entity.getId(), entity.getPanamaId(),
+                profile.getLastName() + " " + profile.getFirstName()));
     }
 
-    /**
-     * Updates an existing Panama certificate.
-     *
-     * @param id  the certificate's primary key
-     * @param dto the updated certificate data
-     * @return the updated Panama certificate DTO
-     * @throws NotFoundException if no certificate exists with the given ID
-     */
-    @Transactional
-    public PanamaCertificateDto update(UUID id, PanamaCertificateDto dto) {
-        PanamaCertificate existing = repository.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Panama certificate not found for update — id: {}", id);
-                    return new NotFoundException("PanamaCertificate", id);
-                });
-
-        mapper.updateEntity(dto, existing);
-
-        PanamaCertificate saved = repository.save(existing);
-
+    @Override
+    protected void publishUpdatedEvent(PanamaCertificate entity) {
         eventPublisher.publishEvent(new PanamaCertificateUpdatedEvent(
-                saved.getId(), saved.getPanamaId()));
-
-        log.info("Panama certificate updated — panamaId: {}, id: {}",
-                saved.getPanamaId(), id);
-        return mapper.toDto(saved);
+                entity.getId(), entity.getPanamaId()));
     }
 
-    // === Helpers ===
-
-    private void clearSystemFields(PanamaCertificate entity) {
-        entity.setId(null);
+    @Override
+    protected void clearSystemFields(PanamaCertificate entity) {
+        super.clearSystemFields(entity);
         entity.setPanamaId(null);
-        entity.setCreatedDate(null);
-        entity.setUpdatedDate(null);
     }
 }

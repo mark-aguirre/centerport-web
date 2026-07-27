@@ -1,21 +1,27 @@
 /**
  * Utility functions for Landbase PEME form data transformation.
  *
- * Handles flattening nested API responses, sanitizing payloads for
- * backend submission, and field-level formatting helpers.
+ * Handles flattening nested API responses into flat form models.
+ * Generic utilities (stripSystemFields, sanitizePayload, createFieldUpdater,
+ * humanizeField) are re-exported from `@/lib/form-utils`.
  */
 
 import { EMPTY_PEME, type LandbasePeme } from "./types";
+import {
+  stripSystemFields as genericStrip,
+  sanitizePayload as genericSanitize,
+  createFieldUpdater as genericUpdater,
+  coerceNulls,
+} from "@/lib/form-utils";
+
+// Re-export shared utilities with landbase-specific signatures
+export { humanizeField } from "@/lib/form-utils";
 
 /** System-managed fields excluded from PEME update payloads. */
 const SYSTEM_FIELDS = ["id", "peme_id", "created_date", "updated_date"] as const;
 
 /**
  * Shape of the nested seafarer profile returned by the PEME API.
- *
- * The backend embeds the linked SeafarerProfile as a nested object
- * within the PEME response. This interface types that nested shape
- * so we avoid `Record<string, unknown>` casts.
  */
 interface NestedSeafarerProfile {
   id?: string;
@@ -36,22 +42,21 @@ interface NestedSeafarerProfile {
 
 /**
  * Raw PEME record shape as returned by the API before flattening.
- *
- * The API returns personal info nested inside `seafarer_profile`.
- * This type represents that raw response shape.
  */
 export interface RawPemeResponse extends Partial<LandbasePeme> {
   seafarer_profile?: NestedSeafarerProfile;
   seafarer_profile_id?: string;
 }
 
+/** Field defaults for null coercion (non-string fields). */
+const FIELD_DEFAULTS: Record<string, unknown> = {
+  consulted_doctor: false,
+  medical_history: {},
+};
+
 /**
  * Flatten the nested `seafarer_profile` from the API response into
  * top-level personal info fields expected by the form.
- *
- * The backend stores personal info on the SeafarerProfile entity and
- * nests it in the PEME DTO response. This function merges those nested
- * fields onto the flat form model.
  *
  * @param record - Raw API response with optional nested profile
  * @returns Flat LandbasePeme with personal info at top level
@@ -77,100 +82,27 @@ export function flattenProfileIntoRecord(record: RawPemeResponse): LandbasePeme 
       }
     : {};
 
-  // Omit the nested profile before spreading to avoid leftover keys
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { seafarer_profile: _, ...rest } = record;
-
-  // Coerce null values to empty strings so form controls work correctly
-  // Preserve objects (medical_history) and booleans (consulted_doctor) as-is
-  const coerced: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(rest)) {
-    if (value === null || value === undefined) {
-      coerced[key] = key === "consulted_doctor" ? false : key === "medical_history" ? {} : "";
-    } else {
-      coerced[key] = value;
-    }
-  }
+  const coerced = coerceNulls(rest as Record<string, unknown>, FIELD_DEFAULTS);
 
   return { ...EMPTY_PEME, ...coerced, ...personalData } as LandbasePeme;
 }
 
-/**
- * Strip system-managed fields from a PEME record for API mutations.
- *
- * Removes `id`, `peme_id`, `created_date`, and `updated_date` which
- * are server-generated and must not be sent in create/update payloads.
- *
- * @param record - Full PEME record from form state
- * @returns Record without system fields
- */
+/** Strip system-managed fields from a PEME record for API mutations. */
 export function stripSystemFields(record: LandbasePeme): Partial<LandbasePeme> {
-  const entries = Object.entries(record).filter(
-    ([key]) => !(SYSTEM_FIELDS as readonly string[]).includes(key)
-  );
-  return Object.fromEntries(entries) as Partial<LandbasePeme>;
+  return genericStrip(record, SYSTEM_FIELDS);
 }
 
-/**
- * Sanitize payload before sending to the backend.
- *
- * Converts empty strings to null for enum-typed and optional fields
- * so the backend doesn't reject them during deserialization.
- *
- * @param record - Partial PEME record to sanitize
- * @returns Sanitized record with empty strings replaced by null
- */
+/** Sanitize payload before sending to the backend. */
 export function sanitizePayload(record: Partial<LandbasePeme>): Partial<LandbasePeme> {
-  const result: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(record)) {
-    result[key] = value === "" ? null : value;
-  }
-  return result as Partial<LandbasePeme>;
+  return genericSanitize(record);
 }
 
-/**
- * Create a field updater function for section components.
- *
- * Returns a callback that updates a single field on the LandbasePeme
- * record and calls the parent onChange with the new state. Eliminates
- * the repeated `(field, value) => onChange({ ...data, [field]: value })`
- * pattern across all section components.
- *
- * @param data - Current form data
- * @param onChange - Parent state setter
- * @returns Updater function accepting a field key and new value
- *
- * @example
- * ```tsx
- * const updateField = createFieldUpdater(data, onChange);
- * <input onChange={(e) => updateField("remarks", e.target.value)} />
- * ```
- */
+/** Create a field updater for landbase section components. */
 export function createFieldUpdater(
   data: LandbasePeme,
   onChange: (data: LandbasePeme) => void
 ): (field: keyof LandbasePeme, value: string | boolean) => void {
-  return (field, value) =>
-    onChange({ ...data, [field]: value } as LandbasePeme);
-}
-
-/**
- * Convert a snake_case or camelCase field name to a human-readable label.
- *
- * Used for displaying validation error messages with friendly field names.
- *
- * @param field - Raw field name (e.g. "last_name", "seafarerProfileId")
- * @returns Human-friendly label (e.g. "Last Name", "Seafarer Profile Id")
- *
- * @example
- * ```ts
- * humanizeField("last_name")         // "Last Name"
- * humanizeField("seafarerProfileId") // "Seafarer Profile Id"
- * ```
- */
-export function humanizeField(field: string): string {
-  return field
-    .replace(/_/g, " ")
-    .replace(/([a-z])([A-Z])/g, "$1 $2")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return genericUpdater(data, onChange) as (field: keyof LandbasePeme, value: string | boolean) => void;
 }

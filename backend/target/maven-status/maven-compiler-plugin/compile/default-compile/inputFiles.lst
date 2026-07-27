@@ -28,6 +28,7 @@ C:\code_area\centerport\backend\src\main\java\com\centerport\common\exception\Co
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\exception\GlobalExceptionHandler.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\exception\NotFoundException.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\filter\RequestIdFilter.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\common\service\AbstractProfileLinkedService.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\util\BusinessIdGenerator.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\config\AsyncConfig.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\config\CorsConfig.java

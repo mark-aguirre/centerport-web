@@ -9,7 +9,7 @@ import {
 } from "@/components/common/certification-details-fields";
 import { Award } from "lucide-react";
 import { createFieldUpdater } from "./utils";
-import type { LandbaseSectionProps } from "./types";
+import type { LandbaseSectionProps, LandbasePeme } from "./types";
 
 /** Available recommendation values for the fitness determination. */
 const RECOMMENDATION_OPTIONS = [
@@ -56,7 +56,7 @@ export default function RecommendationSection({
   };
 
   const handleCertChange = (field: keyof CertificationDetailsValues, value: string) => {
-    updateField(FIELD_MAP[field], value);
+    updateField(FIELD_MAP[field] as keyof LandbasePeme, value);
   };
 
   return (

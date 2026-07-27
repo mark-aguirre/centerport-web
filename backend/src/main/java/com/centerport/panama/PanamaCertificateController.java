@@ -4,6 +4,7 @@ import com.centerport.common.dto.ApiResponse;
 import com.centerport.common.dto.PagedResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -40,23 +41,46 @@ public class PanamaCertificateController {
 
     /**
      * Returns paginated Panama certificates sorted by creation date descending.
+     * Optionally filters by a search term matching the linked seafarer profile's
+     * last name, first name, or the Panama ID.
      *
+     * @param search   optional keyword to filter records (case-insensitive partial match)
      * @param pageable pagination and sorting parameters
      * @return paged list of Panama certificate DTOs
      */
     @GetMapping
-    @Operation(summary = "List all Panama certificates with pagination",
-               description = "Returns paginated Panama certificates. Default sort: createdDate DESC.")
+    @Operation(summary = "List all Panama certificates with pagination and optional search",
+               description = "Returns paginated Panama certificates. Optionally filter by seafarer name or Panama ID. Default sort: createdDate DESC.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Certificates retrieved")
     })
     public ResponseEntity<ApiResponse<PagedResponse<PanamaCertificateDto>>> list(
+            @Parameter(description = "Search keyword — matches seafarer last name, first name, or Panama ID (case-insensitive)")
+            @RequestParam(required = false) String search,
             @ParameterObject
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        PagedResponse<PanamaCertificateDto> page = service.findAll(pageable);
+        PagedResponse<PanamaCertificateDto> page = service.findAll(search, pageable);
         return ResponseEntity.ok(ApiResponse.success(page));
+    }
+
+    /**
+     * Retrieves all Panama certificates linked to a specific seafarer profile.
+     *
+     * @param profileId the seafarer profile UUID
+     * @return list of certificates for the given profile
+     */
+    @GetMapping("/by-profile/{profileId}")
+    @Operation(summary = "List all Panama certificates for a specific seafarer profile",
+               description = "Returns all Panama certificates linked to the given seafarer profile UUID, sorted by creation date descending.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Records retrieved")
+    })
+    public ResponseEntity<ApiResponse<java.util.List<PanamaCertificateDto>>> getByProfile(
+            @PathVariable UUID profileId) {
+        java.util.List<PanamaCertificateDto> records = service.findByProfileId(profileId);
+        return ResponseEntity.ok(ApiResponse.success(records));
     }
 
     /**

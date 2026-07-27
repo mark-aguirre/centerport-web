@@ -1,11 +1,13 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormField } from "@/components/common/form-field";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Stethoscope } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { PanamaSectionProps, PanamaCertificate, PhysicalExplorationValue } from "./types";
 
 /** Physical exploration items — Column 1 */
@@ -51,14 +53,16 @@ function NRARadio({
   value,
   onChange,
   ariaLabel,
+  disabled,
 }: {
   name: string;
   value: PhysicalExplorationValue;
   onChange: (v: PhysicalExplorationValue) => void;
   ariaLabel: string;
+  disabled?: boolean;
 }) {
   return (
-    <div className="flex items-center gap-3 shrink-0" role="radiogroup" aria-label={ariaLabel}>
+    <div className={cn("flex items-center gap-3 shrink-0", disabled && "pointer-events-none")} role="radiogroup" aria-label={ariaLabel}>
       <label className="flex items-center gap-1.5 cursor-pointer">
         <input
           type="radio"
@@ -67,6 +71,7 @@ function NRARadio({
           onChange={() => onChange("N")}
           className="w-4 h-4 accent-primary"
           aria-label={`${ariaLabel} - Normal`}
+          tabIndex={disabled ? -1 : undefined}
         />
         <span className="text-xs text-foreground/80">N</span>
       </label>
@@ -78,6 +83,7 @@ function NRARadio({
           onChange={() => onChange("A")}
           className="w-4 h-4 accent-primary"
           aria-label={`${ariaLabel} - Abnormal`}
+          tabIndex={disabled ? -1 : undefined}
         />
         <span className="text-xs text-foreground/80">A</span>
       </label>
@@ -94,7 +100,7 @@ function NRARadio({
  * - iii. Hearing (tonal audiometric at multiple frequencies)
  * - iv. Physical Exploration (body systems Normal/Abnormal grid)
  */
-export default function MedicalExaminationSection({ data, onChange }: PanamaSectionProps) {
+export default function MedicalExaminationSection({ data, onChange, disabled }: PanamaSectionProps) {
   const update = (field: keyof PanamaCertificate, value: string) =>
     onChange({ ...data, [field]: value });
 
@@ -103,11 +109,27 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
     onChange({ ...data, physical_exploration: updated });
   };
 
+  /** Set all physical exploration items to "N" (Normal) and color vision to "Normal". */
+  const handleSetNormal = () => {
+    const normalExploration: Record<string, PhysicalExplorationValue> = {};
+    [...EXPLORATION_COL_1, ...EXPLORATION_COL_2].forEach((item) => {
+      normalExploration[item] = "N";
+    });
+
+    onChange({
+      ...data,
+      physical_exploration: normalExploration,
+      physical_exploration_comments: "",
+      sight_color_vision: "Normal",
+    });
+  };
+
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
         title="Medical Examination"
         icon={Stethoscope}
+        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
       />
 
       {/* ===== i. Clinical Data ===== */}
@@ -123,11 +145,13 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
               label="Height (cm)"
               value={data.height_cm}
               onChange={(v) => update("height_cm", v)}
+              disabled={disabled}
             />
             <FormField
               label="Weight (Kg)"
               value={data.weight_kg}
               onChange={(v) => update("weight_kg", v)}
+              disabled={disabled}
             />
           </div>
 
@@ -137,6 +161,7 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
               label="Body Mass Index (BMI)"
               value={data.bmi}
               onChange={(v) => update("bmi", v)}
+              disabled={disabled}
             />
             <div />
           </div>
@@ -147,6 +172,7 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
               label="Oxygen Saturation (SpO2)"
               value={data.oxygen_saturation}
               onChange={(v) => update("oxygen_saturation", v)}
+              disabled={disabled}
             />
             <div />
           </div>
@@ -157,11 +183,13 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
               label="Heart rate (minute)"
               value={data.heart_rate}
               onChange={(v) => update("heart_rate", v)}
+              disabled={disabled}
             />
             <FormField
               label="Respiratory Rate (minute)"
               value={data.respiratory_rate}
               onChange={(v) => update("respiratory_rate", v)}
+              disabled={disabled}
             />
           </div>
 
@@ -171,11 +199,13 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
               label="Blood pressure Systolic (mmHg)"
               value={data.blood_pressure_systolic}
               onChange={(v) => update("blood_pressure_systolic", v)}
+              disabled={disabled}
             />
             <FormField
               label="Diastolic (mmHg)"
               value={data.blood_pressure_diastolic}
               onChange={(v) => update("blood_pressure_diastolic", v)}
+              disabled={disabled}
             />
           </div>
         </div>
@@ -193,6 +223,7 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
             label="Use of glasses or contact lenses: Yes/No (if yes, specify which type and for what purpose)"
             value={data.sight_glasses_contact}
             onChange={(v) => update("sight_glasses_contact", v)}
+            disabled={disabled}
           />
         </div>
 
@@ -239,40 +270,45 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                   <Input
                     value={data.sight_unaided_distant_right}
                     onChange={(e) => update("sight_unaided_distant_right", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Distant - Unaided Right Eye"
+                    readOnly={disabled}
                   />
                 </td>
                 <td className="border border-primary/20 p-1">
                   <Input
                     value={data.sight_unaided_distant_left}
                     onChange={(e) => update("sight_unaided_distant_left", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Distant - Unaided Left Eye"
+                    readOnly={disabled}
                   />
                 </td>
                 <td className="border border-primary/20 p-1">
                   <Input
                     value={data.sight_unaided_distant_binocular}
                     onChange={(e) => update("sight_unaided_distant_binocular", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Distant - Unaided Binocular"
+                    readOnly={disabled}
                   />
                 </td>
                 <td className="border border-primary/20 p-1">
                   <Input
                     value={data.sight_aided_distant_right}
                     onChange={(e) => update("sight_aided_distant_right", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Distant - Aided Right Eye"
+                    readOnly={disabled}
                   />
                 </td>
                 <td className="border border-primary/20 p-1">
                   <Input
                     value={data.sight_aided_distant_left}
                     onChange={(e) => update("sight_aided_distant_left", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Distant - Aided Left Eye"
+                    readOnly={disabled}
                   />
                 </td>
                 <td className="border border-primary/20 p-1 text-center text-xs text-foreground/70">Right Eye</td>
@@ -280,8 +316,9 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                   <Input
                     value={data.sight_fields_right}
                     onChange={(e) => update("sight_fields_right", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Visual Fields - Right Eye"
+                    readOnly={disabled}
                   />
                 </td>
               </tr>
@@ -292,16 +329,18 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                   <Input
                     value={data.sight_unaided_short_right}
                     onChange={(e) => update("sight_unaided_short_right", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Short distance - Unaided Right Eye"
+                    readOnly={disabled}
                   />
                 </td>
                 <td className="border border-primary/20 p-1">
                   <Input
                     value={data.sight_unaided_short_left}
                     onChange={(e) => update("sight_unaided_short_left", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Short distance - Unaided Left Eye"
+                    readOnly={disabled}
                   />
                 </td>
                 <td className="border border-primary/20 p-1" />
@@ -309,16 +348,18 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                   <Input
                     value={data.sight_aided_short_right}
                     onChange={(e) => update("sight_aided_short_right", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Short distance - Aided Right Eye"
+                    readOnly={disabled}
                   />
                 </td>
                 <td className="border border-primary/20 p-1">
                   <Input
                     value={data.sight_aided_short_left}
                     onChange={(e) => update("sight_aided_short_left", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Short distance - Aided Left Eye"
+                    readOnly={disabled}
                   />
                 </td>
                 <td className="border border-primary/20 p-1 text-center text-xs text-foreground/70">Left Eye</td>
@@ -326,8 +367,9 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                   <Input
                     value={data.sight_fields_left}
                     onChange={(e) => update("sight_fields_left", e.target.value)}
-                    className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30"
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
                     aria-label="Visual Fields - Left Eye"
+                    readOnly={disabled}
                   />
                 </td>
               </tr>
@@ -341,7 +383,7 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
             <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
               Color vision
             </Label>
-            <div className="flex items-center gap-4 h-8" role="radiogroup" aria-label="Color vision">
+            <div className={cn("flex items-center gap-4 h-8", disabled && "pointer-events-none")} role="radiogroup" aria-label="Color vision">
               {["Not tested", "Normal", "Doubtful", "Defective"].map((opt) => (
                 <label key={opt} className="flex items-center gap-1.5 cursor-pointer">
                   <input
@@ -351,6 +393,7 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                     onChange={() => update("sight_color_vision", opt)}
                     className="w-4 h-4 accent-primary"
                     aria-label={`Color vision - ${opt}`}
+                    tabIndex={disabled ? -1 : undefined}
                   />
                   <span className="text-xs text-foreground/80">{opt}</span>
                 </label>
@@ -361,6 +404,7 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
             label="Method: (Plates) Pseudo-Isochromatic Ishihara 24 or 38 plates equivalent"
             value={data.sight_color_method}
             onChange={(v) => update("sight_color_method", v)}
+            disabled={disabled}
           />
         </div>
       </div>
@@ -400,7 +444,8 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                       <Input
                         value={(data[field] as string) ?? ""}
                         onChange={(e) => update(field, e.target.value)}
-                        className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30 w-full"
+                        className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30 w-full", disabled && "pointer-events-none")}
+                        readOnly={disabled}
                       />
                     </td>
                   );
@@ -416,7 +461,8 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                       <Input
                         value={(data[field] as string) ?? ""}
                         onChange={(e) => update(field, e.target.value)}
-                        className="h-7 text-xs bg-white border-primary/20 dark:bg-input/30 w-full"
+                        className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30 w-full", disabled && "pointer-events-none")}
+                        readOnly={disabled}
                       />
                     </td>
                   );
@@ -463,6 +509,7 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                       value={currentValue}
                       onChange={(v) => updateExploration(item, v)}
                       ariaLabel={item}
+                      disabled={disabled}
                     />
                   </div>
                 </div>
@@ -481,6 +528,7 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
                       value={currentValue}
                       onChange={(v) => updateExploration(item, v)}
                       ariaLabel={item}
+                      disabled={disabled}
                     />
                   </div>
                 </div>
@@ -497,8 +545,12 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
           <Textarea
             value={data.physical_exploration_comments}
             onChange={(e) => update("physical_exploration_comments", e.target.value)}
-            className="h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none"
+            className={cn(
+              "h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
+              disabled && "pointer-events-none"
+            )}
             placeholder=""
+            readOnly={disabled}
           />
         </div>
       </div>

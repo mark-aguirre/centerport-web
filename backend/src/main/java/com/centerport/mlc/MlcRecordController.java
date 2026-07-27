@@ -66,6 +66,24 @@ public class MlcRecordController {
     }
 
     /**
+     * Retrieves all MLC records linked to a specific seafarer profile.
+     *
+     * @param profileId the seafarer profile UUID
+     * @return list of MLC records for the given profile
+     */
+    @GetMapping("/by-profile/{profileId}")
+    @Operation(summary = "List all MLC records for a specific seafarer profile",
+               description = "Returns all MLC records linked to the given seafarer profile UUID, sorted by creation date descending.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Records retrieved")
+    })
+    public ResponseEntity<ApiResponse<java.util.List<MlcRecordDto>>> getByProfile(
+            @PathVariable UUID profileId) {
+        java.util.List<MlcRecordDto> records = service.findByProfileId(profileId);
+        return ResponseEntity.ok(ApiResponse.success(records));
+    }
+
+    /**
      * Returns a single MLC record by its UUID.
      *
      * @param id the record's primary key

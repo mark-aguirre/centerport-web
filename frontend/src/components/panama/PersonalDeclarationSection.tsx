@@ -1,11 +1,13 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormField } from "@/components/common/form-field";
 import { YesNoRadio } from "@/components/common/yes-no-radio";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText } from "lucide-react";
+import { cn } from "@/lib/utils";
 import type { PanamaSectionProps, PanamaCertificate, YesNo } from "./types";
 
 /** Medical conditions grid — Column 1 (items 1–18) */
@@ -83,13 +85,46 @@ const COVID_QUESTIONS = [
  * - Medication question (45) with YES/NO + details
  * - Data related to Covid-19 subsection
  */
-export default function PersonalDeclarationSection({ data, onChange }: PanamaSectionProps) {
+export default function PersonalDeclarationSection({ data, onChange, disabled }: PanamaSectionProps) {
   const update = (field: keyof PanamaCertificate, value: string) =>
     onChange({ ...data, [field]: value });
 
   const updateCondition = (conditionKey: string, value: YesNo) => {
     const updatedConditions = { ...data.conditions, [conditionKey]: value };
     onChange({ ...data, conditions: updatedConditions });
+  };
+
+  /** Set all conditions to "no", additional questions to "no", covid questions to "no". */
+  const handleSetNormal = () => {
+    const normalConditions: Record<string, YesNo> = {};
+    [...CONDITIONS_COL_1, ...CONDITIONS_COL_2].forEach((item) => {
+      normalConditions[`condition_${item.num}`] = "no";
+    });
+
+    onChange({
+      ...data,
+      conditions: normalConditions,
+      conditions_details: "",
+      question_37: "no",
+      question_38: "no",
+      question_39: "no",
+      question_40: "no",
+      question_41: "no",
+      question_42: "yes",
+      question_43: "no",
+      question_44: "no",
+      declaration_comments: "",
+      question_45: "no",
+      question_45_details: "",
+      covid_1: "no",
+      covid_2: "no",
+      covid_3_date: "",
+      covid_4: "no",
+      covid_5: "no",
+      covid_6_vaccine_type: "",
+      covid_6_num_doses: "",
+      covid_6_boosters: "",
+    });
   };
 
   const renderConditionRow = (item: { num: number; label: string }, index: number) => {
@@ -111,6 +146,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
           onChange={(v) => updateCondition(key, v)}
           ariaLabel={item.label}
           uppercase
+          disabled={disabled}
         />
       </div>
     );
@@ -123,6 +159,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
         icon={FileText}
         subtitle="Have you ever had any of the following conditions?"
         className="mb-6"
+        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
       />
 
       {/* Conditions Grid — 2 columns */}
@@ -164,8 +201,12 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
         <Textarea
           value={data.conditions_details}
           onChange={(e) => update("conditions_details", e.target.value)}
-          className="h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none"
+          className={cn(
+            "h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
+            disabled && "pointer-events-none"
+          )}
           placeholder=""
+          readOnly={disabled}
         />
       </div>
 
@@ -196,6 +237,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
               onChange={(v) => update(q.key, v)}
               ariaLabel={q.text}
               uppercase
+              disabled={disabled}
             />
           </div>
         ))}
@@ -209,8 +251,12 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
         <Textarea
           value={data.declaration_comments}
           onChange={(e) => update("declaration_comments", e.target.value)}
-          className="h-24 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none"
+          className={cn(
+            "h-24 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
+            disabled && "pointer-events-none"
+          )}
           placeholder=""
+          readOnly={disabled}
         />
       </div>
 
@@ -227,6 +273,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
             onChange={(v) => update("question_45", v)}
             ariaLabel="Are you taking any non-prescription or prescription medications"
             uppercase
+            disabled={disabled}
           />
         </div>
 
@@ -237,8 +284,12 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
           <Textarea
             value={data.question_45_details}
             onChange={(e) => update("question_45_details", e.target.value)}
-            className="h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none"
+            className={cn(
+              "h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
+              disabled && "pointer-events-none"
+            )}
             placeholder=""
+            readOnly={disabled}
           />
         </div>
       </div>
@@ -265,6 +316,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
               onChange={(v) => update(q.key, v)}
               ariaLabel={q.text}
               uppercase
+              disabled={disabled}
             />
           </div>
         ))}
@@ -281,6 +333,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
               value={data.covid_3_date}
               onChange={(v) => update("covid_3_date", v)}
               type="date"
+              disabled={disabled}
             />
           </div>
         </div>
@@ -296,16 +349,19 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
               label="Vaccine type"
               value={data.covid_6_vaccine_type}
               onChange={(v) => update("covid_6_vaccine_type", v)}
+              disabled={disabled}
             />
             <FormField
               label="Number of doses"
               value={data.covid_6_num_doses}
               onChange={(v) => update("covid_6_num_doses", v)}
+              disabled={disabled}
             />
             <FormField
               label="Boosters"
               value={data.covid_6_boosters}
               onChange={(v) => update("covid_6_boosters", v)}
+              disabled={disabled}
             />
           </div>
         </div>
