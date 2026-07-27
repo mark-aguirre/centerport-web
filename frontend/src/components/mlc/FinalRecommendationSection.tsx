@@ -1,22 +1,22 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
-import { FormField } from "@/components/common/form-field";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormSelect } from "@/components/common/form-select";
+import {
+  CertificationDetailsFields,
+  type CertificationDetailsValues,
+} from "@/components/common/certification-details-fields";
 import { Award } from "lucide-react";
-import type { MlcRecord, MlcSectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
+import type { MlcSectionProps } from "./types";
 
-/** Placeholder physician options — replace with API data when available */
-const PHYSICIAN_OPTIONS = [
-  "Dr. Maria Santos",
-  "Dr. Juan Reyes",
-  "Dr. Elena Cruz",
-];
-
-/** Placeholder medical director options — replace with API data when available */
-const DIRECTOR_OPTIONS = [
-  "Dr. Roberto Lim",
-  "Dr. Patricia Gomez",
+/** Fitness determination options per MLC standards. */
+const FITNESS_OPTIONS = [
+  "Fit for Sea Duty",
+  "Fit with Restrictions",
+  "Temporarily Unfit",
+  "Unfit for Sea Service",
 ];
 
 /**
@@ -25,80 +25,68 @@ const DIRECTOR_OPTIONS = [
  * Captures: fitness determination dropdown, date of initial PEME,
  * date of fitness, valid until, authorized physician, medical
  * certification number, and medical director.
+ *
+ * @see CertificateDetailsSection — related section for certificate metadata
  */
 export default function FinalRecommendationSection({
   data,
   onChange,
+  disabled,
 }: MlcSectionProps) {
-  const update = (field: keyof MlcRecord, value: string) =>
-    onChange({ ...data, [field]: value });
+  const updateField = createFieldUpdater(data, onChange);
+
+  /** Set fitness determination to "Fit for Sea Duty". */
+  const handleSetNormal = () => {
+    onChange({ ...data, fitness_determination: "Fit for Sea Duty" });
+  };
+
+  /** Map from CertificationDetailsValues keys to MLC field names. */
+  const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
+    dateInitialPeme: "date_initial_peme",
+    dateOfFitness: "date_of_fitness",
+    validUntil: "valid_until_date",
+    authorizedPhysician: "examining_physician",
+    medicalCertificationNo: "medical_certification_no",
+    medicalDirector: "medical_director",
+  };
+
+  const handleCertChange = (field: keyof CertificationDetailsValues, value: string) => {
+    updateField(FIELD_MAP[field], value);
+  };
 
   return (
     <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-      <SectionHeader title="Final Recommendation" icon={Award} />
+      <SectionHeader
+        title="Final Recommendation"
+        icon={Award}
+        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+      />
       <div className="space-y-2">
         {/* Row 1: Fitness Determination */}
         <div className="grid grid-cols-3 gap-2">
           <FormSelect
             label="Fitness Determination"
             value={data.fitness_determination}
-            onChange={(v) => update("fitness_determination", v)}
-            options={[
-              "Fit for Sea Duty",
-              "Fit with Restrictions",
-              "Temporarily Unfit",
-              "Unfit for Sea Service",
-            ]}
+            onChange={(v) => updateField("fitness_determination", v)}
+            options={FITNESS_OPTIONS}
+            disabled={disabled}
             required
           />
         </div>
 
-        {/* Row 2: Date of Initial PEME, Date of Fitness, Valid Until */}
-        <div className="grid grid-cols-3 gap-2">
-          <FormField
-            label="Date of Initial PEME (MM/DD/YYYY)"
-            value={data.date_initial_peme}
-            onChange={(v) => update("date_initial_peme", v)}
-            type="date"
-          />
-          <FormField
-            label="Date of Fitness (MM/DD/YYYY)"
-            value={data.date_of_fitness}
-            onChange={(v) => update("date_of_fitness", v)}
-            type="date"
-          />
-          <FormField
-            label="Valid Until (MM/DD/YYYY)"
-            value={data.valid_until_date}
-            onChange={(v) => update("valid_until_date", v)}
-            type="date"
-          />
-        </div>
-
-        {/* Row 3: Authorized Physician, Medical Certification No */}
-        <div className="grid grid-cols-[2fr_3fr] gap-2">
-          <FormSelect
-            label="Authorized Physician"
-            value={data.examining_physician}
-            onChange={(v) => update("examining_physician", v)}
-            options={PHYSICIAN_OPTIONS}
-          />
-          <FormField
-            label="Medical Certification No."
-            value={data.medical_certification_no}
-            onChange={(v) => update("medical_certification_no", v)}
-          />
-        </div>
-
-        {/* Row 4: Medical Director */}
-        <div className="grid grid-cols-3 gap-2">
-          <FormSelect
-            label="Medical Director"
-            value={data.medical_director}
-            onChange={(v) => update("medical_director", v)}
-            options={DIRECTOR_OPTIONS}
-          />
-        </div>
+        {/* Certification Details */}
+        <CertificationDetailsFields
+          values={{
+            dateInitialPeme: data.date_initial_peme,
+            dateOfFitness: data.date_of_fitness,
+            validUntil: data.valid_until_date,
+            authorizedPhysician: data.examining_physician,
+            medicalCertificationNo: data.medical_certification_no,
+            medicalDirector: data.medical_director,
+          }}
+          onChange={handleCertChange}
+          disabled={disabled}
+        />
       </div>
     </div>
   );

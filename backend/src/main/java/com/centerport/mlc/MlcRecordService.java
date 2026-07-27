@@ -5,12 +5,16 @@ import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
 import com.centerport.mlc.event.MlcRecordCreatedEvent;
 import com.centerport.mlc.event.MlcRecordUpdatedEvent;
+import com.centerport.profile.SeafarerProfile;
+import com.centerport.profile.SeafarerProfileRepository;
 
+import jakarta.persistence.criteria.Join;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +27,8 @@ import java.util.UUID;
  * Responsibilities:
  * - Transactional boundary management for all persistence operations
  * - Business-ID generation with prefix {@code MLC} on record creation
- * - Enforcement that client-supplied system fields are never persisted
+ * - Seafarer profile resolution from the provided seafarerProfileId
+ * - Search across linked profile fields and MLC business ID
  * - Mapping between entity and DTO via {@link MlcRecordMapper}
  *
  * @see MlcRecordRepository
@@ -42,17 +47,24 @@ public class MlcRecordService {
     private final MlcRecordMapper mapper;
     private final BusinessIdGenerator businessIdGenerator;
     private final ApplicationEventPublisher eventPublisher;
+    private final SeafarerProfileRepository profileRepository;
 
     // === Queries ===
 
     /**
-     * Returns paginated MLC records.
+     * Returns paginated MLC records, optionally filtered by a search keyword.
      *
+     * When a search term is provided, records are matched against the linked
+     * seafarer profile's lastName, firstName, or the MLC's mlcId using
+     * case-insensitive LIKE.
+     *
+     * @param search   optional keyword (null or blank returns all)
      * @param pageable pagination and sorting parameters
      * @return paged response of MLC record DTOs
      */
-    public PagedResponse<MlcRecordDto> findAll(Pageable pageable) {
-        Page<MlcRecord> page = repository.findAll(pageable);
+    public PagedResponse<MlcRecordDto> findAll(String search, Pageable pageable) {
+        Specification<MlcRecord> spec = buildSearchSpec(search);
+        Page<MlcRecord> page = repository.findAll(spec, pageable);
         List<MlcRecordDto> content = page.getContent().stream()
                 .map(mapper::toDto)
                 .toList();
@@ -78,38 +90,47 @@ public class MlcRecordService {
     // === Commands ===
 
     /**
-     * Creates a new MLC record.
+     * Creates a new MLC record. Client-supplied system fields (id, mlcId, createdDate,
+     * updatedDate) are ignored. A business ID with prefix MLC is generated server-side.
+     * The seafarer profile is resolved from the provided seafarerProfileId.
      *
      * @param dto the MLC record data to persist
      * @return the created record including server-generated system fields
+     * @throws NotFoundException if the referenced seafarer profile does not exist
      */
     @Transactional
     public MlcRecordDto create(MlcRecordDto dto) {
+        SeafarerProfile profile = resolveProfile(dto.getSeafarerProfileId());
+
         MlcRecord entity = mapper.toEntity(dto);
         clearSystemFields(entity);
+        entity.setSeafarerProfile(profile);
 
         String mlcId = businessIdGenerator.generateId(BUSINESS_ID_PREFIX);
         entity.setMlcId(mlcId);
         log.debug("Business ID generated — mlcId: {}", mlcId);
 
         MlcRecord saved = repository.save(entity);
+        saved.setSeafarerProfile(profile);
 
         eventPublisher.publishEvent(new MlcRecordCreatedEvent(
                 saved.getId(), saved.getMlcId(),
-                saved.getLastName(), saved.getFirstName()));
+                profile.getLastName(), profile.getFirstName()));
 
-        log.info("MLC record created — mlcId: {}, id: {}, patient: {}",
-                saved.getMlcId(), saved.getId(), saved.getLastName());
+        log.info("MLC record created — mlcId: {}, id: {}, profileId: {}",
+                saved.getMlcId(), saved.getId(), profile.getProfileId());
         return mapper.toDto(saved);
     }
 
     /**
-     * Updates an existing MLC record.
+     * Updates an existing MLC record. Mutable data fields are updated from the DTO;
+     * system fields (id, mlcId, createdDate) are preserved. If a different
+     * seafarerProfileId is provided, the profile link is updated.
      *
      * @param id  the record's primary key
      * @param dto the updated record data
      * @return the updated MLC record DTO
-     * @throws NotFoundException if no record exists with the given ID
+     * @throws NotFoundException if no record exists with the given ID or profile not found
      */
     @Transactional
     public MlcRecordDto update(UUID id, MlcRecordDto dto) {
@@ -119,9 +140,13 @@ public class MlcRecordService {
                     return new NotFoundException("MlcRecord", id);
                 });
 
+        SeafarerProfile profile = resolveProfile(dto.getSeafarerProfileId());
+        existing.setSeafarerProfile(profile);
+
         mapper.updateEntity(dto, existing);
 
         MlcRecord saved = repository.save(existing);
+        saved.setSeafarerProfile(profile);
 
         eventPublisher.publishEvent(new MlcRecordUpdatedEvent(
                 saved.getId(), saved.getMlcId()));
@@ -132,10 +157,43 @@ public class MlcRecordService {
 
     // === Helpers ===
 
+    private SeafarerProfile resolveProfile(UUID profileId) {
+        return profileRepository.findById(profileId)
+                .orElseThrow(() -> {
+                    log.warn("Seafarer profile not found — id: {}", profileId);
+                    return new NotFoundException("SeafarerProfile", profileId);
+                });
+    }
+
     private void clearSystemFields(MlcRecord entity) {
         entity.setId(null);
         entity.setMlcId(null);
         entity.setCreatedDate(null);
         entity.setUpdatedDate(null);
+    }
+
+    /**
+     * Builds a JPA Specification for searching MLC records by keyword.
+     *
+     * Matches the search term (case-insensitive) against the linked seafarer
+     * profile's lastName, firstName, or the MLC's mlcId.
+     * Returns an unrestricted spec when the search term is null or blank.
+     *
+     * @param search the keyword to match
+     * @return a Specification for filtering
+     */
+    private Specification<MlcRecord> buildSearchSpec(String search) {
+        if (search == null || search.isBlank()) {
+            return Specification.where(null);
+        }
+        String pattern = "%" + search.trim().toLowerCase() + "%";
+        return (root, query, cb) -> {
+            Join<MlcRecord, SeafarerProfile> profile = root.join("seafarerProfile");
+            return cb.or(
+                    cb.like(cb.lower(profile.get("lastName")), pattern),
+                    cb.like(cb.lower(profile.get("firstName")), pattern),
+                    cb.like(cb.lower(root.get("mlcId")), pattern)
+            );
+        };
     }
 }

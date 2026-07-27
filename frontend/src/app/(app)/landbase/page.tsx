@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import PersonalInfoSection from "@/components/landbase/PersonalInfoSection";
@@ -14,13 +14,26 @@ import RecommendationSection from "@/components/landbase/RecommendationSection";
 import { useLandbaseForm } from "@/hooks/use-landbase-form";
 import { PageContainer } from "@/components/common/page-container";
 import { FormToolbar } from "@/components/common/form-toolbar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import type { SearchResultItem } from "@/components/common/form-toolbar";
 import type { LandbaseSectionProps } from "@/components/landbase/types";
 
-type SectionEntry = {
+/**
+ * Registry entry mapping a section component to its stable key.
+ * Used to render sections in order with proper React keys.
+ */
+interface SectionEntry {
   component: React.ComponentType<LandbaseSectionProps>;
   key: string;
-};
+}
 
+/**
+ * Ordered list of form sections rendered on the Landbase PEME page.
+ *
+ * Each entry is a section component that receives the shared
+ * `LandbaseSectionProps` (data, onChange, disabled). Adding or
+ * reordering sections only requires changing this array.
+ */
 const SECTIONS: SectionEntry[] = [
   { component: PersonalInfoSection, key: "personal" },
   { component: PastMedicalHistorySection, key: "medical-history" },
@@ -31,12 +44,30 @@ const SECTIONS: SectionEntry[] = [
   { component: RecommendationSection, key: "recommendation" },
 ];
 
+/** Staggered fade-in animation for section cards on initial mount. */
+const sectionVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (index: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: index * 0.06, duration: 0.25 },
+  }),
+};
+
 /**
- * Landbase PEME form content with full CRUD button behavior.
+ * Landbase PEME form content with full CRUD toolbar.
  *
- * Uses `useLandbaseForm` hook for state management including
- * New/Edit/Save/Cancel/Print actions and view/edit mode transitions.
- * Renders animated section cards with fields disabled in view mode.
+ * Orchestrates the form layout: toolbar at top, validation alert,
+ * and all medical form sections rendered as animated cards.
+ *
+ * State management:
+ * - Uses `useLandbaseForm` for CRUD operations, mode transitions,
+ *   and seafarer profile search integration
+ * - Sections receive shared props (data, onChange, disabled) and
+ *   handle their own field-level updates
+ *
+ * @see useLandbaseForm — form state machine and API interaction
+ * @see FormToolbar — CRUD buttons and search input
  */
 function LandbaseFormContent() {
   const {
@@ -52,6 +83,11 @@ function LandbaseFormContent() {
     handleCancel,
     handleSave,
     handlePrint,
+    searchResults,
+    searchLoading,
+    handleSearch,
+    handleSelectResult,
+    saveAlert,
   } = useLandbaseForm();
 
   if (loading) {
@@ -63,7 +99,7 @@ function LandbaseFormContent() {
   }
 
   return (
-    <PageContainer className="max-w-7xl">
+    <PageContainer>
       <FormToolbar
         editing={editing}
         saving={saving}
@@ -75,19 +111,30 @@ function LandbaseFormContent() {
         }}
         onSave={handleSave}
         onCancel={handleCancel}
-        onEdit={handleEdit}
+        onEdit={data.last_name ? handleEdit : undefined}
         onNew={handleNew}
         onPrint={handlePrint}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+        searchLoading={searchLoading}
+        onSelectResult={handleSelectResult as (result: SearchResultItem) => void}
       />
 
-      {/* Section Cards */}
+      {saveAlert && (
+        <Alert variant="destructive" className="mt-3">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{saveAlert}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="space-y-3">
         {SECTIONS.map(({ component: Section, key }, index) => (
           <motion.div
             key={key}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.06, duration: 0.25 }}
+            custom={index}
+            initial="hidden"
+            animate="visible"
+            variants={sectionVariants}
           >
             <Section data={data} onChange={setData} disabled={!editing} />
           </motion.div>
@@ -98,10 +145,10 @@ function LandbaseFormContent() {
 }
 
 /**
- * Landbase PEME page.
+ * Landbase PEME page route component.
  *
- * Wraps the form content in a Suspense boundary to handle the
- * `useSearchParams` hook requirement in Next.js App Router.
+ * Wraps the form content in a Suspense boundary required by
+ * Next.js App Router for components that use `useSearchParams`.
  */
 export default function LandbasePage() {
   return (

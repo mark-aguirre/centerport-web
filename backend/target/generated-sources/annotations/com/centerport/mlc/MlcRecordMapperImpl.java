@@ -1,15 +1,18 @@
 package com.centerport.mlc;
 
 import com.centerport.common.enums.VisualAid;
+import com.centerport.profile.SeafarerProfile;
+import com.centerport.profile.SeafarerProfileDto;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-26T09:35:27+0800",
-    comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.11 (Amazon.com Inc.)"
+    date = "2026-07-27T09:38:59+0800",
+    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
 )
 @Component
 public class MlcRecordMapperImpl implements MlcRecordMapper {
@@ -22,60 +25,109 @@ public class MlcRecordMapperImpl implements MlcRecordMapper {
 
         MlcRecordDto mlcRecordDto = new MlcRecordDto();
 
-        mlcRecordDto.setId( entity.getId() );
-        mlcRecordDto.setMlcId( entity.getMlcId() );
-        mlcRecordDto.setCreatedDate( entity.getCreatedDate() );
-        mlcRecordDto.setUpdatedDate( entity.getUpdatedDate() );
-        mlcRecordDto.setLastName( entity.getLastName() );
-        mlcRecordDto.setFirstName( entity.getFirstName() );
-        mlcRecordDto.setMiddleName( entity.getMiddleName() );
-        mlcRecordDto.setPlaceOfBirth( entity.getPlaceOfBirth() );
-        mlcRecordDto.setPassportNo( entity.getPassportNo() );
-        mlcRecordDto.setReligion( entity.getReligion() );
-        mlcRecordDto.setNationality( entity.getNationality() );
-        mlcRecordDto.setGender( entity.getGender() );
-        mlcRecordDto.setCivilStatus( entity.getCivilStatus() );
-        mlcRecordDto.setAddress( entity.getAddress() );
-        mlcRecordDto.setContactNo( entity.getContactNo() );
-        mlcRecordDto.setEmployer( entity.getEmployer() );
-        mlcRecordDto.setPosition( entity.getPosition() );
-        mlcRecordDto.setDateOfBirth( entity.getDateOfBirth() );
+        mlcRecordDto.setSeafarerProfileId( entitySeafarerProfileId( entity ) );
+        mlcRecordDto.setSeafarerProfile( profileToDto( entity.getSeafarerProfile() ) );
         mlcRecordDto.setAge( entity.getAge() );
-        mlcRecordDto.setSirbNo( entity.getSirbNo() );
+        mlcRecordDto.setApplicantConditionRisk( entity.getApplicantConditionRisk() );
+        mlcRecordDto.setCertificateType( entity.getCertificateType() );
+        mlcRecordDto.setColourVisionMeetsStandards( entity.getColourVisionMeetsStandards() );
+        mlcRecordDto.setCreatedDate( entity.getCreatedDate() );
+        mlcRecordDto.setDateColourVisionTest( entity.getDateColourVisionTest() );
+        mlcRecordDto.setDateInitialPeme( entity.getDateInitialPeme() );
+        mlcRecordDto.setDateIssued( entity.getDateIssued() );
+        mlcRecordDto.setDateOfBirth( entity.getDateOfBirth() );
+        mlcRecordDto.setDateOfExamination( entity.getDateOfExamination() );
+        mlcRecordDto.setDateOfFitness( entity.getDateOfFitness() );
+        mlcRecordDto.setExaminingPhysician( entity.getExaminingPhysician() );
+        mlcRecordDto.setFitForLookout( entity.getFitForLookout() );
+        mlcRecordDto.setFitnessDetermination( entity.getFitnessDetermination() );
+        mlcRecordDto.setHearingMeetsStandards( entity.getHearingMeetsStandards() );
+        mlcRecordDto.setId( entity.getId() );
+        mlcRecordDto.setIdDocumentsChecked( entity.getIdDocumentsChecked() );
+        mlcRecordDto.setIssuingAuthority( entity.getIssuingAuthority() );
+        mlcRecordDto.setLimitationsDetails( entity.getLimitationsDetails() );
+        mlcRecordDto.setLimitationsRemarks( entity.getLimitationsRemarks() );
+        mlcRecordDto.setManningAgency( entity.getManningAgency() );
+        mlcRecordDto.setMedicalCertificationNo( entity.getMedicalCertificationNo() );
+        mlcRecordDto.setMedicalDirector( entity.getMedicalDirector() );
+        mlcRecordDto.setMlcId( entity.getMlcId() );
+        mlcRecordDto.setNoLimitations( entity.getNoLimitations() );
         mlcRecordDto.setRank( entity.getRank() );
+        mlcRecordDto.setShippingCompany( entity.getShippingCompany() );
+        mlcRecordDto.setSirbNo( entity.getSirbNo() );
+        mlcRecordDto.setUnaidedHearingSatisfactory( entity.getUnaidedHearingSatisfactory() );
+        mlcRecordDto.setUpdatedDate( entity.getUpdatedDate() );
+        mlcRecordDto.setValidUntil( entity.getValidUntil() );
+        mlcRecordDto.setValidUntilDate( entity.getValidUntilDate() );
         mlcRecordDto.setVesselName( entity.getVesselName() );
         mlcRecordDto.setVesselType( entity.getVesselType() );
-        mlcRecordDto.setShippingCompany( entity.getShippingCompany() );
-        mlcRecordDto.setManningAgency( entity.getManningAgency() );
-        mlcRecordDto.setCertificateType( entity.getCertificateType() );
-        mlcRecordDto.setFitnessDetermination( entity.getFitnessDetermination() );
-        mlcRecordDto.setDateOfExamination( entity.getDateOfExamination() );
-        mlcRecordDto.setDateIssued( entity.getDateIssued() );
-        mlcRecordDto.setValidUntil( entity.getValidUntil() );
-        mlcRecordDto.setIssuingAuthority( entity.getIssuingAuthority() );
-        mlcRecordDto.setExaminingPhysician( entity.getExaminingPhysician() );
-        mlcRecordDto.setMedicalDirector( entity.getMedicalDirector() );
-        mlcRecordDto.setLimitationsRemarks( entity.getLimitationsRemarks() );
-        mlcRecordDto.setIdDocumentsChecked( entity.getIdDocumentsChecked() );
-        mlcRecordDto.setHearingMeetsStandards( entity.getHearingMeetsStandards() );
-        mlcRecordDto.setUnaidedHearingSatisfactory( entity.getUnaidedHearingSatisfactory() );
         mlcRecordDto.setVisualAcuityMeetsStandards( entity.getVisualAcuityMeetsStandards() );
-        mlcRecordDto.setColourVisionMeetsStandards( entity.getColourVisionMeetsStandards() );
         List<VisualAid> list = entity.getVisualAids();
         if ( list != null ) {
             mlcRecordDto.setVisualAids( new ArrayList<VisualAid>( list ) );
         }
-        mlcRecordDto.setDateColourVisionTest( entity.getDateColourVisionTest() );
-        mlcRecordDto.setFitForLookout( entity.getFitForLookout() );
-        mlcRecordDto.setNoLimitations( entity.getNoLimitations() );
-        mlcRecordDto.setLimitationsDetails( entity.getLimitationsDetails() );
-        mlcRecordDto.setApplicantConditionRisk( entity.getApplicantConditionRisk() );
-        mlcRecordDto.setDateInitialPeme( entity.getDateInitialPeme() );
-        mlcRecordDto.setDateOfFitness( entity.getDateOfFitness() );
-        mlcRecordDto.setValidUntilDate( entity.getValidUntilDate() );
-        mlcRecordDto.setMedicalCertificationNo( entity.getMedicalCertificationNo() );
 
         return mlcRecordDto;
+    }
+
+    @Override
+    public SeafarerProfileDto profileToDto(SeafarerProfile profile) {
+        if ( profile == null ) {
+            return null;
+        }
+
+        SeafarerProfileDto seafarerProfileDto = new SeafarerProfileDto();
+
+        seafarerProfileDto.setAddress( profile.getAddress() );
+        seafarerProfileDto.setAge( profile.getAge() );
+        seafarerProfileDto.setBirthOrder( profile.getBirthOrder() );
+        seafarerProfileDto.setBirthdate( profile.getBirthdate() );
+        seafarerProfileDto.setCity( profile.getCity() );
+        seafarerProfileDto.setCollegeUniversity( profile.getCollegeUniversity() );
+        seafarerProfileDto.setContactNo( profile.getContactNo() );
+        seafarerProfileDto.setCountry( profile.getCountry() );
+        seafarerProfileDto.setCountryOfDestination( profile.getCountryOfDestination() );
+        seafarerProfileDto.setCourse( profile.getCourse() );
+        seafarerProfileDto.setCreatedBy( profile.getCreatedBy() );
+        seafarerProfileDto.setCreatedDate( profile.getCreatedDate() );
+        seafarerProfileDto.setDesignation( profile.getDesignation() );
+        seafarerProfileDto.setElementary( profile.getElementary() );
+        seafarerProfileDto.setEmployer( profile.getEmployer() );
+        seafarerProfileDto.setFatherName( profile.getFatherName() );
+        seafarerProfileDto.setFatherOccupation( profile.getFatherOccupation() );
+        seafarerProfileDto.setFirstName( profile.getFirstName() );
+        seafarerProfileDto.setGender( profile.getGender() );
+        seafarerProfileDto.setHighSchool( profile.getHighSchool() );
+        seafarerProfileDto.setHighestLevelAttended( profile.getHighestLevelAttended() );
+        seafarerProfileDto.setId( profile.getId() );
+        seafarerProfileDto.setLastName( profile.getLastName() );
+        seafarerProfileDto.setMaritalStatus( profile.getMaritalStatus() );
+        seafarerProfileDto.setMiddleName( profile.getMiddleName() );
+        seafarerProfileDto.setMotherName( profile.getMotherName() );
+        seafarerProfileDto.setMotherOccupation( profile.getMotherOccupation() );
+        seafarerProfileDto.setNationality( profile.getNationality() );
+        seafarerProfileDto.setNoOfBrothers( profile.getNoOfBrothers() );
+        seafarerProfileDto.setNoOfChildren( profile.getNoOfChildren() );
+        seafarerProfileDto.setNoOfSisters( profile.getNoOfSisters() );
+        seafarerProfileDto.setPassportNo( profile.getPassportNo() );
+        seafarerProfileDto.setPhotoUrl( profile.getPhotoUrl() );
+        seafarerProfileDto.setPlaceOfBirth( profile.getPlaceOfBirth() );
+        seafarerProfileDto.setPosition( profile.getPosition() );
+        seafarerProfileDto.setPrevCompany( profile.getPrevCompany() );
+        seafarerProfileDto.setPrevDateEnd( profile.getPrevDateEnd() );
+        seafarerProfileDto.setPrevDateStarted( profile.getPrevDateStarted() );
+        seafarerProfileDto.setPrevLengthOfStay( profile.getPrevLengthOfStay() );
+        seafarerProfileDto.setPrevPosition( profile.getPrevPosition() );
+        seafarerProfileDto.setPrevReasonOfLeaving( profile.getPrevReasonOfLeaving() );
+        seafarerProfileDto.setProfileId( profile.getProfileId() );
+        seafarerProfileDto.setReligion( profile.getReligion() );
+        seafarerProfileDto.setRemark( profile.getRemark() );
+        seafarerProfileDto.setSeamansBookNo( profile.getSeamansBookNo() );
+        seafarerProfileDto.setSpouseName( profile.getSpouseName() );
+        seafarerProfileDto.setSpouseOccupation( profile.getSpouseOccupation() );
+        seafarerProfileDto.setUpdatedDate( profile.getUpdatedDate() );
+
+        return seafarerProfileDto;
     }
 
     @Override
@@ -86,58 +138,41 @@ public class MlcRecordMapperImpl implements MlcRecordMapper {
 
         MlcRecord mlcRecord = new MlcRecord();
 
-        mlcRecord.setId( dto.getId() );
-        mlcRecord.setCreatedDate( dto.getCreatedDate() );
-        mlcRecord.setUpdatedDate( dto.getUpdatedDate() );
-        mlcRecord.setMlcId( dto.getMlcId() );
-        mlcRecord.setLastName( dto.getLastName() );
-        mlcRecord.setFirstName( dto.getFirstName() );
-        mlcRecord.setMiddleName( dto.getMiddleName() );
-        mlcRecord.setPlaceOfBirth( dto.getPlaceOfBirth() );
-        mlcRecord.setPassportNo( dto.getPassportNo() );
-        mlcRecord.setReligion( dto.getReligion() );
-        mlcRecord.setNationality( dto.getNationality() );
-        mlcRecord.setGender( dto.getGender() );
-        mlcRecord.setCivilStatus( dto.getCivilStatus() );
-        mlcRecord.setAddress( dto.getAddress() );
-        mlcRecord.setContactNo( dto.getContactNo() );
-        mlcRecord.setEmployer( dto.getEmployer() );
-        mlcRecord.setPosition( dto.getPosition() );
-        mlcRecord.setDateOfBirth( dto.getDateOfBirth() );
         mlcRecord.setAge( dto.getAge() );
-        mlcRecord.setSirbNo( dto.getSirbNo() );
+        mlcRecord.setApplicantConditionRisk( dto.getApplicantConditionRisk() );
+        mlcRecord.setCertificateType( dto.getCertificateType() );
+        mlcRecord.setColourVisionMeetsStandards( dto.getColourVisionMeetsStandards() );
+        mlcRecord.setDateColourVisionTest( dto.getDateColourVisionTest() );
+        mlcRecord.setDateInitialPeme( dto.getDateInitialPeme() );
+        mlcRecord.setDateIssued( dto.getDateIssued() );
+        mlcRecord.setDateOfBirth( dto.getDateOfBirth() );
+        mlcRecord.setDateOfExamination( dto.getDateOfExamination() );
+        mlcRecord.setDateOfFitness( dto.getDateOfFitness() );
+        mlcRecord.setExaminingPhysician( dto.getExaminingPhysician() );
+        mlcRecord.setFitForLookout( dto.getFitForLookout() );
+        mlcRecord.setFitnessDetermination( dto.getFitnessDetermination() );
+        mlcRecord.setHearingMeetsStandards( dto.getHearingMeetsStandards() );
+        mlcRecord.setIdDocumentsChecked( dto.getIdDocumentsChecked() );
+        mlcRecord.setIssuingAuthority( dto.getIssuingAuthority() );
+        mlcRecord.setLimitationsDetails( dto.getLimitationsDetails() );
+        mlcRecord.setLimitationsRemarks( dto.getLimitationsRemarks() );
+        mlcRecord.setManningAgency( dto.getManningAgency() );
+        mlcRecord.setMedicalCertificationNo( dto.getMedicalCertificationNo() );
+        mlcRecord.setMedicalDirector( dto.getMedicalDirector() );
+        mlcRecord.setNoLimitations( dto.getNoLimitations() );
         mlcRecord.setRank( dto.getRank() );
+        mlcRecord.setShippingCompany( dto.getShippingCompany() );
+        mlcRecord.setSirbNo( dto.getSirbNo() );
+        mlcRecord.setUnaidedHearingSatisfactory( dto.getUnaidedHearingSatisfactory() );
+        mlcRecord.setValidUntil( dto.getValidUntil() );
+        mlcRecord.setValidUntilDate( dto.getValidUntilDate() );
         mlcRecord.setVesselName( dto.getVesselName() );
         mlcRecord.setVesselType( dto.getVesselType() );
-        mlcRecord.setShippingCompany( dto.getShippingCompany() );
-        mlcRecord.setManningAgency( dto.getManningAgency() );
-        mlcRecord.setCertificateType( dto.getCertificateType() );
-        mlcRecord.setFitnessDetermination( dto.getFitnessDetermination() );
-        mlcRecord.setDateOfExamination( dto.getDateOfExamination() );
-        mlcRecord.setDateIssued( dto.getDateIssued() );
-        mlcRecord.setValidUntil( dto.getValidUntil() );
-        mlcRecord.setIssuingAuthority( dto.getIssuingAuthority() );
-        mlcRecord.setExaminingPhysician( dto.getExaminingPhysician() );
-        mlcRecord.setMedicalDirector( dto.getMedicalDirector() );
-        mlcRecord.setLimitationsRemarks( dto.getLimitationsRemarks() );
-        mlcRecord.setIdDocumentsChecked( dto.getIdDocumentsChecked() );
-        mlcRecord.setHearingMeetsStandards( dto.getHearingMeetsStandards() );
-        mlcRecord.setUnaidedHearingSatisfactory( dto.getUnaidedHearingSatisfactory() );
         mlcRecord.setVisualAcuityMeetsStandards( dto.getVisualAcuityMeetsStandards() );
-        mlcRecord.setColourVisionMeetsStandards( dto.getColourVisionMeetsStandards() );
         List<VisualAid> list = dto.getVisualAids();
         if ( list != null ) {
             mlcRecord.setVisualAids( new ArrayList<VisualAid>( list ) );
         }
-        mlcRecord.setDateColourVisionTest( dto.getDateColourVisionTest() );
-        mlcRecord.setFitForLookout( dto.getFitForLookout() );
-        mlcRecord.setNoLimitations( dto.getNoLimitations() );
-        mlcRecord.setLimitationsDetails( dto.getLimitationsDetails() );
-        mlcRecord.setApplicantConditionRisk( dto.getApplicantConditionRisk() );
-        mlcRecord.setDateInitialPeme( dto.getDateInitialPeme() );
-        mlcRecord.setDateOfFitness( dto.getDateOfFitness() );
-        mlcRecord.setValidUntilDate( dto.getValidUntilDate() );
-        mlcRecord.setMedicalCertificationNo( dto.getMedicalCertificationNo() );
 
         return mlcRecord;
     }
@@ -148,41 +183,37 @@ public class MlcRecordMapperImpl implements MlcRecordMapper {
             return;
         }
 
-        entity.setLastName( dto.getLastName() );
-        entity.setFirstName( dto.getFirstName() );
-        entity.setMiddleName( dto.getMiddleName() );
-        entity.setPlaceOfBirth( dto.getPlaceOfBirth() );
-        entity.setPassportNo( dto.getPassportNo() );
-        entity.setReligion( dto.getReligion() );
-        entity.setNationality( dto.getNationality() );
-        entity.setGender( dto.getGender() );
-        entity.setCivilStatus( dto.getCivilStatus() );
-        entity.setAddress( dto.getAddress() );
-        entity.setContactNo( dto.getContactNo() );
-        entity.setEmployer( dto.getEmployer() );
-        entity.setPosition( dto.getPosition() );
-        entity.setDateOfBirth( dto.getDateOfBirth() );
         entity.setAge( dto.getAge() );
-        entity.setSirbNo( dto.getSirbNo() );
+        entity.setApplicantConditionRisk( dto.getApplicantConditionRisk() );
+        entity.setCertificateType( dto.getCertificateType() );
+        entity.setColourVisionMeetsStandards( dto.getColourVisionMeetsStandards() );
+        entity.setDateColourVisionTest( dto.getDateColourVisionTest() );
+        entity.setDateInitialPeme( dto.getDateInitialPeme() );
+        entity.setDateIssued( dto.getDateIssued() );
+        entity.setDateOfBirth( dto.getDateOfBirth() );
+        entity.setDateOfExamination( dto.getDateOfExamination() );
+        entity.setDateOfFitness( dto.getDateOfFitness() );
+        entity.setExaminingPhysician( dto.getExaminingPhysician() );
+        entity.setFitForLookout( dto.getFitForLookout() );
+        entity.setFitnessDetermination( dto.getFitnessDetermination() );
+        entity.setHearingMeetsStandards( dto.getHearingMeetsStandards() );
+        entity.setIdDocumentsChecked( dto.getIdDocumentsChecked() );
+        entity.setIssuingAuthority( dto.getIssuingAuthority() );
+        entity.setLimitationsDetails( dto.getLimitationsDetails() );
+        entity.setLimitationsRemarks( dto.getLimitationsRemarks() );
+        entity.setManningAgency( dto.getManningAgency() );
+        entity.setMedicalCertificationNo( dto.getMedicalCertificationNo() );
+        entity.setMedicalDirector( dto.getMedicalDirector() );
+        entity.setNoLimitations( dto.getNoLimitations() );
         entity.setRank( dto.getRank() );
+        entity.setShippingCompany( dto.getShippingCompany() );
+        entity.setSirbNo( dto.getSirbNo() );
+        entity.setUnaidedHearingSatisfactory( dto.getUnaidedHearingSatisfactory() );
+        entity.setValidUntil( dto.getValidUntil() );
+        entity.setValidUntilDate( dto.getValidUntilDate() );
         entity.setVesselName( dto.getVesselName() );
         entity.setVesselType( dto.getVesselType() );
-        entity.setShippingCompany( dto.getShippingCompany() );
-        entity.setManningAgency( dto.getManningAgency() );
-        entity.setCertificateType( dto.getCertificateType() );
-        entity.setFitnessDetermination( dto.getFitnessDetermination() );
-        entity.setDateOfExamination( dto.getDateOfExamination() );
-        entity.setDateIssued( dto.getDateIssued() );
-        entity.setValidUntil( dto.getValidUntil() );
-        entity.setIssuingAuthority( dto.getIssuingAuthority() );
-        entity.setExaminingPhysician( dto.getExaminingPhysician() );
-        entity.setMedicalDirector( dto.getMedicalDirector() );
-        entity.setLimitationsRemarks( dto.getLimitationsRemarks() );
-        entity.setIdDocumentsChecked( dto.getIdDocumentsChecked() );
-        entity.setHearingMeetsStandards( dto.getHearingMeetsStandards() );
-        entity.setUnaidedHearingSatisfactory( dto.getUnaidedHearingSatisfactory() );
         entity.setVisualAcuityMeetsStandards( dto.getVisualAcuityMeetsStandards() );
-        entity.setColourVisionMeetsStandards( dto.getColourVisionMeetsStandards() );
         if ( entity.getVisualAids() != null ) {
             List<VisualAid> list = dto.getVisualAids();
             if ( list != null ) {
@@ -199,14 +230,13 @@ public class MlcRecordMapperImpl implements MlcRecordMapper {
                 entity.setVisualAids( new ArrayList<VisualAid>( list ) );
             }
         }
-        entity.setDateColourVisionTest( dto.getDateColourVisionTest() );
-        entity.setFitForLookout( dto.getFitForLookout() );
-        entity.setNoLimitations( dto.getNoLimitations() );
-        entity.setLimitationsDetails( dto.getLimitationsDetails() );
-        entity.setApplicantConditionRisk( dto.getApplicantConditionRisk() );
-        entity.setDateInitialPeme( dto.getDateInitialPeme() );
-        entity.setDateOfFitness( dto.getDateOfFitness() );
-        entity.setValidUntilDate( dto.getValidUntilDate() );
-        entity.setMedicalCertificationNo( dto.getMedicalCertificationNo() );
+    }
+
+    private UUID entitySeafarerProfileId(MlcRecord mlcRecord) {
+        SeafarerProfile seafarerProfile = mlcRecord.getSeafarerProfile();
+        if ( seafarerProfile == null ) {
+            return null;
+        }
+        return seafarerProfile.getId();
     }
 }

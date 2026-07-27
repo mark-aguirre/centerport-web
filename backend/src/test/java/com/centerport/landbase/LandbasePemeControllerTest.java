@@ -5,6 +5,7 @@ import com.centerport.common.exception.GlobalExceptionHandler;
 import com.centerport.common.enums.*;
 import com.centerport.common.exception.NotFoundException;
 import com.centerport.config.JacksonConfig;
+import com.centerport.profile.SeafarerProfileDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -43,25 +45,29 @@ class LandbasePemeControllerTest {
     @MockitoBean
     private LandbasePemeService service;
 
+    private static final UUID PROFILE_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+    private static final UUID PEME_ID = UUID.fromString("22222222-2222-2222-2222-222222222222");
+
+    private SeafarerProfileDto sampleProfile() {
+        SeafarerProfileDto profile = new SeafarerProfileDto();
+        profile.setId(PROFILE_ID);
+        profile.setProfileId("CMSI00000001");
+        profile.setLastName("Santos");
+        profile.setFirstName("Maria");
+        profile.setMiddleName("Cruz");
+        profile.setGender("FEMALE");
+        profile.setNationality("Filipino");
+        return profile;
+    }
+
     private LandbasePemeDto samplePeme() {
         LandbasePemeDto dto = new LandbasePemeDto();
-        dto.setId(UUID.fromString("22222222-2222-2222-2222-222222222222"));
+        dto.setId(PEME_ID);
         dto.setPemeId("PEME00000001");
         dto.setCreatedDate(LocalDateTime.of(2024, 3, 10, 9, 0, 0));
         dto.setUpdatedDate(LocalDateTime.of(2024, 3, 10, 9, 0, 0));
-        dto.setLastName("Santos");
-        dto.setFirstName("Maria");
-        dto.setMiddleName("Cruz");
-        dto.setPlaceOfBirth("Cebu");
-        dto.setPassportNo("P1234567");
-        dto.setReligion("Catholic");
-        dto.setNationality("Filipino");
-        dto.setGender(Gender.FEMALE);
-        dto.setCivilStatus(CivilStatus.SINGLE);
-        dto.setAddress("123 Main St");
-        dto.setContactNo("09171234567");
-        dto.setEmployer("ABC Corp");
-        dto.setPosition("Nurse");
+        dto.setSeafarerProfileId(PROFILE_ID);
+        dto.setSeafarerProfile(sampleProfile());
         dto.setMedicalHistory(Map.of("hypertension", "no", "diabetes", "no"));
         dto.setConsultedDoctor(false);
         dto.setQuestionnaire1(YesNo.NO);
@@ -82,28 +88,16 @@ class LandbasePemeControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(body))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.data.id").value("22222222-2222-2222-2222-222222222222"))
+                .andExpect(jsonPath("$.data.id").value(PEME_ID.toString()))
                 .andExpect(jsonPath("$.data.peme_id").value("PEME00000001"))
-                .andExpect(jsonPath("$.data.last_name").value("Santos"));
+                .andExpect(jsonPath("$.data.seafarer_profile_id").value(PROFILE_ID.toString()))
+                .andExpect(jsonPath("$.data.seafarer_profile.last_name").value("Santos"));
     }
 
     @Test
-    void postBlankLastName_returns400() throws Exception {
+    void postMissingProfileId_returns400() throws Exception {
         LandbasePemeDto dto = samplePeme();
-        dto.setLastName("");
-
-        mockMvc.perform(post("/api/landbase-pemes")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").isNotEmpty());
-    }
-
-    @Test
-    void postMissingLastName_returns400() throws Exception {
-        LandbasePemeDto dto = samplePeme();
-        dto.setLastName(null);
+        dto.setSeafarerProfileId(null);
 
         mockMvc.perform(post("/api/landbase-pemes")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -114,13 +108,12 @@ class LandbasePemeControllerTest {
 
     @Test
     void getExistingPeme_returns200() throws Exception {
-        UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
-        when(service.findById(id)).thenReturn(samplePeme());
+        when(service.findById(PEME_ID)).thenReturn(samplePeme());
 
-        mockMvc.perform(get("/api/landbase-pemes/{id}", id))
+        mockMvc.perform(get("/api/landbase-pemes/{id}", PEME_ID))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(id.toString()))
-                .andExpect(jsonPath("$.data.last_name").value("Santos"));
+                .andExpect(jsonPath("$.data.id").value(PEME_ID.toString()))
+                .andExpect(jsonPath("$.data.seafarer_profile.last_name").value("Santos"));
     }
 
     @Test
@@ -148,7 +141,7 @@ class LandbasePemeControllerTest {
                 .hasNext(false)
                 .hasPrevious(false)
                 .build();
-        when(service.findAll(any(Pageable.class))).thenReturn(pagedResponse);
+        when(service.findAll(isNull(), any(Pageable.class))).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/landbase-pemes"))
                 .andExpect(status().isOk())
@@ -158,46 +151,40 @@ class LandbasePemeControllerTest {
 
     @Test
     void putValidPeme_returns200() throws Exception {
-        UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
         LandbasePemeDto updated = samplePeme();
-        updated.setLastName("Garcia");
         when(service.update(any(UUID.class), any(LandbasePemeDto.class))).thenReturn(updated);
 
-        mockMvc.perform(put("/api/landbase-pemes/{id}", id)
+        mockMvc.perform(put("/api/landbase-pemes/{id}", PEME_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.last_name").value("Garcia"));
+                .andExpect(jsonPath("$.data.seafarer_profile.last_name").value("Santos"));
     }
 
     @Test
-    void putBlankLastName_returns400() throws Exception {
-        UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
+    void putMissingProfileId_returns400() throws Exception {
         LandbasePemeDto dto = samplePeme();
-        dto.setLastName("");
+        dto.setSeafarerProfileId(null);
 
-        mockMvc.perform(put("/api/landbase-pemes/{id}", id)
+        mockMvc.perform(put("/api/landbase-pemes/{id}", PEME_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(dto)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.detail").isNotEmpty());
+                .andExpect(jsonPath("$.status").value(400));
     }
 
     @Test
     void responseUsesSnakeCaseFieldNames() throws Exception {
-        UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
-        when(service.findById(id)).thenReturn(samplePeme());
+        when(service.findById(PEME_ID)).thenReturn(samplePeme());
 
-        mockMvc.perform(get("/api/landbase-pemes/{id}", id))
+        mockMvc.perform(get("/api/landbase-pemes/{id}", PEME_ID))
                 .andExpect(status().isOk())
                 // Verify snake_case fields are present
                 .andExpect(jsonPath("$.data.peme_id").exists())
                 .andExpect(jsonPath("$.data.created_date").exists())
                 .andExpect(jsonPath("$.data.updated_date").exists())
-                .andExpect(jsonPath("$.data.last_name").exists())
-                .andExpect(jsonPath("$.data.first_name").exists())
-                .andExpect(jsonPath("$.data.middle_name").exists())
+                .andExpect(jsonPath("$.data.seafarer_profile_id").exists())
+                .andExpect(jsonPath("$.data.seafarer_profile").exists())
                 .andExpect(jsonPath("$.data.medical_history").exists())
                 .andExpect(jsonPath("$.data.consulted_doctor").exists())
                 .andExpect(jsonPath("$.data.chest_xray").exists())
@@ -206,9 +193,8 @@ class LandbasePemeControllerTest {
                 .andExpect(jsonPath("$.data.pemeId").doesNotExist())
                 .andExpect(jsonPath("$.data.createdDate").doesNotExist())
                 .andExpect(jsonPath("$.data.updatedDate").doesNotExist())
-                .andExpect(jsonPath("$.data.lastName").doesNotExist())
-                .andExpect(jsonPath("$.data.firstName").doesNotExist())
-                .andExpect(jsonPath("$.data.middleName").doesNotExist())
+                .andExpect(jsonPath("$.data.seafarerProfileId").doesNotExist())
+                .andExpect(jsonPath("$.data.seafarerProfile").doesNotExist())
                 .andExpect(jsonPath("$.data.medicalHistory").doesNotExist())
                 .andExpect(jsonPath("$.data.consultedDoctor").doesNotExist())
                 .andExpect(jsonPath("$.data.chestXray").doesNotExist())

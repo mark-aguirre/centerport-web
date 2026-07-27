@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { type LucideIcon } from "lucide-react";
+import React from "react";
 
 interface SectionHeaderProps {
   /** Section title displayed in uppercase */
@@ -10,6 +11,8 @@ interface SectionHeaderProps {
   className?: string;
   /** Optional subtitle rendered as muted italic text */
   subtitle?: string;
+  /** Optional action slot rendered on the right side of the header (e.g. "Set Normal" button) */
+  action?: React.ReactNode;
 }
 
 /**
@@ -25,6 +28,7 @@ interface SectionHeaderProps {
  *   title="Personal Information"
  *   icon={User}
  *   subtitle="Fill in all required fields"
+ *   action={<button>Set Normal</button>}
  * />
  * ```
  */
@@ -33,6 +37,7 @@ export function SectionHeader({
   icon: Icon,
   className,
   subtitle,
+  action,
 }: SectionHeaderProps) {
   return (
     <div
@@ -42,7 +47,7 @@ export function SectionHeader({
       )}
     >
       {Icon && <Icon className="w-4 h-4 text-primary" />}
-      <div className="flex items-baseline gap-2">
+      <div className="flex items-baseline gap-2 flex-1">
         <h2 className="text-xs font-bold text-primary uppercase tracking-widest">
           {title}
         </h2>
@@ -52,6 +57,7 @@ export function SectionHeader({
           </span>
         )}
       </div>
+      {action}
     </div>
   );
 }

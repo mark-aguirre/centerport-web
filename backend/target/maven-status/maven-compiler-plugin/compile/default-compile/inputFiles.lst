@@ -6,12 +6,10 @@ C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\BloodT
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\BPClassification.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\CertificateType.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\CivilStatus.java
-C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\ConsultationStatus.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\ExamFinding.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\ExamResult.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\FitnessDetermination.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\Gender.java
-C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\LabStatus.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\PassStatus.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\PhysicalExplorationValue.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\common\enums\PregnancyTestResult.java

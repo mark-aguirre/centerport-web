@@ -92,13 +92,14 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
     onChange({ ...data, conditions: updatedConditions });
   };
 
-  const renderConditionRow = (item: { num: number; label: string }) => {
+  const renderConditionRow = (item: { num: number; label: string }, index: number) => {
     const key = `condition_${item.num}`;
     const currentValue = (data.conditions[key] || "") as YesNo;
+    const rowBg = index % 2 === 0 ? "bg-muted/30" : "";
     return (
       <div
         key={key}
-        className="grid grid-cols-[1fr_auto] items-center py-1.5 border-b border-muted/30 gap-8"
+        className={`grid grid-cols-[1fr_auto] items-center py-1.5 border-b border-muted/30 gap-2 px-1 rounded-sm ${rowBg}`}
       >
         <span className="text-xs text-foreground/80 leading-tight">
           <span className="font-semibold text-primary/70 mr-1">{item.num}</span>
@@ -128,7 +129,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
       <div className="mb-4 mt-6">
         {/* Column headers */}
         <div className="grid grid-cols-2 gap-4 mb-1">
-          <div className="grid grid-cols-[1fr_auto] items-center gap-8">
+          <div className="grid grid-cols-[1fr_auto] items-center gap-3 pr-14">
             <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">
               No. Condition
             </span>
@@ -137,7 +138,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
               <span className="text-[11px] font-bold text-primary uppercase tracking-wider">NO</span>
             </div>
           </div>
-          <div className="grid grid-cols-[1fr_auto] items-center gap-8">
+          <div className="grid grid-cols-[1fr_auto] items-center gap-3 pr-14">
             <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">
               No. Condition
             </span>
@@ -150,8 +151,8 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
 
         {/* Condition rows */}
         <div className="grid grid-cols-2 gap-4">
-          <div>{CONDITIONS_COL_1.map(renderConditionRow)}</div>
-          <div>{CONDITIONS_COL_2.map(renderConditionRow)}</div>
+          <div className="pr-14">{CONDITIONS_COL_1.map(renderConditionRow)}</div>
+          <div className="pr-14">{CONDITIONS_COL_2.map(renderConditionRow)}</div>
         </div>
       </div>
 
@@ -170,7 +171,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
 
       {/* Additional Questions (37–44) */}
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-1.5 pb-1.5 border-b border-primary/20">
+        <div className="flex items-center justify-between mb-1.5 pb-1.5 border-b border-primary/20 pr-14">
           <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">
             No. Additional question
           </span>
@@ -180,10 +181,10 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
           </div>
         </div>
 
-        {ADDITIONAL_QUESTIONS.map((q) => (
+        {ADDITIONAL_QUESTIONS.map((q, index) => (
           <div
             key={q.key}
-            className="flex items-center justify-between py-2 border-b border-muted/20"
+            className={`flex items-center justify-between py-2 border-b border-muted/20 pr-14 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}
           >
             <span className="text-xs text-foreground/80 flex-1 pr-4">
               <span className="font-semibold text-primary/70 mr-1">{q.num}</span>
@@ -215,7 +216,7 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
 
       {/* Question 45 — Medication */}
       <div className="border-t border-primary/10 pt-3 mb-4">
-        <div className="flex items-center justify-between py-2">
+        <div className="flex items-center justify-between py-2 pr-14 px-1 rounded-sm bg-muted/30">
           <span className="text-xs text-foreground/80 flex-1 pr-4">
             <span className="font-semibold text-primary/70 mr-1">45</span>
             Are you taking any non-prescription or prescription medications
@@ -249,10 +250,10 @@ export default function PersonalDeclarationSection({ data, onChange }: PanamaSec
         </h3>
 
         {/* Covid questions with YES/NO */}
-        {COVID_QUESTIONS.map((q) => (
+        {COVID_QUESTIONS.map((q, index) => (
           <div
             key={q.key}
-            className="flex items-center justify-between py-2 border-b border-muted/20"
+            className={`flex items-center justify-between py-2 border-b border-muted/20 pr-14 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}
           >
             <span className="text-xs text-foreground/80 flex-1 pr-4">
               <span className="font-semibold text-primary/70 mr-1">{q.num}</span>

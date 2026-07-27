@@ -1,7 +1,8 @@
 package com.centerport.medical;
 
 import com.centerport.common.enums.*;
-import jakarta.validation.constraints.NotBlank;
+import com.centerport.profile.SeafarerProfileDto;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,21 +41,13 @@ public class MedicalExamDto {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
-    // --- Personal Information ---
-    @NotBlank(message = "must not be blank")
-    private String lastName;
-    private String firstName;
-    private String middleName;
-    private String placeOfBirth;
-    private String passportNo;
-    private String religion;
-    private String nationality;
-    private Gender gender;
-    private CivilStatus civilStatus;
-    private String address;
-    private String contactNo;
-    private String employer;
-    private String position;
+    // --- Seafarer Profile Reference ---
+    @NotNull(message = "must not be null")
+    private UUID seafarerProfileId;
+
+    /** Populated in responses; ignored on input. */
+    private SeafarerProfileDto seafarerProfile;
+
     private String dateOfBirth;
     private String age;
 
@@ -99,13 +92,21 @@ public class MedicalExamDto {
 
     // --- Audiometry ---
     private String audioHearingBy;
+    @com.fasterxml.jackson.annotation.JsonProperty("audio_as_right_1")
     private String audioAsRight1;
+    @com.fasterxml.jackson.annotation.JsonProperty("audio_as_right_2")
     private String audioAsRight2;
+    @com.fasterxml.jackson.annotation.JsonProperty("audio_as_left_1")
     private String audioAsLeft1;
+    @com.fasterxml.jackson.annotation.JsonProperty("audio_as_left_2")
     private String audioAsLeft2;
+    @com.fasterxml.jackson.annotation.JsonProperty("audio_ad_right_1")
     private String audioAdRight1;
+    @com.fasterxml.jackson.annotation.JsonProperty("audio_ad_right_2")
     private String audioAdRight2;
+    @com.fasterxml.jackson.annotation.JsonProperty("audio_ad_left_1")
     private String audioAdLeft1;
+    @com.fasterxml.jackson.annotation.JsonProperty("audio_ad_left_2")
     private String audioAdLeft2;
     private String audioSatisfactory;
 
@@ -151,17 +152,11 @@ public class MedicalExamDto {
     private String questionnaireComments;
     private String questionnaireMedicationsDetail;
 
-    // --- Medical History ---
+    // --- Past Medical History (used by Physical Examination sub-section) ---
     private Map<String, String> medicalHistory;
     private String medicalHistoryOthers;
     private String consultedDoctorPast;
     private String maintenanceMedications;
-    private String surgicalHistory;
-    private String familyHistory;
-    private String allergies;
-    private String currentMedications;
-    private String smokingHistory;
-    private String alcoholHistory;
 
     // --- Ancillary Examinations ---
     private String xrayNo;
@@ -184,24 +179,7 @@ public class MedicalExamDto {
     private String ancillaryPsychologicalTest;
     private String ancillaryAdditionalTests;
 
-    // --- Laboratory Results ---
-    private LabStatus cbcResult;
-    private String cbcRemarks;
-    private LabStatus urinalysisResult;
-    private String urinalysisRemarks;
-    private LabStatus bloodChemistryResult;
-    private String bloodChemistryRemarks;
-    private LabStatus chestXrayResult;
-    private String chestXrayRemarks;
-    private LabStatus ecgResult;
-    private String ecgRemarks;
-    private LabStatus drugTestResult;
-    private String drugTestRemarks;
-    private LabStatus hepatitisBResult;
-    private String hepatitisBRemarks;
-    private LabStatus hivResult;
-    private String hivRemarks;
-    private String additionalLabs;
+
 
     // --- Final Recommendation ---
     private String recommendationRemarks;
@@ -227,20 +205,7 @@ public class MedicalExamDto {
     private String medicalCertificationNo;
     private String medicalDirector;
 
-    // --- Diagnosis ---
-    private String primaryDiagnosis;
-    private String secondaryDiagnosis;
-    private String icdCode;
 
-    // --- Treatment Plan ---
-    private String treatmentPlan;
-    private String medicationsPrescribed;
-    private String followUpDate;
-    private String referralTo;
-    private ConsultationStatus consultationStatus;
-
-    // --- Remarks ---
-    private String remarks;
 
     // --- Physician ---
     private String examiningPhysician;

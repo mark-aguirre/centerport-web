@@ -2,6 +2,7 @@
 
 import { SectionHeader } from "@/components/common/section-header";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 /**
@@ -13,12 +14,12 @@ import type { MedicalExam, MedicalSectionProps } from "./types";
  *
  * @see PhysicalExaminationSection — parent orchestrator
  */
-export function AudiometrySpeechSection({ data, onChange }: MedicalSectionProps) {
+export function AudiometrySpeechSection({ data, onChange, disabled }: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
+    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
       <div className="grid grid-cols-2 gap-4">
         {/* Audiometry */}
         <div>

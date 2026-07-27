@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,13 +47,18 @@ public class SeafarerProfileService {
     // === Queries ===
 
     /**
-     * Returns paginated profiles.
+     * Returns paginated profiles, optionally filtered by a search keyword.
      *
+     * When a search term is provided, profiles are matched against
+     * lastName, firstName, or profileId using case-insensitive LIKE.
+     *
+     * @param search   optional keyword (null or blank returns all)
      * @param pageable pagination and sorting parameters
      * @return paged response of profile DTOs
      */
-    public PagedResponse<SeafarerProfileDto> findAll(Pageable pageable) {
-        Page<SeafarerProfile> page = repository.findAll(pageable);
+    public PagedResponse<SeafarerProfileDto> findAll(String search, Pageable pageable) {
+        Specification<SeafarerProfile> spec = buildSearchSpec(search);
+        Page<SeafarerProfile> page = repository.findAll(spec, pageable);
         List<SeafarerProfileDto> content = page.getContent().stream()
                 .map(mapper::toDto)
                 .toList();
@@ -138,5 +144,26 @@ public class SeafarerProfileService {
         entity.setProfileId(null);
         entity.setCreatedDate(null);
         entity.setUpdatedDate(null);
+    }
+
+    /**
+     * Builds a JPA Specification for searching profiles by keyword.
+     *
+     * Matches the search term (case-insensitive) against lastName, firstName, or profileId.
+     * Returns an unrestricted spec when the search term is null or blank.
+     *
+     * @param search the keyword to match
+     * @return a Specification for filtering
+     */
+    private Specification<SeafarerProfile> buildSearchSpec(String search) {
+        if (search == null || search.isBlank()) {
+            return Specification.where(null);
+        }
+        String pattern = "%" + search.trim().toLowerCase() + "%";
+        return (root, query, cb) -> cb.or(
+                cb.like(cb.lower(root.get("lastName")), pattern),
+                cb.like(cb.lower(root.get("firstName")), pattern),
+                cb.like(cb.lower(root.get("profileId")), pattern)
+        );
     }
 }

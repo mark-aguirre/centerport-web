@@ -2,7 +2,9 @@
 
 import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
+import { FormAutocomplete } from "@/components/common/form-autocomplete";
 import { GraduationCap } from "lucide-react";
+import { COURSES } from "@/lib/suggestions";
 import type { SeafarerProfile } from "@/lib/api";
 import type { ProfileSectionProps } from "./types";
 
@@ -45,10 +47,11 @@ export default function EducationSection({
           disabled={disabled}
           size="sm"
         />
-        <FormField
+        <FormAutocomplete
           label="Course"
           value={data.course}
           onChange={(v) => update("course", v)}
+          suggestions={COURSES}
           disabled={disabled}
           size="sm"
         />

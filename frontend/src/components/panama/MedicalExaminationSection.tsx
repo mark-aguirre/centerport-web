@@ -452,10 +452,10 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
         {/* Body system rows — 2 columns */}
         <div className="grid grid-cols-2 gap-4 mb-3">
           <div>
-            {EXPLORATION_COL_1.map((item) => {
+            {EXPLORATION_COL_1.map((item, index) => {
               const currentValue = (data.physical_exploration[item] || "") as PhysicalExplorationValue;
               return (
-                <div key={item} className="grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30">
+                <div key={item} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
                   <span className="text-xs text-foreground/80">{item}</span>
                   <div className="flex justify-center">
                     <NRARadio
@@ -470,10 +470,10 @@ export default function MedicalExaminationSection({ data, onChange }: PanamaSect
             })}
           </div>
           <div>
-            {EXPLORATION_COL_2.map((item) => {
+            {EXPLORATION_COL_2.map((item, index) => {
               const currentValue = (data.physical_exploration[item] || "") as PhysicalExplorationValue;
               return (
-                <div key={item} className="grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30">
+                <div key={item} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
                   <span className="text-xs text-foreground/80">{item}</span>
                   <div className="flex justify-center">
                     <NRARadio

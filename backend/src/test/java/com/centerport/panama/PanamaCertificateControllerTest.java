@@ -44,14 +44,15 @@ class PanamaCertificateControllerTest {
     @MockitoBean
     private PanamaCertificateService service;
 
+    private static final UUID SAMPLE_PROFILE_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
     private PanamaCertificateDto sampleCertificate() {
         PanamaCertificateDto dto = new PanamaCertificateDto();
         dto.setId(UUID.fromString("22222222-2222-2222-2222-222222222222"));
         dto.setPanamaId("PAN00000001");
         dto.setCreatedDate(LocalDateTime.of(2024, 3, 10, 8, 0, 0));
         dto.setUpdatedDate(LocalDateTime.of(2024, 3, 10, 8, 0, 0));
-        dto.setFullName("Juan Dela Cruz");
-        dto.setSex(Gender.MALE);
+        dto.setSeafarerProfileId(SAMPLE_PROFILE_ID);
         dto.setTypeOfShip(ShipType.CONTAINER);
         dto.setTradeArea(TradeArea.WORLDWIDE);
         dto.setQuestion37(YesNo.NO);
@@ -86,13 +87,13 @@ class PanamaCertificateControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").value("22222222-2222-2222-2222-222222222222"))
                 .andExpect(jsonPath("$.data.panama_id").value("PAN00000001"))
-                .andExpect(jsonPath("$.data.full_name").value("Juan Dela Cruz"));
+                .andExpect(jsonPath("$.data.seafarer_profile_id").value(SAMPLE_PROFILE_ID.toString()));
     }
 
     @Test
-    void postBlankFullName_returns400() throws Exception {
+    void postMissingSeafarerProfileId_returns400() throws Exception {
         PanamaCertificateDto dto = sampleCertificate();
-        dto.setFullName("");
+        dto.setSeafarerProfileId(null);
 
         mockMvc.perform(post("/api/panama-certificates")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -103,9 +104,9 @@ class PanamaCertificateControllerTest {
     }
 
     @Test
-    void postMissingFullName_returns400() throws Exception {
+    void postNullSeafarerProfileId_returns400() throws Exception {
         PanamaCertificateDto dto = sampleCertificate();
-        dto.setFullName(null);
+        dto.setSeafarerProfileId(null);
 
         mockMvc.perform(post("/api/panama-certificates")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -122,7 +123,7 @@ class PanamaCertificateControllerTest {
         mockMvc.perform(get("/api/panama-certificates/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(id.toString()))
-                .andExpect(jsonPath("$.data.full_name").value("Juan Dela Cruz"));
+                .andExpect(jsonPath("$.data.seafarer_profile_id").value(SAMPLE_PROFILE_ID.toString()));
     }
 
     @Test
@@ -169,7 +170,7 @@ class PanamaCertificateControllerTest {
                 .andExpect(jsonPath("$.data.panama_id").exists())
                 .andExpect(jsonPath("$.data.created_date").exists())
                 .andExpect(jsonPath("$.data.updated_date").exists())
-                .andExpect(jsonPath("$.data.full_name").exists())
+                .andExpect(jsonPath("$.data.seafarer_profile_id").exists())
                 .andExpect(jsonPath("$.data.type_of_ship").exists())
                 .andExpect(jsonPath("$.data.trade_area").exists())
                 .andExpect(jsonPath("$.data.fitness_visual_aid").exists())
@@ -179,7 +180,7 @@ class PanamaCertificateControllerTest {
                 .andExpect(jsonPath("$.data.panamaId").doesNotExist())
                 .andExpect(jsonPath("$.data.createdDate").doesNotExist())
                 .andExpect(jsonPath("$.data.updatedDate").doesNotExist())
-                .andExpect(jsonPath("$.data.fullName").doesNotExist())
+                .andExpect(jsonPath("$.data.seafarerProfileId").doesNotExist())
                 .andExpect(jsonPath("$.data.typeOfShip").doesNotExist())
                 .andExpect(jsonPath("$.data.tradeArea").doesNotExist());
     }
@@ -235,21 +236,21 @@ class PanamaCertificateControllerTest {
     void putValidCertificate_returns200() throws Exception {
         UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
         PanamaCertificateDto updated = sampleCertificate();
-        updated.setFullName("Maria Santos");
+        updated.setPhysicianName("Dr. Santos");
         when(service.update(any(UUID.class), any(PanamaCertificateDto.class))).thenReturn(updated);
 
         mockMvc.perform(put("/api/panama-certificates/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.full_name").value("Maria Santos"));
+                .andExpect(jsonPath("$.data.physician_name").value("Dr. Santos"));
     }
 
     @Test
-    void putBlankFullName_returns400() throws Exception {
+    void putMissingSeafarerProfileId_returns400() throws Exception {
         UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
         PanamaCertificateDto dto = sampleCertificate();
-        dto.setFullName("");
+        dto.setSeafarerProfileId(null);
 
         mockMvc.perform(put("/api/panama-certificates/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)

@@ -4,6 +4,7 @@ import com.centerport.common.dto.ApiResponse;
 import com.centerport.common.dto.PagedResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -40,22 +41,27 @@ public class LandbasePemeController {
 
     /**
      * Returns paginated landbase PEMEs sorted by creation date descending.
+     * Optionally filters by a search term matching the linked seafarer profile's
+     * last name, first name, or the PEME ID.
      *
+     * @param search   optional keyword to filter records (case-insensitive partial match)
      * @param pageable pagination and sorting parameters
      * @return paged list of PEME records
      */
     @GetMapping
-    @Operation(summary = "List all landbase PEMEs with pagination",
-               description = "Returns paginated landbase PEME records. Default sort: createdDate DESC.")
+    @Operation(summary = "List all landbase PEMEs with pagination and optional search",
+               description = "Returns paginated landbase PEME records. Optionally filter by seafarer name or PEME ID. Default sort: createdDate DESC.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Records retrieved")
     })
     public ResponseEntity<ApiResponse<PagedResponse<LandbasePemeDto>>> list(
+            @Parameter(description = "Search keyword — matches seafarer last name, first name, or PEME ID (case-insensitive)")
+            @RequestParam(required = false) String search,
             @ParameterObject
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        PagedResponse<LandbasePemeDto> page = service.findAll(pageable);
+        PagedResponse<LandbasePemeDto> page = service.findAll(search, pageable);
         return ResponseEntity.ok(ApiResponse.success(page));
     }
 
@@ -79,7 +85,7 @@ public class LandbasePemeController {
     /**
      * Creates a new landbase PEME record.
      *
-     * @param dto the request body; {@code lastName} is required
+     * @param dto the request body; {@code seafarerProfileId} is required
      * @return the persisted record with server-generated fields populated
      */
     @PostMapping
@@ -105,7 +111,7 @@ public class LandbasePemeController {
      * Updates an existing landbase PEME record.
      *
      * @param id  the UUID of the record to update
-     * @param dto the request body; {@code lastName} is required
+     * @param dto the request body; {@code seafarerProfileId} is required
      * @return the updated record
      */
     @PutMapping("/{id}")

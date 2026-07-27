@@ -13,6 +13,7 @@ import FitnessAssessmentSection from "@/components/panama/FitnessAssessmentSecti
 import { usePanamaForm } from "@/hooks/use-panama-form";
 import { PageContainer } from "@/components/common/page-container";
 import { FormToolbar } from "@/components/common/form-toolbar";
+import { useProfileSearch } from "@/hooks/use-profile-search";
 import type { PanamaSectionProps } from "@/components/panama/types";
 
 type SectionEntry = {
@@ -52,6 +53,39 @@ function PanamaFormContent() {
     handlePrint,
   } = usePanamaForm();
 
+  const { searchResults, searchLoading, handleSearch, clearSearch } = useProfileSearch();
+
+  /** Fill personal info fields from a selected profile search result. */
+  const handleSelectProfile = (profile: any) => {
+    const fullName = [profile.last_name, profile.first_name, profile.middle_name]
+      .filter(Boolean)
+      .join(", ");
+    // Parse birthdate into day/month/year
+    let day = data.day;
+    let month = data.month;
+    let year = data.year;
+    if (profile.birthdate) {
+      const d = new Date(profile.birthdate);
+      if (!isNaN(d.getTime())) {
+        day = String(d.getDate());
+        month = String(d.getMonth() + 1);
+        year = String(d.getFullYear());
+      }
+    }
+    setData({
+      ...data,
+      full_name: fullName || data.full_name,
+      day,
+      month,
+      year,
+      sex: profile.gender === "Male" ? "Male" : profile.gender === "Female" ? "Female" : data.sex,
+      passport_seaman_no: profile.passport_no || profile.seamans_book_no || data.passport_seaman_no,
+      home_address: profile.address ?? data.home_address,
+      crew_position: profile.position ?? data.crew_position,
+    });
+    clearSearch();
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -61,7 +95,7 @@ function PanamaFormContent() {
   }
 
   return (
-    <PageContainer className="max-w-7xl">
+    <PageContainer>
       <FormToolbar
         editing={editing}
         saving={saving}
@@ -76,6 +110,10 @@ function PanamaFormContent() {
         onEdit={handleEdit}
         onNew={handleNew}
         onPrint={handlePrint}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+        searchLoading={searchLoading}
+        onSelectResult={handleSelectProfile}
       />
 
       {/* Section Cards */}

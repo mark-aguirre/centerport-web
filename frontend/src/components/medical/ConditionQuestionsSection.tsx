@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 /**
@@ -12,12 +13,12 @@ import type { MedicalExam, MedicalSectionProps } from "./types";
  *
  * @see PhysicalExaminationSection — parent orchestrator
  */
-export function ConditionQuestionsSection({ data, onChange }: MedicalSectionProps) {
+export function ConditionQuestionsSection({ data, onChange, disabled }: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10 space-y-0">
+    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10 space-y-0", disabled && "pointer-events-none")}>
       <div className="flex items-start gap-3 py-2 border-b border-muted/30 rounded-t" style={{ backgroundColor: "#fefdf3" }}>
         <p className="text-xs text-foreground/80 font-semibold uppercase leading-relaxed flex-1">
           Is applicant suffering from any medical condition likely to be aggravated by service at sea or to render the seafarer unfit for such service or to endanger the health of other persons on board?

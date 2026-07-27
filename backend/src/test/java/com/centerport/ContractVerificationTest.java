@@ -171,8 +171,7 @@ class ContractVerificationTest {
             dto.setExamId("MED00000001");
             dto.setCreatedDate(LocalDateTime.now());
             dto.setUpdatedDate(LocalDateTime.now());
-            dto.setLastName("Cruz");
-            dto.setFirstName("Juan");
+            dto.setSeafarerProfileId(UUID.randomUUID());
             dto.setFindingsA(Map.of("item1", true));
             dto.setFindingsB(Map.of("item2", false));
             dto.setFindingsC(Map.of("item3", true));
@@ -180,15 +179,13 @@ class ContractVerificationTest {
             dto.setMedicalHistory(Map.of("diabetes", "no"));
             dto.setBpClassification(BPClassification.NORMAL);
             dto.setChestLungs(ExamFinding.NORMAL);
-            dto.setConsultationStatus(ConsultationStatus.CLEARED);
 
             String json = objectMapper.writeValueAsString(dto);
 
             assertThat(json).contains("\"exam_id\"");
             assertThat(json).contains("\"created_date\"");
             assertThat(json).contains("\"updated_date\"");
-            assertThat(json).contains("\"last_name\"");
-            assertThat(json).contains("\"first_name\"");
+            assertThat(json).contains("\"seafarer_profile_id\"");
             assertThat(json).contains("\"findings_a\"");
             assertThat(json).contains("\"findings_b\"");
             assertThat(json).contains("\"findings_c\"");
@@ -196,16 +193,15 @@ class ContractVerificationTest {
             assertThat(json).contains("\"medical_history\"");
             assertThat(json).contains("\"bp_classification\"");
             assertThat(json).contains("\"chest_lungs\"");
-            assertThat(json).contains("\"consultation_status\"");
 
             // Verify no camelCase leaks
             assertThat(json).doesNotContain("examId");
+            assertThat(json).doesNotContain("seafarerProfileId");
             assertThat(json).doesNotContain("findingsA");
             assertThat(json).doesNotContain("findingsB");
             assertThat(json).doesNotContain("findingsC");
             assertThat(json).doesNotContain("bpClassification");
             assertThat(json).doesNotContain("chestLungs");
-            assertThat(json).doesNotContain("consultationStatus");
             assertThat(json).doesNotContain("medicalHistory");
         }
     }
@@ -222,7 +218,7 @@ class ContractVerificationTest {
             dto.setPemeId("PEME00000001");
             dto.setCreatedDate(LocalDateTime.now());
             dto.setUpdatedDate(LocalDateTime.now());
-            dto.setLastName("Garcia");
+            dto.setSeafarerProfileId(UUID.randomUUID());
             dto.setMedicalHistory(Map.of("asthma", "yes"));
             dto.setConsultedDoctor(true);
             dto.setQuestionnaire1(YesNo.YES);
@@ -239,7 +235,7 @@ class ContractVerificationTest {
             assertThat(json).contains("\"peme_id\"");
             assertThat(json).contains("\"created_date\"");
             assertThat(json).contains("\"updated_date\"");
-            assertThat(json).contains("\"last_name\"");
+            assertThat(json).contains("\"seafarer_profile_id\"");
             assertThat(json).contains("\"medical_history\"");
             assertThat(json).contains("\"consulted_doctor\"");
             assertThat(json).contains("\"questionnaire1\"");
@@ -253,6 +249,7 @@ class ContractVerificationTest {
 
             // Verify no camelCase leaks
             assertThat(json).doesNotContain("pemeId");
+            assertThat(json).doesNotContain("seafarerProfileId");
             assertThat(json).doesNotContain("medicalHistory");
             assertThat(json).doesNotContain("consultedDoctor");
             assertThat(json).doesNotContain("hivAidsTest");
@@ -274,7 +271,7 @@ class ContractVerificationTest {
             dto.setMlcId("MLC00000001");
             dto.setCreatedDate(LocalDateTime.now());
             dto.setUpdatedDate(LocalDateTime.now());
-            dto.setLastName("Santos");
+            dto.setSeafarerProfileId(UUID.randomUUID());
             dto.setVisualAids(List.of(VisualAid.SPECTACLES, VisualAid.CONTACT_LENSES));
             dto.setCertificateType(CertificateType.ILO_MLC);
             dto.setFitnessDetermination(FitnessDetermination.FIT_FOR_SEA_DUTY);
@@ -286,7 +283,7 @@ class ContractVerificationTest {
             assertThat(json).contains("\"mlc_id\"");
             assertThat(json).contains("\"created_date\"");
             assertThat(json).contains("\"updated_date\"");
-            assertThat(json).contains("\"last_name\"");
+            assertThat(json).contains("\"seafarer_profile_id\"");
             assertThat(json).contains("\"visual_aids\"");
             assertThat(json).contains("\"certificate_type\"");
             assertThat(json).contains("\"fitness_determination\"");
@@ -295,6 +292,7 @@ class ContractVerificationTest {
 
             // Verify no camelCase leaks
             assertThat(json).doesNotContain("mlcId");
+            assertThat(json).doesNotContain("seafarerProfileId");
             assertThat(json).doesNotContain("visualAids");
             assertThat(json).doesNotContain("certificateType");
             assertThat(json).doesNotContain("fitnessDetermination");
@@ -315,7 +313,7 @@ class ContractVerificationTest {
             dto.setPanamaId("PAN00000001");
             dto.setCreatedDate(LocalDateTime.now());
             dto.setUpdatedDate(LocalDateTime.now());
-            dto.setFullName("Juan Cruz");
+            dto.setSeafarerProfileId(UUID.randomUUID());
             dto.setConditions(Map.of("condition1", "yes"));
             dto.setPhysicalExploration(Map.of("skin", "normal"));
             dto.setLabTests(Map.of("cbc", new LabTestResult("yes", "no", "clear")));
@@ -329,7 +327,7 @@ class ContractVerificationTest {
             assertThat(json).contains("\"panama_id\"");
             assertThat(json).contains("\"created_date\"");
             assertThat(json).contains("\"updated_date\"");
-            assertThat(json).contains("\"full_name\"");
+            assertThat(json).contains("\"seafarer_profile_id\"");
             assertThat(json).contains("\"conditions\"");
             assertThat(json).contains("\"physical_exploration\"");
             assertThat(json).contains("\"lab_tests\"");
@@ -340,7 +338,7 @@ class ContractVerificationTest {
 
             // Verify no camelCase leaks
             assertThat(json).doesNotContain("panamaId");
-            assertThat(json).doesNotContain("fullName");
+            assertThat(json).doesNotContain("seafarerProfileId");
             assertThat(json).doesNotContain("physicalExploration");
             assertThat(json).doesNotContain("labTests");
             assertThat(json).doesNotContain("labOtherTests");

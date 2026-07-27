@@ -43,25 +43,15 @@ class MlcRecordControllerTest {
     @MockitoBean
     private MlcRecordService service;
 
+    private static final UUID SAMPLE_PROFILE_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
     private MlcRecordDto sampleRecord() {
         MlcRecordDto dto = new MlcRecordDto();
         dto.setId(UUID.fromString("22222222-2222-2222-2222-222222222222"));
         dto.setMlcId("MLC00000001");
         dto.setCreatedDate(LocalDateTime.of(2024, 3, 10, 9, 0, 0));
         dto.setUpdatedDate(LocalDateTime.of(2024, 3, 10, 9, 0, 0));
-        dto.setLastName("Santos");
-        dto.setFirstName("Maria");
-        dto.setMiddleName("Cruz");
-        dto.setPlaceOfBirth("Cebu");
-        dto.setPassportNo("P123456");
-        dto.setReligion("Catholic");
-        dto.setNationality("Filipino");
-        dto.setGender(Gender.FEMALE);
-        dto.setCivilStatus(CivilStatus.SINGLE);
-        dto.setAddress("123 Main St");
-        dto.setContactNo("09171234567");
-        dto.setEmployer("Pacific Shipping");
-        dto.setPosition("Chief Officer");
+        dto.setSeafarerProfileId(SAMPLE_PROFILE_ID);
         dto.setDateOfBirth("1990-05-15");
         dto.setAge("34");
         dto.setSirbNo("SIRB001");
@@ -110,13 +100,13 @@ class MlcRecordControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").value("22222222-2222-2222-2222-222222222222"))
                 .andExpect(jsonPath("$.data.mlc_id").value("MLC00000001"))
-                .andExpect(jsonPath("$.data.last_name").value("Santos"));
+                .andExpect(jsonPath("$.data.seafarer_profile_id").value(SAMPLE_PROFILE_ID.toString()));
     }
 
     @Test
-    void postBlankLastName_returns400() throws Exception {
+    void postMissingSeafarerProfileId_returns400() throws Exception {
         MlcRecordDto dto = sampleRecord();
-        dto.setLastName("");
+        dto.setSeafarerProfileId(null);
 
         mockMvc.perform(post("/api/mlc-records")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -127,9 +117,9 @@ class MlcRecordControllerTest {
     }
 
     @Test
-    void postMissingLastName_returns400() throws Exception {
+    void postNullSeafarerProfileId_returns400() throws Exception {
         MlcRecordDto dto = sampleRecord();
-        dto.setLastName(null);
+        dto.setSeafarerProfileId(null);
 
         mockMvc.perform(post("/api/mlc-records")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -146,7 +136,7 @@ class MlcRecordControllerTest {
         mockMvc.perform(get("/api/mlc-records/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(id.toString()))
-                .andExpect(jsonPath("$.data.last_name").value("Santos"));
+                .andExpect(jsonPath("$.data.seafarer_profile_id").value(SAMPLE_PROFILE_ID.toString()));
     }
 
     @Test
@@ -186,14 +176,14 @@ class MlcRecordControllerTest {
     void putValidRecord_returns200() throws Exception {
         UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
         MlcRecordDto updated = sampleRecord();
-        updated.setLastName("Garcia");
+        updated.setRank("Captain");
         when(service.update(any(UUID.class), any(MlcRecordDto.class))).thenReturn(updated);
 
         mockMvc.perform(put("/api/mlc-records/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.last_name").value("Garcia"));
+                .andExpect(jsonPath("$.data.rank").value("Captain"));
     }
 
     @Test
@@ -207,8 +197,7 @@ class MlcRecordControllerTest {
                 .andExpect(jsonPath("$.data.mlc_id").exists())
                 .andExpect(jsonPath("$.data.created_date").exists())
                 .andExpect(jsonPath("$.data.updated_date").exists())
-                .andExpect(jsonPath("$.data.last_name").exists())
-                .andExpect(jsonPath("$.data.first_name").exists())
+                .andExpect(jsonPath("$.data.seafarer_profile_id").exists())
                 .andExpect(jsonPath("$.data.date_of_birth").exists())
                 .andExpect(jsonPath("$.data.vessel_name").exists())
                 .andExpect(jsonPath("$.data.certificate_type").exists())
@@ -220,8 +209,7 @@ class MlcRecordControllerTest {
                 .andExpect(jsonPath("$.data.mlcId").doesNotExist())
                 .andExpect(jsonPath("$.data.createdDate").doesNotExist())
                 .andExpect(jsonPath("$.data.updatedDate").doesNotExist())
-                .andExpect(jsonPath("$.data.lastName").doesNotExist())
-                .andExpect(jsonPath("$.data.firstName").doesNotExist())
+                .andExpect(jsonPath("$.data.seafarerProfileId").doesNotExist())
                 .andExpect(jsonPath("$.data.dateOfBirth").doesNotExist())
                 .andExpect(jsonPath("$.data.vesselName").doesNotExist())
                 .andExpect(jsonPath("$.data.certificateType").doesNotExist())

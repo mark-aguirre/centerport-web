@@ -131,7 +131,7 @@ class SeafarerProfileControllerTest {
                 .hasNext(false)
                 .hasPrevious(false)
                 .build();
-        when(service.findAll(any(Pageable.class))).thenReturn(pagedResponse);
+        when(service.findAll(any(), any(Pageable.class))).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/profiles"))
                 .andExpect(status().isOk())

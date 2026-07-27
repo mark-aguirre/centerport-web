@@ -46,16 +46,17 @@ public class MedicalExamController {
      */
     @GetMapping
     @Operation(summary = "List all medical exams with pagination",
-               description = "Returns paginated medical exams. Default sort: createdDate DESC.")
+               description = "Returns paginated medical exams. Supports optional search by patient name or exam ID. Default sort: createdDate DESC.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Exams retrieved")
     })
     public ResponseEntity<ApiResponse<PagedResponse<MedicalExamDto>>> list(
+            @RequestParam(required = false) String search,
             @ParameterObject
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        PagedResponse<MedicalExamDto> page = service.findAll(pageable);
+        PagedResponse<MedicalExamDto> page = service.findAll(search, pageable);
         return ResponseEntity.ok(ApiResponse.success(page));
     }
 
@@ -92,7 +93,7 @@ public class MedicalExamController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error")
     })
     public ResponseEntity<ApiResponse<MedicalExamDto>> create(@Valid @RequestBody MedicalExamDto dto) {
-        log.debug("Medical exam creation requested — lastName: {}", dto.getLastName());
+        log.debug("Medical exam creation requested — seafarerProfileId: {}", dto.getSeafarerProfileId());
         MedicalExamDto created = service.create(dto);
 
         URI location = ServletUriComponentsBuilder

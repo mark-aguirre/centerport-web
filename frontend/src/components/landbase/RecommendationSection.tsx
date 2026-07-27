@@ -1,105 +1,97 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
-import { FormField } from "@/components/common/form-field";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormSelect } from "@/components/common/form-select";
+import {
+  CertificationDetailsFields,
+  type CertificationDetailsValues,
+} from "@/components/common/certification-details-fields";
 import { Award } from "lucide-react";
-import type { LandbasePeme, LandbaseSectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
+import type { LandbaseSectionProps } from "./types";
+
+/** Available recommendation values for the fitness determination. */
+const RECOMMENDATION_OPTIONS = [
+  "Fit for Employment",
+  "Unfit for Employment",
+  "Requires Further Evaluation",
+  "Temporarily Unfit",
+  "Fit with Restriction",
+];
 
 /**
  * Recommendation section for the Landbase PEME form.
  *
- * Split into two cards:
- * 1. Recommendation select with section header
- * 2. Dates, physician, certification, and director fields
+ * Split into two visual cards:
+ * 1. Fitness recommendation select with "Set Normal" shortcut
+ * 2. Certification details: dates, authorized physician,
+ *    medical certification number, and medical director
+ *
+ * The "Set Normal" button sets recommendation to "Fit for Employment"
+ * for quick entry when the applicant passes all examinations.
+ *
+ * @see ResultsSection — provides the examination outcomes that inform this recommendation
  */
 export default function RecommendationSection({
   data,
   onChange,
+  disabled,
 }: LandbaseSectionProps) {
-  const update = (field: keyof LandbasePeme, value: string) =>
-    onChange({ ...data, [field]: value } as LandbasePeme);
+  const updateField = createFieldUpdater(data, onChange);
+
+  /** Set recommendation to "Fit for Employment". */
+  const handleSetNormal = () => {
+    onChange({ ...data, recommendation: "Fit for Employment" });
+  };
+
+  /** Map from CertificationDetailsValues keys to landbase field names. */
+  const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
+    dateInitialPeme: "date_initial_peme",
+    dateOfFitness: "date_of_fitness",
+    validUntil: "valid_until",
+    authorizedPhysician: "authorized_physician",
+    medicalCertificationNo: "medical_certification_no",
+    medicalDirector: "medical_director",
+  };
+
+  const handleCertChange = (field: keyof CertificationDetailsValues, value: string) => {
+    updateField(FIELD_MAP[field], value);
+  };
 
   return (
     <div className="space-y-3">
       {/* Card 1: Recommendation */}
       <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-        <SectionHeader title="Recommendation" icon={Award} />
+        <SectionHeader
+          title="Recommendation"
+          icon={Award}
+          action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+        />
         <div className="max-w-sm">
           <FormSelect
             value={data.recommendation}
-            onChange={(v) => update("recommendation", v)}
-            options={[
-              "Fit for Employment",
-              "Unfit for Employment",
-              "Requires Further Evaluation",
-              "Temporarily Unfit",
-              "Fit with Restriction",
-            ]}
+            onChange={(v) => updateField("recommendation", v)}
+            options={RECOMMENDATION_OPTIONS}
+            disabled={disabled}
           />
         </div>
       </div>
 
       {/* Card 2: Dates, Physician, Certification, Director */}
       <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-        <div className="space-y-2">
-          {/* Dates Row */}
-          <div className="grid grid-cols-3 gap-2">
-            <FormField
-              label="Date of Initial PEME (MM/DD/YYYY)"
-              value={data.date_initial_peme}
-              onChange={(v) => update("date_initial_peme", v)}
-              type="date"
-            />
-            <FormField
-              label="Date of Fitness (MM/DD/YYYY)"
-              value={data.date_of_fitness}
-              onChange={(v) => update("date_of_fitness", v)}
-              type="date"
-            />
-            <FormField
-              label="Valid Until (MM/DD/YYYY)"
-              value={data.valid_until}
-              onChange={(v) => update("valid_until", v)}
-              type="date"
-            />
-          </div>
-
-          {/* Physician & Certification Row */}
-          <div className="grid grid-cols-2 gap-2">
-            <FormSelect
-              label="Authorized Physician"
-              value={data.authorized_physician}
-              onChange={(v) => update("authorized_physician", v)}
-              options={[
-                "Dr. Juan Dela Cruz",
-                "Dr. Maria Santos",
-                "Dr. Jose Rizal",
-                "Dr. Ana Reyes",
-              ]}
-            />
-            <FormField
-              label="Medical Certification No."
-              value={data.medical_certification_no}
-              onChange={(v) => update("medical_certification_no", v)}
-            />
-          </div>
-
-          {/* Medical Director */}
-          <div className="max-w-sm">
-            <FormSelect
-              label="Medical Director"
-              value={data.medical_director}
-              onChange={(v) => update("medical_director", v)}
-              options={[
-                "Dr. Juan Dela Cruz",
-                "Dr. Maria Santos",
-                "Dr. Jose Rizal",
-                "Dr. Ana Reyes",
-              ]}
-            />
-          </div>
-        </div>
+        <CertificationDetailsFields
+          values={{
+            dateInitialPeme: data.date_initial_peme,
+            dateOfFitness: data.date_of_fitness,
+            validUntil: data.valid_until,
+            authorizedPhysician: data.authorized_physician,
+            medicalCertificationNo: data.medical_certification_no,
+            medicalDirector: data.medical_director,
+          }}
+          onChange={handleCertChange}
+          disabled={disabled}
+        />
       </div>
     </div>
   );

@@ -91,7 +91,7 @@ public class PanamaCertificateController {
     public ResponseEntity<ApiResponse<PanamaCertificateDto>> create(
             @Valid @RequestBody PanamaCertificateDto dto) {
 
-        log.debug("Panama certificate creation requested — fullName: {}", dto.getFullName());
+        log.debug("Panama certificate creation requested — seafarerProfileId: {}", dto.getSeafarerProfileId());
         PanamaCertificateDto created = service.create(dto);
 
         URI location = ServletUriComponentsBuilder

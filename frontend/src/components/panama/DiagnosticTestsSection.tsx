@@ -125,7 +125,7 @@ export default function DiagnosticTestsSection({ data, onChange }: PanamaSection
               const result = data.lab_tests[item.key] || EMPTY_LAB_RESULT;
               return (
                 <div key={item.key} className="grid grid-cols-[2fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-                  <label className="flex items-center gap-2 cursor-pointer">
+                  <label className="flex items-center gap-2 cursor-pointer pl-10">
                     <input
                       type="checkbox"
                       checked={!!result.normal || !!result.abnormal}
@@ -179,7 +179,7 @@ export default function DiagnosticTestsSection({ data, onChange }: PanamaSection
           const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
           return (
             <div key={item.key} className="grid grid-cols-[2fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-              <label className="flex items-center gap-2 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer pl-10">
                 <input
                   type="checkbox"
                   checked={result.checked}

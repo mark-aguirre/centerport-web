@@ -1,7 +1,8 @@
 package com.centerport.mlc;
 
 import com.centerport.common.enums.*;
-import jakarta.validation.constraints.NotBlank;
+import com.centerport.profile.SeafarerProfileDto;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -46,21 +47,12 @@ public class MlcRecordDto {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
-    // --- Personal Information ---
-    @NotBlank(message = "must not be blank")
-    private String lastName;
-    private String firstName;
-    private String middleName;
-    private String placeOfBirth;
-    private String passportNo;
-    private String religion;
-    private String nationality;
-    private Gender gender;
-    private CivilStatus civilStatus;
-    private String address;
-    private String contactNo;
-    private String employer;
-    private String position;
+    // --- Seafarer Profile Reference ---
+    @NotNull(message = "must not be null")
+    private UUID seafarerProfileId;
+
+    /** Populated in responses; ignored on input. */
+    private SeafarerProfileDto seafarerProfile;
 
     // --- Additional Seafarer Details ---
     private String dateOfBirth;

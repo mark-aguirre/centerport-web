@@ -1,9 +1,11 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Activity } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { YesNoRadioRow } from "./YesNoRadioRow";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
@@ -50,6 +52,9 @@ const COLUMN_3 = [
   "Operations (Specify)",
 ] as const;
 
+/** All conditions across all columns (used for "Set Normal"). */
+const ALL_CONDITIONS = [...COLUMN_1, ...COLUMN_2, ...COLUMN_3];
+
 /**
  * Past Medical History sub-section of the Physical Examination form.
  *
@@ -57,24 +62,45 @@ const COLUMN_3 = [
  * free-text fields for "Others", doctor consultation, and maintenance
  * medications.
  *
+ * "Set Normal" sets all conditions to "no" (applicant has NOT had
+ * these conditions), clears text fields, and unchecks consultation.
+ *
  * @see PhysicalExaminationSection — parent orchestrator
  * @see YesNoRadioRow — shared radio row component
  */
-export function PastMedicalHistoryGrid({ data, onChange }: MedicalSectionProps) {
+export function PastMedicalHistoryGrid({ data, onChange, disabled }: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
+  const history = data.medical_history ?? {};
+
   const updateCondition = (condition: string, value: string) => {
-    const updatedHistory = { ...data.medical_history, [condition]: value };
+    const updatedHistory = { ...history, [condition]: value };
     onChange({ ...data, medical_history: updatedHistory });
   };
 
+  /** Set all conditions to "no", clear text fields, uncheck consultation. */
+  const handleSetNormal = () => {
+    const normalHistory: Record<string, string> = {};
+    ALL_CONDITIONS.forEach((condition) => {
+      normalHistory[condition] = "no";
+    });
+    onChange({
+      ...data,
+      medical_history: normalHistory,
+      medical_history_others: "",
+      consulted_doctor_past: "no",
+      maintenance_medications: "",
+    });
+  };
+
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
+    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
       <SectionHeader
         title="Past Medical History"
         icon={Activity}
         subtitle="Has applicant suffered from or been told he has any of the following? Check the appropriate box."
+        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
       />
       <div className="space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
@@ -84,7 +110,7 @@ export function PastMedicalHistoryGrid({ data, onChange }: MedicalSectionProps) 
                 key={c}
                 condition={c}
                 name={`pmh-${c}`}
-                value={data.medical_history[c] || ""}
+                value={history[c] || ""}
                 onChange={(v) => updateCondition(c, v)}
               />
             ))}
@@ -95,7 +121,7 @@ export function PastMedicalHistoryGrid({ data, onChange }: MedicalSectionProps) 
                 key={c}
                 condition={c}
                 name={`pmh-${c}`}
-                value={data.medical_history[c] || ""}
+                value={history[c] || ""}
                 onChange={(v) => updateCondition(c, v)}
               />
             ))}
@@ -106,7 +132,7 @@ export function PastMedicalHistoryGrid({ data, onChange }: MedicalSectionProps) 
                 key={c}
                 condition={c}
                 name={`pmh-${c}`}
-                value={data.medical_history[c] || ""}
+                value={history[c] || ""}
                 onChange={(v) => updateCondition(c, v)}
               />
             ))}
@@ -116,9 +142,11 @@ export function PastMedicalHistoryGrid({ data, onChange }: MedicalSectionProps) 
         <div className="flex items-center gap-2 pt-2 border-t border-muted/30">
           <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Others:</Label>
           <Input
-            value={data.medical_history_others}
+            value={data.medical_history_others ?? ""}
             onChange={(e) => update("medical_history_others", e.target.value)}
             className="h-7 text-xs flex-1"
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
           />
         </div>
 
@@ -140,9 +168,11 @@ export function PastMedicalHistoryGrid({ data, onChange }: MedicalSectionProps) 
             Are you taking maintenance medications? If yes, specify:
           </Label>
           <Input
-            value={data.maintenance_medications}
+            value={data.maintenance_medications ?? ""}
             onChange={(e) => update("maintenance_medications", e.target.value)}
             className="h-7 text-xs flex-1"
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
           />
         </div>
       </div>

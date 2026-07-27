@@ -95,10 +95,12 @@ public class PanamaCertificateService {
         PanamaCertificate saved = repository.save(entity);
 
         eventPublisher.publishEvent(new PanamaCertificateCreatedEvent(
-                saved.getId(), saved.getPanamaId(), saved.getFullName()));
+                saved.getId(), saved.getPanamaId(),
+                saved.getSeafarerProfile().getLastName() + " " + saved.getSeafarerProfile().getFirstName()));
 
         log.info("Panama certificate created — panamaId: {}, id: {}, patient: {}",
-                saved.getPanamaId(), saved.getId(), saved.getFullName());
+                saved.getPanamaId(), saved.getId(),
+                saved.getSeafarerProfile().getLastName());
         return mapper.toDto(saved);
     }
 

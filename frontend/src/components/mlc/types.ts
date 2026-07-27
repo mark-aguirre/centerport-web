@@ -39,7 +39,10 @@ export interface MlcRecord {
   created_date?: string;
   updated_date?: string;
 
-  // Personal Information
+  // Seafarer Profile link (required on create)
+  seafarer_profile_id?: string;
+
+  // Personal Information (from linked profile)
   last_name: string;
   first_name: string;
   middle_name: string;
@@ -106,3 +109,68 @@ export interface MlcSectionProps {
   /** When true, all fields in this section are read-only (view mode) */
   disabled?: boolean;
 }
+
+/**
+ * Default empty MLC record used for form initialization and reset.
+ *
+ * All string fields default to empty string, arrays to empty.
+ * Used by `useMlcForm` for new records and cancel-to-empty flows.
+ */
+export const EMPTY_MLC: MlcRecord = {
+  seafarer_profile_id: undefined,
+
+  // Personal Information
+  last_name: "",
+  first_name: "",
+  middle_name: "",
+  place_of_birth: "",
+  passport_no: "",
+  religion: "",
+  nationality: "",
+  gender: "",
+  civil_status: "",
+  address: "",
+  contact_no: "",
+  employer: "",
+  position: "",
+
+  // Additional Seafarer Details
+  date_of_birth: "",
+  age: "",
+  sirb_no: "",
+  rank: "",
+  vessel_name: "",
+  vessel_type: "",
+  shipping_company: "",
+  manning_agency: "",
+
+  // Certificate Details
+  certificate_type: "",
+  fitness_determination: "",
+  date_of_examination: "",
+  date_issued: "",
+  valid_until: "",
+  issuing_authority: "",
+  examining_physician: "",
+  medical_director: "",
+  limitations_remarks: "",
+
+  // Declaration of the Authorized Physician
+  id_documents_checked: "",
+  hearing_meets_standards: "",
+  unaided_hearing_satisfactory: "",
+  visual_acuity_meets_standards: "",
+  colour_vision_meets_standards: "",
+  visual_aids: [],
+  date_colour_vision_test: "",
+  fit_for_lookout: "",
+  no_limitations: "",
+  limitations_details: "",
+  applicant_condition_risk: "",
+
+  // Final Recommendation
+  date_initial_peme: "",
+  date_of_fitness: "",
+  valid_until_date: "",
+  medical_certification_no: "",
+};

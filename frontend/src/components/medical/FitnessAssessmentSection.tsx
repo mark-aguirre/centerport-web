@@ -1,9 +1,14 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormSelect } from "@/components/common/form-select";
-import { Input } from "@/components/ui/input";
+import {
+  CertificationDetailsFields,
+  type CertificationDetailsValues,
+} from "@/components/common/certification-details-fields";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 /**
@@ -15,17 +20,30 @@ import type { MedicalExam, MedicalSectionProps } from "./types";
  *
  * @see PhysicalExaminationSection — parent orchestrator
  */
-export function FitnessAssessmentSection({ data, onChange }: MedicalSectionProps) {
+export function FitnessAssessmentSection({ data, onChange, disabled }: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
+
+  /** Set all fitness assessments to "fit" and visual aids to "no". */
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      fitness_deck_services: "fit",
+      fitness_engine_services: "fit",
+      fitness_catering_services: "fit",
+      fitness_other_services: "fit",
+      visual_aids_required: "no",
+    });
+  };
 
   return (
     <>
       {/* Assessment of Fitness for Service at Sea */}
-      <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
+      <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
         <SectionHeader
           title="Assessment of Fitness for Service at Sea"
           subtitle="On the basis of the examinee&apos;s personal declaration, my clinical examination and the diagnostic test result recorded above, I declare the examinee medically:"
+          action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         />
         <div className="space-y-3">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -67,39 +85,29 @@ export function FitnessAssessmentSection({ data, onChange }: MedicalSectionProps
       </div>
 
       {/* Dates & Certification */}
-      <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-        <div className="space-y-3">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-0.5">
-              <Label className="text-[11px] font-bold text-foreground/70 uppercase">Date of Initial PEME (MM/DD/YYYY)</Label>
-              <Input type="date" value={data.date_initial_peme} onChange={(e) => update("date_initial_peme", e.target.value)} className="h-7 text-xs" />
-            </div>
-            <div className="space-y-0.5">
-              <Label className="text-[11px] font-bold text-foreground/70 uppercase">Date of Fitness (MM/DD/YYYY)</Label>
-              <Input type="date" value={data.date_of_fitness} onChange={(e) => update("date_of_fitness", e.target.value)} className="h-7 text-xs" />
-            </div>
-            <div className="space-y-0.5">
-              <Label className="text-[11px] font-bold text-foreground/70 uppercase">Valid Until (MM/DD/YYYY)</Label>
-              <Input type="date" value={data.valid_until} onChange={(e) => update("valid_until", e.target.value)} className="h-7 text-xs" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-0.5">
-              <Label className="text-[11px] font-bold text-foreground/70 uppercase">Authorized Physician</Label>
-              <FormSelect label="" value={data.authorized_physician} onChange={(v) => update("authorized_physician", v)} options={["Dr. Juan Dela Cruz", "Dr. Maria Santos", "Dr. Pedro Reyes"]} />
-            </div>
-            <div className="space-y-0.5">
-              <Label className="text-[11px] font-bold text-foreground/70 uppercase">Medical Certification No.</Label>
-              <Input value={data.medical_certification_no} onChange={(e) => update("medical_certification_no", e.target.value)} className="h-7 text-xs" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-0.5">
-              <Label className="text-[11px] font-bold text-foreground/70 uppercase">Medical Director</Label>
-              <FormSelect label="" value={data.medical_director} onChange={(v) => update("medical_director", v)} options={["Dr. Juan Dela Cruz", "Dr. Maria Santos", "Dr. Pedro Reyes"]} />
-            </div>
-          </div>
-        </div>
+      <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
+        <CertificationDetailsFields
+          values={{
+            dateInitialPeme: data.date_initial_peme,
+            dateOfFitness: data.date_of_fitness,
+            validUntil: data.valid_until,
+            authorizedPhysician: data.authorized_physician,
+            medicalCertificationNo: data.medical_certification_no,
+            medicalDirector: data.medical_director,
+          }}
+          onChange={(field, value) => {
+            const FIELD_MAP: Record<keyof CertificationDetailsValues, keyof MedicalExam> = {
+              dateInitialPeme: "date_initial_peme",
+              dateOfFitness: "date_of_fitness",
+              validUntil: "valid_until",
+              authorizedPhysician: "authorized_physician",
+              medicalCertificationNo: "medical_certification_no",
+              medicalDirector: "medical_director",
+            };
+            update(FIELD_MAP[field], value);
+          }}
+          disabled={disabled}
+        />
       </div>
     </>
   );

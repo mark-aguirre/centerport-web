@@ -48,6 +48,10 @@
 }
 
 :root {
+  --radius: 0.625rem;
+}
+
+[data-theme="sand"] {
   /* Warm beige/cream palette */
   --background: #f1eeea;
   --foreground: oklch(0.25 0.02 50);
@@ -72,7 +76,6 @@
   --chart-3: oklch(0.45 0.06 35);
   --chart-4: oklch(0.38 0.05 30);
   --chart-5: oklch(0.30 0.04 25);
-  --radius: 0.625rem;
   --sidebar-background: #f8f6f4;
   --sidebar-foreground: oklch(0.25 0.02 50);
   --sidebar-primary: oklch(0.55 0.15 45);
@@ -153,7 +156,6 @@
   --sidebar-border: #2a4d72;
   --sidebar-ring: #4a9eda;
 }
-
 @keyframes accordion-down {
   from {
     height: 0;
@@ -162,6 +164,7 @@
     height: var(--radix-accordion-content-height);
   }
 }
+
 @keyframes accordion-up {
   from {
     height: var(--radix-accordion-content-height);
@@ -175,13 +178,32 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
-    font-size: 75%;
+    font-size: 90%;
   }
+
+   /* html {
+    @apply font-sans;
+    font-size: 68.75%; 
+  } */
+
+  /* @media (min-width: 768px) {
+    html {
+      font-size: 75%; 
+    }
+  } */
+/* 
+  @media (min-width: 1280px) {
+    html {
+      font-size: 81.25%; 
+    }
+  } */ 
 }
 
 button,

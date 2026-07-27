@@ -2,10 +2,14 @@ package com.centerport.panama;
 
 import com.centerport.common.entity.BaseEntity;
 import com.centerport.common.enums.*;
+import com.centerport.profile.SeafarerProfile;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -48,10 +52,12 @@ public class PanamaCertificate extends BaseEntity {
     @Column(name = "panama_id", unique = true)
     private String panamaId;
 
-    // --- General Information ---
-    @Column(name = "full_name")
-    private String fullName;
+    // --- Seafarer Profile Reference ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seafarer_profile_id", nullable = false)
+    private SeafarerProfile seafarerProfile;
 
+    // --- General Information ---
     @Column(name = "day")
     private String day;
 
@@ -61,24 +67,8 @@ public class PanamaCertificate extends BaseEntity {
     @Column(name = "year")
     private String year;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "sex")
-    private Gender sex;
-
     @Column(name = "rh_typing")
     private String rhTyping;
-
-    @Column(name = "passport_seaman_no")
-    private String passportSeamanNo;
-
-    @Column(name = "home_address")
-    private String homeAddress;
-
-    @Column(name = "department")
-    private String department;
-
-    @Column(name = "crew_position")
-    private String crewPosition;
 
     @Column(name = "lookout_duties")
     private String lookoutDuties;

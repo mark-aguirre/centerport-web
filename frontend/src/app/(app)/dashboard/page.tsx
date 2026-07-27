@@ -20,7 +20,7 @@ const stats = [
  */
 export default function DashboardPage() {
   return (
-    <PageContainer fullWidth>
+    <PageContainer>
       {/* Status strip — dense, inline numbers */}
       <StatusStrip items={stats} className="mb-8 pb-4 border-b" />
 

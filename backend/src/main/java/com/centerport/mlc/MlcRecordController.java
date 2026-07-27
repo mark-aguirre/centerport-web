@@ -4,6 +4,7 @@ import com.centerport.common.dto.ApiResponse;
 import com.centerport.common.dto.PagedResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -40,22 +41,27 @@ public class MlcRecordController {
 
     /**
      * Returns paginated MLC records sorted by creation date descending.
+     * Optionally filters by a search term matching the linked seafarer profile's
+     * last name, first name, or the MLC ID.
      *
+     * @param search   optional keyword to filter records (case-insensitive partial match)
      * @param pageable pagination and sorting parameters
      * @return paged list of MLC record DTOs
      */
     @GetMapping
-    @Operation(summary = "List all MLC records with pagination",
-               description = "Returns paginated MLC records. Default sort: createdDate DESC.")
+    @Operation(summary = "List all MLC records with pagination and optional search",
+               description = "Returns paginated MLC records. Optionally filter by seafarer name or MLC ID. Default sort: createdDate DESC.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Records retrieved")
     })
     public ResponseEntity<ApiResponse<PagedResponse<MlcRecordDto>>> list(
+            @Parameter(description = "Search keyword — matches seafarer last name, first name, or MLC ID (case-insensitive)")
+            @RequestParam(required = false) String search,
             @ParameterObject
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        PagedResponse<MlcRecordDto> page = service.findAll(pageable);
+        PagedResponse<MlcRecordDto> page = service.findAll(search, pageable);
         return ResponseEntity.ok(ApiResponse.success(page));
     }
 
@@ -89,7 +95,7 @@ public class MlcRecordController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error")
     })
     public ResponseEntity<ApiResponse<MlcRecordDto>> create(@Valid @RequestBody MlcRecordDto dto) {
-        log.debug("MLC record creation requested — lastName: {}", dto.getLastName());
+        log.debug("MLC record creation requested — seafarerProfileId: {}", dto.getSeafarerProfileId());
         MlcRecordDto created = service.create(dto);
 
         URI location = ServletUriComponentsBuilder

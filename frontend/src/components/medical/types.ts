@@ -1,8 +1,8 @@
 /**
  * Data model for the Medical Examination form.
  *
- * Covers personal information, physical examination, medical history,
- * laboratory results, diagnosis, treatment plan, and remarks.
+ * Covers personal information, physical examination, ancillary examinations,
+ * recommendations, fitness assessment, and certification.
  */
 
 /** Gender options */
@@ -26,16 +26,7 @@ export type VisualAcuityResult = "Normal" | "With Correction" | "Impaired" | "";
 /** Physical exam finding */
 export type ExamFinding = "normal" | "abnormal" | "";
 
-/** Lab result status */
-export type LabStatus = "normal" | "with_findings" | "pending" | "";
 
-/** Consultation status */
-export type ConsultationStatus =
-  | "For Follow-up"
-  | "Cleared"
-  | "Referred"
-  | "Pending"
-  | "";
 
 /** Full Medical Examination record */
 export interface MedicalExam {
@@ -47,6 +38,17 @@ export interface MedicalExam {
   created_date?: string;
   /** ISO timestamp of last update */
   updated_date?: string;
+
+  /** UUID of the linked seafarer profile (required for backend persistence) */
+  seafarer_profile_id?: string;
+  /** Populated in responses — the full seafarer profile snapshot */
+  seafarer_profile?: {
+    id?: string;
+    last_name?: string;
+    first_name?: string;
+    middle_name?: string;
+    [key: string]: unknown;
+  };
 
   // Personal Information
   last_name: string;
@@ -158,17 +160,11 @@ export interface MedicalExam {
   questionnaire_comments: string;
   questionnaire_medications_detail: string;
 
-  // Medical History
+  // Past Medical History (used by Physical Examination sub-section)
   medical_history: Record<string, string>;
   medical_history_others: string;
   consulted_doctor_past: string;
   maintenance_medications: string;
-  surgical_history: string;
-  family_history: string;
-  allergies: string;
-  current_medications: string;
-  smoking_history: string;
-  alcohol_history: string;
 
   // Result of Ancillary Examinations
   xray_no: string;
@@ -191,24 +187,7 @@ export interface MedicalExam {
   ancillary_psychological_test: string;
   ancillary_additional_tests: string;
 
-  // Laboratory Results (legacy)
-  cbc_result: LabStatus;
-  cbc_remarks: string;
-  urinalysis_result: LabStatus;
-  urinalysis_remarks: string;
-  blood_chemistry_result: LabStatus;
-  blood_chemistry_remarks: string;
-  chest_xray_result: LabStatus;
-  chest_xray_remarks: string;
-  ecg_result: LabStatus;
-  ecg_remarks: string;
-  drug_test_result: LabStatus;
-  drug_test_remarks: string;
-  hepatitis_b_result: LabStatus;
-  hepatitis_b_remarks: string;
-  hiv_result: LabStatus;
-  hiv_remarks: string;
-  additional_labs: string;
+
 
   // Final Recommendation
   recommendation_remarks: string;
@@ -234,20 +213,7 @@ export interface MedicalExam {
   medical_certification_no: string;
   medical_director: string;
 
-  // Diagnosis (legacy)
-  primary_diagnosis: string;
-  secondary_diagnosis: string;
-  icd_code: string;
 
-  // Treatment Plan (legacy)
-  treatment_plan: string;
-  medications_prescribed: string;
-  follow_up_date: string;
-  referral_to: string;
-  consultation_status: ConsultationStatus;
-
-  // Remarks
-  remarks: string;
 
   // Physician
   examining_physician: string;

@@ -49,6 +49,9 @@ const LANDBASE_GRID_OVERRIDES: Record<number, string> = {
  * with landbase-specific fields: name, place of birth, passport,
  * religion, nationality, gender, civil status, address, contact,
  * employer, and position.
+ *
+ * Personal information is always read-only in the landbase context.
+ * Only the /profile page is allowed to edit personal information.
  */
 export default function LandbasePersonalInfoSection({
   data,
@@ -60,6 +63,7 @@ export default function LandbasePersonalInfoSection({
       onChange={onChange}
       rows={LANDBASE_PERSONAL_ROWS}
       gridOverrides={LANDBASE_GRID_OVERRIDES}
+      disabled={true}
     />
   );
 }

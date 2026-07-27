@@ -50,6 +50,10 @@ function ProfileFormContent() {
     handleCancel,
     handleSave,
     handlePrint,
+    searchResults,
+    searchLoading,
+    handleSearch,
+    handleSelectResult,
   } = useProfileForm();
 
   if (loading) {
@@ -61,7 +65,7 @@ function ProfileFormContent() {
   }
 
   return (
-    <PageContainer className="max-w-7xl">
+    <PageContainer>
       <FormToolbar
         editing={editing}
         saving={saving}
@@ -76,6 +80,10 @@ function ProfileFormContent() {
         onEdit={handleEdit}
         onNew={handleNew}
         onPrint={handlePrint}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+        searchLoading={searchLoading}
+        onSelectResult={handleSelectResult as (result: import("@/components/common/form-toolbar").SearchResultItem) => void}
       />
 
       <div className="space-y-3">

@@ -2,10 +2,14 @@ package com.centerport.medical;
 
 import com.centerport.common.entity.BaseEntity;
 import com.centerport.common.enums.*;
+import com.centerport.profile.SeafarerProfile;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -60,47 +64,10 @@ public class MedicalExam extends BaseEntity {
     @Column(name = "exam_id", unique = true)
     private String examId;
 
-    // --- Personal Information ---
-    @Column(name = "last_name")
-    private String lastName;
-
-    @Column(name = "first_name")
-    private String firstName;
-
-    @Column(name = "middle_name")
-    private String middleName;
-
-    @Column(name = "place_of_birth")
-    private String placeOfBirth;
-
-    @Column(name = "passport_no")
-    private String passportNo;
-
-    @Column(name = "religion")
-    private String religion;
-
-    @Column(name = "nationality")
-    private String nationality;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "gender")
-    private Gender gender;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "civil_status")
-    private CivilStatus civilStatus;
-
-    @Column(name = "address")
-    private String address;
-
-    @Column(name = "contact_no")
-    private String contactNo;
-
-    @Column(name = "employer")
-    private String employer;
-
-    @Column(name = "position")
-    private String position;
+    // --- Seafarer Profile Reference ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seafarer_profile_id", nullable = false)
+    private SeafarerProfile seafarerProfile;
 
     @Column(name = "date_of_birth")
     private String dateOfBirth;
@@ -357,7 +324,7 @@ public class MedicalExam extends BaseEntity {
     @Column(name = "questionnaire_medications_detail")
     private String questionnaireMedicationsDetail;
 
-    // --- JSONB Map: Medical History ---
+    // --- Past Medical History (used by Physical Examination sub-section) ---
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "medical_history", columnDefinition = "jsonb")
     private Map<String, String> medicalHistory;
@@ -370,24 +337,6 @@ public class MedicalExam extends BaseEntity {
 
     @Column(name = "maintenance_medications")
     private String maintenanceMedications;
-
-    @Column(name = "surgical_history")
-    private String surgicalHistory;
-
-    @Column(name = "family_history")
-    private String familyHistory;
-
-    @Column(name = "allergies")
-    private String allergies;
-
-    @Column(name = "current_medications")
-    private String currentMedications;
-
-    @Column(name = "smoking_history")
-    private String smokingHistory;
-
-    @Column(name = "alcohol_history")
-    private String alcoholHistory;
 
     // --- Ancillary Examinations ---
     @Column(name = "xray_no")
@@ -447,65 +396,7 @@ public class MedicalExam extends BaseEntity {
     @Column(name = "ancillary_additional_tests")
     private String ancillaryAdditionalTests;
 
-    // --- Laboratory Results ---
-    @Enumerated(EnumType.STRING)
-    @Column(name = "cbc_result")
-    private LabStatus cbcResult;
 
-    @Column(name = "cbc_remarks")
-    private String cbcRemarks;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "urinalysis_result")
-    private LabStatus urinalysisResult;
-
-    @Column(name = "urinalysis_remarks")
-    private String urinalysisRemarks;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "blood_chemistry_result")
-    private LabStatus bloodChemistryResult;
-
-    @Column(name = "blood_chemistry_remarks")
-    private String bloodChemistryRemarks;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "chest_xray_result")
-    private LabStatus chestXrayResult;
-
-    @Column(name = "chest_xray_remarks")
-    private String chestXrayRemarks;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "ecg_result")
-    private LabStatus ecgResult;
-
-    @Column(name = "ecg_remarks")
-    private String ecgRemarks;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "drug_test_result")
-    private LabStatus drugTestResult;
-
-    @Column(name = "drug_test_remarks")
-    private String drugTestRemarks;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "hepatitis_b_result")
-    private LabStatus hepatitisBResult;
-
-    @Column(name = "hepatitis_b_remarks")
-    private String hepatitisBRemarks;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "hiv_result")
-    private LabStatus hivResult;
-
-    @Column(name = "hiv_remarks")
-    private String hivRemarks;
-
-    @Column(name = "additional_labs")
-    private String additionalLabs;
 
     // --- Final Recommendation ---
     @Column(name = "recommendation_remarks")
@@ -564,36 +455,7 @@ public class MedicalExam extends BaseEntity {
     @Column(name = "medical_director")
     private String medicalDirector;
 
-    // --- Diagnosis ---
-    @Column(name = "primary_diagnosis")
-    private String primaryDiagnosis;
 
-    @Column(name = "secondary_diagnosis")
-    private String secondaryDiagnosis;
-
-    @Column(name = "icd_code")
-    private String icdCode;
-
-    // --- Treatment Plan ---
-    @Column(name = "treatment_plan")
-    private String treatmentPlan;
-
-    @Column(name = "medications_prescribed")
-    private String medicationsPrescribed;
-
-    @Column(name = "follow_up_date")
-    private String followUpDate;
-
-    @Column(name = "referral_to")
-    private String referralTo;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "consultation_status")
-    private ConsultationStatus consultationStatus;
-
-    // --- Remarks ---
-    @Column(name = "remarks")
-    private String remarks;
 
     // --- Physician ---
     @Column(name = "examining_physician")

@@ -2,10 +2,12 @@
 
 import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
+import { FormAutocomplete } from "@/components/common/form-autocomplete";
 import { Briefcase } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { POSITIONS } from "@/lib/suggestions";
 import type { SeafarerProfile } from "@/lib/api";
 import type { ProfileSectionProps } from "./types";
 
@@ -65,10 +67,11 @@ export default function WorkExperienceSection({
             disabled={disabled}
             size="sm"
           />
-          <FormField
+          <FormAutocomplete
             label="Position"
             value={data.prev_position}
             onChange={(v) => update("prev_position", v)}
+            suggestions={POSITIONS}
             disabled={disabled}
             size="sm"
           />

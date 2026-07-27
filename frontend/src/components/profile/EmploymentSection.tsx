@@ -2,7 +2,9 @@
 
 import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
+import { FormAutocomplete } from "@/components/common/form-autocomplete";
 import { Anchor } from "lucide-react";
+import { POSITIONS, COUNTRIES, EMPLOYERS, DESIGNATIONS } from "@/lib/suggestions";
 import type { SeafarerProfile } from "@/lib/api";
 import type { ProfileSectionProps } from "./types";
 
@@ -25,17 +27,19 @@ export default function EmploymentSection({
       <SectionHeader title="Employment Details" icon={Anchor} />
       <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2">
-          <FormField
+          <FormAutocomplete
             label="Employer"
             value={data.employer}
             onChange={(v) => update("employer", v)}
+            suggestions={EMPLOYERS}
             disabled={disabled}
             size="sm"
           />
-          <FormField
+          <FormAutocomplete
             label="Designation"
             value={data.designation}
             onChange={(v) => update("designation", v)}
+            suggestions={DESIGNATIONS}
             disabled={disabled}
             size="sm"
           />
@@ -55,25 +59,28 @@ export default function EmploymentSection({
             disabled={disabled}
             size="sm"
           />
-          <FormField
+          <FormAutocomplete
             label="Position"
             value={data.position}
             onChange={(v) => update("position", v)}
+            suggestions={POSITIONS}
             disabled={disabled}
             size="sm"
           />
-          <FormField
+          <FormAutocomplete
             label="Country"
             value={data.country}
             onChange={(v) => update("country", v)}
+            suggestions={COUNTRIES}
             disabled={disabled}
             size="sm"
           />
         </div>
-        <FormField
+        <FormAutocomplete
           label="Country of Destination"
           value={data.country_of_destination}
           onChange={(v) => update("country_of_destination", v)}
+          suggestions={COUNTRIES}
           className="max-w-xs"
           disabled={disabled}
           size="sm"

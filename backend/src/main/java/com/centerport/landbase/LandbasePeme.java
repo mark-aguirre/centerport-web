@@ -2,10 +2,14 @@ package com.centerport.landbase;
 
 import com.centerport.common.entity.BaseEntity;
 import com.centerport.common.enums.*;
+import com.centerport.profile.SeafarerProfile;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,8 +20,8 @@ import java.util.Map;
 
 /**
  * Landbase PEME (Pre-Employment Medical Examination) entity.
- * Covers personal information, past medical history (JSONB map), questionnaire,
- * ancillary examinations, results, and certification fields.
+ * Links to a SeafarerProfile for patient identity. Contains past medical history
+ * (JSONB map), questionnaire, ancillary examinations, results, and certification fields.
  */
 @Getter
 @Setter
@@ -28,47 +32,10 @@ public class LandbasePeme extends BaseEntity {
     @Column(name = "peme_id", unique = true)
     private String pemeId;
 
-    // --- Personal Information ---
-    @Column(name = "last_name")
-    private String lastName;
-
-    @Column(name = "first_name")
-    private String firstName;
-
-    @Column(name = "middle_name")
-    private String middleName;
-
-    @Column(name = "place_of_birth")
-    private String placeOfBirth;
-
-    @Column(name = "passport_no")
-    private String passportNo;
-
-    @Column(name = "religion")
-    private String religion;
-
-    @Column(name = "nationality")
-    private String nationality;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "gender")
-    private Gender gender;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "civil_status")
-    private CivilStatus civilStatus;
-
-    @Column(name = "address")
-    private String address;
-
-    @Column(name = "contact_no")
-    private String contactNo;
-
-    @Column(name = "employer")
-    private String employer;
-
-    @Column(name = "position")
-    private String position;
+    // --- Seafarer Profile Reference ---
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seafarer_profile_id", nullable = false)
+    private SeafarerProfile seafarerProfile;
 
     // --- Past Medical History (JSONB map) ---
     @JdbcTypeCode(SqlTypes.JSON)

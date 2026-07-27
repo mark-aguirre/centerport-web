@@ -26,6 +26,8 @@ interface RadioGroupProps {
   className?: string;
   /** Hide visible option labels (useful when column headers provide context) */
   hideLabels?: boolean;
+  /** When true, all radio inputs are disabled (read-only mode) */
+  disabled?: boolean;
 }
 
 /**
@@ -49,9 +51,10 @@ export default function RadioGroup({
   ariaLabel,
   className,
   hideLabels = false,
+  disabled = false,
 }: RadioGroupProps) {
   return (
-    <div className={cn("space-y-0.5", className)}>
+    <div className={cn("space-y-0.5", disabled && "pointer-events-none", className)}>
       {label && (
         <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
           {label}
@@ -72,6 +75,7 @@ export default function RadioGroup({
               aria-label={
                 ariaLabel ? `${ariaLabel} - ${opt.label}` : opt.label
               }
+              tabIndex={disabled ? -1 : undefined}
             />
             {!hideLabels && (
               <span className="text-xs text-foreground/80">{opt.label}</span>

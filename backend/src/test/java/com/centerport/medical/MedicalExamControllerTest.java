@@ -43,15 +43,15 @@ class MedicalExamControllerTest {
     @MockitoBean
     private MedicalExamService service;
 
+    private static final UUID SAMPLE_PROFILE_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
+
     private MedicalExamDto sampleExam() {
         MedicalExamDto dto = new MedicalExamDto();
         dto.setId(UUID.fromString("22222222-2222-2222-2222-222222222222"));
         dto.setExamId("MED00000001");
         dto.setCreatedDate(LocalDateTime.of(2024, 2, 10, 9, 0, 0));
         dto.setUpdatedDate(LocalDateTime.of(2024, 2, 10, 9, 0, 0));
-        dto.setLastName("Santos");
-        dto.setFirstName("Maria");
-        dto.setMiddleName("Cruz");
+        dto.setSeafarerProfileId(SAMPLE_PROFILE_ID);
         dto.setFindingsA(Map.of("headache", true, "dizziness", false));
         dto.setFindingsB(Map.of("back_pain", true));
         dto.setFindingsC(Map.of("chest_pain", false));
@@ -73,7 +73,7 @@ class MedicalExamControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").value("22222222-2222-2222-2222-222222222222"))
                 .andExpect(jsonPath("$.data.exam_id").value("MED00000001"))
-                .andExpect(jsonPath("$.data.last_name").value("Santos"))
+                .andExpect(jsonPath("$.data.seafarer_profile_id").value(SAMPLE_PROFILE_ID.toString()))
                 .andExpect(jsonPath("$.data.findings_a.headache").value(true))
                 .andExpect(jsonPath("$.data.findings_a.dizziness").value(false))
                 .andExpect(jsonPath("$.data.questionnaire.q1").value("yes"))
@@ -81,9 +81,9 @@ class MedicalExamControllerTest {
     }
 
     @Test
-    void postBlankLastName_returns400() throws Exception {
+    void postMissingSeafarerProfileId_returns400() throws Exception {
         MedicalExamDto dto = sampleExam();
-        dto.setLastName("");
+        dto.setSeafarerProfileId(null);
 
         mockMvc.perform(post("/api/medical-exams")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -94,9 +94,9 @@ class MedicalExamControllerTest {
     }
 
     @Test
-    void postMissingLastName_returns400() throws Exception {
+    void postNullSeafarerProfileId_returns400() throws Exception {
         MedicalExamDto dto = sampleExam();
-        dto.setLastName(null);
+        dto.setSeafarerProfileId(null);
 
         mockMvc.perform(post("/api/medical-exams")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -113,7 +113,7 @@ class MedicalExamControllerTest {
         mockMvc.perform(get("/api/medical-exams/{id}", id))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.id").value(id.toString()))
-                .andExpect(jsonPath("$.data.last_name").value("Santos"))
+                .andExpect(jsonPath("$.data.seafarer_profile_id").value(SAMPLE_PROFILE_ID.toString()))
                 .andExpect(jsonPath("$.data.exam_id").value("MED00000001"));
     }
 
@@ -154,21 +154,21 @@ class MedicalExamControllerTest {
     void putValidExam_returns200() throws Exception {
         UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
         MedicalExamDto updated = sampleExam();
-        updated.setLastName("Garcia");
+        updated.setPrimaryDiagnosis("Hypertension");
         when(service.update(any(UUID.class), any(MedicalExamDto.class))).thenReturn(updated);
 
         mockMvc.perform(put("/api/medical-exams/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.last_name").value("Garcia"));
+                .andExpect(jsonPath("$.data.primary_diagnosis").value("Hypertension"));
     }
 
     @Test
-    void putBlankLastName_returns400() throws Exception {
+    void putMissingSeafarerProfileId_returns400() throws Exception {
         UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
         MedicalExamDto dto = sampleExam();
-        dto.setLastName("");
+        dto.setSeafarerProfileId(null);
 
         mockMvc.perform(put("/api/medical-exams/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -189,8 +189,7 @@ class MedicalExamControllerTest {
                 .andExpect(jsonPath("$.data.exam_id").exists())
                 .andExpect(jsonPath("$.data.created_date").exists())
                 .andExpect(jsonPath("$.data.updated_date").exists())
-                .andExpect(jsonPath("$.data.last_name").exists())
-                .andExpect(jsonPath("$.data.first_name").exists())
+                .andExpect(jsonPath("$.data.seafarer_profile_id").exists())
                 .andExpect(jsonPath("$.data.findings_a").exists())
                 .andExpect(jsonPath("$.data.findings_b").exists())
                 .andExpect(jsonPath("$.data.findings_c").exists())
@@ -199,8 +198,7 @@ class MedicalExamControllerTest {
                 .andExpect(jsonPath("$.data.examId").doesNotExist())
                 .andExpect(jsonPath("$.data.createdDate").doesNotExist())
                 .andExpect(jsonPath("$.data.updatedDate").doesNotExist())
-                .andExpect(jsonPath("$.data.lastName").doesNotExist())
-                .andExpect(jsonPath("$.data.firstName").doesNotExist())
+                .andExpect(jsonPath("$.data.seafarerProfileId").doesNotExist())
                 .andExpect(jsonPath("$.data.findingsA").doesNotExist())
                 .andExpect(jsonPath("$.data.findingsB").doesNotExist())
                 .andExpect(jsonPath("$.data.findingsC").doesNotExist())

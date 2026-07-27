@@ -1,12 +1,15 @@
 "use client";
 
-import { useLocalStorageForm } from "./use-local-storage-form";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { api, type SeafarerProfile } from "@/lib/api";
+import { ApiError } from "@/lib/http-client";
+import { useProfileSearch } from "./use-profile-search";
 import type { MedicalExam } from "@/components/medical/types";
 
-const STORAGE_KEY = "medical_exam_records";
-
 /** Empty default state for a new Medical Examination record */
-const EMPTY_EXAM: MedicalExam = {
+export const EMPTY_EXAM: MedicalExam = {
   // Personal Information
   last_name: "",
   first_name: "",
@@ -117,36 +120,11 @@ const EMPTY_EXAM: MedicalExam = {
   questionnaire_comments: "",
   questionnaire_medications_detail: "",
 
-  // Medical History
+  // Past Medical History (used by Physical Examination sub-section)
   medical_history: {},
   medical_history_others: "",
   consulted_doctor_past: "",
   maintenance_medications: "",
-  surgical_history: "",
-  family_history: "",
-  allergies: "",
-  current_medications: "",
-  smoking_history: "",
-  alcohol_history: "",
-
-  // Laboratory Results
-  cbc_result: "",
-  cbc_remarks: "",
-  urinalysis_result: "",
-  urinalysis_remarks: "",
-  blood_chemistry_result: "",
-  blood_chemistry_remarks: "",
-  chest_xray_result: "",
-  chest_xray_remarks: "",
-  ecg_result: "",
-  ecg_remarks: "",
-  drug_test_result: "",
-  drug_test_remarks: "",
-  hepatitis_b_result: "",
-  hepatitis_b_remarks: "",
-  hiv_result: "",
-  hiv_remarks: "",
-  additional_labs: "",
 
   // Result of Ancillary Examinations
   xray_no: "",
@@ -193,53 +171,354 @@ const EMPTY_EXAM: MedicalExam = {
   medical_certification_no: "",
   medical_director: "",
 
-  // Diagnosis
-  primary_diagnosis: "",
-  secondary_diagnosis: "",
-  icd_code: "",
 
-  // Treatment Plan
-  treatment_plan: "",
-  medications_prescribed: "",
-  follow_up_date: "",
-  referral_to: "",
-  consultation_status: "",
-
-  // Remarks
-  remarks: "",
 
   // Physician
   examining_physician: "",
   license_no: "",
 };
 
+export interface UseMedicalFormResult {
+  /** Current form data. */
+  data: MedicalExam;
+  /** Replace form data directly (used by section onChange callbacks). */
+  setData: (data: MedicalExam) => void;
+  /** True while the initial record is being fetched. */
+  loading: boolean;
+  /** True while a save operation is in-flight. */
+  saving: boolean;
+  /** True when the form is in edit mode (fields enabled). */
+  editing: boolean;
+  /** True when viewing/editing a persisted record (vs a new unsaved one). */
+  isExistingRecord: boolean;
+  /** The persisted record currently loaded (null when creating new). */
+  existingRecord: MedicalExam | null;
+  /** Reset form to empty and enter new-record edit mode. */
+  handleNew: () => void;
+  /** Enter edit mode for the currently loaded record. */
+  handleEdit: () => void;
+  /** Discard changes and return to view mode. */
+  handleCancel: () => void;
+  /** Validate and persist the current form data. */
+  handleSave: () => Promise<void>;
+  /** Trigger browser print dialog. */
+  handlePrint: () => void;
+  /** Ref for the first focusable field (auto-focused on New). */
+  firstFieldRef: React.RefObject<HTMLInputElement | null>;
+  /** Search results from seafarer profiles. */
+  searchResults: SeafarerProfile[];
+  /** Whether a search request is in-flight. */
+  searchLoading: boolean;
+  /** Trigger a profile search by keyword (debounced). */
+  handleSearch: (keyword: string) => void;
+  /** Load a selected profile result into the form's personal info. */
+  handleSelectResult: (profile: SeafarerProfile) => void;
+  /** Transient error message shown when save is blocked (auto-clears). */
+  saveAlert: string | null;
+}
+
+/** Fields that are server-managed and should not be sent on create/update. */
+const SYSTEM_FIELDS = ["id", "exam_id", "created_date", "updated_date", "seafarer_profile"] as const;
+
 /**
- * Manages Medical Examination form state, loading, and persistence.
- *
- * Thin wrapper around `useLocalStorageForm` configured for the Medical
- * Examination module. Handles both create and edit flows by reading the
- * `id` search param. On save, validates required fields, generates an
- * Exam ID for new records, and navigates back to the medical page.
- *
- * @returns Object with form state, setters, and the save handler
- *
- * @example
- * ```tsx
- * const { data, setData, loading, saving, handleSave } = useMedicalForm();
- * ```
+ * Strip system fields from the payload before sending to the backend.
  */
-export function useMedicalForm() {
-  return useLocalStorageForm<MedicalExam>({
-    storageKey: STORAGE_KEY,
-    emptyRecord: EMPTY_EXAM,
-    idPrefix: "MED",
-    idField: "exam_id",
-    returnRoute: "/medical",
-    validate: (data) =>
-      !data.last_name || !data.first_name
-        ? "Please fill in the required fields (Last Name, First Name)"
-        : null,
-    successCreateMessage: "Medical record created successfully",
-    successUpdateMessage: "Medical record updated successfully",
-  });
+function stripSystemFields(record: MedicalExam): Partial<MedicalExam> {
+  const payload = { ...record };
+  for (const field of SYSTEM_FIELDS) {
+    delete (payload as Record<string, unknown>)[field];
+  }
+  return payload;
+}
+
+/**
+ * Flatten the nested seafarer_profile response into top-level personal info fields.
+ * The backend returns `seafarer_profile: { last_name, first_name, ... }` alongside
+ * the exam record. We merge those into the flat form shape.
+ */
+function flattenResponse(record: MedicalExam): MedicalExam {
+  const raw = record as MedicalExam & {
+    seafarer_profile?: {
+      id?: string;
+      last_name?: string;
+      first_name?: string;
+      middle_name?: string;
+      place_of_birth?: string;
+      passport_no?: string;
+      religion?: string;
+      nationality?: string;
+      gender?: string;
+      marital_status?: string;
+      address?: string;
+      contact_no?: string;
+      employer?: string;
+      position?: string;
+      birthdate?: string;
+      age?: string;
+    };
+  };
+
+  const profile = raw.seafarer_profile;
+  if (!profile) return { ...EMPTY_EXAM, ...record };
+
+  return {
+    ...EMPTY_EXAM,
+    ...record,
+    last_name: record.last_name || profile.last_name || "",
+    first_name: record.first_name || profile.first_name || "",
+    middle_name: record.middle_name || profile.middle_name || "",
+    place_of_birth: record.place_of_birth || profile.place_of_birth || "",
+    passport_no: record.passport_no || profile.passport_no || "",
+    religion: record.religion || profile.religion || "",
+    nationality: record.nationality || profile.nationality || "",
+    gender: (record.gender || profile.gender || "") as MedicalExam["gender"],
+    civil_status: (record.civil_status || profile.marital_status || "") as MedicalExam["civil_status"],
+    address: record.address || profile.address || "",
+    contact_no: record.contact_no || profile.contact_no || "",
+    employer: record.employer || profile.employer || "",
+    position: record.position || profile.position || "",
+    date_of_birth: record.date_of_birth || profile.birthdate || "",
+    age: record.age || profile.age || "",
+  };
+}
+
+/**
+ * Manages Medical Examination form state with full CRUD button behavior.
+ *
+ * Handles both create and edit flows by reading the `id` search param.
+ * When an ID is present, fetches that specific record from the backend.
+ * When no ID is present, loads the most recently updated exam from the
+ * database. If the database is empty, shows an empty form ready for new entry.
+ *
+ * @returns Object with form state, action handlers, and ref for first-field focus
+ */
+export function useMedicalForm(): UseMedicalFormResult {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("id");
+
+  const [data, setData] = useState<MedicalExam>(EMPTY_EXAM);
+  const [originalData, setOriginalData] = useState<MedicalExam | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [isExistingRecord, setIsExistingRecord] = useState(!!editId);
+  const [existingRecord, setExistingRecord] = useState<MedicalExam | null>(null);
+  const [saveAlert, setSaveAlert] = useState<string | null>(null);
+
+  const firstFieldRef = useRef<HTMLInputElement | null>(null);
+
+  const {
+    searchResults: profileSearchResults,
+    searchLoading: profileSearchLoading,
+    handleSearch,
+    clearSearch,
+  } = useProfileSearch();
+
+  // --- Initial data load ---
+  useEffect(() => {
+    const loadRecord = async () => {
+      try {
+        let results: MedicalExam[];
+        if (editId) {
+          results = await api.entities.MedicalExam.filter({ id: editId });
+        } else {
+          results = await api.entities.MedicalExam.list("-updated_date", 1);
+        }
+
+        if (results.length > 0) {
+          const flattened = flattenResponse(results[0]);
+          setExistingRecord(flattened);
+          setData(flattened);
+          setIsExistingRecord(true);
+        }
+      } catch {
+        // Silently handle — form stays empty for new entry
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRecord();
+  }, [editId]);
+
+  /** Clear form, enter edit mode for a new record. */
+  const handleNew = useCallback(() => {
+    setData(EMPTY_EXAM);
+    setOriginalData(null);
+    setEditing(true);
+    setIsExistingRecord(false);
+    setExistingRecord(null);
+    setTimeout(() => firstFieldRef.current?.focus(), 0);
+  }, []);
+
+  /** Enter edit mode, snapshot current data for cancel/restore. */
+  const handleEdit = useCallback(() => {
+    setOriginalData({ ...data });
+    setEditing(true);
+  }, [data]);
+
+  /** Discard changes and return to view mode. */
+  const handleCancel = useCallback(() => {
+    if (isExistingRecord && originalData) {
+      setData(originalData);
+    } else if (isExistingRecord && existingRecord) {
+      setData(existingRecord);
+    } else {
+      setData(EMPTY_EXAM);
+    }
+    setOriginalData(null);
+    setEditing(false);
+  }, [isExistingRecord, originalData, existingRecord]);
+
+  /** Validate, persist via API, and return to view mode. */
+  const handleSave = useCallback(async () => {
+    // Validation: require a linked seafarer profile
+    if (!data.seafarer_profile_id) {
+      setSaveAlert("Please select a patient before saving.");
+      setTimeout(() => setSaveAlert(null), 2000);
+      return;
+    }
+    // Validation: require name fields
+    if (!data.last_name || !data.first_name) {
+      toast.error("Please fill in the required fields (Last Name, First Name)");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload = stripSystemFields(data);
+      let persisted: MedicalExam;
+
+      if (isExistingRecord && existingRecord?.id) {
+        persisted = await api.entities.MedicalExam.update(
+          existingRecord.id,
+          payload
+        );
+        toast.success("Medical exam updated successfully");
+      } else {
+        persisted = await api.entities.MedicalExam.create(
+          payload as MedicalExam
+        );
+        setIsExistingRecord(true);
+        toast.success("Medical exam created successfully");
+      }
+
+      const flattened = flattenResponse(persisted);
+      setData(flattened);
+      setExistingRecord(flattened);
+      setOriginalData(null);
+      setEditing(false);
+    } catch (error) {
+      if (error instanceof ApiError && error.violations.length > 0) {
+        error.violations.forEach((v) => {
+          toast.error(`${v.field}: ${v.message}`);
+        });
+      } else if (error instanceof ApiError) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to save medical exam record");
+      }
+    } finally {
+      setSaving(false);
+    }
+  }, [data, isExistingRecord, existingRecord]);
+
+  /** Trigger browser print dialog. */
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
+
+  /**
+   * Load a selected seafarer profile into the form.
+   *
+   * Searches for an existing Medical Exam linked to that seafarer. If found,
+   * loads the full record. Otherwise populates only personal info fields
+   * so the user can create a new exam for this seafarer.
+   */
+  const handleSelectResult = useCallback(
+    (profile: SeafarerProfile) => {
+      const personalData: Partial<MedicalExam> = {
+        seafarer_profile_id: profile.id,
+        last_name: profile.last_name ?? "",
+        first_name: profile.first_name ?? "",
+        middle_name: profile.middle_name ?? "",
+        place_of_birth: profile.place_of_birth ?? "",
+        passport_no: profile.passport_no ?? "",
+        religion: profile.religion ?? "",
+        nationality: profile.nationality ?? "",
+        gender: (profile.gender ?? "") as MedicalExam["gender"],
+        civil_status: (profile.marital_status ?? "") as MedicalExam["civil_status"],
+        address: profile.address ?? "",
+        contact_no: profile.contact_no ?? "",
+        employer: profile.employer ?? "",
+        position: profile.position ?? "",
+        date_of_birth: profile.birthdate ?? "",
+        age: profile.age ?? "",
+      };
+
+      const applyPersonalOnly = () => {
+        if (editing) {
+          setData((prev) => ({ ...prev, ...personalData }));
+        } else {
+          setData({ ...EMPTY_EXAM, ...personalData });
+          setIsExistingRecord(false);
+          setExistingRecord(null);
+          setEditing(true);
+        }
+      };
+
+      const searchName = (profile.last_name ?? "").trim();
+      if (searchName) {
+        api.entities.MedicalExam.search(searchName, 10)
+          .then((results) => {
+            const match = results.find(
+              (r) =>
+                r.seafarer_profile_id === profile.id ||
+                (r.last_name?.toLowerCase() === profile.last_name?.toLowerCase() &&
+                  r.first_name?.toLowerCase() === profile.first_name?.toLowerCase())
+            );
+
+            if (match) {
+              const flattened = flattenResponse(match);
+              setData(flattened);
+              setExistingRecord(flattened);
+              setIsExistingRecord(true);
+              setEditing(false);
+              setOriginalData(null);
+            } else {
+              applyPersonalOnly();
+            }
+          })
+          .catch(() => {
+            applyPersonalOnly();
+          });
+      } else {
+        applyPersonalOnly();
+      }
+
+      clearSearch();
+    },
+    [editing, clearSearch]
+  );
+
+  return {
+    data,
+    setData,
+    loading,
+    saving,
+    editing,
+    isExistingRecord,
+    existingRecord,
+    handleNew,
+    handleEdit,
+    handleCancel,
+    handleSave,
+    handlePrint,
+    firstFieldRef,
+    searchResults: profileSearchResults,
+    searchLoading: profileSearchLoading,
+    handleSearch,
+    handleSelectResult,
+    saveAlert,
+  };
 }

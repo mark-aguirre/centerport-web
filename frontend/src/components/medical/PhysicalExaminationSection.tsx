@@ -38,19 +38,20 @@ import type { MedicalSectionProps } from "./types";
 export default function PhysicalExaminationSection({
   data,
   onChange,
+  disabled,
 }: MedicalSectionProps) {
   return (
     <div className="space-y-3">
-      <PastMedicalHistoryGrid data={data} onChange={onChange} />
-      <QuestionnaireGrid data={data} onChange={onChange} />
-      <VitalsSection data={data} onChange={onChange} />
-      <VisionSection data={data} onChange={onChange} />
-      <AudiometrySpeechSection data={data} onChange={onChange} />
-      <ConditionQuestionsSection data={data} onChange={onChange} />
-      <FindingsGrid data={data} onChange={onChange} />
-      <AncillaryExamsSection data={data} onChange={onChange} />
-      <FinalRecommendationSection data={data} onChange={onChange} />
-      <FitnessAssessmentSection data={data} onChange={onChange} />
+      <PastMedicalHistoryGrid data={data} onChange={onChange} disabled={disabled} />
+      <QuestionnaireGrid data={data} onChange={onChange} disabled={disabled} />
+      <VitalsSection data={data} onChange={onChange} disabled={disabled} />
+      <VisionSection data={data} onChange={onChange} disabled={disabled} />
+      <AudiometrySpeechSection data={data} onChange={onChange} disabled={disabled} />
+      <ConditionQuestionsSection data={data} onChange={onChange} disabled={disabled} />
+      <FindingsGrid data={data} onChange={onChange} disabled={disabled} />
+      <AncillaryExamsSection data={data} onChange={onChange} disabled={disabled} />
+      <FinalRecommendationSection data={data} onChange={onChange} disabled={disabled} />
+      <FitnessAssessmentSection data={data} onChange={onChange} disabled={disabled} />
     </div>
   );
 }

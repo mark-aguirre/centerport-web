@@ -1,5 +1,7 @@
 package com.centerport.medical;
 
+import com.centerport.profile.SeafarerProfile;
+import com.centerport.profile.SeafarerProfileDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -8,27 +10,30 @@ import org.mapstruct.MappingTarget;
  * MapStruct mapper for converting between {@link MedicalExam} entity and
  * {@link MedicalExamDto}.
  *
- * Mapping Behavior:
- * - {@code toDto} — full entity-to-DTO conversion including system fields
- * - {@code toEntity} — full DTO-to-entity conversion (used on create)
- * - {@code updateEntity} — partial update that ignores system-managed fields
- *   ({@code id}, {@code examId}, {@code createdDate}, {@code updatedDate})
- *   so that existing values are preserved during PUT updates
- *
- * @see MedicalExam
- * @see MedicalExamDto
- * @see MedicalExamService
+ * The toDto method maps the nested seafarerProfile entity to its DTO representation
+ * and extracts the profile UUID into seafarerProfileId. The updateEntity method
+ * ignores system-managed fields and the relationship (handled by service layer).
  */
 @Mapper(componentModel = "spring")
 public interface MedicalExamMapper {
 
+    @Mapping(source = "seafarerProfile.id", target = "seafarerProfileId")
+    @Mapping(source = "seafarerProfile", target = "seafarerProfile")
     MedicalExamDto toDto(MedicalExam entity);
 
+    SeafarerProfileDto profileToDto(SeafarerProfile profile);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "examId", ignore = true)
+    @Mapping(target = "createdDate", ignore = true)
+    @Mapping(target = "updatedDate", ignore = true)
+    @Mapping(target = "seafarerProfile", ignore = true)
     MedicalExam toEntity(MedicalExamDto dto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "examId", ignore = true)
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "updatedDate", ignore = true)
+    @Mapping(target = "seafarerProfile", ignore = true)
     void updateEntity(MedicalExamDto dto, @MappingTarget MedicalExam entity);
 }

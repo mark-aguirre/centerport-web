@@ -1,7 +1,8 @@
 package com.centerport.panama;
 
 import com.centerport.common.enums.*;
-import jakarta.validation.constraints.NotBlank;
+import com.centerport.profile.SeafarerProfileDto;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,19 +37,18 @@ public class PanamaCertificateDto {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
-    // --- General Information ---
-    @NotBlank(message = "must not be blank")
-    private String fullName;
+    // --- Seafarer Profile Reference ---
+    @NotNull(message = "must not be null")
+    private UUID seafarerProfileId;
 
+    /** Populated in responses; ignored on input. */
+    private SeafarerProfileDto seafarerProfile;
+
+    // --- General Information ---
     private String day;
     private String month;
     private String year;
-    private Gender sex;
     private String rhTyping;
-    private String passportSeamanNo;
-    private String homeAddress;
-    private String department;
-    private String crewPosition;
     private String lookoutDuties;
     private String routineEmergencyDuties;
     private ShipType typeOfShip;

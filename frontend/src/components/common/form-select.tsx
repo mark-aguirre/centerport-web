@@ -85,7 +85,7 @@ export function FormSelect({
         </Label>
       )}
       <Select value={value ?? ""} onValueChange={(val) => onChange(val as string)} disabled={disabled}>
-        <SelectTrigger className={cn(triggerStyles[size], disabled && "opacity-60 cursor-not-allowed bg-muted/20")}>
+        <SelectTrigger className={cn(triggerStyles[size], disabled && "pointer-events-none")}>
           <SelectValue placeholder="Select..." />
         </SelectTrigger>
         <SelectContent className={contentStyles[size]}>

@@ -3,6 +3,7 @@
 import { SectionHeader } from "@/components/common/section-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 /**
@@ -14,12 +15,12 @@ import type { MedicalExam, MedicalSectionProps } from "./types";
  *
  * @see PhysicalExaminationSection — parent orchestrator
  */
-export function VisionSection({ data, onChange }: MedicalSectionProps) {
+export function VisionSection({ data, onChange, disabled }: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
+    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
       <SectionHeader title="Vision" />
       <div className="grid grid-cols-2 gap-4">
         {/* Left: Vision table */}
@@ -38,17 +39,17 @@ export function VisionSection({ data, onChange }: MedicalSectionProps) {
           </div>
           <div className="grid grid-cols-5 gap-1 items-center">
             <span className="text-[11px] text-foreground/70">Uncorrected</span>
-            <Input value={data.vision_uncorrected_far_od} onChange={(e) => update("vision_uncorrected_far_od", e.target.value)} className="h-7 text-xs" />
-            <Input value={data.vision_uncorrected_far_os} onChange={(e) => update("vision_uncorrected_far_os", e.target.value)} className="h-7 text-xs" />
-            <Input value={data.vision_uncorrected_near_od} onChange={(e) => update("vision_uncorrected_near_od", e.target.value)} className="h-7 text-xs" />
-            <Input value={data.vision_uncorrected_near_os} onChange={(e) => update("vision_uncorrected_near_os", e.target.value)} className="h-7 text-xs" />
+            <Input value={data.vision_uncorrected_far_od} onChange={(e) => update("vision_uncorrected_far_od", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
+            <Input value={data.vision_uncorrected_far_os} onChange={(e) => update("vision_uncorrected_far_os", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
+            <Input value={data.vision_uncorrected_near_od} onChange={(e) => update("vision_uncorrected_near_od", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
+            <Input value={data.vision_uncorrected_near_os} onChange={(e) => update("vision_uncorrected_near_os", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
           </div>
           <div className="grid grid-cols-5 gap-1 items-center">
             <span className="text-[11px] text-foreground/70">Corrected</span>
-            <Input value={data.vision_corrected_far_od} onChange={(e) => update("vision_corrected_far_od", e.target.value)} className="h-7 text-xs" />
-            <Input value={data.vision_corrected_far_os} onChange={(e) => update("vision_corrected_far_os", e.target.value)} className="h-7 text-xs" />
-            <Input value={data.vision_corrected_near_od} onChange={(e) => update("vision_corrected_near_od", e.target.value)} className="h-7 text-xs" />
-            <Input value={data.vision_corrected_near_os} onChange={(e) => update("vision_corrected_near_os", e.target.value)} className="h-7 text-xs" />
+            <Input value={data.vision_corrected_far_od} onChange={(e) => update("vision_corrected_far_od", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
+            <Input value={data.vision_corrected_far_os} onChange={(e) => update("vision_corrected_far_os", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
+            <Input value={data.vision_corrected_near_od} onChange={(e) => update("vision_corrected_near_od", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
+            <Input value={data.vision_corrected_near_os} onChange={(e) => update("vision_corrected_near_os", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
           </div>
         </div>
 
@@ -93,7 +94,7 @@ export function VisionSection({ data, onChange }: MedicalSectionProps) {
           </div>
           <div className="flex items-center gap-2">
             <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Date Taken:</Label>
-            <Input type="date" value={data.vision_date_taken} onChange={(e) => update("vision_date_taken", e.target.value)} className="h-7 text-xs w-36" />
+            <Input type="date" value={data.vision_date_taken} onChange={(e) => update("vision_date_taken", e.target.value)} className="h-7 text-xs w-36" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
           </div>
         </div>
       </div>

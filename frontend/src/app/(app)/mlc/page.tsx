@@ -1,19 +1,23 @@
 "use client";
 
 import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import PersonalInfoSection from "@/components/common/personal-info-section";
 import type { RowConfig } from "@/components/common/personal-info-section";
+import SeafarerDetailsSection from "@/components/mlc/SeafarerDetailsSection";
+import CertificateDetailsSection from "@/components/mlc/CertificateDetailsSection";
 import DeclarationSection from "@/components/mlc/DeclarationSection";
 import FinalRecommendationSection from "@/components/mlc/FinalRecommendationSection";
 import { useMlcForm } from "@/hooks/use-mlc-form";
 import { PageContainer } from "@/components/common/page-container";
 import { FormToolbar } from "@/components/common/form-toolbar";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import type { SearchResultItem } from "@/components/common/form-toolbar";
 import type { MlcSectionProps } from "@/components/mlc/types";
 
-/** MLC personal info row layout — same as landbase */
+/** MLC personal info row layout */
 const MLC_PERSONAL_ROWS: RowConfig[] = [
   // Row 1: Name
   [
@@ -51,22 +55,46 @@ const MLC_GRID_OVERRIDES: Record<number, string> = {
   4: "grid-cols-[3fr_2fr]", // Employer, Position
 };
 
-type SectionEntry = {
+/**
+ * Registry entry mapping a section component to its stable key.
+ */
+interface SectionEntry {
   component: React.ComponentType<MlcSectionProps>;
   key: string;
-};
+}
 
+/**
+ * Ordered list of form sections rendered on the MLC page.
+ * Personal info is rendered separately (always read-only from profile).
+ */
 const SECTIONS: SectionEntry[] = [
+  { component: SeafarerDetailsSection, key: "seafarer-details" },
+  { component: CertificateDetailsSection, key: "certificate-details" },
   { component: DeclarationSection, key: "declaration" },
   { component: FinalRecommendationSection, key: "recommendation" },
 ];
 
+/** Staggered fade-in animation for section cards on initial mount. */
+const sectionVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (index: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: index * 0.06, duration: 0.25 },
+  }),
+};
+
 /**
- * MLC Health Certificate form content with full CRUD button behavior.
+ * MLC Health Certificate form content with full CRUD toolbar.
  *
- * Uses `useMlcForm` hook for state management including
- * New/Edit/Save/Cancel/Print actions and view/edit mode transitions.
- * Renders animated section cards with fields disabled in view mode.
+ * Orchestrates the form layout: toolbar at top, validation alert,
+ * and all medical form sections rendered as animated cards.
+ *
+ * State management:
+ * - Uses `useMlcForm` for CRUD operations, mode transitions,
+ *   and seafarer profile search integration
+ * - Sections receive shared props (data, onChange, disabled) and
+ *   handle their own field-level updates
  */
 function MlcFormContent() {
   const {
@@ -82,6 +110,11 @@ function MlcFormContent() {
     handleCancel,
     handleSave,
     handlePrint,
+    searchResults,
+    searchLoading,
+    handleSearch,
+    handleSelectResult,
+    saveAlert,
   } = useMlcForm();
 
   if (loading) {
@@ -93,7 +126,7 @@ function MlcFormContent() {
   }
 
   return (
-    <PageContainer className="max-w-7xl">
+    <PageContainer>
       <FormToolbar
         editing={editing}
         saving={saving}
@@ -105,32 +138,47 @@ function MlcFormContent() {
         }}
         onSave={handleSave}
         onCancel={handleCancel}
-        onEdit={handleEdit}
+        onEdit={data.last_name ? handleEdit : undefined}
         onNew={handleNew}
         onPrint={handlePrint}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+        searchLoading={searchLoading}
+        onSelectResult={handleSelectResult as (result: SearchResultItem) => void}
       />
 
-      {/* Section Cards */}
+      {saveAlert && (
+        <Alert variant="destructive" className="mt-3">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{saveAlert}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="space-y-3">
+        {/* Personal Info — always read-only (data comes from profile) */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.06, duration: 0.25 }}
+          custom={0}
+          initial="hidden"
+          animate="visible"
+          variants={sectionVariants}
         >
           <PersonalInfoSection
             data={data}
             onChange={setData}
             rows={MLC_PERSONAL_ROWS}
             gridOverrides={MLC_GRID_OVERRIDES}
-            disabled={!editing}
+            disabled={true}
           />
         </motion.div>
+
+        {/* MLC-specific sections */}
         {SECTIONS.map(({ component: Section, key }, index) => (
           <motion.div
             key={key}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: (index + 1) * 0.06, duration: 0.25 }}
+            custom={index + 1}
+            initial="hidden"
+            animate="visible"
+            variants={sectionVariants}
           >
             <Section data={data} onChange={setData} disabled={!editing} />
           </motion.div>
@@ -143,8 +191,8 @@ function MlcFormContent() {
 /**
  * MLC (Maritime Labour Convention) Health Certificate page.
  *
- * Wraps the form content in a Suspense boundary to handle the
- * `useSearchParams` hook requirement in Next.js App Router.
+ * Wraps the form content in a Suspense boundary required by
+ * Next.js App Router for components that use `useSearchParams`.
  */
 export default function MlcPage() {
   return (

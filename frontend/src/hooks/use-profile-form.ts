@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { base44, type SeafarerProfile } from "@/lib/api";
+import { api, type SeafarerProfile } from "@/lib/api";
+import { ApiError } from "@/lib/http-client";
+import { useProfileSearch } from "./use-profile-search";
 
 const EMPTY_PROFILE: SeafarerProfile = {
   photo_url: "",
@@ -74,14 +76,24 @@ export interface UseProfileFormResult {
   handleSave: () => Promise<void>;
   handlePrint: () => void;
   firstFieldRef: React.RefObject<HTMLInputElement | null>;
+  /** Search results returned from the backend. */
+  searchResults: SeafarerProfile[];
+  /** Whether a search request is in-flight. */
+  searchLoading: boolean;
+  /** Trigger a search by keyword (debounced internally). */
+  handleSearch: (keyword: string) => void;
+  /** Load a selected search result into the form (view mode). */
+  handleSelectResult: (profile: SeafarerProfile) => void;
 }
 
 /**
  * Manages seafarer profile form state with full CRUD button behavior.
  *
  * Handles both create and edit flows by reading the `id` search param.
- * When an ID is present, fetches the existing record and starts in view mode.
- * When no ID is present, starts in view mode with an empty form.
+ * When an ID is present, fetches that specific record and starts in view mode.
+ * When no ID is present, automatically loads the most recently updated profile
+ * from the database and starts in view mode. If the database is empty, shows
+ * an empty form ready for new entry.
  *
  * Implements the standard CRUD state machine:
  * - View mode: fields disabled, New/Edit/Print visible
@@ -97,7 +109,7 @@ export function useProfileForm(): UseProfileFormResult {
 
   const [data, setData] = useState<SeafarerProfile>(EMPTY_PROFILE);
   const [originalData, setOriginalData] = useState<SeafarerProfile | null>(null);
-  const [loading, setLoading] = useState(!!editId);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [isExistingRecord, setIsExistingRecord] = useState(!!editId);
@@ -105,10 +117,14 @@ export function useProfileForm(): UseProfileFormResult {
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
-  // Load existing record when id param is present
+  // --- Search (reusable hook) ---
+  const { searchResults, searchLoading, handleSearch, clearSearch } = useProfileSearch();
+
+  // Load existing record by id, or fetch latest profile when no id is specified
   useEffect(() => {
     if (editId) {
-      base44.entities.SeafarerProfile.filter({ id: editId }).then((results) => {
+      // Fetch specific profile by UUID
+      api.entities.SeafarerProfile.filter({ id: editId }).then((results) => {
         if (results.length > 0) {
           setExistingRecord(results[0]);
           setData({ ...EMPTY_PROFILE, ...results[0] });
@@ -116,6 +132,21 @@ export function useProfileForm(): UseProfileFormResult {
         }
         setLoading(false);
       });
+    } else {
+      // No id param — load the most recently updated profile
+      api.entities.SeafarerProfile.list("-updated_date", 1)
+        .then((results) => {
+          if (results.length > 0) {
+            setExistingRecord(results[0]);
+            setData({ ...EMPTY_PROFILE, ...results[0] });
+            setIsExistingRecord(true);
+          }
+          setLoading(false);
+        })
+        .catch(() => {
+          // If fetch fails (e.g. empty DB), just show empty form
+          setLoading(false);
+        });
     }
   }, [editId]);
 
@@ -158,21 +189,29 @@ export function useProfileForm(): UseProfileFormResult {
     try {
       if (isExistingRecord && editId && existingRecord) {
         const updateData = stripSystemFields(data);
-        await base44.entities.SeafarerProfile.update(editId, updateData);
+        await api.entities.SeafarerProfile.update(editId, updateData);
         setExistingRecord({ ...data });
         toast.success("Profile updated successfully");
       } else {
         const profileId = await generateProfileId();
         const created = { ...data, profile_id: profileId };
-        await base44.entities.SeafarerProfile.create(created);
+        await api.entities.SeafarerProfile.create(created);
         setExistingRecord(created);
         setIsExistingRecord(true);
         toast.success("Profile created successfully");
       }
       setOriginalData(null);
       setEditing(false);
-    } catch {
-      toast.error("Failed to save profile");
+    } catch (error) {
+      if (error instanceof ApiError && error.violations.length > 0) {
+        error.violations.forEach((v) => {
+          toast.error(`${v.field}: ${v.message}`);
+        });
+      } else if (error instanceof ApiError) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to save profile");
+      }
     } finally {
       setSaving(false);
     }
@@ -182,6 +221,19 @@ export function useProfileForm(): UseProfileFormResult {
   const handlePrint = useCallback(() => {
     window.print();
   }, []);
+
+  /** Debounced search — triggers API call after 300ms of inactivity. */
+  // handleSearch is provided by useProfileSearch
+
+  /** Load a selected profile from search results into the form (view mode). */
+  const handleSelectResult = useCallback((profile: SeafarerProfile) => {
+    setExistingRecord(profile);
+    setData({ ...EMPTY_PROFILE, ...profile });
+    setIsExistingRecord(true);
+    setEditing(false);
+    setOriginalData(null);
+    clearSearch();
+  }, [clearSearch]);
 
   return {
     data,
@@ -197,12 +249,16 @@ export function useProfileForm(): UseProfileFormResult {
     handleSave,
     handlePrint,
     firstFieldRef,
+    searchResults,
+    searchLoading,
+    handleSearch,
+    handleSelectResult,
   };
 }
 
 /** Generate the next sequential profile ID. */
 async function generateProfileId(): Promise<string> {
-  const all = await base44.entities.SeafarerProfile.list("-created_date", 1);
+  const all = await api.entities.SeafarerProfile.list("-created_date", 1);
   if (all.length === 0) return "CMSI00000001";
   const lastId = all[0].profile_id || "CMSI00000000";
   const num = parseInt(lastId.replace("CMSI", "")) + 1;

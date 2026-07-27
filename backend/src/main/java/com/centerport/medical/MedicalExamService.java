@@ -5,12 +5,16 @@ import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
 import com.centerport.medical.event.MedicalExamCreatedEvent;
 import com.centerport.medical.event.MedicalExamUpdatedEvent;
+import com.centerport.profile.SeafarerProfile;
+import com.centerport.profile.SeafarerProfileRepository;
 
+import jakarta.persistence.criteria.Join;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,19 +50,26 @@ public class MedicalExamService {
     private final MedicalExamMapper mapper;
     private final BusinessIdGenerator businessIdGenerator;
     private final ApplicationEventPublisher eventPublisher;
+    private final SeafarerProfileRepository profileRepository;
 
     // =======================================================================
     // Query Operations
     // =======================================================================
 
     /**
-     * Returns paginated medical exams.
+     * Returns paginated medical exams, optionally filtered by a search keyword.
      *
+     * When a search term is provided, records are matched against the linked
+     * seafarer profile's lastName, firstName, or the exam's examId using
+     * case-insensitive LIKE.
+     *
+     * @param search   optional keyword (null or blank returns all)
      * @param pageable pagination and sorting parameters
      * @return paged response of exam DTOs
      */
-    public PagedResponse<MedicalExamDto> findAll(Pageable pageable) {
-        Page<MedicalExam> page = repository.findAll(pageable);
+    public PagedResponse<MedicalExamDto> findAll(String search, Pageable pageable) {
+        Specification<MedicalExam> spec = buildSearchSpec(search);
+        Page<MedicalExam> page = repository.findAll(spec, pageable);
         List<MedicalExamDto> content = page.getContent().stream()
                 .map(mapper::toDto)
                 .toList();
@@ -96,8 +107,11 @@ public class MedicalExamService {
      */
     @Transactional
     public MedicalExamDto create(MedicalExamDto dto) {
+        SeafarerProfile profile = resolveProfile(dto.getSeafarerProfileId());
+
         MedicalExam entity = mapper.toEntity(dto);
         clearSystemFields(entity);
+        entity.setSeafarerProfile(profile);
 
         String examId = businessIdGenerator.generateId(BUSINESS_ID_PREFIX);
         entity.setExamId(examId);
@@ -107,10 +121,10 @@ public class MedicalExamService {
 
         eventPublisher.publishEvent(new MedicalExamCreatedEvent(
                 saved.getId(), saved.getExamId(),
-                saved.getLastName(), saved.getFirstName()));
+                profile.getLastName(), profile.getFirstName()));
 
         log.info("Medical exam created — examId: {}, id: {}, patient: {}",
-                saved.getExamId(), saved.getId(), saved.getLastName());
+                saved.getExamId(), saved.getId(), profile.getLastName());
         return mapper.toDto(saved);
     }
 
@@ -133,6 +147,9 @@ public class MedicalExamService {
                     log.warn("Medical exam not found for update — id: {}", id);
                     return new NotFoundException("MedicalExam", id);
                 });
+
+        SeafarerProfile profile = resolveProfile(dto.getSeafarerProfileId());
+        existing.setSeafarerProfile(profile);
 
         mapper.updateEntity(dto, existing);
 
@@ -158,5 +175,38 @@ public class MedicalExamService {
         entity.setExamId(null);
         entity.setCreatedDate(null);
         entity.setUpdatedDate(null);
+    }
+
+    /**
+     * Resolves a SeafarerProfile by UUID or throws NotFoundException.
+     */
+    private SeafarerProfile resolveProfile(UUID profileId) {
+        return profileRepository.findById(profileId)
+                .orElseThrow(() -> {
+                    log.warn("Seafarer profile not found — id: {}", profileId);
+                    return new NotFoundException("SeafarerProfile", profileId);
+                });
+    }
+
+    /**
+     * Builds a JPA Specification for searching medical exam records by keyword.
+     *
+     * Matches the search term (case-insensitive) against the linked seafarer
+     * profile's lastName, firstName, or the exam's examId.
+     * Returns an unrestricted spec when the search term is null or blank.
+     */
+    private Specification<MedicalExam> buildSearchSpec(String search) {
+        if (search == null || search.isBlank()) {
+            return Specification.where(null);
+        }
+        String pattern = "%" + search.trim().toLowerCase() + "%";
+        return (root, query, cb) -> {
+            Join<MedicalExam, SeafarerProfile> profile = root.join("seafarerProfile");
+            return cb.or(
+                    cb.like(cb.lower(profile.get("lastName")), pattern),
+                    cb.like(cb.lower(profile.get("firstName")), pattern),
+                    cb.like(cb.lower(root.get("examId")), pattern)
+            );
+        };
     }
 }

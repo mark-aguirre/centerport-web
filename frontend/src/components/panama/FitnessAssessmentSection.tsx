@@ -263,64 +263,64 @@ export default function FitnessAssessmentSection({ data, onChange }: PanamaSecti
 
       {/* Certificate details */}
       <div className="border-t border-primary/10 pt-4 space-y-3">
-        {/* Expiry date */}
-        <div className="grid grid-cols-[1fr_1fr_1fr_3fr] gap-2">
-          <FormField
-            label="Expiry Day"
-            value={data.cert_expiry_day}
-            onChange={(v) => update("cert_expiry_day", v)}
-            type="number"
-          />
-          <FormSelect
-            label="Expiry Month"
-            value={data.cert_expiry_month}
-            onChange={(v) => update("cert_expiry_month", v)}
-            options={MONTH_OPTIONS}
-          />
-          <FormField
-            label="Expiry Year"
-            value={data.cert_expiry_year}
-            onChange={(v) => update("cert_expiry_year", v)}
-            type="number"
-          />
-          <div />
+        {/* Expiry & Issued dates — side by side */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Expiry date */}
+          <div className="grid grid-cols-3 gap-2">
+            <FormField
+              label="Expiry Day"
+              value={data.cert_expiry_day}
+              onChange={(v) => update("cert_expiry_day", v)}
+              type="number"
+            />
+            <FormSelect
+              label="Expiry Month"
+              value={data.cert_expiry_month}
+              onChange={(v) => update("cert_expiry_month", v)}
+              options={MONTH_OPTIONS}
+            />
+            <FormField
+              label="Expiry Year"
+              value={data.cert_expiry_year}
+              onChange={(v) => update("cert_expiry_year", v)}
+              type="number"
+            />
+          </div>
+
+          {/* Issued date */}
+          <div className="grid grid-cols-3 gap-2">
+            <FormField
+              label="Issued Day"
+              value={data.cert_issued_day}
+              onChange={(v) => update("cert_issued_day", v)}
+              type="number"
+            />
+            <FormSelect
+              label="Issued Month"
+              value={data.cert_issued_month}
+              onChange={(v) => update("cert_issued_month", v)}
+              options={MONTH_OPTIONS}
+            />
+            <FormField
+              label="Issued Year"
+              value={data.cert_issued_year}
+              onChange={(v) => update("cert_issued_year", v)}
+              type="number"
+            />
+          </div>
         </div>
 
-        {/* Issued date */}
-        <div className="grid grid-cols-[1fr_1fr_1fr_3fr] gap-2">
-          <FormField
-            label="Issued Day"
-            value={data.cert_issued_day}
-            onChange={(v) => update("cert_issued_day", v)}
-            type="number"
-          />
-          <FormSelect
-            label="Issued Month"
-            value={data.cert_issued_month}
-            onChange={(v) => update("cert_issued_month", v)}
-            options={MONTH_OPTIONS}
-          />
-          <FormField
-            label="Issued Year"
-            value={data.cert_issued_year}
-            onChange={(v) => update("cert_issued_year", v)}
-            type="number"
-          />
-          <div />
-        </div>
-
-        {/* Certificate number */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Certificate number — full width */}
+        <div>
           <FormField
             label="Certificate Number"
             value={data.cert_number}
             onChange={(v) => update("cert_number", v)}
           />
-          <div />
         </div>
 
-        {/* Physician details */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Physician details — 2 columns */}
+        <div className="grid grid-cols-2 gap-6">
           <FormField
             label="Physician's Name and Registration"
             value={data.physician_name}

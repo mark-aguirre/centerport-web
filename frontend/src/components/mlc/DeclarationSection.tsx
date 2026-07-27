@@ -3,6 +3,8 @@
 import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { ClipboardCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { createFieldUpdater } from "./utils";
 import type { MlcRecord, MlcSectionProps, YesNo, VisualAid } from "./types";
 
 /** Y/N condition questions for the declaration */
@@ -35,12 +37,22 @@ const DECLARATION_CONDITIONS: { field: keyof MlcRecord; label: string }[] = [
  * Captures: Y/N conditions (hearing, vision, ID docs), visual aids,
  * date of colour vision test, fit for look-out duties, limitations/restrictions,
  * and the applicant condition risk question.
+ *
+ * In read mode (disabled=true), all controls use pointer-events-none
+ * to keep values fully visible while preventing interaction.
  */
-export default function DeclarationSection({ data, onChange }: MlcSectionProps) {
+export default function DeclarationSection({
+  data,
+  onChange,
+  disabled,
+}: MlcSectionProps) {
+  const updateField = createFieldUpdater(data, onChange);
+
   const update = (field: keyof MlcRecord, value: string) =>
     onChange({ ...data, [field]: value });
 
   const toggleVisualAid = (aid: VisualAid) => {
+    if (disabled) return;
     const current = data.visual_aids ?? [];
     if (aid === "none") {
       onChange({ ...data, visual_aids: ["none"] });
@@ -69,7 +81,10 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                 {cond.label}
               </span>
               <div
-                className="flex items-center gap-3 shrink-0"
+                className={cn(
+                  "flex items-center gap-3 shrink-0",
+                  disabled && "pointer-events-none"
+                )}
                 role="radiogroup"
                 aria-label={cond.label}
               >
@@ -81,6 +96,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                     onChange={() => update(cond.field, "yes")}
                     className="w-3.5 h-3.5 accent-primary"
                     aria-label={`${cond.label} - Yes`}
+                    tabIndex={disabled ? -1 : undefined}
                   />
                   <span className="text-[10px] text-foreground/70">Yes</span>
                 </label>
@@ -92,6 +108,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                     onChange={() => update(cond.field, "no")}
                     className="w-3.5 h-3.5 accent-primary"
                     aria-label={`${cond.label} - No`}
+                    tabIndex={disabled ? -1 : undefined}
                   />
                   <span className="text-[10px] text-foreground/70">No</span>
                 </label>
@@ -106,7 +123,10 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
             <span className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
               Visual Aids (tick if worn):
             </span>
-            <div className="flex items-center gap-4">
+            <div className={cn(
+              "flex items-center gap-4",
+              disabled && "pointer-events-none"
+            )}>
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="radio"
@@ -115,6 +135,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                   onChange={() => toggleVisualAid("spectacles")}
                   className="w-3.5 h-3.5 accent-primary"
                   aria-label="Visual Aids - Spectacles"
+                  tabIndex={disabled ? -1 : undefined}
                 />
                 <span className="text-[10px] text-foreground/70">Spectacles</span>
               </label>
@@ -126,6 +147,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                   onChange={() => toggleVisualAid("contact_lenses")}
                   className="w-3.5 h-3.5 accent-primary"
                   aria-label="Visual Aids - Contact Lenses"
+                  tabIndex={disabled ? -1 : undefined}
                 />
                 <span className="text-[10px] text-foreground/70">Contact Lenses</span>
               </label>
@@ -137,6 +159,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                   onChange={() => toggleVisualAid("none")}
                   className="w-3.5 h-3.5 accent-primary"
                   aria-label="Visual Aids - None"
+                  tabIndex={disabled ? -1 : undefined}
                 />
                 <span className="text-[10px] text-foreground/70">None</span>
               </label>
@@ -145,13 +168,17 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
           <FormField
             label="Date of Last Colour Vision Test (DD/MM/YYYY)"
             value={data.date_colour_vision_test}
-            onChange={(v) => update("date_colour_vision_test", v)}
+            onChange={(v) => updateField("date_colour_vision_test", v)}
             type="date"
+            disabled={disabled}
           />
         </div>
 
         {/* Fit for Look-Out Duties */}
-        <div className="flex items-center gap-3">
+        <div className={cn(
+          "flex items-center gap-3",
+          disabled && "pointer-events-none"
+        )}>
           <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wide shrink-0">
             Fit for Look-Out Duties:
           </span>
@@ -164,6 +191,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                 onChange={() => update("fit_for_lookout", "yes")}
                 className="w-3.5 h-3.5 accent-primary"
                 aria-label="Fit for Look-Out Duties - Yes"
+                tabIndex={disabled ? -1 : undefined}
               />
               <span className="text-[10px] text-foreground/70">Yes</span>
             </label>
@@ -175,6 +203,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                 onChange={() => update("fit_for_lookout", "no")}
                 className="w-3.5 h-3.5 accent-primary"
                 aria-label="Fit for Look-Out Duties - No"
+                tabIndex={disabled ? -1 : undefined}
               />
               <span className="text-[10px] text-foreground/70">No</span>
             </label>
@@ -183,7 +212,10 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
 
         {/* Limitations or Restrictions */}
         <div className="space-y-1">
-          <div className="flex items-center justify-between">
+          <div className={cn(
+            "flex items-center justify-between",
+            disabled && "pointer-events-none"
+          )}>
             <span className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
               No limitations or restrictions on fitness? If &apos;No&apos; specify limitations or restrictions:
             </span>
@@ -196,6 +228,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                   onChange={() => update("no_limitations", "yes")}
                   className="w-3.5 h-3.5 accent-primary"
                   aria-label="No limitations - Yes"
+                  tabIndex={disabled ? -1 : undefined}
                 />
                 <span className="text-[10px] text-foreground/70">Yes</span>
               </label>
@@ -207,6 +240,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                   onChange={() => update("no_limitations", "no")}
                   className="w-3.5 h-3.5 accent-primary"
                   aria-label="No limitations - No"
+                  tabIndex={disabled ? -1 : undefined}
                 />
                 <span className="text-[10px] text-foreground/70">No</span>
               </label>
@@ -214,10 +248,15 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
           </div>
           <textarea
             value={data.limitations_details}
-            onChange={(e) => update("limitations_details", e.target.value)}
+            onChange={(e) => updateField("limitations_details", e.target.value)}
             placeholder="Specify limitations or restrictions if NO..."
-            className="w-full h-16 text-xs bg-white border border-primary/20 rounded px-2 py-1.5 focus:outline-none focus:border-primary dark:bg-input/30 resize-none"
+            className={cn(
+              "w-full h-16 text-xs bg-white border border-primary/20 rounded px-2 py-1.5",
+              "focus:outline-none focus:border-primary dark:bg-input/30 resize-none",
+              disabled && "pointer-events-none"
+            )}
             aria-label="Limitations or restrictions details"
+            readOnly={disabled}
           />
         </div>
 
@@ -226,7 +265,10 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
           <span className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider leading-tight block">
             Is applicant suffering from any medical condition likely to be aggravated by service at sea or to render the seafarer unfit for such service or to endanger the health of other persons on board?
           </span>
-          <div className="flex items-center gap-3" role="radiogroup" aria-label="Applicant condition risk">
+          <div className={cn(
+            "flex items-center gap-3",
+            disabled && "pointer-events-none"
+          )} role="radiogroup" aria-label="Applicant condition risk">
             <label className="flex items-center gap-1 cursor-pointer">
               <input
                 type="radio"
@@ -235,6 +277,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                 onChange={() => update("applicant_condition_risk", "yes")}
                 className="w-3.5 h-3.5 accent-primary"
                 aria-label="Applicant condition risk - Yes"
+                tabIndex={disabled ? -1 : undefined}
               />
               <span className="text-[10px] text-foreground/70">Yes</span>
             </label>
@@ -246,6 +289,7 @@ export default function DeclarationSection({ data, onChange }: MlcSectionProps) 
                 onChange={() => update("applicant_condition_risk", "no")}
                 className="w-3.5 h-3.5 accent-primary"
                 aria-label="Applicant condition risk - No"
+                tabIndex={disabled ? -1 : undefined}
               />
               <span className="text-[10px] text-foreground/70">No</span>
             </label>

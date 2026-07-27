@@ -73,8 +73,9 @@ export function FormField({
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        disabled={disabled}
-        className={sizeStyles[size]}
+        readOnly={disabled}
+        tabIndex={disabled ? -1 : undefined}
+        className={cn(sizeStyles[size], disabled && "pointer-events-none")}
       />
     </div>
   );

@@ -1,7 +1,9 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 /**
@@ -13,13 +15,26 @@ import type { MedicalExam, MedicalSectionProps } from "./types";
  *
  * @see PhysicalExaminationSection — parent orchestrator
  */
-export function FinalRecommendationSection({ data, onChange }: MedicalSectionProps) {
+export function FinalRecommendationSection({ data, onChange, disabled }: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
+  /** Set all certification results to "passed". */
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      cert_basic_ooh: "passed",
+      cert_additional_labs: "passed",
+      cert_flagpost: "passed",
+    });
+  };
+
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-      <SectionHeader title="Final Recommendation" />
+    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
+      <SectionHeader
+        title="Final Recommendation"
+        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+      />
       <div className="space-y-3">
         {/* Remarks */}
         <div className="space-y-1">
@@ -28,6 +43,8 @@ export function FinalRecommendationSection({ data, onChange }: MedicalSectionPro
             value={data.recommendation_remarks}
             onChange={(e) => update("recommendation_remarks", e.target.value)}
             className="w-full h-16 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus:border-primary dark:bg-input/30 resize-none"
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
           />
         </div>
 

@@ -13,7 +13,6 @@
  * - `onChange` — fires when user selects a radio option
  *
  * @see PhysicalExaminationSection — Past Medical History grid
- * @see MedicalHistorySection — Medical History condition grid
  */
 interface YesNoRadioRowProps {
   /** Display label for the condition */

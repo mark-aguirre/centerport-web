@@ -164,61 +164,7 @@ class EnumSerializationTest {
         }
     }
 
-    // --- LabStatus ---
-    @Nested
-    class LabStatusTest {
-        @Test
-        void shouldSerializeToFrontendLiteral() throws Exception {
-            assertThat(objectMapper.writeValueAsString(LabStatus.NORMAL)).isEqualTo("\"normal\"");
-            assertThat(objectMapper.writeValueAsString(LabStatus.WITH_FINDINGS)).isEqualTo("\"with_findings\"");
-            assertThat(objectMapper.writeValueAsString(LabStatus.PENDING)).isEqualTo("\"pending\"");
-        }
 
-        @Test
-        void shouldDeserializeFromFrontendLiteral() throws Exception {
-            assertThat(objectMapper.readValue("\"with_findings\"", LabStatus.class)).isEqualTo(LabStatus.WITH_FINDINGS);
-        }
-
-        @Test
-        void shouldDeserializeEmptyStringToNull() throws Exception {
-            assertThat(objectMapper.readValue("\"\"", LabStatus.class)).isNull();
-        }
-
-        @Test
-        void shouldThrowOnInvalidValue() {
-            assertThatThrownBy(() -> objectMapper.readValue("\"done\"", LabStatus.class))
-                    .hasCauseInstanceOf(IllegalArgumentException.class);
-        }
-    }
-
-    // --- ConsultationStatus ---
-    @Nested
-    class ConsultationStatusTest {
-        @Test
-        void shouldSerializeToFrontendLiteral() throws Exception {
-            assertThat(objectMapper.writeValueAsString(ConsultationStatus.FOR_FOLLOW_UP)).isEqualTo("\"For Follow-up\"");
-            assertThat(objectMapper.writeValueAsString(ConsultationStatus.CLEARED)).isEqualTo("\"Cleared\"");
-            assertThat(objectMapper.writeValueAsString(ConsultationStatus.REFERRED)).isEqualTo("\"Referred\"");
-            assertThat(objectMapper.writeValueAsString(ConsultationStatus.PENDING)).isEqualTo("\"Pending\"");
-        }
-
-        @Test
-        void shouldDeserializeFromFrontendLiteral() throws Exception {
-            assertThat(objectMapper.readValue("\"For Follow-up\"", ConsultationStatus.class))
-                    .isEqualTo(ConsultationStatus.FOR_FOLLOW_UP);
-        }
-
-        @Test
-        void shouldDeserializeEmptyStringToNull() throws Exception {
-            assertThat(objectMapper.readValue("\"\"", ConsultationStatus.class)).isNull();
-        }
-
-        @Test
-        void shouldThrowOnInvalidValue() {
-            assertThatThrownBy(() -> objectMapper.readValue("\"Done\"", ConsultationStatus.class))
-                    .hasCauseInstanceOf(IllegalArgumentException.class);
-        }
-    }
 
     // --- YesNo ---
     @Nested

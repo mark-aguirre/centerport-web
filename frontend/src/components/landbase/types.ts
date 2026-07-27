@@ -56,6 +56,9 @@ export interface LandbasePeme {
   created_date?: string;
   updated_date?: string;
 
+  // Seafarer Profile link (required on create)
+  seafarer_profile_id?: string;
+
   // Personal Information
   last_name: string;
   first_name: string;
@@ -136,3 +139,66 @@ export interface LandbaseSectionProps {
   /** When true, all fields in this section are read-only (view mode) */
   disabled?: boolean;
 }
+
+/**
+ * Default empty PEME record used for form initialization and reset.
+ *
+ * All string fields default to empty string, booleans to false,
+ * and objects to empty. Used by `useLandbaseForm` for new records
+ * and cancel-to-empty flows.
+ */
+export const EMPTY_PEME: LandbasePeme = {
+  seafarer_profile_id: undefined,
+  last_name: "",
+  first_name: "",
+  middle_name: "",
+  place_of_birth: "",
+  passport_no: "",
+  religion: "",
+  nationality: "",
+  gender: "",
+  civil_status: "",
+  address: "",
+  contact_no: "",
+  employer: "",
+  position: "",
+  medical_history: {},
+  medical_history_others: "",
+  consulted_doctor: false,
+  maintenance_medications: "",
+  questionnaire_1: "",
+  questionnaire_2: "",
+  questionnaire_3: "",
+  questionnaire_4: "",
+  questionnaire_5: "",
+  questionnaire_6: "",
+  questionnaire_7: "",
+  questionnaire_comments: "",
+  questionnaire_8: "",
+  questionnaire_8_details: "",
+  xray_no: "",
+  chest_xray: "",
+  cbc: "",
+  cec: "",
+  pregnancy_test: "",
+  urinalysis: "",
+  stool_exam: "",
+  hbsag: "",
+  hiv_aids_test: "",
+  apb: "",
+  blood_type: "",
+  drug_test: "",
+  psychological_test: "",
+  additional_tests: "",
+  remarks: "",
+  basic_peme_result: "",
+  additional_lab_result: "",
+  flag_medical_lab_result: "",
+  recommendation: "",
+  date_initial_peme: "",
+  date_of_fitness: "",
+  valid_until: "",
+  authorized_physician: "",
+  medical_certification_no: "",
+  medical_director: "",
+};

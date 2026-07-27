@@ -2,9 +2,11 @@
 
 import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
+import { FormAutocomplete } from "@/components/common/form-autocomplete";
 import { FormSelect } from "@/components/common/form-select";
 import PhotoUpload from "./PhotoUpload";
 import { User } from "lucide-react";
+import { NATIONALITIES, RELIGIONS, CITIES } from "@/lib/suggestions";
 import type { SeafarerProfile } from "@/lib/api";
 import type { ProfileSectionProps } from "./types";
 
@@ -80,10 +82,11 @@ export default function PersonalInfoSection({
               disabled={disabled}
               size="sm"
             />
-            <FormField
+            <FormAutocomplete
               label="City"
               value={data.city}
               onChange={(v) => update("city", v)}
+              suggestions={CITIES}
               disabled={disabled}
               size="sm"
             />
@@ -123,24 +126,27 @@ export default function PersonalInfoSection({
             />
           </div>
           <div className="grid grid-cols-4 gap-2">
-            <FormField
+            <FormAutocomplete
               label="Place of Birth"
               value={data.place_of_birth}
               onChange={(v) => update("place_of_birth", v)}
+              suggestions={CITIES}
               disabled={disabled}
               size="sm"
             />
-            <FormField
+            <FormAutocomplete
               label="Religion"
               value={data.religion}
               onChange={(v) => update("religion", v)}
+              suggestions={RELIGIONS}
               disabled={disabled}
               size="sm"
             />
-            <FormField
+            <FormAutocomplete
               label="Nationality"
               value={data.nationality}
               onChange={(v) => update("nationality", v)}
+              suggestions={NATIONALITIES}
               disabled={disabled}
               size="sm"
             />

@@ -1,14 +1,17 @@
 package com.centerport.landbase;
 
+import com.centerport.profile.SeafarerProfile;
+import com.centerport.profile.SeafarerProfileDto;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 import javax.annotation.processing.Generated;
 import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-07-26T09:35:25+0800",
-    comments = "version: 1.6.3, compiler: javac, environment: Java 21.0.11 (Amazon.com Inc.)"
+    date = "2026-07-27T09:39:07+0800",
+    comments = "version: 1.6.3, compiler: Eclipse JDT (IDE) 3.46.100.v20260624-0231, environment: Java 21.0.11 (Eclipse Adoptium)"
 )
 @Component
 public class LandbasePemeMapperImpl implements LandbasePemeMapper {
@@ -21,23 +24,12 @@ public class LandbasePemeMapperImpl implements LandbasePemeMapper {
 
         LandbasePemeDto landbasePemeDto = new LandbasePemeDto();
 
+        landbasePemeDto.setSeafarerProfileId( entitySeafarerProfileId( entity ) );
+        landbasePemeDto.setSeafarerProfile( profileToDto( entity.getSeafarerProfile() ) );
         landbasePemeDto.setId( entity.getId() );
         landbasePemeDto.setPemeId( entity.getPemeId() );
         landbasePemeDto.setCreatedDate( entity.getCreatedDate() );
         landbasePemeDto.setUpdatedDate( entity.getUpdatedDate() );
-        landbasePemeDto.setLastName( entity.getLastName() );
-        landbasePemeDto.setFirstName( entity.getFirstName() );
-        landbasePemeDto.setMiddleName( entity.getMiddleName() );
-        landbasePemeDto.setPlaceOfBirth( entity.getPlaceOfBirth() );
-        landbasePemeDto.setPassportNo( entity.getPassportNo() );
-        landbasePemeDto.setReligion( entity.getReligion() );
-        landbasePemeDto.setNationality( entity.getNationality() );
-        landbasePemeDto.setGender( entity.getGender() );
-        landbasePemeDto.setCivilStatus( entity.getCivilStatus() );
-        landbasePemeDto.setAddress( entity.getAddress() );
-        landbasePemeDto.setContactNo( entity.getContactNo() );
-        landbasePemeDto.setEmployer( entity.getEmployer() );
-        landbasePemeDto.setPosition( entity.getPosition() );
         Map<String, String> map = entity.getMedicalHistory();
         if ( map != null ) {
             landbasePemeDto.setMedicalHistory( new LinkedHashMap<String, String>( map ) );
@@ -85,6 +77,66 @@ public class LandbasePemeMapperImpl implements LandbasePemeMapper {
     }
 
     @Override
+    public SeafarerProfileDto profileToDto(SeafarerProfile profile) {
+        if ( profile == null ) {
+            return null;
+        }
+
+        SeafarerProfileDto seafarerProfileDto = new SeafarerProfileDto();
+
+        seafarerProfileDto.setId( profile.getId() );
+        seafarerProfileDto.setProfileId( profile.getProfileId() );
+        seafarerProfileDto.setCreatedDate( profile.getCreatedDate() );
+        seafarerProfileDto.setUpdatedDate( profile.getUpdatedDate() );
+        seafarerProfileDto.setCreatedBy( profile.getCreatedBy() );
+        seafarerProfileDto.setPhotoUrl( profile.getPhotoUrl() );
+        seafarerProfileDto.setLastName( profile.getLastName() );
+        seafarerProfileDto.setFirstName( profile.getFirstName() );
+        seafarerProfileDto.setMiddleName( profile.getMiddleName() );
+        seafarerProfileDto.setAddress( profile.getAddress() );
+        seafarerProfileDto.setCity( profile.getCity() );
+        seafarerProfileDto.setContactNo( profile.getContactNo() );
+        seafarerProfileDto.setBirthdate( profile.getBirthdate() );
+        seafarerProfileDto.setAge( profile.getAge() );
+        seafarerProfileDto.setGender( profile.getGender() );
+        seafarerProfileDto.setMaritalStatus( profile.getMaritalStatus() );
+        seafarerProfileDto.setPlaceOfBirth( profile.getPlaceOfBirth() );
+        seafarerProfileDto.setReligion( profile.getReligion() );
+        seafarerProfileDto.setNationality( profile.getNationality() );
+        seafarerProfileDto.setCountry( profile.getCountry() );
+        seafarerProfileDto.setEmployer( profile.getEmployer() );
+        seafarerProfileDto.setDesignation( profile.getDesignation() );
+        seafarerProfileDto.setPassportNo( profile.getPassportNo() );
+        seafarerProfileDto.setSeamansBookNo( profile.getSeamansBookNo() );
+        seafarerProfileDto.setPosition( profile.getPosition() );
+        seafarerProfileDto.setCountryOfDestination( profile.getCountryOfDestination() );
+        seafarerProfileDto.setFatherName( profile.getFatherName() );
+        seafarerProfileDto.setFatherOccupation( profile.getFatherOccupation() );
+        seafarerProfileDto.setMotherName( profile.getMotherName() );
+        seafarerProfileDto.setMotherOccupation( profile.getMotherOccupation() );
+        seafarerProfileDto.setNoOfBrothers( profile.getNoOfBrothers() );
+        seafarerProfileDto.setNoOfSisters( profile.getNoOfSisters() );
+        seafarerProfileDto.setBirthOrder( profile.getBirthOrder() );
+        seafarerProfileDto.setSpouseName( profile.getSpouseName() );
+        seafarerProfileDto.setSpouseOccupation( profile.getSpouseOccupation() );
+        seafarerProfileDto.setNoOfChildren( profile.getNoOfChildren() );
+        seafarerProfileDto.setElementary( profile.getElementary() );
+        seafarerProfileDto.setHighSchool( profile.getHighSchool() );
+        seafarerProfileDto.setCollegeUniversity( profile.getCollegeUniversity() );
+        seafarerProfileDto.setCourse( profile.getCourse() );
+        seafarerProfileDto.setHighestLevelAttended( profile.getHighestLevelAttended() );
+        seafarerProfileDto.setPrevDateStarted( profile.getPrevDateStarted() );
+        seafarerProfileDto.setPrevDateEnd( profile.getPrevDateEnd() );
+        seafarerProfileDto.setPrevLengthOfStay( profile.getPrevLengthOfStay() );
+        seafarerProfileDto.setPrevCompany( profile.getPrevCompany() );
+        seafarerProfileDto.setPrevPosition( profile.getPrevPosition() );
+        seafarerProfileDto.setPrevReasonOfLeaving( profile.getPrevReasonOfLeaving() );
+        seafarerProfileDto.setRemark( profile.getRemark() );
+
+        return seafarerProfileDto;
+    }
+
+    @Override
     public LandbasePeme toEntity(LandbasePemeDto dto) {
         if ( dto == null ) {
             return null;
@@ -92,23 +144,6 @@ public class LandbasePemeMapperImpl implements LandbasePemeMapper {
 
         LandbasePeme landbasePeme = new LandbasePeme();
 
-        landbasePeme.setId( dto.getId() );
-        landbasePeme.setCreatedDate( dto.getCreatedDate() );
-        landbasePeme.setUpdatedDate( dto.getUpdatedDate() );
-        landbasePeme.setPemeId( dto.getPemeId() );
-        landbasePeme.setLastName( dto.getLastName() );
-        landbasePeme.setFirstName( dto.getFirstName() );
-        landbasePeme.setMiddleName( dto.getMiddleName() );
-        landbasePeme.setPlaceOfBirth( dto.getPlaceOfBirth() );
-        landbasePeme.setPassportNo( dto.getPassportNo() );
-        landbasePeme.setReligion( dto.getReligion() );
-        landbasePeme.setNationality( dto.getNationality() );
-        landbasePeme.setGender( dto.getGender() );
-        landbasePeme.setCivilStatus( dto.getCivilStatus() );
-        landbasePeme.setAddress( dto.getAddress() );
-        landbasePeme.setContactNo( dto.getContactNo() );
-        landbasePeme.setEmployer( dto.getEmployer() );
-        landbasePeme.setPosition( dto.getPosition() );
         Map<String, String> map = dto.getMedicalHistory();
         if ( map != null ) {
             landbasePeme.setMedicalHistory( new LinkedHashMap<String, String>( map ) );
@@ -161,19 +196,6 @@ public class LandbasePemeMapperImpl implements LandbasePemeMapper {
             return;
         }
 
-        entity.setLastName( dto.getLastName() );
-        entity.setFirstName( dto.getFirstName() );
-        entity.setMiddleName( dto.getMiddleName() );
-        entity.setPlaceOfBirth( dto.getPlaceOfBirth() );
-        entity.setPassportNo( dto.getPassportNo() );
-        entity.setReligion( dto.getReligion() );
-        entity.setNationality( dto.getNationality() );
-        entity.setGender( dto.getGender() );
-        entity.setCivilStatus( dto.getCivilStatus() );
-        entity.setAddress( dto.getAddress() );
-        entity.setContactNo( dto.getContactNo() );
-        entity.setEmployer( dto.getEmployer() );
-        entity.setPosition( dto.getPosition() );
         if ( entity.getMedicalHistory() != null ) {
             Map<String, String> map = dto.getMedicalHistory();
             if ( map != null ) {
@@ -228,5 +250,13 @@ public class LandbasePemeMapperImpl implements LandbasePemeMapper {
         entity.setAuthorizedPhysician( dto.getAuthorizedPhysician() );
         entity.setMedicalCertificationNo( dto.getMedicalCertificationNo() );
         entity.setMedicalDirector( dto.getMedicalDirector() );
+    }
+
+    private UUID entitySeafarerProfileId(LandbasePeme landbasePeme) {
+        SeafarerProfile seafarerProfile = landbasePeme.getSeafarerProfile();
+        if ( seafarerProfile == null ) {
+            return null;
+        }
+        return seafarerProfile.getId();
     }
 }

@@ -1,0 +1,12 @@
+C:\code_area\centerport\backend\src\test\java\com\centerport\BusinessIdConcurrencyTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\common\BusinessIdGeneratorTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\common\enums\EnumSerializationTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\config\JacksonConfigTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\ContractVerificationTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\landbase\LandbasePemeControllerTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\medical\MedicalExamControllerTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\mlc\MlcRecordControllerTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\panama\PanamaCertificateControllerTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\profile\SeafarerProfileControllerTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\profile\SeafarerProfileIntegrationTest.java
+C:\code_area\centerport\backend\src\test\java\com\centerport\upload\FileUploadControllerTest.java

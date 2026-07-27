@@ -1,9 +1,11 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormSelect } from "@/components/common/form-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 /**
@@ -15,17 +17,40 @@ import type { MedicalExam, MedicalSectionProps } from "./types";
  *
  * @see PhysicalExaminationSection — parent orchestrator
  */
-export function AncillaryExamsSection({ data, onChange }: MedicalSectionProps) {
+export function AncillaryExamsSection({ data, onChange, disabled }: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
+  /** Set all ancillary exam fields to normal/healthy defaults. */
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      xray_no: data.xray_no, // preserve x-ray number
+      ancillary_chest_xray: "normal",
+      ancillary_ecg: "normal",
+      ancillary_cbc: "normal",
+      ancillary_urinalysis: "normal",
+      ancillary_stool_exam: "normal",
+      ancillary_hbsag: "non_reactive",
+      ancillary_hiv_aids: "non_reactive",
+      ancillary_rpr: "non_reactive",
+      ancillary_pregnancy_test: "N/A",
+      ancillary_psychological_test: "recommended",
+      ancillary_additional_tests: "",
+    });
+  };
+
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-      <SectionHeader title="Result of Ancillary Examinations" subtitle="Check appropriate box" />
+    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
+      <SectionHeader
+        title="Result of Ancillary Examinations"
+        subtitle="Check appropriate box"
+        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+      />
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">X-ray No.:</Label>
-          <Input value={data.xray_no} onChange={(e) => update("xray_no", e.target.value)} className="h-7 text-xs w-24" />
+          <Input value={data.xray_no} onChange={(e) => update("xray_no", e.target.value)} className="h-7 text-xs w-24" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2">
@@ -107,7 +132,7 @@ export function AncillaryExamsSection({ data, onChange }: MedicalSectionProps) {
         {/* Additional Tests */}
         <div className="flex items-center gap-2 pt-1">
           <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Additional Test (Specify):</Label>
-          <Input value={data.ancillary_additional_tests} onChange={(e) => update("ancillary_additional_tests", e.target.value)} className="h-7 text-xs flex-1" placeholder="e.g Blood Chemistries, Drug Tests, Alcohol Tests, Liver Function Test, Stool Culture, etc." />
+          <Input value={data.ancillary_additional_tests} onChange={(e) => update("ancillary_additional_tests", e.target.value)} className="h-7 text-xs flex-1" placeholder="e.g Blood Chemistries, Drug Tests, Alcohol Tests, Liver Function Test, Stool Culture, etc." readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
         </div>
       </div>
     </div>

@@ -146,9 +146,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     // --- File Upload ---
 
-    @ExceptionHandler(MaxUploadSizeExceededException.class)
-    public org.springframework.http.ResponseEntity<Object> handleMaxUploadSize(
-            MaxUploadSizeExceededException ex) {
+    @Override
+    protected org.springframework.http.ResponseEntity<Object> handleMaxUploadSizeExceededException(
+            MaxUploadSizeExceededException ex,
+            HttpHeaders headers,
+            HttpStatusCode status,
+            WebRequest request) {
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.BAD_REQUEST, "File size exceeds the maximum allowed upload size");

@@ -1,15 +1,18 @@
 "use client";
 
 import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import PersonalInfoSection from "@/components/medical/PersonalInfoSection";
 import PhysicalExaminationSection from "@/components/medical/PhysicalExaminationSection";
+
 import { useMedicalForm } from "@/hooks/use-medical-form";
 import { PageContainer } from "@/components/common/page-container";
 import { FormToolbar } from "@/components/common/form-toolbar";
 import type { MedicalSectionProps } from "@/components/medical/types";
+import type { SearchResultItem } from "@/components/common/form-toolbar";
 
 /**
  * Registry entry for a form section rendered on the Medical Examination page.
@@ -48,6 +51,11 @@ function MedicalFormContent() {
     handleCancel,
     handleSave,
     handlePrint,
+    searchResults,
+    searchLoading,
+    handleSearch,
+    handleSelectResult,
+    saveAlert,
   } = useMedicalForm();
 
   if (loading) {
@@ -59,7 +67,7 @@ function MedicalFormContent() {
   }
 
   return (
-    <PageContainer className="max-w-7xl">
+    <PageContainer>
       <FormToolbar
         editing={editing}
         saving={saving}
@@ -71,10 +79,21 @@ function MedicalFormContent() {
         }}
         onSave={handleSave}
         onCancel={handleCancel}
-        onEdit={handleEdit}
+        onEdit={data.last_name ? handleEdit : undefined}
         onNew={handleNew}
         onPrint={handlePrint}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+        searchLoading={searchLoading}
+        onSelectResult={handleSelectResult as (result: SearchResultItem) => void}
       />
+
+      {saveAlert && (
+        <Alert variant="destructive" className="mt-3">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{saveAlert}</AlertDescription>
+        </Alert>
+      )}
 
       {/* Section Cards */}
       <div className="space-y-3">

@@ -53,6 +53,9 @@ const MEDICAL_GRID_OVERRIDES: Record<number, string> = {
  * with medical-specific fields: name, place of birth, passport,
  * religion, nationality, gender, civil status, DOB, age, contact,
  * address, employer, and position.
+ *
+ * Personal information is always read-only in the medical context.
+ * Only the /profile page is allowed to edit personal information.
  */
 export default function MedicalPersonalInfoSection({
   data,
@@ -64,6 +67,7 @@ export default function MedicalPersonalInfoSection({
       onChange={onChange}
       rows={MEDICAL_PERSONAL_ROWS}
       gridOverrides={MEDICAL_GRID_OVERRIDES}
+      disabled={true}
     />
   );
 }

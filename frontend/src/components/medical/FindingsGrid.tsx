@@ -1,5 +1,7 @@
 "use client";
 
+import { SetNormalButton } from "@/components/common/set-normal-button";
+import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 /** Findings Column A — body systems */
@@ -57,14 +59,31 @@ const COLUMNS: ColumnConfig[] = [
  *
  * @see PhysicalExaminationSection — parent orchestrator
  */
-export function FindingsGrid({ data, onChange }: MedicalSectionProps) {
+export function FindingsGrid({ data, onChange, disabled }: MedicalSectionProps) {
   const updateFinding = (col: FindingsColumn, item: string, checked: boolean) => {
     const updated: Record<string, boolean> = { ...data[col], [item]: checked };
     onChange({ ...data, [col]: updated } as MedicalExam);
   };
 
+  /** Set all findings in A, B, C to normal (checked = true). */
+  const handleSetNormal = () => {
+    const normalA: Record<string, boolean> = {};
+    const normalB: Record<string, boolean> = {};
+    const normalC: Record<string, boolean> = {};
+    FINDINGS_A.forEach((item) => { normalA[item] = true; });
+    FINDINGS_B.forEach((item) => { normalB[item] = true; });
+    FINDINGS_C.forEach((item) => { normalC[item] = true; });
+    onChange({ ...data, findings_a: normalA, findings_b: normalB, findings_c: normalC });
+  };
+
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
+    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">
+          Physical Examination Findings
+        </span>
+        <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
+      </div>
       <div className="grid grid-cols-3 gap-4">
         {COLUMNS.map(({ field, label, items }) => (
           <div key={field}>

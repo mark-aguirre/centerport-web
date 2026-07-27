@@ -1,0 +1,112 @@
+Test run started: Sun, Jul 26, 2026 10:13:47 PM
+Results will be saved to: test-results-20260726-221347.log
+
+[0;36m======================================================================[0m
+[0;36m  SEAFARER PROFILES (/api/profiles)[0m
+[0;36m======================================================================[0m
+
+[1;33m>>> 1. CREATE a new profile[0m
+  [0;32m[PASS][0m POST /api/profiles -> 201
+  [0;90mCreated ID: cadda98c-5f43-4458-98fa-2ecd8de7da43[0m
+
+[1;33m>>> 2. READ the created profile[0m
+  [0;32m[PASS][0m GET /api/profiles/cadda98c-5f43-4458-98fa-2ecd8de7da43 -> 200
+  [0;32m[PASS][0m Data integrity verified (last_name = Dela Cruz)
+
+[1;33m>>> 3. LIST all profiles (paginated)[0m
+  [0;32m[PASS][0m GET /api/profiles?page=0&size=5 -> 200
+  [0;90mTotal elements: 2[0m
+
+[1;33m>>> 4. UPDATE the profile[0m
+  [0;32m[PASS][0m PUT /api/profiles/cadda98c-5f43-4458-98fa-2ecd8de7da43 -> 200
+  [0;32m[PASS][0m Update verified (first_name = Juan Carlos)
+
+[1;33m>>> 5. DELETE the profile (expect 405 - not implemented)[0m
+  [0;32m[PASS][0m DELETE /api/profiles/cadda98c-5f43-4458-98fa-2ecd8de7da43 -> 405
+
+[0;36m======================================================================[0m
+[0;36m  MEDICAL EXAMS (/api/medical-exams)[0m
+[0;36m======================================================================[0m
+
+[1;33m>>> 1. CREATE a new medical exam[0m
+  [0;31m[FAIL][0m POST /api/medical-exams -> Expected 201, got 400
+  [0;90mCreated ID: [0m
+
+[1;33m>>> 2. READ the created medical exam[0m
+  [0;31m[FAIL][0m GET /api/medical-exams/ -> Expected 200, got 404
+  [0;31m[FAIL][0m Data mismatch on read
+
+[1;33m>>> 3. LIST all medical exams (paginated)[0m
+  [0;32m[PASS][0m GET /api/medical-exams?page=0&size=5 -> 200
+  [0;90mTotal elements: 0[0m
+
+[1;33m>>> 4. UPDATE the medical exam[0m
+  [0;31m[FAIL][0m PUT /api/medical-exams/ -> Expected 200, got 404
+  [0;31m[FAIL][0m Update not reflected
+
+[1;33m>>> 5. DELETE the medical exam (expect 405 - not implemented)[0m
+  [0;31m[FAIL][0m DELETE /api/medical-exams/ -> Expected 405, got 404
+
+[0;36m======================================================================[0m
+[0;36m  LANDBASE PEMEs (/api/landbase-pemes)[0m
+[0;36m======================================================================[0m
+
+[1;33m>>> 1. CREATE a new landbase PEME[0m
+  [0;31m[FAIL][0m POST /api/landbase-pemes -> Expected 201, got 400
+  [0;90mCreated ID: [0m
+
+[1;33m>>> 2. READ the created PEME[0m
+  [0;31m[FAIL][0m GET /api/landbase-pemes/ -> Expected 200, got 404
+  [0;31m[FAIL][0m Data mismatch on read
+
+[1;33m>>> 3. LIST all landbase PEMEs (paginated)[0m
+  [0;32m[PASS][0m GET /api/landbase-pemes?page=0&size=5 -> 200
+  [0;90mTotal elements: 1[0m
+
+[1;33m>>> 4. UPDATE the PEME[0m
+  [0;31m[FAIL][0m PUT /api/landbase-pemes/ -> Expected 200, got 404
+  [0;31m[FAIL][0m Update not reflected
+
+[1;33m>>> 5. DELETE the PEME (expect 405 - not implemented)[0m
+  [0;31m[FAIL][0m DELETE /api/landbase-pemes/ -> Expected 405, got 404
+
+[0;36m======================================================================[0m
+[0;36m  MLC RECORDS (/api/mlc-records)[0m
+[0;36m======================================================================[0m
+
+[1;33m>>> 1. CREATE a new MLC record[0m
+  [0;31m[FAIL][0m POST /api/mlc-records -> Expected 201, got 400
+  [0;90mCreated ID: [0m
+
+[1;33m>>> 2. READ the created MLC record[0m
+  [0;31m[FAIL][0m GET /api/mlc-records/ -> Expected 200, got 404
+  [0;31m[FAIL][0m Data mismatch on read
+
+[1;33m>>> 3. LIST all MLC records (paginated)[0m
+  [0;32m[PASS][0m GET /api/mlc-records?page=0&size=5 -> 200
+  [0;90mTotal elements: 0[0m
+
+[1;33m>>> 4. UPDATE the MLC record[0m
+  [0;31m[FAIL][0m PUT /api/mlc-records/ -> Expected 200, got 404
+  [0;31m[FAIL][0m Update not reflected
+
+[1;33m>>> 5. DELETE the MLC record (expect 405 - not implemented)[0m
+  [0;31m[FAIL][0m DELETE /api/mlc-records/ -> Expected 405, got 404
+
+[0;36m======================================================================[0m
+[0;36m  PANAMA CERTIFICATES (/api/panama-certificates)[0m
+[0;36m======================================================================[0m
+
+[1;33m>>> 1. CREATE a new Panama certificate[0m
+  [0;31m[FAIL][0m POST /api/panama-certificates -> Expected 201, got 400
+  [0;90mCreated ID: [0m
+
+[1;33m>>> 2. READ the created Panama certificate[0m
+  [0;31m[FAIL][0m GET /api/panama-certificates/ -> Expected 200, got 404
+  [0;31m[FAIL][0m Data mismatch on read
+
+[1;33m>>> 3. LIST all Panama certificates (paginated)[0m
+  [0;32m[PASS][0m GET /api/panama-certificates?page=0&size=5 -> 200
+  [0;90mTotal elements: 0[0m
+
+[1;33m>>> 4. UPDATE the Panama certificate[0m

@@ -4,6 +4,7 @@ import com.centerport.common.dto.ApiResponse;
 import com.centerport.common.dto.PagedResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -37,22 +38,26 @@ public class SeafarerProfileController {
 
     /**
      * Returns paginated profiles sorted by creation date descending.
+     * Optionally filters by a search term matching last name, first name, or profile ID.
      *
+     * @param search   optional keyword to filter profiles (case-insensitive partial match)
      * @param pageable pagination and sorting parameters
      * @return paged list of profiles
      */
     @GetMapping
-    @Operation(summary = "List all profiles with pagination",
-               description = "Returns paginated seafarer profiles. Default sort: createdDate DESC.")
+    @Operation(summary = "List all profiles with pagination and optional search",
+               description = "Returns paginated seafarer profiles. Optionally filter by name or profile ID. Default sort: createdDate DESC.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Profiles retrieved")
     })
     public ResponseEntity<ApiResponse<PagedResponse<SeafarerProfileDto>>> list(
+            @Parameter(description = "Search keyword — matches last name, first name, or profile ID (case-insensitive)")
+            @RequestParam(required = false) String search,
             @ParameterObject
             @PageableDefault(size = 20, sort = "createdDate", direction = Sort.Direction.DESC)
             Pageable pageable) {
 
-        PagedResponse<SeafarerProfileDto> page = service.findAll(pageable);
+        PagedResponse<SeafarerProfileDto> page = service.findAll(search, pageable);
         return ResponseEntity.ok(ApiResponse.success(page));
     }
 
