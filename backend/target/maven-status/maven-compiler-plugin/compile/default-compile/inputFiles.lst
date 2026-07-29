@@ -79,3 +79,9 @@ C:\code_area\centerport\backend\src\main\java\com\centerport\profile\SeafarerPro
 C:\code_area\centerport\backend\src\main\java\com\centerport\upload\FileUploadController.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\upload\LocalStorageService.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\upload\StorageService.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\visit\PatientVisit.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\visit\PatientVisitController.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\visit\PatientVisitDto.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\visit\PatientVisitMapper.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\visit\PatientVisitRepository.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\visit\PatientVisitService.java

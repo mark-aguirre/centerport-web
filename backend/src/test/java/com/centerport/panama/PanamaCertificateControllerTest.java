@@ -151,7 +151,7 @@ class PanamaCertificateControllerTest {
                 .hasNext(false)
                 .hasPrevious(false)
                 .build();
-        when(service.findAll(any(Pageable.class))).thenReturn(pagedResponse);
+        when(service.findAll(any(String.class), any(Pageable.class))).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/panama-certificates"))
                 .andExpect(status().isOk())

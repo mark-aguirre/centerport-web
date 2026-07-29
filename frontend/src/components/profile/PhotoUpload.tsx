@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import Image from "next/image";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { Upload, User } from "lucide-react";
@@ -48,6 +48,8 @@ export default function PhotoUpload({
     try {
       const { file_url } = await api.integrations.Core.UploadFile({ file });
       onPhotoChange(file_url);
+    } catch {
+      toast.error("Failed to upload photo. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -59,6 +61,8 @@ export default function PhotoUpload({
     try {
       const { file_url } = await api.integrations.Core.UploadFile({ file });
       onPhotoChange(file_url);
+    } catch {
+      toast.error("Failed to upload captured photo. Please try again.");
     } finally {
       setUploading(false);
     }
@@ -68,7 +72,12 @@ export default function PhotoUpload({
     <div className="flex flex-col items-center gap-2">
       <div className="relative w-32 h-40 rounded border border-primary/20 overflow-hidden bg-secondary flex items-center justify-center flex-shrink-0">
         {photoUrl ? (
-          <Image src={resolvePhotoUrl(photoUrl)} alt="Profile" fill className="object-cover" unoptimized />
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={resolvePhotoUrl(photoUrl)}
+            alt="Profile"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
         ) : (
           <User className="w-12 h-12 text-primary/30" />
         )}

@@ -83,6 +83,29 @@ interface PagedResponse<T> {
   has_previous: boolean;
 }
 
+/**
+ * Patient visit record with joined profile display fields.
+ */
+export interface PatientVisitRecord {
+  id?: string;
+  visit_id?: string;
+  created_date?: string;
+  updated_date?: string;
+  seafarer_profile_id: string;
+  purpose_of_visit?: string;
+  sirb?: string;
+  visit_date?: string;
+  // Joined profile fields for display
+  profile_id?: string;
+  photo_url?: string;
+  last_name?: string;
+  first_name?: string;
+  middle_name?: string;
+  gender?: string;
+  employer?: string;
+  position?: string;
+}
+
 export const api = {
   entities: {
     SeafarerProfile: {
@@ -168,6 +191,24 @@ export const api = {
             size: limit,
             page: 0,
             sort: "updatedDate,desc",
+          }
+        );
+        return paged.content;
+      },
+
+      /**
+       * Fetch profiles created today (for the Visit page "today's encoded" list).
+       * Uses the createdDate filter on the backend with today's date.
+       */
+      async listToday(): Promise<SeafarerProfile[]> {
+        const today = new Date().toISOString().split("T")[0];
+        const paged = await httpClient.get<PagedResponse<SeafarerProfile>>(
+          "/api/profiles",
+          {
+            createdDate: today,
+            size: 200,
+            page: 0,
+            sort: "createdDate,desc",
           }
         );
         return paged.content;
@@ -559,6 +600,51 @@ export const api = {
         return httpClient.get<PanamaCertificate[]>(
           `/api/panama-certificates/by-profile/${profileId}`
         );
+      },
+    },
+
+    PatientVisit: {
+      /**
+       * List today's visits (or visits for a specific date).
+       * Returns visit records enriched with patient profile display data.
+       */
+      async listToday(date?: string): Promise<PatientVisitRecord[]> {
+        const queryDate = date ?? new Date().toISOString().split("T")[0];
+        const paged = await httpClient.get<PagedResponse<PatientVisitRecord>>(
+          "/api/visits",
+          {
+            date: queryDate,
+            size: 200,
+            page: 0,
+            sort: "createdDate,desc",
+          }
+        );
+        return paged.content;
+      },
+
+      /**
+       * Create a new patient visit record.
+       */
+      async create(data: {
+        seafarer_profile_id: string;
+        purpose_of_visit?: string;
+        sirb?: string;
+      }): Promise<PatientVisitRecord> {
+        return httpClient.post<PatientVisitRecord>("/api/visits", data);
+      },
+
+      /**
+       * Get a single visit by UUID.
+       */
+      async getById(id: string): Promise<PatientVisitRecord> {
+        return httpClient.get<PatientVisitRecord>(`/api/visits/${id}`);
+      },
+
+      /**
+       * Delete a visit record.
+       */
+      async delete(id: string): Promise<void> {
+        await httpClient.delete(`/api/visits/${id}`);
       },
     },
   },

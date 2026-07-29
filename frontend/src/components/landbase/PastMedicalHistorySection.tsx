@@ -2,7 +2,6 @@
 
 import { SectionHeader } from "@/components/common/section-header";
 import { SetNormalButton } from "@/components/common/set-normal-button";
-import RadioGroup from "@/components/common/radio-group";
 import { Stethoscope } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,6 @@ import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
 import type { LandbaseSectionProps, MedicalConditionValue } from "./types";
 
-/** Column 1 medical conditions. */
 const COLUMN_1 = [
   "Head or Neck Injury",
   "Frequent Headaches",
@@ -25,7 +23,6 @@ const COLUMN_1 = [
   "Tuberculosis",
 ] as const;
 
-/** Column 2 medical conditions. */
 const COLUMN_2 = [
   "Other Lung Disorders",
   "High Blood Pressure",
@@ -39,7 +36,6 @@ const COLUMN_2 = [
   "Other Abdominal Disorders",
 ] as const;
 
-/** Column 3 medical conditions. */
 const COLUMN_3 = [
   "Kidney or Bladder Disorder",
   "Back Injury: Joint Pain/Arthritis/Rheumatism",
@@ -54,28 +50,8 @@ const COLUMN_3 = [
   "Operations (Specify)",
 ] as const;
 
-/** All conditions across all columns (used for "Set Normal"). */
 const ALL_CONDITIONS = [...COLUMN_1, ...COLUMN_2, ...COLUMN_3];
 
-const YES_NO_OPTIONS = [
-  { label: "Y", value: "yes" },
-  { label: "N", value: "no" },
-];
-
-/**
- * Past Medical History section for the Landbase PEME form.
- *
- * Displays a 3-column grid of medical conditions with Yes/No radio
- * options, plus supplementary fields:
- * - "Others" free-text field
- * - Doctor consultation checkbox
- * - Maintenance medications field
- *
- * "Set Normal" sets all conditions to "no" (applicant has NOT had
- * these conditions), clears text fields, and unchecks consultation.
- *
- * @see QuestionnaireSection — complementary yes/no health declarations
- */
 export default function PastMedicalHistorySection({
   data,
   onChange,
@@ -88,7 +64,6 @@ export default function PastMedicalHistorySection({
     onChange({ ...data, medical_history: updatedHistory });
   };
 
-  /** Set all conditions to "no", clear text fields, uncheck consultation. */
   const handleSetNormal = () => {
     const normalHistory: Record<string, MedicalConditionValue> = {};
     ALL_CONDITIONS.forEach((condition) => {
@@ -103,99 +78,103 @@ export default function PastMedicalHistorySection({
     });
   };
 
-  const renderConditionRow = (condition: string, index: number) => {
+  const renderConditionRow = (condition: string) => {
     const currentValue = (data.medical_history ?? {})[condition] || "";
     return (
-      <div
+      <label
         key={condition}
-        className={`flex items-center justify-between py-1 border-b border-muted/20 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}
+        className="flex items-center gap-3 py-1.5 cursor-pointer select-none"
       >
-        <span className="text-xs text-foreground/80 leading-tight flex-1 pr-1">
-          {condition}
+        <span className="flex-1 text-sm text-foreground">{condition}</span>
+        <span className="flex items-center gap-3 shrink-0">
+          <label className="flex items-center gap-1 cursor-pointer">
+            <input
+              type="radio"
+              name={`pmh-${condition}`}
+              checked={currentValue === "yes"}
+              onChange={() => updateCondition(condition, "yes")}
+              disabled={disabled}
+              className="w-3.5 h-3.5 accent-primary"
+            />
+            <span className="text-xs text-muted-foreground">Y</span>
+          </label>
+          <label className="flex items-center gap-1 cursor-pointer">
+            <input
+              type="radio"
+              name={`pmh-${condition}`}
+              checked={currentValue === "no"}
+              onChange={() => updateCondition(condition, "no")}
+              disabled={disabled}
+              className="w-3.5 h-3.5 accent-primary"
+            />
+            <span className="text-xs text-muted-foreground">N</span>
+          </label>
         </span>
-        <RadioGroup
-          name={`condition-${condition}`}
-          value={currentValue}
-          onChange={(v) => updateCondition(condition, v as MedicalConditionValue)}
-          options={YES_NO_OPTIONS}
-          ariaLabel={condition}
-          disabled={disabled}
-          className="space-y-0 [&_[role=radiogroup]]:h-6 [&_[role=radiogroup]]:gap-3"
-        />
-      </div>
+      </label>
     );
   };
 
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
+    <section className="space-y-4">
       <SectionHeader
         title="Past Medical History"
         icon={Stethoscope}
-        subtitle="Has applicant suffered from or been told he has any of the following? Check the appropriate box."
+        subtitle="Has applicant suffered from or been told he has any of the following?"
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
       />
 
-      {/* Condition Grid - 3 columns */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-x-3 mb-2">
-        <div className="pr-14">{COLUMN_1.map(renderConditionRow)}</div>
-        <div className="pr-14">{COLUMN_2.map(renderConditionRow)}</div>
-        <div className="pr-14">{COLUMN_3.map(renderConditionRow)}</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="space-y-0 divide-y divide-border">
+          {COLUMN_1.map(renderConditionRow)}
+        </div>
+        <div className="space-y-0 divide-y divide-border">
+          {COLUMN_2.map(renderConditionRow)}
+        </div>
+        <div className="space-y-0 divide-y divide-border">
+          {COLUMN_3.map(renderConditionRow)}
+        </div>
       </div>
 
       {/* Supplementary fields */}
-      <div className="space-y-1.5 border-t border-primary/10 pt-2">
-        {/* Others */}
-        <div className="flex items-center gap-2">
-          <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider shrink-0">
-            Others:
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
+        <div className="space-y-1">
+          <Label htmlFor="pmh-others" className="text-sm font-medium">
+            Others
           </Label>
           <Input
+            id="pmh-others"
             value={data.medical_history_others ?? ""}
             onChange={(e) => updateField("medical_history_others", e.target.value)}
-            className={cn(
-              "h-7 text-xs bg-white border-primary/20 focus-visible:border-primary dark:bg-input/30 flex-1",
-              disabled && "pointer-events-none"
-            )}
-            placeholder=""
             readOnly={disabled}
+            className={cn(disabled && "pointer-events-none opacity-60")}
           />
         </div>
 
-        {/* Doctor consultation checkbox */}
-        <div className="flex items-center gap-1.5">
-          <Checkbox
-            id="consulted_doctor"
-            checked={!!data.consulted_doctor}
-            onCheckedChange={(checked) =>
-              updateField("consulted_doctor", !!checked)
-            }
-            className={cn("w-4 h-4", disabled && "pointer-events-none")}
-          />
-          <Label
-            htmlFor="consulted_doctor"
-            className="text-[11px] text-foreground/80 cursor-pointer"
-          >
-            Have you consulted any doctor about a disease in the past? Check if Yes.
-          </Label>
-        </div>
-
-        {/* Maintenance medications */}
-        <div className="flex items-center gap-2">
-          <Label className="text-[11px] text-foreground/70 italic shrink-0">
-            Are you taking maintenance medications? If Yes, specify:
+        <div className="space-y-1">
+          <Label htmlFor="pmh-medications" className="text-sm font-medium">
+            Maintenance medications (specify if Yes)
           </Label>
           <Input
+            id="pmh-medications"
             value={data.maintenance_medications ?? ""}
             onChange={(e) => updateField("maintenance_medications", e.target.value)}
-            className={cn(
-              "h-7 text-xs bg-white border-primary/20 focus-visible:border-primary dark:bg-input/30 flex-1",
-              disabled && "pointer-events-none"
-            )}
-            placeholder=""
             readOnly={disabled}
+            className={cn(disabled && "pointer-events-none opacity-60")}
           />
         </div>
       </div>
-    </div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox
+          id="consulted_doctor"
+          checked={!!data.consulted_doctor}
+          onCheckedChange={(checked) => updateField("consulted_doctor", !!checked)}
+          disabled={disabled}
+        />
+        <Label htmlFor="consulted_doctor" className="text-sm cursor-pointer">
+          Have you consulted any doctor about a disease in the past?
+        </Label>
+      </div>
+    </section>
   );
 }

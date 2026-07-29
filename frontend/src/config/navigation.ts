@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   Globe,
   Building2,
+  CalendarCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -27,6 +28,12 @@ export const navigation: NavigationItem[] = [
     href: "/dashboard",
     subtitle: "Overview and quick actions",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Visit",
+    subtitle: "Patient Registration — Today's Visits",
+    href: "/visit",
+    icon: CalendarCheck,
   },
   {
     title: "Profile",

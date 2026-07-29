@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { HeartPulse, FlaskConical, User, Ship, Landmark, FileText } from "lucide-react";
+import { FlaskConical, User, Ship, Landmark, FileText, CalendarCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface QuickAction {
@@ -12,10 +12,10 @@ interface QuickAction {
 
 const actions: QuickAction[] = [
   {
-    title: "Medical Exam",
-    description: "New pre-employment or annual checkup",
-    icon: HeartPulse,
-    href: "/medical",
+    title: "Visit",
+    description: "Record a patient visit",
+    icon: CalendarCheck,
+    href: "/visit",
   },
   {
     title: "Lab Test",
@@ -24,7 +24,7 @@ const actions: QuickAction[] = [
     href: "/laboratory",
   },
   {
-    title: "Crew Profile",
+    title: "Patient Profile",
     description: "Register or update crew member",
     icon: User,
     href: "/profile",

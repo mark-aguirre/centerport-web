@@ -142,7 +142,7 @@ class MedicalExamControllerTest {
                 .hasNext(false)
                 .hasPrevious(false)
                 .build();
-        when(service.findAll(any(Pageable.class))).thenReturn(pagedResponse);
+        when(service.findAll(any(String.class), any(Pageable.class))).thenReturn(pagedResponse);
 
         mockMvc.perform(get("/api/medical-exams"))
                 .andExpect(status().isOk())
@@ -154,14 +154,14 @@ class MedicalExamControllerTest {
     void putValidExam_returns200() throws Exception {
         UUID id = UUID.fromString("22222222-2222-2222-2222-222222222222");
         MedicalExamDto updated = sampleExam();
-        updated.setPrimaryDiagnosis("Hypertension");
+        updated.setRecommendationRemarks("Hypertension noted");
         when(service.update(any(UUID.class), any(MedicalExamDto.class))).thenReturn(updated);
 
         mockMvc.perform(put("/api/medical-exams/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.primary_diagnosis").value("Hypertension"));
+                .andExpect(jsonPath("$.data.recommendation_remarks").value("Hypertension noted"));
     }
 
     @Test
