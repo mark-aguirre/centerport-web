@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="landbase-mer-2"
+              pageWidth="612" pageHeight="792"
+              columnWidth="555" leftMargin="30" rightMargin="27"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="pemeId" class="java.lang.String"/>
+    <parameter name="lastName" class="java.lang.String"/>
+    <parameter name="firstName" class="java.lang.String"/>
+    <parameter name="middleName" class="java.lang.String"/>
+    <parameter name="gender" class="java.lang.String"/>
+    <parameter name="civilStatus" class="java.lang.String"/>
+    <parameter name="address" class="java.lang.String"/>
+    <parameter name="contactNo" class="java.lang.String"/>
+    <parameter name="placeOfBirth" class="java.lang.String"/>
+    <parameter name="passportNo" class="java.lang.String"/>
+    <parameter name="nationality" class="java.lang.String"/>
+    <parameter name="employer" class="java.lang.String"/>
+    <parameter name="position" class="java.lang.String"/>
+    <parameter name="medicalHistoryOthers" class="java.lang.String"/>
+    <parameter name="maintenanceMedications" class="java.lang.String"/>
+    <parameter name="questionnaireComments" class="java.lang.String"/>
+    <parameter name="pregnancyTest" class="java.lang.String"/>
+    <parameter name="psychologicalTest" class="java.lang.String"/>
+    <parameter name="additionalTests" class="java.lang.String"/>
+    <parameter name="remarks" class="java.lang.String"/>
+    <parameter name="additionalLabResult" class="java.lang.String"/>
+    <parameter name="flagMedicalLabResult" class="java.lang.String"/>
+    <parameter name="recommendation" class="java.lang.String"/>
+    <parameter name="dateInitialPeme" class="java.lang.String"/>
+    <parameter name="dateOfFitness" class="java.lang.String"/>
+    <parameter name="validUntil" class="java.lang.String"/>
+    <parameter name="authorizedPhysician" class="java.lang.String"/>
+    <parameter name="medicalCertificationNo" class="java.lang.String"/>
+    <parameter name="medicalDirector" class="java.lang.String"/>
+
+    <title>
+        <band height="50">
+            <staticText>
+                <reportElement x="0" y="5" width="555" height="25"/>
+                <textElement textAlignment="Center">
+                    <font size="14" isBold="true"/>
+                </textElement>
+                <text><![CDATA[MEDICAL EXAMINATION REPORT]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="30" width="555" height="18"/>
+                <textElement textAlignment="Center">
+                    <font size="10"/>
+                </textElement>
+                <text><![CDATA[MER Form 2 - Landbase (Additional Examinations)]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <detail>
+        <band height="480">
+            <staticText>
+                <reportElement x="0" y="5" width="80" height="15"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[PEME ID:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="80" y="5" width="200" height="15"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{pemeId}]]></textFieldExpression>
+            </textField>
+
+            <!-- Patient -->
+            <staticText>
+                <reportElement x="0" y="28" width="60" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Name:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="60" y="28" width="350" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{lastName} + ", " + $P{firstName} + " " + $P{middleName}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="45" width="60" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Employer:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="60" y="45" width="200" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{employer}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="280" y="45" width="60" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Position:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="340" y="45" width="215" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{position}]]></textFieldExpression>
+            </textField>
+
+            <!-- Additional Exams -->
+            <staticText>
+                <reportElement x="0" y="75" width="555" height="16"/>
+                <textElement><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[ADDITIONAL EXAMINATIONS]]></text>
+            </staticText>
+            <line><reportElement x="0" y="91" width="555" height="1"/></line>
+
+            <staticText>
+                <reportElement x="0" y="98" width="110" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Pregnancy Test:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="110" y="98" width="150" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{pregnancyTest}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="115" width="110" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Psychological Test:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="110" y="115" width="200" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{psychologicalTest}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="135" width="110" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Additional Tests:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true" textAdjust="StretchHeight">
+                <reportElement x="110" y="135" width="445" height="30"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{additionalTests}]]></textFieldExpression>
+            </textField>
+
+            <!-- Remarks -->
+            <staticText>
+                <reportElement x="0" y="180" width="555" height="16"/>
+                <textElement><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[REMARKS / MEDICAL HISTORY NOTES]]></text>
+            </staticText>
+            <line><reportElement x="0" y="196" width="555" height="1"/></line>
+
+            <staticText>
+                <reportElement x="0" y="203" width="555" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Medical History Notes:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true" textAdjust="StretchHeight">
+                <reportElement x="0" y="218" width="555" height="25"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{medicalHistoryOthers}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="250" width="555" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Maintenance Medications:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true" textAdjust="StretchHeight">
+                <reportElement x="0" y="265" width="555" height="25"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{maintenanceMedications}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="297" width="555" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Remarks:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true" textAdjust="StretchHeight">
+                <reportElement x="0" y="312" width="555" height="30"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{remarks}]]></textFieldExpression>
+            </textField>
+
+            <!-- Results -->
+            <staticText>
+                <reportElement x="0" y="355" width="555" height="16"/>
+                <textElement><font size="9" isBold="true"/></textElement>
+                <text><![CDATA[RESULTS & RECOMMENDATION]]></text>
+            </staticText>
+            <line><reportElement x="0" y="371" width="555" height="1"/></line>
+
+            <staticText>
+                <reportElement x="0" y="378" width="120" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Additional Lab Result:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="120" y="378" width="180" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{additionalLabResult}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="395" width="120" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Flag Medical Lab:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="120" y="395" width="180" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{flagMedicalLabResult}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="0" y="415" width="120" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Recommendation:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="120" y="415" width="200" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{recommendation}]]></textFieldExpression>
+            </textField>
+
+            <!-- Signatures -->
+            <staticText>
+                <reportElement x="0" y="445" width="120" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Authorized Physician:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="0" y="460" width="250" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{authorizedPhysician}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="300" y="445" width="120" height="14"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <text><![CDATA[Medical Director:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="300" y="460" width="250" height="14"/>
+                <textElement><font size="8"/></textElement>
+                <textFieldExpression><![CDATA[$P{medicalDirector}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

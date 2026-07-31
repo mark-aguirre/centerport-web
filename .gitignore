@@ -11,6 +11,10 @@ node_modules/
 .DS_Store
 *.pem
 
+# logs
+*.log
+backend/logs/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

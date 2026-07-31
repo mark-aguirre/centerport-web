@@ -52,7 +52,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           onToggleSidebar={toggleSidebar}
           sidebarCollapsed={collapsed}
         />
-        <main className="flex-1 overflow-auto bg-background">
+        <main className="flex-1 overflow-auto bg-background px-[8%]">
           {children}
         </main>
       </div>

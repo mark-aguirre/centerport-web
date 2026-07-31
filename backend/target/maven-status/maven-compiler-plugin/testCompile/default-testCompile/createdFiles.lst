@@ -6,11 +6,14 @@ com\centerport\common\enums\EnumSerializationTest$PhysicalExplorationValueTest.c
 com\centerport\ContractVerificationTest$LandbasePemeContract.class
 com\centerport\upload\FileUploadControllerTest$1.class
 com\centerport\common\enums\EnumSerializationTest$VisualAidTest.class
+com\centerport\mlc\MlcRecordControllerTest.class
+com\centerport\medical\MedicalExamControllerTest.class
 com\centerport\common\enums\EnumSerializationTest.class
 com\centerport\ContractVerificationTest$MlcRecordContract.class
 com\centerport\profile\SeafarerProfileIntegrationTest.class
 com\centerport\common\enums\EnumSerializationTest$ExamFindingTest.class
 com\centerport\common\enums\EnumSerializationTest$BPClassificationTest.class
+com\centerport\panama\PanamaCertificateControllerTest.class
 com\centerport\upload\FileUploadControllerTest.class
 com\centerport\landbase\LandbasePemeControllerTest.class
 com\centerport\common\enums\EnumSerializationTest$CivilStatusTest.class

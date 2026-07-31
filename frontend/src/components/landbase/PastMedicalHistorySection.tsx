@@ -83,29 +83,32 @@ export default function PastMedicalHistorySection({
     return (
       <label
         key={condition}
-        className="flex items-center gap-3 py-1.5 cursor-pointer select-none"
+        className={cn(
+          "flex items-center gap-3 py-1.5 select-none",
+          disabled ? "pointer-events-none" : "cursor-pointer"
+        )}
       >
         <span className="flex-1 text-sm text-foreground">{condition}</span>
         <span className="flex items-center gap-3 shrink-0">
-          <label className="flex items-center gap-1 cursor-pointer">
+          <label className={cn("flex items-center gap-1", !disabled && "cursor-pointer")}>
             <input
               type="radio"
               name={`pmh-${condition}`}
               checked={currentValue === "yes"}
               onChange={() => updateCondition(condition, "yes")}
-              disabled={disabled}
               className="w-3.5 h-3.5 accent-primary"
+              tabIndex={disabled ? -1 : undefined}
             />
             <span className="text-xs text-muted-foreground">Y</span>
           </label>
-          <label className="flex items-center gap-1 cursor-pointer">
+          <label className={cn("flex items-center gap-1", !disabled && "cursor-pointer")}>
             <input
               type="radio"
               name={`pmh-${condition}`}
               checked={currentValue === "no"}
               onChange={() => updateCondition(condition, "no")}
-              disabled={disabled}
               className="w-3.5 h-3.5 accent-primary"
+              tabIndex={disabled ? -1 : undefined}
             />
             <span className="text-xs text-muted-foreground">N</span>
           </label>

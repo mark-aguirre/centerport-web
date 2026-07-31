@@ -42,6 +42,9 @@ C:\code_area\centerport\backend\src\main\java\com\centerport\landbase\LandbasePe
 C:\code_area\centerport\backend\src\main\java\com\centerport\landbase\LandbasePemeMapper.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\landbase\LandbasePemeRepository.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\landbase\LandbasePemeService.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\landbase\report\LandbaseReportController.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\landbase\report\LandbaseReportService.java
+C:\code_area\centerport\backend\src\main\java\com\centerport\landbase\report\LandbaseReportType.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\medical\event\MedicalExamCreatedEvent.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\medical\event\MedicalExamUpdatedEvent.java
 C:\code_area\centerport\backend\src\main\java\com\centerport\medical\MedicalExam.java

@@ -314,6 +314,20 @@ export const api = {
         );
         return response;
       },
+
+      /**
+       * Generate and open a PDF report for a landbase PEME record.
+       *
+       * @param id         the PEME record UUID
+       * @param reportType the report template slug (e.g. "landbase-detailed")
+       */
+      async generateReport(id: string, reportType: string): Promise<void> {
+        const filename = `${reportType}_${id}.pdf`;
+        await httpClient.downloadPdf(
+          `/api/landbase-pemes/${id}/reports/${reportType}`,
+          filename
+        );
+      },
     },
 
     MedicalExam: {

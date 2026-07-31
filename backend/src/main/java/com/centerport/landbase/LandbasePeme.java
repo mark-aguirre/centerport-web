@@ -145,6 +145,208 @@ public class LandbasePeme extends BaseEntity {
     @Column(name = "additional_tests")
     private String additionalTests;
 
+    // --- DOH / Certificate Identifiers ---
+    @Column(name = "doh_accreditation_no")
+    private String dohAccreditationNo;
+
+    @Column(name = "ref_no")
+    private String refNo;
+
+    // --- Physical Examination - Vital Signs ---
+    @Column(name = "pe_weight")
+    private String peWeight;
+
+    @Column(name = "pe_height")
+    private String peHeight;
+
+    @Column(name = "pe_bmi")
+    private String peBmi;
+
+    @Column(name = "pe_pulse_rate")
+    private String pePulseRate;
+
+    @Column(name = "pe_blood_pressure")
+    private String peBloodPressure;
+
+    @Column(name = "pe_respiration")
+    private String peRespiration;
+
+    @Column(name = "pe_body_temperature")
+    private String peBodyTemperature;
+
+    // --- Vision Acuity - Far Vision ---
+    @Column(name = "vision_far_od_uncorrected")
+    private String visionFarOdUncorrected;
+
+    @Column(name = "vision_far_os_uncorrected")
+    private String visionFarOsUncorrected;
+
+    @Column(name = "vision_far_od_corrected")
+    private String visionFarOdCorrected;
+
+    @Column(name = "vision_far_os_corrected")
+    private String visionFarOsCorrected;
+
+    // --- Vision Acuity - Near Vision ---
+    @Column(name = "vision_near_od_uncorrected")
+    private String visionNearOdUncorrected;
+
+    @Column(name = "vision_near_os_uncorrected")
+    private String visionNearOsUncorrected;
+
+    @Column(name = "vision_near_od_corrected")
+    private String visionNearOdCorrected;
+
+    @Column(name = "vision_near_os_corrected")
+    private String visionNearOsCorrected;
+
+    // --- Ishihara Color Vision ---
+    @Column(name = "vision_color_adequate")
+    private Boolean visionColorAdequate;
+
+    // --- Hearing Audiometry ---
+    @Column(name = "hearing_ad")
+    private String hearingAd;
+
+    @Column(name = "hearing_as")
+    private String hearingAs;
+
+    // --- Physical Exploration - Column A ---
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_skin")
+    private PhysicalExplorationValue peSkin;
+
+    @Column(name = "pe_skin_findings")
+    private String peSkinFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_head_scalp")
+    private PhysicalExplorationValue peHeadScalp;
+
+    @Column(name = "pe_head_scalp_findings")
+    private String peHeadScalpFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_eyes_external")
+    private PhysicalExplorationValue peEyesExternal;
+
+    @Column(name = "pe_eyes_external_findings")
+    private String peEyesExternalFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_pupils")
+    private PhysicalExplorationValue pePupils;
+
+    @Column(name = "pe_pupils_findings")
+    private String pePupilsFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_ears")
+    private PhysicalExplorationValue peEars;
+
+    @Column(name = "pe_ears_findings")
+    private String peEarsFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_nose_sinuses")
+    private PhysicalExplorationValue peNoseSinuses;
+
+    @Column(name = "pe_nose_sinuses_findings")
+    private String peNoseSinusesFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_mouth_throat")
+    private PhysicalExplorationValue peMouthThroat;
+
+    @Column(name = "pe_mouth_throat_findings")
+    private String peMouthThroatFindings;
+
+    // --- Physical Exploration - Column B ---
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_neck_lymph_nodes")
+    private PhysicalExplorationValue peNeckLymphNodes;
+
+    @Column(name = "pe_neck_lymph_nodes_findings")
+    private String peNeckLymphNodesFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_breast_axilla")
+    private PhysicalExplorationValue peBreastAxilla;
+
+    @Column(name = "pe_breast_axilla_findings")
+    private String peBreastAxillaFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_chest_lungs")
+    private PhysicalExplorationValue peChestLungs;
+
+    @Column(name = "pe_chest_lungs_findings")
+    private String peChestLungsFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_heart")
+    private PhysicalExplorationValue peHeart;
+
+    @Column(name = "pe_heart_findings")
+    private String peHeartFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_abdomen")
+    private PhysicalExplorationValue peAbdomen;
+
+    @Column(name = "pe_abdomen_findings")
+    private String peAbdomenFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_back")
+    private PhysicalExplorationValue peBack;
+
+    @Column(name = "pe_back_findings")
+    private String peBackFindings;
+
+    // --- Physical Exploration - Column C ---
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_anus_rectum")
+    private PhysicalExplorationValue peAnusRectum;
+
+    @Column(name = "pe_anus_rectum_findings")
+    private String peAnusRectumFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_genito_urinary")
+    private PhysicalExplorationValue peGenitoUrinary;
+
+    @Column(name = "pe_genito_urinary_findings")
+    private String peGenitoUrinaryFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_inguinals_genitals")
+    private PhysicalExplorationValue peInguinalsGenitals;
+
+    @Column(name = "pe_inguinals_genitals_findings")
+    private String peInguinalsGenitalsFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_extremities")
+    private PhysicalExplorationValue peExtremities;
+
+    @Column(name = "pe_extremities_findings")
+    private String peExtremitiesFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_reflexes")
+    private PhysicalExplorationValue peReflexes;
+
+    @Column(name = "pe_reflexes_findings")
+    private String peReflexesFindings;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pe_dental")
+    private PhysicalExplorationValue peDental;
+
+    @Column(name = "pe_dental_findings")
+    private String peDentalFindings;
+
     // --- Remarks ---
     @Column(name = "remarks")
     private String remarks;

@@ -1,0 +1,1269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports
+              http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="landbase-detailed"
+              pageWidth="612" pageHeight="792"
+              columnWidth="555" leftMargin="30" rightMargin="27"
+              topMargin="20" bottomMargin="20">
+
+    <parameter name="pemeId" class="java.lang.String"/>
+    <parameter name="lastName" class="java.lang.String"/>
+    <parameter name="firstName" class="java.lang.String"/>
+    <parameter name="middleName" class="java.lang.String"/>
+    <parameter name="gender" class="java.lang.String"/>
+    <parameter name="civilStatus" class="java.lang.String"/>
+    <parameter name="address" class="java.lang.String"/>
+    <parameter name="contactNo" class="java.lang.String"/>
+    <parameter name="birthdate" class="java.lang.String"/>
+    <parameter name="age" class="java.lang.String"/>
+    <parameter name="placeOfBirth" class="java.lang.String"/>
+    <parameter name="passportNo" class="java.lang.String"/>
+    <parameter name="seamansBookNo" class="java.lang.String"/>
+    <parameter name="religion" class="java.lang.String"/>
+    <parameter name="nationality" class="java.lang.String"/>
+    <parameter name="employer" class="java.lang.String"/>
+    <parameter name="position" class="java.lang.String"/>
+    <parameter name="countryOfDestination" class="java.lang.String"/>
+    <parameter name="dohAccreditationNo" class="java.lang.String"/>
+    <parameter name="medicalCertificationNo" class="java.lang.String"/>
+    <parameter name="refNo" class="java.lang.String"/>
+    <parameter name="photoUrl" class="java.lang.String"/>
+    <parameter name="medicalHistory" class="java.lang.String"/>
+    <parameter name="medicalHistoryOthers" class="java.lang.String"/>
+    <parameter name="consultedDoctor" class="java.lang.String"/>
+    <parameter name="maintenanceMedications" class="java.lang.String"/>
+    <parameter name="peWeight" class="java.lang.String"/>
+    <parameter name="peHeight" class="java.lang.String"/>
+    <parameter name="peBmi" class="java.lang.String"/>
+    <parameter name="pePulseRate" class="java.lang.String"/>
+    <parameter name="peBloodPressure" class="java.lang.String"/>
+    <parameter name="peRespiration" class="java.lang.String"/>
+    <parameter name="peBodyTemperature" class="java.lang.String"/>
+    <parameter name="visionFarOdUncorrected" class="java.lang.String"/>
+    <parameter name="visionFarOsUncorrected" class="java.lang.String"/>
+    <parameter name="visionFarOdCorrected" class="java.lang.String"/>
+    <parameter name="visionFarOsCorrected" class="java.lang.String"/>
+    <parameter name="visionNearOdUncorrected" class="java.lang.String"/>
+    <parameter name="visionNearOsUncorrected" class="java.lang.String"/>
+    <parameter name="visionNearOdCorrected" class="java.lang.String"/>
+    <parameter name="visionNearOsCorrected" class="java.lang.String"/>
+    <parameter name="visionColorAdequate" class="java.lang.String"/>
+    <parameter name="hearingAd" class="java.lang.String"/>
+    <parameter name="hearingAs" class="java.lang.String"/>
+    <parameter name="peSkin" class="java.lang.String"/>
+    <parameter name="peSkinFindings" class="java.lang.String"/>
+    <parameter name="peHeadScalp" class="java.lang.String"/>
+    <parameter name="peHeadScalpFindings" class="java.lang.String"/>
+    <parameter name="peEyesExternal" class="java.lang.String"/>
+    <parameter name="peEyesExternalFindings" class="java.lang.String"/>
+    <parameter name="pePupils" class="java.lang.String"/>
+    <parameter name="pePupilsFindings" class="java.lang.String"/>
+    <parameter name="peEars" class="java.lang.String"/>
+    <parameter name="peEarsFindings" class="java.lang.String"/>
+    <parameter name="peNoseSinuses" class="java.lang.String"/>
+    <parameter name="peNoseSinusesFindings" class="java.lang.String"/>
+    <parameter name="peMouthThroat" class="java.lang.String"/>
+    <parameter name="peMouthThroatFindings" class="java.lang.String"/>
+    <parameter name="peNeckLymphNodes" class="java.lang.String"/>
+    <parameter name="peNeckLymphNodesFindings" class="java.lang.String"/>
+    <parameter name="peBreastAxilla" class="java.lang.String"/>
+    <parameter name="peBreastAxillaFindings" class="java.lang.String"/>
+    <parameter name="peChestLungs" class="java.lang.String"/>
+    <parameter name="peChestLungsFindings" class="java.lang.String"/>
+    <parameter name="peHeart" class="java.lang.String"/>
+    <parameter name="peHeartFindings" class="java.lang.String"/>
+    <parameter name="peAbdomen" class="java.lang.String"/>
+    <parameter name="peAbdomenFindings" class="java.lang.String"/>
+    <parameter name="peBack" class="java.lang.String"/>
+    <parameter name="peBackFindings" class="java.lang.String"/>
+    <parameter name="peAnusRectum" class="java.lang.String"/>
+    <parameter name="peAnusRectumFindings" class="java.lang.String"/>
+    <parameter name="peGenitoUrinary" class="java.lang.String"/>
+    <parameter name="peGenitoUrinaryFindings" class="java.lang.String"/>
+    <parameter name="peInguinalsGenitals" class="java.lang.String"/>
+    <parameter name="peInguinalsGenitalsFindings" class="java.lang.String"/>
+    <parameter name="peExtremities" class="java.lang.String"/>
+    <parameter name="peExtremitiesFindings" class="java.lang.String"/>
+    <parameter name="peReflexes" class="java.lang.String"/>
+    <parameter name="peReflexesFindings" class="java.lang.String"/>
+    <parameter name="peDental" class="java.lang.String"/>
+    <parameter name="peDentalFindings" class="java.lang.String"/>
+    <parameter name="xrayNo" class="java.lang.String"/>
+    <parameter name="chestXray" class="java.lang.String"/>
+    <parameter name="cbc" class="java.lang.String"/>
+    <parameter name="cec" class="java.lang.String"/>
+    <parameter name="pregnancyTest" class="java.lang.String"/>
+    <parameter name="urinalysis" class="java.lang.String"/>
+    <parameter name="stoolExam" class="java.lang.String"/>
+    <parameter name="hbsag" class="java.lang.String"/>
+    <parameter name="hivAidsTest" class="java.lang.String"/>
+    <parameter name="apb" class="java.lang.String"/>
+    <parameter name="bloodType" class="java.lang.String"/>
+    <parameter name="drugTest" class="java.lang.String"/>
+    <parameter name="psychologicalTest" class="java.lang.String"/>
+    <parameter name="additionalTests" class="java.lang.String"/>
+    <parameter name="remarks" class="java.lang.String"/>
+    <parameter name="basicPemeResult" class="java.lang.String"/>
+    <parameter name="additionalLabResult" class="java.lang.String"/>
+    <parameter name="flagMedicalLabResult" class="java.lang.String"/>
+    <parameter name="recommendation" class="java.lang.String"/>
+    <parameter name="dateInitialPeme" class="java.lang.String"/>
+    <parameter name="dateOfFitness" class="java.lang.String"/>
+    <parameter name="validUntil" class="java.lang.String"/>
+    <parameter name="authorizedPhysician" class="java.lang.String"/>
+    <parameter name="medicalDirector" class="java.lang.String"/>
+
+    <title>
+        <band height="105">
+            <!-- Logo on the left -->
+            <image>
+                <reportElement x="0" y="0" width="65" height="60"/>
+                <imageExpression><![CDATA["reports/centerport-logo.png"]]></imageExpression>
+            </image>
+            <!-- Company name and address centered in green -->
+            <staticText>
+                <reportElement x="70" y="0" width="380" height="16" forecolor="#006400"/>
+                <textElement textAlignment="Center">
+                    <font fontName="Times New Roman" size="12" isBold="true"/>
+                </textElement>
+                <text><![CDATA[CENTERPORT MEDICAL SERVICES, INC.]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="70" y="15" width="380" height="10" forecolor="#006400"/>
+                <textElement textAlignment="Center">
+                    <font size="7" isBold="true"/>
+                </textElement>
+                <text><![CDATA[4/F Victoria Building, 429 United Nations Avenue,]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="70" y="24" width="380" height="10" forecolor="#006400"/>
+                <textElement textAlignment="Center">
+                    <font size="7" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Cor. L.M. Guerrero St., Ermita Manila, Philippines]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="70" y="33" width="380" height="10" forecolor="#006400"/>
+                <textElement textAlignment="Center">
+                    <font size="7" isBold="true"/>
+                </textElement>
+                <text><![CDATA[Tel. No. 5260221, Fax No. 5281578, Email Add. centerportmed@yahoo.com]]></text>
+            </staticText>
+            <!-- Photo on the right -->
+            <image scaleImage="RetainShape" onErrorType="Blank">
+                <reportElement x="470" y="0" width="85" height="85"/>
+                <imageExpression><![CDATA[$P{photoUrl}]]></imageExpression>
+            </image>
+            <!-- DOH Accreditation and Medical Certificate -->
+            <staticText>
+                <reportElement x="100" y="48" width="120" height="12" forecolor="#006400"/>
+                <textElement><font size="7" isBold="true" isItalic="true"/></textElement>
+                <text><![CDATA[DOH Accreditation No.]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="220" y="48" width="80" height="12" forecolor="#006400"/>
+                <textElement><font size="7" isBold="true" isItalic="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{dohAccreditationNo}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="310" y="48" width="100" height="12" forecolor="#006400"/>
+                <textElement><font size="7" isBold="true" isItalic="true"/></textElement>
+                <text><![CDATA[Medical Certificate No.]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="410" y="48" width="50" height="12" forecolor="#006400"/>
+                <textElement><font size="7" isBold="true" isItalic="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{medicalCertificationNo}]]></textFieldExpression>
+            </textField>
+            <!-- Ref No on the right -->
+            <staticText>
+                <reportElement x="460" y="88" width="40" height="10"/>
+                <textElement textAlignment="Right"><font size="6"/></textElement>
+                <text><![CDATA[Ref. No.]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="502" y="88" width="53" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{refNo}]]></textFieldExpression>
+            </textField>
+            <!-- Title: MEDICAL EXAMINATION REPORT -->
+            <staticText>
+                <reportElement x="0" y="64" width="460" height="20"/>
+                <textElement textAlignment="Center">
+                    <font fontName="Times New Roman" size="14" isBold="true"/>
+                </textElement>
+                <text><![CDATA[MEDICAL EXAMINATION REPORT]]></text>
+            </staticText>
+        </band>
+    </title>
+
+    <detail>
+        <band height="618">
+            <!-- ===== ROW 1: SURNAME | FIRST NAME | MIDDLE NAME ===== -->
+            <rectangle>
+                <reportElement mode="Transparent" x="0" y="0" width="555" height="17"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="4" y="4" width="44" height="10"/>
+                <textElement verticalAlignment="Middle"><font size="6.5"/></textElement>
+                <text><![CDATA[SURNAME:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="48" y="2" width="164" height="13"/>
+                <textElement verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{lastName}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="216" y="0" width="1" height="17"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="220" y="4" width="48" height="10"/>
+                <textElement verticalAlignment="Middle"><font size="6.5"/></textElement>
+                <text><![CDATA[FIRST NAME:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="268" y="2" width="124" height="13"/>
+                <textElement verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{firstName}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="396" y="0" width="1" height="17"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="400" y="4" width="54" height="10"/>
+                <textElement verticalAlignment="Middle"><font size="6.5"/></textElement>
+                <text><![CDATA[MIDDLE NAME:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="454" y="2" width="97" height="13"/>
+                <textElement verticalAlignment="Middle"><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{middleName}]]></textFieldExpression>
+            </textField>
+
+            <!-- ===== ROW 2: PLACE/DATE OF BIRTH | AGE | SEX | CIVIL STATUS | RELIGION | NATIONALITY ===== -->
+            <rectangle>
+                <reportElement mode="Transparent" x="0" y="17" width="555" height="25"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="4" y="19" width="145" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[PLACE AND DATE OF BIRTH (dd/mm/yyyy)]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="4" y="28" width="95" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{placeOfBirth}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="102" y="28" width="78" height="12"/>
+                <textElement textAlignment="Right"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{birthdate}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="184" y="17" width="1" height="25"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="188" y="19" width="22" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[AGE:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="188" y="28" width="20" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{age}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="211" y="17" width="1" height="25"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="215" y="19" width="28" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[SEX:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="215" y="28" width="30" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{gender}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="247" y="17" width="1" height="25"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="251" y="19" width="53" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[CIVIL STATUS:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="251" y="28" width="52" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{civilStatus}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="306" y="17" width="1" height="25"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="310" y="19" width="55" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[RELIGION:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="310" y="28" width="76" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{religion}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="389" y="17" width="1" height="25"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="393" y="19" width="60" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[NATIONALITY:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="393" y="28" width="158" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{nationality}]]></textFieldExpression>
+            </textField>
+
+            <!-- ===== ROW 3: PERMANENT HOME ADDRESS | PASSPORT NUMBER | SEAMAN'S BOOK NUMBER ===== -->
+            <rectangle>
+                <reportElement mode="Transparent" x="0" y="42" width="555" height="24"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="4" y="44" width="130" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[PERMANENT HOME ADDRESS]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="4" y="53" width="333" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{address}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="341" y="42" width="1" height="24"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="345" y="44" width="90" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[PASSPORT NUMBER]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="345" y="53" width="88" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{passportNo}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="436" y="42" width="1" height="24"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="440" y="44" width="110" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[SEAMAN'S BOOK NUMBER]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="440" y="53" width="111" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{seamansBookNo}]]></textFieldExpression>
+            </textField>
+
+            <!-- ===== ROW 4: NAME OF EMPLOYER | COUNTRY OF DESTINATION | CONTACT NUMBER | POSITION APPLIED FOR ===== -->
+            <rectangle>
+                <reportElement mode="Transparent" x="0" y="66" width="555" height="24"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </rectangle>
+            <staticText>
+                <reportElement x="4" y="68" width="100" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[NAME OF EMPLOYER]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="4" y="77" width="187" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{employer}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="195" y="66" width="1" height="24"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="199" y="68" width="120" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[COUNTRY OF DESTINATION]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="199" y="77" width="119" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{countryOfDestination}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="322" y="66" width="1" height="24"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="326" y="68" width="90" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[CONTACT NUMBER]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="326" y="77" width="92" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{contactNo}]]></textFieldExpression>
+            </textField>
+            <line>
+                <reportElement x="422" y="66" width="1" height="24"/>
+                <graphicElement><pen lineWidth="0.5"/></graphicElement>
+            </line>
+            <staticText>
+                <reportElement x="426" y="68" width="100" height="9"/>
+                <textElement><font size="5.5"/></textElement>
+                <text><![CDATA[POSITION APPLIED FOR]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="426" y="77" width="125" height="12"/>
+                <textElement><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{position}]]></textFieldExpression>
+            </textField>
+
+            <!-- ===== SECTION I: PAST MEDICAL HISTORY ===== -->
+            <staticText>
+                <reportElement x="0" y="94" width="555" height="12"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <text><![CDATA[I.  PAST MEDICAL HISTORY.    Has applicant suffered from or been told he has any of the following: Check the appropriate box.]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="0" y="115" width="555" height="40"/>
+                <textElement><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{medicalHistory}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="157" width="300" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Have you consulted any doctor about a disease in the past? Check if Yes]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="300" y="157" width="50" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{consultedDoctor}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="168" width="200" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Are you taking maintenance medications? If Yes, specify.]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="200" y="168" width="355" height="10"/>
+                <textElement><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{maintenanceMedications}]]></textFieldExpression>
+            </textField>
+
+            <!-- ===== SECTION II: PHYSICAL EXAMINATION ===== -->
+            <line><reportElement x="0" y="180" width="555" height="1"/></line>
+            <staticText>
+                <reportElement x="0" y="182" width="555" height="12"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <text><![CDATA[II.  PHYSICAL EXAMINATION - Check the appropriate box. Under columns A, B, C check if normal; uncheck if not normal and specify findings.]]></text>
+            </staticText>
+            <!-- Vital Signs Row -->
+            <staticText>
+                <reportElement x="0" y="196" width="50" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Weight (kg):]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="50" y="196" width="30" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{peWeight}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="85" y="196" width="50" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Height (cm):]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="135" y="196" width="30" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{peHeight}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="170" y="196" width="25" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[BMI:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="195" y="196" width="30" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{peBmi}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="230" y="196" width="55" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Pulse Rate:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="285" y="196" width="30" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{pePulseRate}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="320" y="196" width="70" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Blood Pressure:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="390" y="196" width="50" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{peBloodPressure}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="445" y="196" width="55" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Respiration:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="500" y="196" width="30" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{peRespiration}]]></textFieldExpression>
+            </textField>
+
+            <!-- Vision Acuity Headers -->
+            <staticText>
+                <reportElement x="0" y="209" width="65" height="10"/>
+                <textElement><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[VISION ACUITY]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="90" y="209" width="70" height="10"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[FAR VISION]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="240" y="209" width="100" height="10"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[NEAR VISION]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="360" y="209" width="100" height="10"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[ISHIHARA COLOR VISION]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="470" y="209" width="85" height="10"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[HEARING BY AUDIOMETRY]]></text>
+            </staticText>
+            <!-- Uncorrected row -->
+            <staticText>
+                <reportElement x="0" y="221" width="60" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Uncorrected]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="65" y="221" width="18" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[OD]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="83" y="221" width="35" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{visionFarOdUncorrected}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="123" y="221" width="18" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[OS]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="141" y="221" width="35" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{visionFarOsUncorrected}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="240" y="221" width="25" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[OD J/]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="265" y="221" width="25" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{visionNearOdUncorrected}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="295" y="221" width="25" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[OS J/]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="320" y="221" width="25" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{visionNearOsUncorrected}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="360" y="221" width="100" height="10"/>
+                <textElement textAlignment="Center"><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{visionColorAdequate}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="470" y="221" width="20" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[AD:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="490" y="221" width="65" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{hearingAd}]]></textFieldExpression>
+            </textField>
+
+            <!-- Corrected row -->
+            <staticText>
+                <reportElement x="0" y="233" width="60" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Corrected]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="65" y="233" width="18" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[OD]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="83" y="233" width="35" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{visionFarOdCorrected}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="123" y="233" width="18" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[OS]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="141" y="233" width="35" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{visionFarOsCorrected}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="240" y="233" width="25" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[OD J/]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="265" y="233" width="25" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{visionNearOdCorrected}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="295" y="233" width="25" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[OS J/]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="320" y="233" width="25" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{visionNearOsCorrected}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="470" y="233" width="20" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[AS:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="490" y="233" width="65" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{hearingAs}]]></textFieldExpression>
+            </textField>
+
+            <!-- Separator and column headers -->
+            <line><reportElement x="0" y="245" width="555" height="1"/></line>
+            <staticText>
+                <reportElement x="0" y="247" width="30" height="10"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[A]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="30" y="247" width="60" height="10"/>
+                <textElement><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[FINDINGS]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="185" y="247" width="30" height="10"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[B]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="215" y="247" width="60" height="10"/>
+                <textElement><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[FINDINGS]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="370" y="247" width="30" height="10"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[C]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="400" y="247" width="60" height="10"/>
+                <textElement><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[FINDINGS]]></text>
+            </staticText>
+
+            <!-- Column A items -->
+            <staticText>
+                <reportElement x="0" y="259" width="55" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Skin]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="55" y="259" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peSkin}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="75" y="259" width="105" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peSkinFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="270" width="55" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Head, Scalp]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="55" y="270" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peHeadScalp}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="75" y="270" width="105" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peHeadScalpFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="281" width="55" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Eyes External]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="55" y="281" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peEyesExternal}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="75" y="281" width="105" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peEyesExternalFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="292" width="55" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Pupils]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="55" y="292" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{pePupils}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="75" y="292" width="105" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{pePupilsFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="303" width="55" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Ears]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="55" y="303" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peEars}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="75" y="303" width="105" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peEarsFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="314" width="55" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Nose, Sinuses]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="55" y="314" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peNoseSinuses}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="75" y="314" width="105" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peNoseSinusesFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="0" y="325" width="55" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Mouth, Throat]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="55" y="325" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peMouthThroat}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="75" y="325" width="105" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peMouthThroatFindings}]]></textFieldExpression>
+            </textField>
+
+            <!-- Column B items -->
+            <staticText>
+                <reportElement x="185" y="259" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Neck, Lymph Node, Thyroid]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="265" y="259" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peNeckLymphNodes}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="285" y="259" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peNeckLymphNodesFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="270" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Breast, Axilla]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="265" y="270" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peBreastAxilla}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="285" y="270" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peBreastAxillaFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="281" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Chest and Lungs]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="265" y="281" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peChestLungs}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="285" y="281" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peChestLungsFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="292" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Heart]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="265" y="292" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peHeart}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="285" y="292" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peHeartFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="303" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Abdomen]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="265" y="303" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peAbdomen}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="285" y="303" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peAbdomenFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="314" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Back]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="265" y="314" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peBack}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="285" y="314" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peBackFindings}]]></textFieldExpression>
+            </textField>
+
+            <!-- Column C items -->
+            <staticText>
+                <reportElement x="370" y="259" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Anus-Rectum]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="450" y="259" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peAnusRectum}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="470" y="259" width="85" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peAnusRectumFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="370" y="270" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Genito-Urinary System]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="450" y="270" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peGenitoUrinary}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="470" y="270" width="85" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peGenitoUrinaryFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="370" y="281" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Inguinals, genitals]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="450" y="281" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peInguinalsGenitals}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="470" y="281" width="85" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peInguinalsGenitalsFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="370" y="292" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Extremities]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="450" y="292" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peExtremities}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="470" y="292" width="85" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peExtremitiesFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="370" y="303" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Reflexes]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="450" y="303" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peReflexes}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="470" y="303" width="85" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peReflexesFindings}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="370" y="314" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Dental (Teeth/gums)]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="450" y="314" width="15" height="10"/>
+                <textElement textAlignment="Center"><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{peDental}]]></textFieldExpression>
+            </textField>
+            <textField isBlankWhenNull="true">
+                <reportElement x="470" y="314" width="85" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <textFieldExpression><![CDATA[$P{peDentalFindings}]]></textFieldExpression>
+            </textField>
+
+            <!-- ===== SECTION III: ANCILLARY EXAMINATIONS ===== -->
+            <line><reportElement x="0" y="336" width="555" height="1"/></line>
+            <staticText>
+                <reportElement x="0" y="338" width="400" height="12"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <text><![CDATA[III.  RESULTS OF ANCILLARY EXAMINATIONS - Tick appropriate box.]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="430" y="338" width="55" height="12"/>
+                <textElement><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[X-ray No.:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="485" y="338" width="70" height="12"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{xrayNo}]]></textFieldExpression>
+            </textField>
+            <!-- Row 1 -->
+            <staticText>
+                <reportElement x="0" y="352" width="70" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[A. Chest x-ray:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="70" y="352" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{chestXray}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="352" width="60" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[E. Urinalysis:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="245" y="352" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{urinalysis}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="370" y="352" width="40" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[I. RPR:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="410" y="352" width="80" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{apb}]]></textFieldExpression>
+            </textField>
+            <!-- Row 2 -->
+            <staticText>
+                <reportElement x="0" y="364" width="70" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[B. ECG:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="70" y="364" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{cec}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="364" width="60" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[F. Stool Exam:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="245" y="364" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{stoolExam}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="370" y="364" width="60" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[J. Blood Type:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="430" y="364" width="60" height="10"/>
+                <textElement><font size="9" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{bloodType}]]></textFieldExpression>
+            </textField>
+            <!-- Row 3 -->
+            <staticText>
+                <reportElement x="0" y="376" width="70" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[C. CBC:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="70" y="376" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{cbc}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="376" width="60" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[G. HBsAg:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="245" y="376" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{hbsag}]]></textFieldExpression>
+            </textField>
+            <!-- Row 4 -->
+            <staticText>
+                <reportElement x="0" y="388" width="70" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[D. Pregnancy Test:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="70" y="388" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{pregnancyTest}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="388" width="60" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[H. HIV/AIDS test:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="245" y="388" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{hivAidsTest}]]></textFieldExpression>
+            </textField>
+            <!-- Row 5: Psychological and Drug Test -->
+            <staticText>
+                <reportElement x="0" y="400" width="80" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Psychological Test:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="80" y="400" width="100" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{psychologicalTest}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="185" y="400" width="60" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Drug Test:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="245" y="400" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{drugTest}]]></textFieldExpression>
+            </textField>
+            <!-- Additional tests -->
+            <staticText>
+                <reportElement x="0" y="413" width="555" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Additional Tests (Specify): e.g. Blood Chemistries, Drug Tests, Alcohol Test, Liver Function Test, Stool Culture, etc.:]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="0" y="424" width="555" height="12"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{additionalTests}]]></textFieldExpression>
+            </textField>
+
+            <!-- ===== SECTION IV: REMARKS ===== -->
+            <line><reportElement x="0" y="440" width="555" height="1"/></line>
+            <staticText>
+                <reportElement x="0" y="443" width="555" height="12"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <text><![CDATA[IV.  REMARKS:]]></text>
+            </staticText>
+            <textField textAdjust="StretchHeight" isBlankWhenNull="true">
+                <reportElement x="0" y="456" width="555" height="20"/>
+                <textElement><font size="7"/></textElement>
+                <textFieldExpression><![CDATA[$P{remarks}]]></textFieldExpression>
+            </textField>
+
+            <!-- ===== SECTION V: RECOMMENDATION ===== -->
+            <line><reportElement x="0" y="480" width="555" height="1"/></line>
+            <staticText>
+                <reportElement x="0" y="484" width="100" height="14"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <text><![CDATA[V. RECOMMENDATION:]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="100" y="482" width="250" height="16"/>
+                <textElement><font size="11" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{recommendation}]]></textFieldExpression>
+            </textField>
+            <!-- Dates row -->
+            <staticText>
+                <reportElement x="0" y="502" width="110" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Date of Initial PEME (mm/dd/yyyy):]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="110" y="502" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{dateInitialPeme}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="195" y="502" width="110" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Date of Fitness (mm/dd/yyyy):]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="305" y="502" width="70" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{dateOfFitness}]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement x="385" y="502" width="95" height="10"/>
+                <textElement><font size="6"/></textElement>
+                <text><![CDATA[Valid Until (mm/dd/yyyy):]]></text>
+            </staticText>
+            <textField isBlankWhenNull="true">
+                <reportElement x="480" y="502" width="75" height="10"/>
+                <textElement><font size="7" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{validUntil}]]></textFieldExpression>
+            </textField>
+
+            <!-- ===== SIGNATURES ===== -->
+            <line><reportElement x="0" y="516" width="555" height="1"/></line>
+            <!-- Authorized Physician -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="0" y="530" width="250" height="14"/>
+                <textElement textAlignment="Center"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{authorizedPhysician}]]></textFieldExpression>
+            </textField>
+            <line><reportElement x="30" y="544" width="190" height="1"/></line>
+            <staticText>
+                <reportElement x="0" y="546" width="250" height="12"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[Name and Signature of Authorized Physician]]></text>
+            </staticText>
+            <!-- Medical Director -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="300" y="530" width="255" height="14"/>
+                <textElement textAlignment="Center"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{medicalDirector}]]></textFieldExpression>
+            </textField>
+            <line><reportElement x="330" y="544" width="195" height="1"/></line>
+            <staticText>
+                <reportElement x="300" y="546" width="255" height="12"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[Name and Signature of Medical Director]]></text>
+            </staticText>
+            <!-- Certification statement -->
+            <staticText>
+                <reportElement x="0" y="565" width="555" height="12"/>
+                <textElement textAlignment="Center"><font size="6"/></textElement>
+                <text><![CDATA[This is to certify that I have been informed of the content of this medical certificate and of the right to review.]]></text>
+            </staticText>
+            <!-- Examinee signature -->
+            <textField isBlankWhenNull="true">
+                <reportElement x="100" y="585" width="355" height="14"/>
+                <textElement textAlignment="Center"><font size="8" isBold="true"/></textElement>
+                <textFieldExpression><![CDATA[$P{lastName} + ", " + $P{firstName} + " " + $P{middleName}]]></textFieldExpression>
+            </textField>
+            <line><reportElement x="150" y="599" width="255" height="1"/></line>
+            <staticText>
+                <reportElement x="0" y="601" width="555" height="12"/>
+                <textElement textAlignment="Center"><font size="6" isBold="true"/></textElement>
+                <text><![CDATA[Signature of Examinee]]></text>
+            </staticText>
+        </band>
+    </detail>
+
+</jasperReport>

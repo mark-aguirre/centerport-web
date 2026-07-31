@@ -139,6 +139,49 @@ async function uploadFile(
   return response.json();
 }
 
+/**
+ * Download a binary file (e.g. PDF) and open it in a new browser tab.
+ * Falls back to triggering a file download if the browser blocks the popup.
+ */
+async function downloadPdf(path: string, filename?: string): Promise<void> {
+  const url = `${BASE_URL}${path}`;
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { Accept: "application/pdf" },
+  });
+
+  if (!response.ok) {
+    let message = "Failed to generate report";
+    try {
+      const errorBody = await response.json();
+      if (errorBody.message) message = errorBody.message;
+      if (errorBody.detail) message = errorBody.detail;
+    } catch {
+      // Ignore parse errors
+    }
+    throw new ApiError(response.status, message);
+  }
+
+  const blob = await response.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+
+  // Try opening in a new tab for print/preview
+  const newTab = window.open(blobUrl, "_blank");
+  if (!newTab) {
+    // Fallback: trigger download if popup was blocked
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = filename ?? "report.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Clean up blob URL after a delay to allow the tab/download to start
+  setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
+}
+
 export const httpClient = {
   get: <T>(path: string, params?: Record<string, string | number | undefined>) =>
     request<T>(path, { method: "GET", params }),
@@ -153,4 +196,5 @@ export const httpClient = {
     request<T>(path, { method: "DELETE" }),
 
   uploadFile,
+  downloadPdf,
 };

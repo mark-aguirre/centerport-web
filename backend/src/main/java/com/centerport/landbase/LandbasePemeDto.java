@@ -81,6 +81,82 @@ public class LandbasePemeDto {
     private PsychologicalTestResult psychologicalTest;
     private String additionalTests;
 
+    // --- DOH / Certificate Identifiers ---
+    private String dohAccreditationNo;
+    private String refNo;
+
+    // --- Physical Examination - Vital Signs ---
+    private String peWeight;
+    private String peHeight;
+    private String peBmi;
+    private String pePulseRate;
+    private String peBloodPressure;
+    private String peRespiration;
+    private String peBodyTemperature;
+
+    // --- Vision Acuity - Far Vision ---
+    private String visionFarOdUncorrected;
+    private String visionFarOsUncorrected;
+    private String visionFarOdCorrected;
+    private String visionFarOsCorrected;
+
+    // --- Vision Acuity - Near Vision ---
+    private String visionNearOdUncorrected;
+    private String visionNearOsUncorrected;
+    private String visionNearOdCorrected;
+    private String visionNearOsCorrected;
+
+    // --- Ishihara Color Vision ---
+    private Boolean visionColorAdequate;
+
+    // --- Hearing Audiometry ---
+    private String hearingAd;
+    private String hearingAs;
+
+    // --- Physical Exploration - Column A ---
+    private PhysicalExplorationValue peSkin;
+    private String peSkinFindings;
+    private PhysicalExplorationValue peHeadScalp;
+    private String peHeadScalpFindings;
+    private PhysicalExplorationValue peEyesExternal;
+    private String peEyesExternalFindings;
+    private PhysicalExplorationValue pePupils;
+    private String pePupilsFindings;
+    private PhysicalExplorationValue peEars;
+    private String peEarsFindings;
+    private PhysicalExplorationValue peNoseSinuses;
+    private String peNoseSinusesFindings;
+    private PhysicalExplorationValue peMouthThroat;
+    private String peMouthThroatFindings;
+
+    // --- Physical Exploration - Column B ---
+    private PhysicalExplorationValue peNeckLymphNodes;
+    private String peNeckLymphNodesFindings;
+    private PhysicalExplorationValue peBreastAxilla;
+    private String peBreastAxillaFindings;
+    private PhysicalExplorationValue peChestLungs;
+    private String peChestLungsFindings;
+    private PhysicalExplorationValue peHeart;
+    private String peHeartFindings;
+    private PhysicalExplorationValue peAbdomen;
+    private String peAbdomenFindings;
+    private PhysicalExplorationValue peBack;
+    private String peBackFindings;
+
+    // --- Physical Exploration - Column C ---
+    private PhysicalExplorationValue peAnusRectum;
+    private String peAnusRectumFindings;
+    private PhysicalExplorationValue peGenitoUrinary;
+    private String peGenitoUrinaryFindings;
+    private PhysicalExplorationValue peInguinalsGenitals;
+    private String peInguinalsGenitalsFindings;
+    private PhysicalExplorationValue peExtremities;
+    private String peExtremitiesFindings;
+    private PhysicalExplorationValue peReflexes;
+    private String peReflexesFindings;
+    private PhysicalExplorationValue peDental;
+    private String peDentalFindings;
+
     // --- Remarks ---
     private String remarks;
 
