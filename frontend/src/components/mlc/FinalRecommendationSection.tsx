@@ -54,6 +54,14 @@ export default function FinalRecommendationSection({
     updateField(FIELD_MAP[field] as keyof MlcRecord, value);
   };
 
+  const handleCertBatchChange = (updates: Partial<CertificationDetailsValues>) => {
+    const mapped: Record<string, string> = {};
+    for (const [key, val] of Object.entries(updates)) {
+      mapped[FIELD_MAP[key as keyof CertificationDetailsValues]] = val as string;
+    }
+    onChange({ ...data, ...mapped } as typeof data);
+  };
+
   return (
     <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
       <SectionHeader
@@ -85,6 +93,7 @@ export default function FinalRecommendationSection({
             medicalDirector: data.medical_director,
           }}
           onChange={handleCertChange}
+          onBatchChange={handleCertBatchChange}
           disabled={disabled}
         />
       </div>

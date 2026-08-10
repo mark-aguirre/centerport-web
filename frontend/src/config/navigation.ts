@@ -7,6 +7,7 @@ import {
   Globe,
   Building2,
   CalendarCheck,
+  Brain,
   type LucideIcon,
 } from "lucide-react";
 
@@ -73,5 +74,12 @@ export const navigation: NavigationItem[] = [
     subtitle: "POEA/DMW Medical Examination — Land-Based OFW",
     href: "/landbase",
     icon: Building2,
+  },
+  {
+    title: "Psychological Evaluation",
+    shortTitle: "Psychology",
+    subtitle: "Seafarer Psychological Fitness Assessment",
+    href: "/psychology",
+    icon: Brain,
   },
 ];

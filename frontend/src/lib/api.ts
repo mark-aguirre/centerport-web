@@ -10,6 +10,7 @@ import type { LandbasePeme } from "@/components/landbase/types";
 import type { MedicalExam } from "@/components/medical/types";
 import type { MlcRecord } from "@/components/mlc/types";
 import type { PanamaCertificate } from "@/components/panama/types";
+import type { PsychologyRecord } from "@/components/psychology/types";
 
 /**
  * Complete seafarer profile record.
@@ -215,6 +216,22 @@ async function fetchSearchResults<T>(
     sort: "updatedDate,desc",
   });
   return paged.content;
+}
+
+/**
+ * Medical personnel record from the database.
+ * Represents a licensed medical professional (doctor, psychologist, psychometrician, etc.).
+ */
+export interface MedicalPersonnelRecord {
+  id: string;
+  personnel_id?: string;
+  name: string;
+  license_no: string;
+  specialization?: string;
+  title?: string;
+  active?: boolean;
+  created_date?: string;
+  updated_date?: string;
 }
 
 export const api = {
@@ -532,6 +549,62 @@ export const api = {
       },
     },
 
+    PsychologyEvaluation: {
+      /**
+       * Filter psychology evaluations. When `id` is provided, fetches a single record by UUID.
+       * Otherwise returns all records (first page, up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<PsychologyRecord[]> {
+        return fetchFiltered<PsychologyRecord>("/api/psychology-evaluations", filters);
+      },
+
+      /**
+       * List psychology evaluations with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-created_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<PsychologyRecord[]> {
+        return fetchPagedList<PsychologyRecord>("/api/psychology-evaluations", orderBy, limit, {
+          eval_id: "evalId",
+        });
+      },
+
+      /** Create a new psychology evaluation. Returns the persisted record with server-generated fields. */
+      async create(data: PsychologyRecord): Promise<PsychologyRecord> {
+        return httpClient.post<PsychologyRecord>("/api/psychology-evaluations", data);
+      },
+
+      /** Update an existing psychology evaluation by UUID. Returns the updated record. */
+      async update(id: string, data: Partial<PsychologyRecord>): Promise<PsychologyRecord> {
+        return httpClient.put<PsychologyRecord>(`/api/psychology-evaluations/${id}`, data);
+      },
+
+      /**
+       * Search psychology evaluations by keyword (matches patient name or eval ID).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       * @returns matching records sorted by most recently updated first
+       */
+      async search(keyword: string, limit: number = 10): Promise<PsychologyRecord[]> {
+        return fetchSearchResults<PsychologyRecord>("/api/psychology-evaluations", keyword, limit);
+      },
+
+      /**
+       * Fetch all psychology evaluations linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of evaluation records for that profile
+       */
+      async listByProfile(profileId: string): Promise<PsychologyRecord[]> {
+        return httpClient.get<PsychologyRecord[]>(
+          `/api/psychology-evaluations/by-profile/${profileId}`
+        );
+      },
+    },
+
     PatientVisit: {
       /**
        * List today's visits (or visits for a specific date).
@@ -587,6 +660,22 @@ export const api = {
       }): Promise<{ file_url: string }> {
         return httpClient.uploadFile("/api/files", file);
       },
+    },
+  },
+
+  /**
+   * Medical Personnel resource — master list of licensed professionals.
+   * Used by the medical personnel selection dialog.
+   */
+  MedicalPersonnel: {
+    /** Search active personnel by keyword (name, license, specialization). */
+    async search(keyword?: string): Promise<MedicalPersonnelRecord[]> {
+      const params: Record<string, string | number | undefined> = {};
+      if (keyword) params.keyword = keyword;
+      return httpClient.get<MedicalPersonnelRecord[]>(
+        "/api/medical-personnel/search",
+        params
+      );
     },
   },
 };

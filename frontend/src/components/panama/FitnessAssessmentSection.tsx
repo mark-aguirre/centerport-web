@@ -1,12 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import { SectionHeader } from "@/components/common/section-header";
 import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormField } from "@/components/common/form-field";
 import { FormSelect } from "@/components/common/form-select";
+import {
+  MedicalPersonnelDialog,
+  type MedicalPersonnel,
+} from "@/components/common/medical-personnel-dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PanamaSectionProps, PanamaCertificate } from "./types";
 
@@ -32,6 +39,24 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
 
   const updateBool = (field: keyof PanamaCertificate, value: boolean) =>
     onChange({ ...data, [field]: value });
+
+  // Dialog state for physician search
+  const [physicianDialogOpen, setPhysicianDialogOpen] = useState(false);
+
+  const handleSelectPhysician = (personnel: MedicalPersonnel) => {
+    // Combine name + license as "Name and Registration"
+    const nameAndReg = personnel.license_no
+      ? `${personnel.name} — ${personnel.license_no}`
+      : personnel.name;
+    onChange({ ...data, physician_name: nameAndReg });
+  };
+
+  const inputClasses = cn(
+    "h-8 text-xs bg-white border border-primary/30 rounded-md px-2 shadow-sm",
+    "hover:border-primary/50 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20",
+    "dark:bg-input/30 transition-colors",
+    disabled && "pointer-events-none opacity-70"
+  );
 
   /** Set fitness to fit for all services, no restrictions, fit for lookout. */
   const handleSetNormal = () => {
@@ -312,12 +337,31 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
 
         {/* Physician details — 2 columns */}
         <div className="grid grid-cols-2 gap-6">
-          <FormField
-            label="Physician's Name and Registration"
-            value={data.physician_name}
-            onChange={(v) => update("physician_name", v)}
-            disabled={disabled}
-          />
+          <div className="space-y-0.5">
+            <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
+              Physician&apos;s Name and Registration
+            </Label>
+            <div className="flex gap-1.5">
+              <Input
+                value={data.physician_name ?? ""}
+                readOnly
+                placeholder="Select physician..."
+                className={cn(inputClasses, "flex-1")}
+                tabIndex={disabled ? -1 : undefined}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
+                onClick={() => setPhysicianDialogOpen(true)}
+                disabled={disabled}
+                aria-label="Search physician"
+              >
+                <Search className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
           <FormField
             label="Signature and Stamp"
             value={data.physician_signature}
@@ -326,6 +370,15 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
           />
         </div>
       </div>
+
+      {/* Medical Personnel Search Dialog */}
+      <MedicalPersonnelDialog
+        open={physicianDialogOpen}
+        onOpenChange={setPhysicianDialogOpen}
+        onSelect={handleSelectPhysician}
+        title="Select Physician"
+        description="Search and select a physician for this certificate."
+      />
     </div>
   );
 }

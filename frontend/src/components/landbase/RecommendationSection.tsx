@@ -59,6 +59,14 @@ export default function RecommendationSection({
     updateField(FIELD_MAP[field] as keyof LandbasePeme, value);
   };
 
+  const handleCertBatchChange = (updates: Partial<CertificationDetailsValues>) => {
+    const mapped: Record<string, string> = {};
+    for (const [key, val] of Object.entries(updates)) {
+      mapped[FIELD_MAP[key as keyof CertificationDetailsValues]] = val as string;
+    }
+    onChange({ ...data, ...mapped } as typeof data);
+  };
+
   return (
     <div className="space-y-3">
       {/* Card 1: Recommendation */}
@@ -90,6 +98,7 @@ export default function RecommendationSection({
             medicalDirector: data.medical_director,
           }}
           onChange={handleCertChange}
+          onBatchChange={handleCertBatchChange}
           disabled={disabled}
         />
       </div>

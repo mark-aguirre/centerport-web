@@ -1,10 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { FormSelect } from "@/components/common/form-select";
-import { FileCheck } from "lucide-react";
+import {
+  MedicalPersonnelDialog,
+  type MedicalPersonnel,
+} from "@/components/common/medical-personnel-dialog";
+import { FileCheck, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
@@ -13,20 +20,15 @@ import type { MlcSectionProps } from "./types";
 /** Certificate type options per MLC/STCW standards. */
 const CERTIFICATE_TYPE_OPTIONS = ["ILO/MLC", "STCW", "Flag State"];
 
-/** Placeholder physician options — replace with API data when available. */
-const PHYSICIAN_OPTIONS = [
-  "Dr. Juan Dela Cruz",
-  "Dr. Maria Santos",
-  "Dr. Jose Rizal",
-  "Dr. Ana Reyes",
-];
-
 /**
  * Certificate Details section for the MLC form.
  *
  * Captures the medical certificate metadata: certificate type,
  * date of examination, date issued, valid until, issuing authority,
  * examining physician, medical director, and any limitations/remarks.
+ *
+ * Personnel fields use the global MedicalPersonnelDialog for searching and
+ * selecting from the database rather than a hardcoded dropdown.
  *
  * This is distinct from the Final Recommendation section which handles
  * the fitness determination and certification dates.
@@ -37,6 +39,24 @@ export default function CertificateDetailsSection({
   disabled,
 }: MlcSectionProps) {
   const updateField = createFieldUpdater(data, onChange);
+
+  const [physicianDialogOpen, setPhysicianDialogOpen] = useState(false);
+  const [directorDialogOpen, setDirectorDialogOpen] = useState(false);
+
+  const handleSelectPhysician = (personnel: MedicalPersonnel) => {
+    onChange({ ...data, examining_physician: personnel.name });
+  };
+
+  const handleSelectDirector = (personnel: MedicalPersonnel) => {
+    onChange({ ...data, medical_director: personnel.name });
+  };
+
+  const inputClasses = cn(
+    "h-8 text-xs bg-white border border-primary/30 rounded-md px-2 shadow-sm",
+    "hover:border-primary/50 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20",
+    "dark:bg-input/30 transition-colors",
+    disabled && "pointer-events-none opacity-70"
+  );
 
   return (
     <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
@@ -84,22 +104,58 @@ export default function CertificateDetailsSection({
           />
         </div>
 
-        {/* Row 3: Examining Physician, Medical Director */}
+        {/* Row 3: Examining Physician, Medical Director (search dialogs) */}
         <div className="grid grid-cols-2 gap-2">
-          <FormSelect
-            label="Examining Physician"
-            value={data.examining_physician}
-            onChange={(v) => updateField("examining_physician", v)}
-            options={PHYSICIAN_OPTIONS}
-            disabled={disabled}
-          />
-          <FormSelect
-            label="Medical Director"
-            value={data.medical_director}
-            onChange={(v) => updateField("medical_director", v)}
-            options={PHYSICIAN_OPTIONS}
-            disabled={disabled}
-          />
+          <div className="space-y-0.5">
+            <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
+              Examining Physician
+            </Label>
+            <div className="flex gap-1.5">
+              <Input
+                value={data.examining_physician ?? ""}
+                readOnly
+                placeholder="Select physician..."
+                className={cn(inputClasses, "flex-1")}
+                tabIndex={disabled ? -1 : undefined}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
+                onClick={() => setPhysicianDialogOpen(true)}
+                disabled={disabled}
+                aria-label="Search examining physician"
+              >
+                <Search className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-0.5">
+            <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
+              Medical Director
+            </Label>
+            <div className="flex gap-1.5">
+              <Input
+                value={data.medical_director ?? ""}
+                readOnly
+                placeholder="Select medical director..."
+                className={cn(inputClasses, "flex-1")}
+                tabIndex={disabled ? -1 : undefined}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
+                onClick={() => setDirectorDialogOpen(true)}
+                disabled={disabled}
+                aria-label="Search medical director"
+              >
+                <Search className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Limitations / Remarks */}
@@ -120,6 +176,22 @@ export default function CertificateDetailsSection({
           />
         </div>
       </div>
+
+      {/* Medical Personnel Search Dialogs */}
+      <MedicalPersonnelDialog
+        open={physicianDialogOpen}
+        onOpenChange={setPhysicianDialogOpen}
+        onSelect={handleSelectPhysician}
+        title="Select Examining Physician"
+        description="Search and select an examining physician for this certificate."
+      />
+      <MedicalPersonnelDialog
+        open={directorDialogOpen}
+        onOpenChange={setDirectorDialogOpen}
+        onSelect={handleSelectDirector}
+        title="Select Medical Director"
+        description="Search and select a medical director for this certificate."
+      />
     </div>
   );
 }

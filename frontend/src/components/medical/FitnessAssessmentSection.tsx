@@ -106,6 +106,21 @@ export function FitnessAssessmentSection({ data, onChange, disabled }: MedicalSe
             };
             update(FIELD_MAP[field], value);
           }}
+          onBatchChange={(updates) => {
+            const FIELD_MAP: Record<keyof CertificationDetailsValues, keyof MedicalExam> = {
+              dateInitialPeme: "date_initial_peme",
+              dateOfFitness: "date_of_fitness",
+              validUntil: "valid_until",
+              authorizedPhysician: "authorized_physician",
+              medicalCertificationNo: "medical_certification_no",
+              medicalDirector: "medical_director",
+            };
+            const mapped: Record<string, string> = {};
+            for (const [key, val] of Object.entries(updates)) {
+              mapped[FIELD_MAP[key as keyof CertificationDetailsValues]] = val as string;
+            }
+            onChange({ ...data, ...mapped } as typeof data);
+          }}
           disabled={disabled}
         />
       </div>

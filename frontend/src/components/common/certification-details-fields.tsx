@@ -1,15 +1,16 @@
 "use client";
 
+import { useState } from "react";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/common/form-field";
-import { FormSelect } from "@/components/common/form-select";
-
-/** Physician options shared across all certification sections. */
-const PHYSICIAN_OPTIONS = [
-  "Dr. Juan Dela Cruz",
-  "Dr. Maria Santos",
-  "Dr. Jose Rizal",
-  "Dr. Ana Reyes",
-];
+import {
+  MedicalPersonnelDialog,
+  type MedicalPersonnel,
+} from "@/components/common/medical-personnel-dialog";
+import { cn } from "@/lib/utils";
 
 /** Values for the certification details fields. */
 export interface CertificationDetailsValues {
@@ -26,10 +27,10 @@ export interface CertificationDetailsFieldsProps {
   values: CertificationDetailsValues;
   /** Called when any field value changes. */
   onChange: (field: keyof CertificationDetailsValues, value: string) => void;
+  /** Called when multiple fields change at once (e.g. physician selection populates name + cert no). */
+  onBatchChange?: (updates: Partial<CertificationDetailsValues>) => void;
   /** Disables all fields when true. */
   disabled?: boolean;
-  /** Override the default physician options if needed. */
-  physicianOptions?: string[];
 }
 
 /**
@@ -37,8 +38,11 @@ export interface CertificationDetailsFieldsProps {
  *
  * Renders the standard layout used across Medical, MLC, and Landbase forms:
  * - Row 1: Date of Initial PEME, Date of Fitness, Valid Until
- * - Row 2: Authorized Physician, Medical Certification No.
- * - Row 3: Medical Director
+ * - Row 2: Authorized Physician (search dialog), Medical Certification No.
+ * - Row 3: Medical Director (search dialog)
+ *
+ * Personnel fields use the global MedicalPersonnelDialog for searching and
+ * selecting from the database rather than a hardcoded dropdown.
  *
  * @example
  * ```tsx
@@ -59,9 +63,35 @@ export interface CertificationDetailsFieldsProps {
 export function CertificationDetailsFields({
   values,
   onChange,
+  onBatchChange,
   disabled,
-  physicianOptions = PHYSICIAN_OPTIONS,
 }: CertificationDetailsFieldsProps) {
+  const [physicianDialogOpen, setPhysicianDialogOpen] = useState(false);
+  const [directorDialogOpen, setDirectorDialogOpen] = useState(false);
+
+  const handleSelectPhysician = (personnel: MedicalPersonnel) => {
+    if (onBatchChange) {
+      onBatchChange({
+        authorizedPhysician: personnel.name,
+        medicalCertificationNo: personnel.license_no,
+      });
+    } else {
+      onChange("authorizedPhysician", personnel.name);
+      onChange("medicalCertificationNo", personnel.license_no);
+    }
+  };
+
+  const handleSelectDirector = (personnel: MedicalPersonnel) => {
+    onChange("medicalDirector", personnel.name);
+  };
+
+  const inputClasses = cn(
+    "h-8 text-xs bg-white border border-primary/30 rounded-md px-2 shadow-sm",
+    "hover:border-primary/50 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20",
+    "dark:bg-input/30 transition-colors",
+    disabled && "pointer-events-none opacity-70"
+  );
+
   return (
     <div className="space-y-2">
       {/* Row 1: Date of Initial PEME, Date of Fitness, Valid Until */}
@@ -89,33 +119,85 @@ export function CertificationDetailsFields({
         />
       </div>
 
-      {/* Row 2: Authorized Physician, Medical Certification No. */}
+      {/* Row 2: Authorized Physician (search dialog), Medical Certification No. */}
       <div className="grid grid-cols-[2fr_3fr] gap-2">
-        <FormSelect
-          label="Authorized Physician"
-          value={values.authorizedPhysician}
-          onChange={(v) => onChange("authorizedPhysician", v)}
-          options={physicianOptions}
-          disabled={disabled}
-        />
+        <div className="space-y-0.5">
+          <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
+            Authorized Physician
+          </Label>
+          <div className="flex gap-1.5">
+            <Input
+              value={values.authorizedPhysician ?? ""}
+              readOnly
+              placeholder="Select physician..."
+              className={cn(inputClasses, "flex-1")}
+              tabIndex={disabled ? -1 : undefined}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
+              onClick={() => setPhysicianDialogOpen(true)}
+              disabled={disabled}
+              aria-label="Search authorized physician"
+            >
+              <Search className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
         <FormField
           label="Medical Certification No."
           value={values.medicalCertificationNo}
           onChange={(v) => onChange("medicalCertificationNo", v)}
-          disabled={disabled}
+          disabled
         />
       </div>
 
-      {/* Row 3: Medical Director */}
+      {/* Row 3: Medical Director (search dialog) */}
       <div className="max-w-sm">
-        <FormSelect
-          label="Medical Director"
-          value={values.medicalDirector}
-          onChange={(v) => onChange("medicalDirector", v)}
-          options={physicianOptions}
-          disabled={disabled}
-        />
+        <div className="space-y-0.5">
+          <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
+            Medical Director
+          </Label>
+          <div className="flex gap-1.5">
+            <Input
+              value={values.medicalDirector ?? ""}
+              readOnly
+              placeholder="Select medical director..."
+              className={cn(inputClasses, "flex-1")}
+              tabIndex={disabled ? -1 : undefined}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
+              onClick={() => setDirectorDialogOpen(true)}
+              disabled={disabled}
+              aria-label="Search medical director"
+            >
+              <Search className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* Medical Personnel Search Dialogs */}
+      <MedicalPersonnelDialog
+        open={physicianDialogOpen}
+        onOpenChange={setPhysicianDialogOpen}
+        onSelect={handleSelectPhysician}
+        title="Select Authorized Physician"
+        description="Search and select an authorized physician."
+      />
+      <MedicalPersonnelDialog
+        open={directorDialogOpen}
+        onOpenChange={setDirectorDialogOpen}
+        onSelect={handleSelectDirector}
+        title="Select Medical Director"
+        description="Search and select a medical director."
+      />
     </div>
   );
 }
