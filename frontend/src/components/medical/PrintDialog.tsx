@@ -14,12 +14,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 
-/** Available landbase report types with their backend slugs and display labels. */
+/** Available seabase report types with their backend slugs and display labels. */
 const REPORT_OPTIONS = [
-  { slug: "landbase-summary", label: "Summary Report", description: "Results and recommendation overview" },
-  { slug: "landbase-detailed", label: "Detailed Report", description: "Complete PEME with all sections" },
-  { slug: "landbase-mlc", label: "MLC Certificate", description: "Maritime Labour Convention medical certificate" },
-  { slug: "landbase-mer", label: "MER Form", description: "Medical Examination Report" },
+  { slug: "seabase-summary", label: "Summary Report", description: "Results and recommendation overview" },
+  { slug: "seabase-detailed", label: "Detailed Report", description: "Complete medical examination with all sections" },
+  { slug: "seabase-mlc", label: "MLC Certificate", description: "Maritime Labour Convention medical certificate" },
+  { slug: "seabase-mer", label: "MER Form", description: "Medical Examination Report" },
 ] as const;
 
 interface PrintDialogProps {
@@ -27,28 +27,28 @@ interface PrintDialogProps {
   open: boolean;
   /** Callback when the dialog should close. */
   onClose: () => void;
-  /** UUID of the current PEME record. Null when no record is loaded. */
-  pemeId: string | undefined;
+  /** UUID of the current medical exam record. Null when no record is loaded. */
+  examId: string | undefined;
 }
 
 /**
- * Dialog that lets the user choose which landbase report to generate.
+ * Dialog that lets the user choose which seabase report to generate.
  *
  * Displays the 4 available report types as clickable cards. On click,
  * calls the backend to generate the PDF and opens it in a new tab.
  */
-export function PrintDialog({ open, onClose, pemeId }: PrintDialogProps) {
+export function PrintDialog({ open, onClose, examId }: PrintDialogProps) {
   const [generating, setGenerating] = useState<string | null>(null);
 
   const handleGenerate = async (slug: string) => {
-    if (!pemeId) {
-      toast.error("No PEME record loaded. Please select or save a record first.");
+    if (!examId) {
+      toast.error("No record loaded. Please select or save a record first.");
       return;
     }
 
     setGenerating(slug);
     try {
-      await api.entities.LandbasePeme.generateReport(pemeId, slug);
+      await api.entities.MedicalExam.generateReport(examId, slug);
       onClose();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to generate report";
@@ -64,7 +64,7 @@ export function PrintDialog({ open, onClose, pemeId }: PrintDialogProps) {
         <DialogHeader>
           <DialogTitle>Print Report</DialogTitle>
           <DialogDescription>
-            Select which report to generate for this PEME record.
+            Select which report to generate for this medical examination record.
           </DialogDescription>
         </DialogHeader>
 
@@ -74,7 +74,7 @@ export function PrintDialog({ open, onClose, pemeId }: PrintDialogProps) {
               key={option.slug}
               variant="outline"
               className="h-auto justify-start gap-3 px-4 py-3 text-left"
-              disabled={generating !== null || !pemeId}
+              disabled={generating !== null || !examId}
               onClick={() => handleGenerate(option.slug)}
             >
               {generating === option.slug ? (
@@ -90,7 +90,7 @@ export function PrintDialog({ open, onClose, pemeId }: PrintDialogProps) {
           ))}
         </div>
 
-        {!pemeId && (
+        {!examId && (
           <p className="text-xs text-destructive">
             No record loaded. Search for a patient or save a new record to enable printing.
           </p>

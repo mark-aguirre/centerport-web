@@ -493,6 +493,20 @@ export const api = {
           `/api/medical-exams/by-profile/${profileId}`
         );
       },
+
+      /**
+       * Generate a PDF report for a medical exam and open it in a new browser tab.
+       *
+       * @param id         the medical exam record UUID
+       * @param reportType the report template slug (e.g. "seabase-detailed")
+       */
+      async generateReport(id: string, reportType: string): Promise<void> {
+        const filename = `${reportType}_${id}.pdf`;
+        await httpClient.downloadPdf(
+          `/api/medical-exams/${id}/reports/${reportType}`,
+          filename
+        );
+      },
     },
 
     MlcRecord: {

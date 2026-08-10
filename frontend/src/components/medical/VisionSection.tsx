@@ -53,10 +53,10 @@ export function VisionSection({ data, onChange, disabled }: MedicalSectionProps)
           </div>
         </div>
 
-        {/* Right: Vision extras */}
-        <div className="space-y-2">
+        {/* Right: Vision extras — grid for vertical alignment */}
+        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 items-center">
+          <Label className="text-[11px] font-semibold text-foreground/70">Color Vision:</Label>
           <div className="flex items-center gap-3">
-            <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Color Vision:</Label>
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input type="radio" name="vision_color" checked={data.vision_color === "normal"} onChange={() => update("vision_color", "normal")} className="w-4 h-4 accent-primary" />
               <span className="text-xs text-foreground/80">Normal</span>
@@ -66,8 +66,9 @@ export function VisionSection({ data, onChange, disabled }: MedicalSectionProps)
               <span className="text-xs text-foreground/80">Defective</span>
             </label>
           </div>
+
+          <Label className="text-[11px] font-semibold text-foreground/70">Visual Acuity:</Label>
           <div className="flex items-center gap-3">
-            <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Visual Acuity:</Label>
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input type="radio" name="vision_va" checked={data.vision_visual_acuity === "normal"} onChange={() => update("vision_visual_acuity", "normal")} className="w-4 h-4 accent-primary" />
               <span className="text-xs text-foreground/80">Normal</span>
@@ -77,8 +78,9 @@ export function VisionSection({ data, onChange, disabled }: MedicalSectionProps)
               <span className="text-xs text-foreground/80">Defective</span>
             </label>
           </div>
+
+          <Label className="text-[11px] font-semibold text-foreground/70">Meets Standards STCW:</Label>
           <div className="flex items-center gap-3">
-            <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Meets Standards STCW:</Label>
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input type="radio" name="vision_stcw" checked={data.vision_meets_stcw === "yes"} onChange={() => update("vision_meets_stcw", "yes")} className="w-4 h-4 accent-primary" />
               <span className="text-xs text-foreground/80">Yes</span>
@@ -88,12 +90,14 @@ export function VisionSection({ data, onChange, disabled }: MedicalSectionProps)
               <span className="text-xs text-foreground/80">No</span>
             </label>
           </div>
-          <div className="flex items-center gap-3">
-            <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Contact Lenses:</Label>
+
+          <Label className="text-[11px] font-semibold text-foreground/70">Contact Lenses:</Label>
+          <div className="flex items-center">
             <input type="checkbox" checked={data.vision_contact_lenses === "yes"} onChange={(e) => update("vision_contact_lenses", e.target.checked ? "yes" : "no")} className="w-4 h-4 accent-primary" />
           </div>
-          <div className="flex items-center gap-2">
-            <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Date Taken:</Label>
+
+          <Label className="text-[11px] font-semibold text-foreground/70">Date Taken:</Label>
+          <div className="flex items-center">
             <Input type="date" value={data.vision_date_taken} onChange={(e) => update("vision_date_taken", e.target.value)} className="h-7 text-xs w-36" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
           </div>
         </div>
