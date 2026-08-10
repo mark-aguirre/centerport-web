@@ -5,6 +5,7 @@ import { Ship } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeSelector } from "@/components/theme-selector";
+import { FullWidthToggle } from "@/components/layout/full-width-toggle";
 import { navigation } from "@/config/navigation";
 
 interface AppHeaderProps {
@@ -52,6 +53,7 @@ export function AppHeader({ onToggleSidebar, sidebarCollapsed }: AppHeaderProps)
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
+        <FullWidthToggle />
         <ThemeSelector />
 
         <Avatar className="h-8 w-8">

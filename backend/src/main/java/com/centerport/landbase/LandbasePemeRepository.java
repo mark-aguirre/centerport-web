@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,4 +40,13 @@ public interface LandbasePemeRepository extends JpaRepository<LandbasePeme, UUID
      */
     @Query("SELECT p FROM LandbasePeme p JOIN FETCH p.seafarerProfile WHERE p.id = :id")
     Optional<LandbasePeme> findWithProfileById(@Param("id") UUID id);
+
+    /**
+     * Counts landbase PEME records created on or after the given date.
+     *
+     * @param since the start date (inclusive)
+     * @return count of records created since that date
+     */
+    @Query("SELECT COUNT(p) FROM LandbasePeme p WHERE p.createdDate >= :since")
+    long countCreatedSince(@Param("since") LocalDateTime since);
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import { LayoutProvider } from "@/components/layout-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -40,13 +41,15 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("centerport-theme");if(t==="sand"||t==="ocean"){document.documentElement.setAttribute("data-theme",t)}else{document.documentElement.setAttribute("data-theme","ocean")}}catch(e){document.documentElement.setAttribute("data-theme","ocean")}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("centerport-theme");if(t==="sand"||t==="ocean"){document.documentElement.setAttribute("data-theme",t)}else{document.documentElement.setAttribute("data-theme","ocean")}}catch(e){document.documentElement.setAttribute("data-theme","ocean")}})();(function(){try{if(localStorage.getItem("centerport-full-width")==="true"){document.documentElement.setAttribute("data-full-width","true")}}catch(e){}})();`,
           }}
         />
       </head>
       <body className="min-h-full flex flex-col">
         <TooltipProvider>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <LayoutProvider>{children}</LayoutProvider>
+          </ThemeProvider>
         </TooltipProvider>
       </body>
     </html>

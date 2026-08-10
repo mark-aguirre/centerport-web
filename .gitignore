@@ -7,6 +7,9 @@ node_modules/
 # IDE / Kiro
 .kiro/
 
+# Maven build output
+backend/target/
+
 # misc
 .DS_Store
 *.pem

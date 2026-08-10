@@ -106,7 +106,124 @@ export interface PatientVisitRecord {
   position?: string;
 }
 
+/** Dashboard statistics response shape from the backend. */
+export interface DashboardStats {
+  total_patients: number;
+  records_this_year: number;
+  total_lab_tests: number;
+  pending_lab_tests: number;
+  total_vessels: number;
+  vessels_in_port: number;
+}
+
+// ===================================================================
+// Shared Helpers — eliminates repeated sort-parsing and filter logic
+// ===================================================================
+
+/** Common frontend-to-backend field name mappings shared across entities. */
+const COMMON_FIELD_MAP: Record<string, string> = {
+  created_date: "createdDate",
+  updated_date: "updatedDate",
+  last_name: "lastName",
+  first_name: "firstName",
+};
+
+/**
+ * Parses a frontend sort string into backend sort params.
+ *
+ * Handles the `-` prefix convention for descending order and maps
+ * snake_case frontend field names to camelCase backend field names.
+ *
+ * @param orderBy   sort field prefixed with `-` for DESC (e.g. "-created_date")
+ * @param fieldMap  entity-specific field name overrides merged with common mappings
+ * @returns formatted backend sort string (e.g. "createdDate,desc")
+ */
+function buildSortParam(
+  orderBy: string,
+  fieldMap: Record<string, string> = {}
+): string {
+  let sortField = orderBy;
+  let direction = "asc";
+  if (orderBy.startsWith("-")) {
+    sortField = orderBy.slice(1);
+    direction = "desc";
+  }
+  const merged = { ...COMMON_FIELD_MAP, ...fieldMap };
+  const backendField = merged[sortField] ?? sortField;
+  return `${backendField},${direction}`;
+}
+
+/**
+ * Generic paged list fetch — reusable across all entity endpoints.
+ *
+ * @param endpoint  the API base URL for the entity
+ * @param orderBy   sort field with optional `-` prefix for DESC
+ * @param limit     max results to return
+ * @param fieldMap  entity-specific field name overrides
+ * @returns the content array from the paged response
+ */
+async function fetchPagedList<T>(
+  endpoint: string,
+  orderBy: string,
+  limit: number,
+  fieldMap: Record<string, string> = {}
+): Promise<T[]> {
+  const paged = await httpClient.get<PagedResponse<T>>(endpoint, {
+    size: limit,
+    page: 0,
+    sort: buildSortParam(orderBy, fieldMap),
+  });
+  return paged.content;
+}
+
+/**
+ * Generic filter fetch — single record by ID or first page of all.
+ *
+ * @param endpoint  the API base URL for the entity
+ * @param filters   optional filter object with `id` for single-record fetch
+ * @returns array containing the single record or first page of results
+ */
+async function fetchFiltered<T>(
+  endpoint: string,
+  filters: { id?: string }
+): Promise<T[]> {
+  if (filters.id) {
+    const record = await httpClient.get<T>(`${endpoint}/${filters.id}`);
+    return [record];
+  }
+  const paged = await httpClient.get<PagedResponse<T>>(endpoint, { size: 100 });
+  return paged.content;
+}
+
+/**
+ * Generic keyword search — fetches paged results sorted by most recent update.
+ *
+ * @param endpoint  the API base URL for the entity
+ * @param keyword   search term (case-insensitive partial match)
+ * @param limit     max results to return
+ * @returns matching records sorted by updatedDate descending
+ */
+async function fetchSearchResults<T>(
+  endpoint: string,
+  keyword: string,
+  limit: number
+): Promise<T[]> {
+  const paged = await httpClient.get<PagedResponse<T>>(endpoint, {
+    search: keyword,
+    size: limit,
+    page: 0,
+    sort: "updatedDate,desc",
+  });
+  return paged.content;
+}
+
 export const api = {
+  dashboard: {
+    /** Fetch aggregated dashboard statistics. */
+    async getStats(): Promise<DashboardStats> {
+      return httpClient.get<DashboardStats>("/api/dashboard/stats");
+    },
+  },
   entities: {
     SeafarerProfile: {
       /**
@@ -114,17 +231,7 @@ export const api = {
        * Otherwise returns all profiles (first page, up to 100).
        */
       async filter(filters: { id?: string }): Promise<SeafarerProfile[]> {
-        if (filters.id) {
-          const profile = await httpClient.get<SeafarerProfile>(
-            `/api/profiles/${filters.id}`
-          );
-          return [profile];
-        }
-        const paged = await httpClient.get<PagedResponse<SeafarerProfile>>(
-          "/api/profiles",
-          { size: 100 }
-        );
-        return paged.content;
+        return fetchFiltered<SeafarerProfile>("/api/profiles", filters);
       },
 
       /**
@@ -134,33 +241,9 @@ export const api = {
        * @param limit    max number of results
        */
       async list(orderBy: string, limit: number): Promise<SeafarerProfile[]> {
-        // Parse sort direction from the orderBy string (e.g. "-created_date" → DESC)
-        let sortField = orderBy;
-        let direction = "asc";
-        if (orderBy.startsWith("-")) {
-          sortField = orderBy.slice(1);
-          direction = "desc";
-        }
-
-        // Map frontend field names to backend field names (snake_case → camelCase)
-        const fieldMap: Record<string, string> = {
-          created_date: "createdDate",
-          updated_date: "updatedDate",
-          last_name: "lastName",
-          first_name: "firstName",
+        return fetchPagedList<SeafarerProfile>("/api/profiles", orderBy, limit, {
           profile_id: "profileId",
-        };
-        const backendField = fieldMap[sortField] ?? sortField;
-
-        const paged = await httpClient.get<PagedResponse<SeafarerProfile>>(
-          "/api/profiles",
-          {
-            size: limit,
-            page: 0,
-            sort: `${backendField},${direction}`,
-          }
-        );
-        return paged.content;
+        });
       },
 
       /** Create a new profile. Returns the persisted record with server-generated fields. */
@@ -184,16 +267,7 @@ export const api = {
        * @returns matching profiles sorted by relevance (latest first)
        */
       async search(keyword: string, limit: number = 10): Promise<SeafarerProfile[]> {
-        const paged = await httpClient.get<PagedResponse<SeafarerProfile>>(
-          "/api/profiles",
-          {
-            search: keyword,
-            size: limit,
-            page: 0,
-            sort: "updatedDate,desc",
-          }
-        );
-        return paged.content;
+        return fetchSearchResults<SeafarerProfile>("/api/profiles", keyword, limit);
       },
 
       /**
@@ -221,17 +295,7 @@ export const api = {
        * Otherwise returns all records (first page, up to 100).
        */
       async filter(filters: { id?: string }): Promise<LandbasePeme[]> {
-        if (filters.id) {
-          const record = await httpClient.get<LandbasePeme>(
-            `/api/landbase-pemes/${filters.id}`
-          );
-          return [record];
-        }
-        const paged = await httpClient.get<PagedResponse<LandbasePeme>>(
-          "/api/landbase-pemes",
-          { size: 100 }
-        );
-        return paged.content;
+        return fetchFiltered<LandbasePeme>("/api/landbase-pemes", filters);
       },
 
       /**
@@ -241,31 +305,9 @@ export const api = {
        * @param limit    max number of results
        */
       async list(orderBy: string, limit: number): Promise<LandbasePeme[]> {
-        let sortField = orderBy;
-        let direction = "asc";
-        if (orderBy.startsWith("-")) {
-          sortField = orderBy.slice(1);
-          direction = "desc";
-        }
-
-        const fieldMap: Record<string, string> = {
-          created_date: "createdDate",
-          updated_date: "updatedDate",
-          last_name: "lastName",
-          first_name: "firstName",
+        return fetchPagedList<LandbasePeme>("/api/landbase-pemes", orderBy, limit, {
           peme_id: "pemeId",
-        };
-        const backendField = fieldMap[sortField] ?? sortField;
-
-        const paged = await httpClient.get<PagedResponse<LandbasePeme>>(
-          "/api/landbase-pemes",
-          {
-            size: limit,
-            page: 0,
-            sort: `${backendField},${direction}`,
-          }
-        );
-        return paged.content;
+        });
       },
 
       /** Create a new landbase PEME. Returns the persisted record with server-generated fields. */
@@ -289,16 +331,7 @@ export const api = {
        * @returns matching records sorted by most recently updated first
        */
       async search(keyword: string, limit: number = 10): Promise<LandbasePeme[]> {
-        const paged = await httpClient.get<PagedResponse<LandbasePeme>>(
-          "/api/landbase-pemes",
-          {
-            search: keyword,
-            size: limit,
-            page: 0,
-            sort: "updatedDate,desc",
-          }
-        );
-        return paged.content;
+        return fetchSearchResults<LandbasePeme>("/api/landbase-pemes", keyword, limit);
       },
 
       /**
@@ -309,10 +342,9 @@ export const api = {
        * @returns list of PEME records for that profile
        */
       async listByProfile(profileId: string): Promise<LandbasePeme[]> {
-        const response = await httpClient.get<LandbasePeme[]>(
+        return httpClient.get<LandbasePeme[]>(
           `/api/landbase-pemes/by-profile/${profileId}`
         );
-        return response;
       },
 
       /**
@@ -336,17 +368,7 @@ export const api = {
        * Otherwise returns all records (first page, up to 100).
        */
       async filter(filters: { id?: string }): Promise<MedicalExam[]> {
-        if (filters.id) {
-          const record = await httpClient.get<MedicalExam>(
-            `/api/medical-exams/${filters.id}`
-          );
-          return [record];
-        }
-        const paged = await httpClient.get<PagedResponse<MedicalExam>>(
-          "/api/medical-exams",
-          { size: 100 }
-        );
-        return paged.content;
+        return fetchFiltered<MedicalExam>("/api/medical-exams", filters);
       },
 
       /**
@@ -356,29 +378,9 @@ export const api = {
        * @param limit    max number of results
        */
       async list(orderBy: string, limit: number): Promise<MedicalExam[]> {
-        let sortField = orderBy;
-        let direction = "asc";
-        if (orderBy.startsWith("-")) {
-          sortField = orderBy.slice(1);
-          direction = "desc";
-        }
-
-        const fieldMap: Record<string, string> = {
-          created_date: "createdDate",
-          updated_date: "updatedDate",
+        return fetchPagedList<MedicalExam>("/api/medical-exams", orderBy, limit, {
           exam_id: "examId",
-        };
-        const backendField = fieldMap[sortField] ?? sortField;
-
-        const paged = await httpClient.get<PagedResponse<MedicalExam>>(
-          "/api/medical-exams",
-          {
-            size: limit,
-            page: 0,
-            sort: `${backendField},${direction}`,
-          }
-        );
-        return paged.content;
+        });
       },
 
       /** Create a new medical exam. Returns the persisted record with server-generated fields. */
@@ -399,16 +401,7 @@ export const api = {
        * @returns matching records sorted by most recently updated first
        */
       async search(keyword: string, limit: number = 10): Promise<MedicalExam[]> {
-        const paged = await httpClient.get<PagedResponse<MedicalExam>>(
-          "/api/medical-exams",
-          {
-            search: keyword,
-            size: limit,
-            page: 0,
-            sort: "updatedDate,desc",
-          }
-        );
-        return paged.content;
+        return fetchSearchResults<MedicalExam>("/api/medical-exams", keyword, limit);
       },
 
       /**
@@ -431,17 +424,7 @@ export const api = {
        * Otherwise returns all records (first page, up to 100).
        */
       async filter(filters: { id?: string }): Promise<MlcRecord[]> {
-        if (filters.id) {
-          const record = await httpClient.get<MlcRecord>(
-            `/api/mlc-records/${filters.id}`
-          );
-          return [record];
-        }
-        const paged = await httpClient.get<PagedResponse<MlcRecord>>(
-          "/api/mlc-records",
-          { size: 100 }
-        );
-        return paged.content;
+        return fetchFiltered<MlcRecord>("/api/mlc-records", filters);
       },
 
       /**
@@ -451,29 +434,9 @@ export const api = {
        * @param limit    max number of results
        */
       async list(orderBy: string, limit: number): Promise<MlcRecord[]> {
-        let sortField = orderBy;
-        let direction = "asc";
-        if (orderBy.startsWith("-")) {
-          sortField = orderBy.slice(1);
-          direction = "desc";
-        }
-
-        const fieldMap: Record<string, string> = {
-          created_date: "createdDate",
-          updated_date: "updatedDate",
+        return fetchPagedList<MlcRecord>("/api/mlc-records", orderBy, limit, {
           mlc_id: "mlcId",
-        };
-        const backendField = fieldMap[sortField] ?? sortField;
-
-        const paged = await httpClient.get<PagedResponse<MlcRecord>>(
-          "/api/mlc-records",
-          {
-            size: limit,
-            page: 0,
-            sort: `${backendField},${direction}`,
-          }
-        );
-        return paged.content;
+        });
       },
 
       /** Create a new MLC record. Returns the persisted record with server-generated fields. */
@@ -494,16 +457,7 @@ export const api = {
        * @returns matching records sorted by most recently updated first
        */
       async search(keyword: string, limit: number = 10): Promise<MlcRecord[]> {
-        const paged = await httpClient.get<PagedResponse<MlcRecord>>(
-          "/api/mlc-records",
-          {
-            search: keyword,
-            size: limit,
-            page: 0,
-            sort: "updatedDate,desc",
-          }
-        );
-        return paged.content;
+        return fetchSearchResults<MlcRecord>("/api/mlc-records", keyword, limit);
       },
 
       /**
@@ -525,17 +479,7 @@ export const api = {
        * Otherwise returns all records (first page, up to 100).
        */
       async filter(filters: { id?: string }): Promise<PanamaCertificate[]> {
-        if (filters.id) {
-          const record = await httpClient.get<PanamaCertificate>(
-            `/api/panama-certificates/${filters.id}`
-          );
-          return [record];
-        }
-        const paged = await httpClient.get<PagedResponse<PanamaCertificate>>(
-          "/api/panama-certificates",
-          { size: 100 }
-        );
-        return paged.content;
+        return fetchFiltered<PanamaCertificate>("/api/panama-certificates", filters);
       },
 
       /**
@@ -545,29 +489,9 @@ export const api = {
        * @param limit    max number of results
        */
       async list(orderBy: string, limit: number): Promise<PanamaCertificate[]> {
-        let sortField = orderBy;
-        let direction = "asc";
-        if (orderBy.startsWith("-")) {
-          sortField = orderBy.slice(1);
-          direction = "desc";
-        }
-
-        const fieldMap: Record<string, string> = {
-          created_date: "createdDate",
-          updated_date: "updatedDate",
+        return fetchPagedList<PanamaCertificate>("/api/panama-certificates", orderBy, limit, {
           panama_id: "panamaId",
-        };
-        const backendField = fieldMap[sortField] ?? sortField;
-
-        const paged = await httpClient.get<PagedResponse<PanamaCertificate>>(
-          "/api/panama-certificates",
-          {
-            size: limit,
-            page: 0,
-            sort: `${backendField},${direction}`,
-          }
-        );
-        return paged.content;
+        });
       },
 
       /** Create a new Panama certificate. Returns the persisted record with server-generated fields. */
@@ -591,16 +515,7 @@ export const api = {
        * @returns matching records sorted by most recently updated first
        */
       async search(keyword: string, limit: number = 10): Promise<PanamaCertificate[]> {
-        const paged = await httpClient.get<PagedResponse<PanamaCertificate>>(
-          "/api/panama-certificates",
-          {
-            search: keyword,
-            size: limit,
-            page: 0,
-            sort: "updatedDate,desc",
-          }
-        );
-        return paged.content;
+        return fetchSearchResults<PanamaCertificate>("/api/panama-certificates", keyword, limit);
       },
 
       /**
