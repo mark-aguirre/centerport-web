@@ -1,16 +1,11 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
-import { FormField } from "@/components/common/form-field";
-import { FormSelect } from "@/components/common/form-select";
-import RadioGroup from "@/components/common/radio-group";
 import { Info } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import type { PanamaSectionProps, PanamaCertificate } from "./types";
-
-const MONTH_OPTIONS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
 
 const SHIP_TYPE_OPTIONS = [
   { label: "Container", value: "Container" },
@@ -28,169 +23,220 @@ const TRADE_AREA_OPTIONS = [
 /**
  * Panama Medical Certificate — General Information section.
  *
- * Renders the first section of the Panama form with fields for full name,
- * date of birth, sex, RH typing, passport/seaman number, home address,
- * department, crew position, lookout duties, routine & emergency duties,
- * type of ship, and trade area.
- *
- * This section is always read-only because the personal info fields are
- * populated from the selected seafarer profile and should not be edited
- * directly on the certificate form.
+ * Clean table-style form layout: each field on its own row with a
+ * fixed-width label column on the left and input on the right.
  */
 export default function GeneralInfoSection({ data, onChange }: PanamaSectionProps) {
   const update = (field: keyof PanamaCertificate, value: string) =>
     onChange({ ...data, [field]: value });
 
+  const inputClasses = cn(
+    "h-8 text-sm bg-white border border-primary/20 rounded-md px-2",
+    "focus:outline-none focus-visible:border-primary dark:bg-input/30",
+    "pointer-events-none opacity-70"
+  );
+
+  const labelClasses = "text-xs font-semibold text-foreground/70 whitespace-nowrap";
+  const rowClasses = "flex items-center gap-3 py-1.5 border-b border-primary/5";
+
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader title="General Information" icon={Info} subtitle="Seafarer identity and assignment details" />
 
-      <div className="space-y-2">
-        {/* Row 1: Full Name */}
-        <div className="grid grid-cols-1 gap-2">
-          <FormField
-            label="Full Name"
+      <div className="divide-y divide-primary/5">
+        {/* Fullname */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Fullname:</Label>
+          <Input
             value={data.full_name}
-            onChange={(v) => update("full_name", v)}
-            required
-            disabled
+            readOnly
+            tabIndex={-1}
+            className={cn(inputClasses, "flex-1 min-w-0")}
           />
         </div>
 
-        {/* Row 2: Day, Month, Year, Sex */}
-        <div className="grid grid-cols-[1fr_1fr_1fr_2fr] gap-2">
-          <FormField
-            label="Day"
-            value={data.day}
-            onChange={(v) => update("day", v)}
-            type="number"
-            disabled
-          />
-          <FormSelect
-            label="Month"
-            value={data.month}
-            onChange={(v) => update("month", v)}
-            options={MONTH_OPTIONS}
-            disabled
-          />
-          <FormField
-            label="Year"
-            value={data.year}
-            onChange={(v) => update("year", v)}
-            type="number"
-            disabled
-          />
-          <div className="space-y-0.5">
-            <span className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
-              Sex
-            </span>
-            <div className="flex items-center gap-4 h-8 pointer-events-none" role="radiogroup" aria-label="Sex">
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="panama_sex"
-                  checked={data.sex === "Male"}
-                  onChange={() => update("sex", "Male")}
-                  className="w-4 h-4 accent-primary"
-                  aria-label="Sex - Male"
-                  tabIndex={-1}
-                />
-                <span className="text-xs text-foreground/80">Male</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="panama_sex"
-                  checked={data.sex === "Female"}
-                  onChange={() => update("sex", "Female")}
-                  className="w-4 h-4 accent-primary"
-                  aria-label="Sex - Female"
-                  tabIndex={-1}
-                />
-                <span className="text-xs text-foreground/80">Female</span>
-              </label>
+        {/* Date of birth: Day / Month / Year */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Date of birth:</Label>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
+              <Label className={labelClasses}>Day:</Label>
+              <Input
+                value={data.day}
+                readOnly
+                tabIndex={-1}
+                className={cn(inputClasses, "w-16")}
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Label className={labelClasses}>Month:</Label>
+              <Input
+                value={data.month}
+                readOnly
+                tabIndex={-1}
+                className={cn(inputClasses, "w-20")}
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Label className={labelClasses}>Year:</Label>
+              <Input
+                value={data.year}
+                readOnly
+                tabIndex={-1}
+                className={cn(inputClasses, "w-20")}
+              />
             </div>
           </div>
         </div>
 
-        {/* Row 3: RH Typing, Passport / Seaman No. */}
-        <div className="grid grid-cols-[1fr_3fr] gap-2">
-          <FormField
-            label="RH Typing"
+        {/* Sex */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Sex:</Label>
+          <div className="flex items-center gap-4 pointer-events-none" role="radiogroup" aria-label="Sex">
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="radio"
+                name="panama_sex"
+                checked={data.sex === "Male"}
+                onChange={() => update("sex", "Male")}
+                className="w-4 h-4 accent-primary"
+                aria-label="Male"
+                tabIndex={-1}
+              />
+              <span className="text-xs text-foreground/80">Male</span>
+            </label>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="radio"
+                name="panama_sex"
+                checked={data.sex === "Female"}
+                onChange={() => update("sex", "Female")}
+                className="w-4 h-4 accent-primary"
+                aria-label="Female"
+                tabIndex={-1}
+              />
+              <span className="text-xs text-foreground/80">Female</span>
+            </label>
+          </div>
+        </div>
+
+        {/* RH Typing */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>RH Typing:</Label>
+          <Input
             value={data.rh_typing}
-            onChange={(v) => update("rh_typing", v)}
-            disabled
+            readOnly
+            tabIndex={-1}
+            className={cn(inputClasses, "w-40")}
           />
-          <FormField
-            label="Passport / Seaman No."
+        </div>
+
+        {/* Passport / Seaman No. */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Passport / Seaman No.:</Label>
+          <Input
             value={data.passport_seaman_no}
-            onChange={(v) => update("passport_seaman_no", v)}
-            disabled
+            readOnly
+            tabIndex={-1}
+            className={cn(inputClasses, "flex-1 min-w-0")}
           />
         </div>
 
-        {/* Row 4: Home Address */}
-        <div className="grid grid-cols-1 gap-2">
-          <FormField
-            label="Home Address"
+        {/* Home Address */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Home address:</Label>
+          <Input
             value={data.home_address}
-            onChange={(v) => update("home_address", v)}
-            disabled
+            readOnly
+            tabIndex={-1}
+            className={cn(inputClasses, "flex-1 min-w-0")}
           />
         </div>
 
-        {/* Row 5: Department, Crew Position */}
-        <div className="grid grid-cols-2 gap-2">
-          <FormField
-            label="Department"
+        {/* Department */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Department:</Label>
+          <Input
             value={data.department}
-            onChange={(v) => update("department", v)}
-            disabled
+            readOnly
+            tabIndex={-1}
+            className={cn(inputClasses, "w-72")}
           />
-          <FormField
-            label="Crew Position"
+        </div>
+
+        {/* Crew Position */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Crew position:</Label>
+          <Input
             value={data.crew_position}
-            onChange={(v) => update("crew_position", v)}
-            disabled
+            readOnly
+            tabIndex={-1}
+            className={cn(inputClasses, "w-72")}
           />
         </div>
 
-        {/* Row 6: Lookout Duties, Routine & Emergency Duties */}
-        <div className="grid grid-cols-2 gap-2">
-          <FormField
-            label="Lookout Duties"
+        {/* Does perform lookout duties */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Does perform lookout duties:</Label>
+          <Input
             value={data.lookout_duties}
-            onChange={(v) => update("lookout_duties", v)}
-            disabled
-          />
-          <FormField
-            label="Routine & Emergency Duties"
-            value={data.routine_emergency_duties}
-            onChange={(v) => update("routine_emergency_duties", v)}
-            disabled
+            readOnly
+            tabIndex={-1}
+            className={cn(inputClasses, "flex-1 min-w-0")}
           />
         </div>
 
-        {/* Row 7: Type of Ship, Trade Area */}
-        <div className="grid grid-cols-2 gap-2">
-          <RadioGroup
-            label="Type of Ship"
-            name="panama_type_of_ship"
-            value={data.type_of_ship}
-            onChange={(v) => update("type_of_ship", v)}
-            options={SHIP_TYPE_OPTIONS}
-            ariaLabel="Type of Ship"
-            disabled
+        {/* Routine and emergency duties */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Routine and emergency duties:</Label>
+          <Input
+            value={data.routine_emergency_duties}
+            readOnly
+            tabIndex={-1}
+            className={cn(inputClasses, "flex-1 min-w-0")}
           />
-          <RadioGroup
-            label="Trade Area"
-            name="panama_trade_area"
-            value={data.trade_area}
-            onChange={(v) => update("trade_area", v)}
-            options={TRADE_AREA_OPTIONS}
-            ariaLabel="Trade Area"
-            disabled
-          />
+        </div>
+
+        {/* Type of ship */}
+        <div className={rowClasses}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Type of ship:</Label>
+          <div className="flex items-center gap-4 pointer-events-none" role="radiogroup" aria-label="Type of ship">
+            {SHIP_TYPE_OPTIONS.map((opt) => (
+              <label key={opt.value} className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="panama_type_of_ship"
+                  checked={data.type_of_ship === opt.value}
+                  onChange={() => update("type_of_ship", opt.value)}
+                  className="w-4 h-4 accent-primary"
+                  aria-label={opt.label}
+                  tabIndex={-1}
+                />
+                <span className="text-xs text-foreground/80">{opt.label}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Trade area */}
+        <div className={cn(rowClasses, "border-b-0")}>
+          <Label className={cn(labelClasses, "w-[200px] shrink-0")}>Trade area:</Label>
+          <div className="flex items-center gap-4 pointer-events-none" role="radiogroup" aria-label="Trade area">
+            {TRADE_AREA_OPTIONS.map((opt) => (
+              <label key={opt.value} className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="radio"
+                  name="panama_trade_area"
+                  checked={data.trade_area === opt.value}
+                  onChange={() => update("trade_area", opt.value)}
+                  className="w-4 h-4 accent-primary"
+                  aria-label={opt.label}
+                  tabIndex={-1}
+                />
+                <span className="text-xs text-foreground/80">{opt.label}</span>
+              </label>
+            ))}
+          </div>
         </div>
       </div>
     </div>

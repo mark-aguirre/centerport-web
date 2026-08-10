@@ -46,7 +46,7 @@ export const navigation: NavigationItem[] = [
     title: "Seafarer's Medical Examination Certificate",
     shortTitle: "Seabase",
     subtitle: "Seafarer's Medical Examination — ILO/WHO",
-    href: "/medical",
+    href: "/seabase",
     icon: HeartPulse,
   },
   {

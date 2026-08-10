@@ -1,0 +1,101 @@
+package com.centerport.laboratory.repeattest;
+
+import com.centerport.common.util.BusinessIdGenerator;
+import com.centerport.laboratory.LaboratoryReport;
+import com.centerport.laboratory.LaboratoryReportRepository;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Service layer for {@link HematologyRepeatTest} CRUD operations.
+ *
+ * Extends {@link AbstractRepeatTestService} to inherit the standard
+ * repeat-test CRUD lifecycle. Supplies hematology-specific entity mapping
+ * and the {@code HEMA} business ID prefix.
+ *
+ * Business ID:
+ * Each new hematology repeat test receives a unique sequential ID in the
+ * format {@code HEMA00000001} generated from the {@code hema_repeat_seq}
+ * PostgreSQL sequence.
+ *
+ * @see AbstractRepeatTestService
+ * @see HematologyRepeatTestRepository
+ * @see HematologyRepeatTestMapper
+ */
+@Slf4j
+@Service
+@Transactional(readOnly = true)
+public class HematologyRepeatTestService
+        extends AbstractRepeatTestService<HematologyRepeatTest, HematologyRepeatTestDto> {
+
+    private static final String BUSINESS_ID_PREFIX = "HEMA";
+    private static final String ENTITY_NAME = "HematologyRepeatTest";
+
+    private final HematologyRepeatTestRepository repository;
+    private final HematologyRepeatTestMapper mapper;
+
+    public HematologyRepeatTestService(HematologyRepeatTestRepository repository,
+                                       HematologyRepeatTestMapper mapper,
+                                       LaboratoryReportRepository laboratoryReportRepository,
+                                       BusinessIdGenerator businessIdGenerator) {
+        super(laboratoryReportRepository, businessIdGenerator);
+        this.repository = repository;
+        this.mapper = mapper;
+    }
+
+    // =======================================================================
+    // Template Method Implementations
+    // =======================================================================
+
+    @Override
+    protected JpaRepository<HematologyRepeatTest, UUID> getRepository() {
+        return repository;
+    }
+
+    @Override
+    protected String getBusinessIdPrefix() {
+        return BUSINESS_ID_PREFIX;
+    }
+
+    @Override
+    protected String getEntityName() {
+        return ENTITY_NAME;
+    }
+
+    @Override
+    protected List<HematologyRepeatTest> findEntitiesByReportId(UUID reportId, Sort sort) {
+        return repository.findByLaboratoryReportId(reportId, sort);
+    }
+
+    @Override
+    protected HematologyRepeatTestDto toDto(HematologyRepeatTest entity) {
+        return mapper.toDto(entity);
+    }
+
+    @Override
+    protected HematologyRepeatTest toEntity(HematologyRepeatTestDto dto) {
+        return mapper.toEntity(dto);
+    }
+
+    @Override
+    protected void updateEntityFromDto(HematologyRepeatTestDto dto, HematologyRepeatTest entity) {
+        mapper.updateEntity(dto, entity);
+    }
+
+    @Override
+    protected void setBusinessId(HematologyRepeatTest entity, String businessId) {
+        entity.setResultId(businessId);
+    }
+
+    @Override
+    protected void setLaboratoryReport(HematologyRepeatTest entity, LaboratoryReport report) {
+        entity.setLaboratoryReport(report);
+    }
+}

@@ -1,9 +1,11 @@
 "use client";
 
+import { Fragment } from "react";
 import { SectionHeader } from "@/components/common/section-header";
-import { FormField } from "@/components/common/form-field";
-import { FormSelect } from "@/components/common/form-select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { User } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 /**
  * Field keys supported by the common PersonalInfoSection.
@@ -68,77 +70,61 @@ export interface PersonalInfoSectionProps<T extends object = Record<string, stri
   disabled?: boolean;
 }
 
-/** Default grid class based on number of columns in a row */
-function defaultGridCols(count: number): string {
-  switch (count) {
-    case 1:
-      return "grid-cols-1";
-    case 2:
-      return "grid-cols-2";
-    case 3:
-      return "grid-cols-3";
-    case 4:
-      return "grid-cols-4";
-    case 5:
-      return "grid-cols-5";
-    default:
-      return "grid-cols-3";
-  }
-}
-
 /**
  * Reusable Personal Information section for form pages.
  *
- * Renders a section card with configurable rows of fields. Each module
- * (landbase, medical, MLC, seabase) provides its own row configuration
- * to show/hide fields and control layout, while sharing the same
- * visual structure and behavior.
- *
- * @example
- * ```tsx
- * <PersonalInfoSection
- *   data={data}
- *   onChange={setData}
- *   subtitle="Seafarer identity and employment details"
- *   rows={MLC_PERSONAL_INFO_ROWS}
- * />
- * ```
+ * Clean table-style layout: uses a 6-column grid so labels and inputs
+ * align consistently across all rows.
  */
 export default function PersonalInfoSection<T extends object = Record<string, string>>({
   data,
   onChange,
   subtitle,
   rows,
-  gridOverrides,
+  gridOverrides: _gridOverrides,
   showNameLabel = true,
   disabled,
 }: PersonalInfoSectionProps<T>) {
   const update = (field: PersonalInfoField, value: string) =>
     onChange({ ...data, [field]: value } as T);
 
-  const renderField = (config: FieldConfig) => {
+  const inputClasses = cn(
+    "h-8 text-sm bg-white border border-primary/20 rounded-md px-2",
+    "focus:outline-none focus-visible:border-primary dark:bg-input/30",
+    disabled && "pointer-events-none opacity-70"
+  );
+
+  const labelClasses = "text-xs font-semibold text-foreground/70 whitespace-nowrap";
+
+  const getValue = (field: PersonalInfoField): string =>
+    String((data as Record<string, unknown>)[field] ?? "");
+
+  const renderInput = (config: FieldConfig) => {
     if (config.options) {
       return (
-        <FormSelect
-          key={config.field}
-          label={config.label}
-          value={String((data as Record<string, unknown>)[config.field] ?? "")}
-          onChange={(v) => update(config.field, v)}
-          options={config.options}
-          required={config.required}
+        <select
+          value={getValue(config.field)}
+          onChange={(e) => update(config.field, e.target.value)}
+          className={cn(inputClasses, "w-full cursor-pointer")}
           disabled={disabled}
-        />
+          tabIndex={disabled ? -1 : undefined}
+          aria-label={config.label}
+        >
+          <option value="">Select...</option>
+          {config.options.map((opt) => (
+            <option key={opt} value={opt}>{opt}</option>
+          ))}
+        </select>
       );
     }
     return (
-      <FormField
-        key={config.field}
-        label={config.label}
-        value={String((data as Record<string, unknown>)[config.field] ?? "")}
-        onChange={(v) => update(config.field, v)}
+      <Input
         type={config.type ?? "text"}
-        required={config.required}
-        disabled={disabled}
+        value={getValue(config.field)}
+        onChange={(e) => update(config.field, e.target.value)}
+        readOnly={disabled}
+        tabIndex={disabled ? -1 : undefined}
+        className={cn(inputClasses, "w-full")}
       />
     );
   };
@@ -146,30 +132,91 @@ export default function PersonalInfoSection<T extends object = Record<string, st
   return (
     <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
       <SectionHeader title="Personal Information" icon={User} subtitle={subtitle} />
-      <div className="space-y-1.5">
-        {rows.map((row, rowIndex) => {
-          const gridClass = gridOverrides?.[rowIndex] ?? defaultGridCols(row.length);
 
-          // First row with "Name:" inline label
-          if (rowIndex === 0 && showNameLabel) {
-            return (
-              <div key={rowIndex} className="flex items-end gap-2">
-                <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wide pb-1 shrink-0">
-                  Name:
-                </span>
-                <div className={`grid ${gridClass} gap-2 flex-1`}>
-                  {row.map(renderField)}
-                </div>
+      <div>
+        {/* First row with "Name:" label + sub-labels below inputs */}
+        {rows.length > 0 && showNameLabel && (
+          <div className="flex items-center gap-3 py-1.5">
+            <Label className={cn(labelClasses, "w-[100px] shrink-0")}>Name:</Label>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                {rows[0].map((config) => (
+                  <div key={config.field} className="flex-1 min-w-0">
+                    <Input
+                      value={getValue(config.field)}
+                      onChange={(e) => update(config.field, e.target.value)}
+                      readOnly={disabled}
+                      tabIndex={disabled ? -1 : undefined}
+                      className={cn(inputClasses, "w-full")}
+                    />
+                    <span className="text-[10px] text-muted-foreground text-center block mt-0.5">
+                      {config.label}
+                    </span>
+                  </div>
+                ))}
               </div>
-            );
-          }
-
-          return (
-            <div key={rowIndex} className={`grid ${gridClass} gap-2`}>
-              {row.map(renderField)}
             </div>
-          );
-        })}
+          </div>
+        )}
+
+        {/* Remaining rows in a single 6-column grid for vertical alignment */}
+        <div className="grid grid-cols-[auto_1fr_auto_1fr_auto_1fr] gap-x-2 items-center">
+          {rows.slice(showNameLabel ? 1 : 0).map((row, rowIndex) => {
+            const actualIndex = showNameLabel ? rowIndex + 1 : rowIndex;
+
+            if (row.length === 3) {
+              return (
+                <Fragment key={actualIndex}>
+                  {row.map((config) => (
+                    <Fragment key={config.field}>
+                      <Label className={cn(labelClasses, "py-2")}>
+                        {config.label}:
+                        {config.required && <span className="text-destructive ml-0.5">*</span>}
+                      </Label>
+                      <div className="py-2">
+                        {renderInput(config)}
+                      </div>
+                    </Fragment>
+                  ))}
+                </Fragment>
+              );
+            }
+
+            if (row.length === 2) {
+              return (
+                <Fragment key={actualIndex}>
+                  <Label className={cn(labelClasses, "py-2")}>
+                    {row[0].label}:
+                    {row[0].required && <span className="text-destructive ml-0.5">*</span>}
+                  </Label>
+                  <div className="py-2 col-span-3">
+                    {renderInput(row[0])}
+                  </div>
+                  <Label className={cn(labelClasses, "py-2")}>
+                    {row[1].label}:
+                    {row[1].required && <span className="text-destructive ml-0.5">*</span>}
+                  </Label>
+                  <div className="py-2">
+                    {renderInput(row[1])}
+                  </div>
+                </Fragment>
+              );
+            }
+
+            // 1 field: label + input spanning remaining 5 columns
+            return (
+              <Fragment key={actualIndex}>
+                <Label className={cn(labelClasses, "py-2")}>
+                  {row[0].label}:
+                  {row[0].required && <span className="text-destructive ml-0.5">*</span>}
+                </Label>
+                <div className="py-2 col-span-5">
+                  {renderInput(row[0])}
+                </div>
+              </Fragment>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

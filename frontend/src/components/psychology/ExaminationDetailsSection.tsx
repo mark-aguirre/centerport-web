@@ -64,91 +64,91 @@ export default function ExaminationDetailsSection({
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader title="Examination Details" icon={Stethoscope} />
 
-      {/* Row 1: Date, Psychometrician (with search button), License No */}
-      <div className="grid grid-cols-[1.2fr_2.5fr_1.3fr] gap-3 mb-3 items-end">
-        <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-foreground/70">Date of Examination</Label>
+      {/* Row 1 & Row 2: inline label + input, grid-aligned */}
+      <div className="grid grid-cols-[auto_1fr_auto_2fr_auto_1fr] gap-x-2 gap-y-2 mb-4 items-center">
+        {/* Row 1: Date of Examination | Psychometrician [search] | License No. */}
+        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+          Date of Examination:
+        </Label>
+        <Input
+          type="date"
+          value={data.date_of_examination}
+          onChange={(e) => updateField("date_of_examination", e.target.value)}
+          className={inputClasses}
+          disabled={disabled}
+        />
+        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+          Psychometrician:
+        </Label>
+        <div className="flex gap-1.5">
           <Input
-            type="date"
-            value={data.date_of_examination}
-            onChange={(e) => updateField("date_of_examination", e.target.value)}
-            className={inputClasses}
+            value={data.psychometrician}
+            onChange={(e) => updateField("psychometrician", e.target.value)}
+            className={cn(inputClasses, "flex-1")}
             disabled={disabled}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-foreground/70">Psychometrician</Label>
-          <div className="flex gap-1.5">
-            <Input
-              value={data.psychometrician}
-              onChange={(e) => updateField("psychometrician", e.target.value)}
-              className={cn(inputClasses, "flex-1")}
-              disabled={disabled}
-              placeholder="Select personnel..."
-              readOnly
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
-              onClick={() => setPsychometricianDialogOpen(true)}
-              disabled={disabled}
-              aria-label="Search psychometrician"
-            >
-              <Search className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-foreground/70">License No.</Label>
-          <Input
-            value={data.psychometrician_license_no}
-            onChange={(e) => updateField("psychometrician_license_no", e.target.value)}
-            className={inputClasses}
-            disabled={disabled}
+            placeholder="Select personnel..."
             readOnly
           />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
+            onClick={() => setPsychometricianDialogOpen(true)}
+            disabled={disabled}
+            aria-label="Search psychometrician"
+          >
+            <Search className="h-3.5 w-3.5" />
+          </Button>
         </div>
-      </div>
+        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+          License No.:
+        </Label>
+        <Input
+          value={data.psychometrician_license_no}
+          onChange={(e) => updateField("psychometrician_license_no", e.target.value)}
+          className={inputClasses}
+          disabled={disabled}
+          readOnly
+        />
 
-      {/* Row 2: Psychologist (with search button), License No */}
-      <div className="grid grid-cols-[1.2fr_2.5fr_1.3fr] gap-3 mb-4 items-end">
+        {/* Row 2: (empty) | Psychologist [search] | License No. */}
         <div />
-        <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-foreground/70">Psychologist</Label>
-          <div className="flex gap-1.5">
-            <Input
-              value={data.psychologist}
-              onChange={(e) => updateField("psychologist", e.target.value)}
-              className={cn(inputClasses, "flex-1")}
-              disabled={disabled}
-              placeholder="Select personnel..."
-              readOnly
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
-              onClick={() => setPsychologistDialogOpen(true)}
-              disabled={disabled}
-              aria-label="Search psychologist"
-            >
-              <Search className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-foreground/70">License No.</Label>
+        <div />
+        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+          Psychologist:
+        </Label>
+        <div className="flex gap-1.5">
           <Input
-            value={data.psychologist_license_no}
-            onChange={(e) => updateField("psychologist_license_no", e.target.value)}
-            className={inputClasses}
+            value={data.psychologist}
+            onChange={(e) => updateField("psychologist", e.target.value)}
+            className={cn(inputClasses, "flex-1")}
             disabled={disabled}
+            placeholder="Select personnel..."
             readOnly
           />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
+            onClick={() => setPsychologistDialogOpen(true)}
+            disabled={disabled}
+            aria-label="Search psychologist"
+          >
+            <Search className="h-3.5 w-3.5" />
+          </Button>
         </div>
+        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+          License No.:
+        </Label>
+        <Input
+          value={data.psychologist_license_no}
+          onChange={(e) => updateField("psychologist_license_no", e.target.value)}
+          className={inputClasses}
+          disabled={disabled}
+          readOnly
+        />
       </div>
 
       {/* Tests Used */}

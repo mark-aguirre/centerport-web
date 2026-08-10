@@ -7,6 +7,7 @@
 
 import { httpClient } from "./http-client";
 import type { LandbasePeme } from "@/components/landbase/types";
+import type { LaboratoryReport } from "@/components/laboratory/types";
 import type { MedicalExam } from "@/components/medical/types";
 import type { MlcRecord } from "@/components/mlc/types";
 import type { PanamaCertificate } from "@/components/panama/types";
@@ -375,6 +376,65 @@ export const api = {
         await httpClient.downloadPdf(
           `/api/landbase-pemes/${id}/reports/${reportType}`,
           filename
+        );
+      },
+    },
+
+    LaboratoryReport: {
+      /**
+       * Filter laboratory reports. When `id` is provided, fetches a single record by UUID.
+       * Otherwise returns all records (first page, up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<LaboratoryReport[]> {
+        return fetchFiltered<LaboratoryReport>("/api/laboratory-reports", filters);
+      },
+
+      /**
+       * List laboratory reports with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-created_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<LaboratoryReport[]> {
+        return fetchPagedList<LaboratoryReport>("/api/laboratory-reports", orderBy, limit, {
+          report_id: "reportId",
+        });
+      },
+
+      /** Create a new laboratory report. Returns the persisted record with server-generated fields. */
+      async create(data: LaboratoryReport): Promise<LaboratoryReport> {
+        return httpClient.post<LaboratoryReport>("/api/laboratory-reports", data);
+      },
+
+      /** Update an existing laboratory report by UUID. Returns the updated record. */
+      async update(
+        id: string,
+        data: Partial<LaboratoryReport>
+      ): Promise<LaboratoryReport> {
+        return httpClient.put<LaboratoryReport>(`/api/laboratory-reports/${id}`, data);
+      },
+
+      /**
+       * Search laboratory reports by keyword (matches patient name or report ID).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       * @returns matching records sorted by most recently updated first
+       */
+      async search(keyword: string, limit: number = 10): Promise<LaboratoryReport[]> {
+        return fetchSearchResults<LaboratoryReport>("/api/laboratory-reports", keyword, limit);
+      },
+
+      /**
+       * Fetch all laboratory reports linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of laboratory reports for that profile
+       */
+      async listByProfile(profileId: string): Promise<LaboratoryReport[]> {
+        return httpClient.get<LaboratoryReport[]>(
+          `/api/laboratory-reports/by-profile/${profileId}`
         );
       },
     },

@@ -2,9 +2,9 @@
 
 import { SectionHeader } from "@/components/common/section-header";
 import { SetNormalButton } from "@/components/common/set-normal-button";
-import { FormField } from "@/components/common/form-field";
 import { YesNoRadio } from "@/components/common/yes-no-radio";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -77,13 +77,8 @@ const COVID_QUESTIONS = [
 /**
  * Panama Medical Certificate — Examinee's Personal Declaration section.
  *
- * Renders:
- * - A 2-column grid of 36 medical conditions with YES/NO radios
- * - Details textarea for positive answers
- * - Additional questions (37–44) with YES/NO
- * - Comments textarea
- * - Medication question (45) with YES/NO + details
- * - Data related to Covid-19 subsection
+ * Clean grid layout: conditions in 2-column grid, additional questions and
+ * covid section use consistent row-based table style.
  */
 export default function PersonalDeclarationSection({ data, onChange, disabled }: PanamaSectionProps) {
   const update = (field: keyof PanamaCertificate, value: string) =>
@@ -126,6 +121,14 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
       covid_6_boosters: "",
     });
   };
+
+  const inputClasses = cn(
+    "h-8 text-sm bg-white border border-primary/20 rounded-md px-2",
+    "focus:outline-none focus-visible:border-primary dark:bg-input/30",
+    disabled && "pointer-events-none opacity-70"
+  );
+
+  const rowClasses = "flex items-center gap-3 py-2 border-b border-primary/5";
 
   const renderConditionRow = (item: { num: number; label: string }, index: number) => {
     const key = `condition_${item.num}`;
@@ -194,15 +197,15 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
       </div>
 
       {/* Details for YES answers */}
-      <div className="space-y-1 mb-4 border-t border-primary/10 pt-3">
-        <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
-          If any of the above questions were answered &quot;YES&quot;, please give details:
+      <div className={rowClasses}>
+        <Label className="text-xs font-semibold text-foreground/70 w-[200px] shrink-0 leading-tight">
+          If any of the above were answered &quot;YES&quot;, give details:
         </Label>
         <Textarea
           value={data.conditions_details}
           onChange={(e) => update("conditions_details", e.target.value)}
           className={cn(
-            "h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
+            "flex-1 min-w-0 h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
             disabled && "pointer-events-none"
           )}
           placeholder=""
@@ -211,7 +214,7 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
       </div>
 
       {/* Additional Questions (37–44) */}
-      <div className="mb-4">
+      <div className="my-4">
         <div className="flex items-center justify-between mb-1.5 pb-1.5 border-b border-primary/20 pr-14">
           <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">
             No. Additional question
@@ -244,15 +247,15 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
       </div>
 
       {/* Comments */}
-      <div className="space-y-1 mb-4">
-        <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
+      <div className={rowClasses}>
+        <Label className="text-xs font-semibold text-foreground/70 w-[200px] shrink-0">
           Comments:
         </Label>
         <Textarea
           value={data.declaration_comments}
           onChange={(e) => update("declaration_comments", e.target.value)}
           className={cn(
-            "h-24 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
+            "flex-1 min-w-0 h-24 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
             disabled && "pointer-events-none"
           )}
           placeholder=""
@@ -261,7 +264,7 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
       </div>
 
       {/* Question 45 — Medication */}
-      <div className="border-t border-primary/10 pt-3 mb-4">
+      <div className="border-t border-primary/5 pt-2">
         <div className="flex items-center justify-between py-2 pr-14 px-1 rounded-sm bg-muted/30">
           <span className="text-xs text-foreground/80 flex-1 pr-4">
             <span className="font-semibold text-primary/70 mr-1">45</span>
@@ -277,15 +280,15 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
           />
         </div>
 
-        <div className="space-y-1 mt-2">
-          <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
-            If yes, please list the medications taken and the purpose(s) and dosage(s):
+        <div className={cn(rowClasses, "border-b-0")}>
+          <Label className="text-xs font-semibold text-foreground/70 w-[200px] shrink-0 leading-tight">
+            If yes, list medications, purpose(s) and dosage(s):
           </Label>
           <Textarea
             value={data.question_45_details}
             onChange={(e) => update("question_45_details", e.target.value)}
             className={cn(
-              "h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
+              "flex-1 min-w-0 h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
               disabled && "pointer-events-none"
             )}
             placeholder=""
@@ -295,7 +298,7 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
       </div>
 
       {/* Data related to Covid-19 */}
-      <div className="border-t border-primary/10 pt-3">
+      <div className="border-t border-primary/10 pt-3 mt-4">
         <h3 className="text-sm font-bold text-primary uppercase tracking-widest mb-2">
           Data related to Covid-19
         </h3>
@@ -322,47 +325,54 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
         ))}
 
         {/* Covid Q3 — date field */}
-        <div className="flex items-center justify-between py-2 border-b border-muted/20">
-          <span className="text-xs text-foreground/80 flex-1 pr-4">
+        <div className={rowClasses}>
+          <Label className="text-xs font-semibold text-foreground/70 shrink-0 leading-tight">
             <span className="font-semibold text-primary/70 mr-1">3</span>
             When was the last time the Covid-19 test was performed?
-          </span>
-          <div className="shrink-0">
-            <FormField
-              label="Day/month/year"
-              value={data.covid_3_date}
-              onChange={(v) => update("covid_3_date", v)}
-              type="date"
-              disabled={disabled}
-            />
-          </div>
+          </Label>
+          <Input
+            type="date"
+            value={data.covid_3_date}
+            onChange={(e) => update("covid_3_date", e.target.value)}
+            className={cn(inputClasses, "w-40")}
+            disabled={disabled}
+          />
         </div>
 
         {/* Covid Q6 — vaccine details */}
-        <div className="py-3 border-b border-muted/20">
-          <span className="text-xs text-foreground/80">
+        <div className="py-3 border-b border-primary/5">
+          <span className="text-xs text-foreground/80 block mb-2">
             <span className="font-semibold text-primary/70 mr-1">6</span>
             If the answer to the above question was &quot;Yes&quot;, please indicate the name of the vaccine, how many doses and boosters have you received?
           </span>
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            <FormField
-              label="Vaccine type"
-              value={data.covid_6_vaccine_type}
-              onChange={(v) => update("covid_6_vaccine_type", v)}
-              disabled={disabled}
-            />
-            <FormField
-              label="Number of doses"
-              value={data.covid_6_num_doses}
-              onChange={(v) => update("covid_6_num_doses", v)}
-              disabled={disabled}
-            />
-            <FormField
-              label="Boosters"
-              value={data.covid_6_boosters}
-              onChange={(v) => update("covid_6_boosters", v)}
-              disabled={disabled}
-            />
+          <div className="grid grid-cols-3 gap-3">
+            <div className="flex items-center gap-1.5">
+              <Label className="text-xs font-semibold text-foreground/70 whitespace-nowrap">Vaccine type:</Label>
+              <Input
+                value={data.covid_6_vaccine_type}
+                onChange={(e) => update("covid_6_vaccine_type", e.target.value)}
+                className={cn(inputClasses, "flex-1 min-w-0")}
+                disabled={disabled}
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Label className="text-xs font-semibold text-foreground/70 whitespace-nowrap">No. of doses:</Label>
+              <Input
+                value={data.covid_6_num_doses}
+                onChange={(e) => update("covid_6_num_doses", e.target.value)}
+                className={cn(inputClasses, "flex-1 min-w-0")}
+                disabled={disabled}
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Label className="text-xs font-semibold text-foreground/70 whitespace-nowrap">Boosters:</Label>
+              <Input
+                value={data.covid_6_boosters}
+                onChange={(e) => update("covid_6_boosters", e.target.value)}
+                className={cn(inputClasses, "flex-1 min-w-0")}
+                disabled={disabled}
+              />
+            </div>
           </div>
         </div>
       </div>
