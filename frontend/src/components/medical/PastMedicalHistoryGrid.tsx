@@ -1,90 +1,203 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
 import { SetNormalButton } from "@/components/common/set-normal-button";
-import { Activity } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { YesNoRadioRow } from "./YesNoRadioRow";
-import type { MedicalExam, MedicalSectionProps } from "./types";
+import type { MedicalSectionProps } from "./types";
 
-/** Past Medical History — Column 1 conditions */
-const COLUMN_1 = [
-  "Head or Neck Injury",
-  "Frequent Headaches",
-  "Frequent Dizziness",
-  "Fainting Spells, Fits, Seizures or other Neurological Disorders",
-  "Insomnia or sleep disorders, Manias, Phobias",
-  "Depression, other Mental Disorders",
-  "Trachoma, other eye Disorders",
-  "Deafness, other Ear Disorders",
-  "Nose or Throat Disorders",
-  "Tuberculosis",
-] as const;
+interface HistoryCondition {
+  key: string;
+  label: string;
+  detailKey?: string;
+}
 
-/** Past Medical History — Column 2 conditions */
-const COLUMN_2 = [
-  "Other Lung Disorders",
-  "High Blood Pressure",
-  "Heart Disease/Heart Pain",
-  "Rheumatic Fever",
-  "Diabetes Mellitus",
-  "Other Endocrine Disorders (e.g. Goiter)",
-  "Cancer or Tumor",
-  "Blood Disorders",
-  "Stomach Pain, Gastritis or Ulcer",
-  "Other Abdominal Disorders",
-] as const;
+const COLUMN_1: readonly HistoryCondition[] = [
+  { key: "Head or Neck Injury", label: "Head or Neck Injury" },
+  { key: "Frequent Headaches", label: "Frequent Headaches" },
+  { key: "Frequent Dizziness", label: "Frequent Dizziness" },
+  {
+    key: "Fainting Spells, Fits, Seizures or other Neurological Disorders",
+    label: "Fainting Spells, Fits, Seizures or other Neurological Disorders",
+  },
+  {
+    key: "Insomnia or sleep disorders, Manias, Phobias",
+    label: "Insomnia or sleep disorders, Manias, Phobias",
+  },
+  {
+    key: "Depression, other Mental Disorders",
+    label: "Depression, other Mental Disorders",
+  },
+  {
+    key: "Trachoma, other eye Disorders",
+    label: "Trachoma, other eye Disorders",
+  },
+  {
+    key: "Deafness, other Ear Disorders",
+    label: "Deafness, other Ear Disorders",
+  },
+  { key: "Nose or Throat Disorders", label: "Nose or Throat Disorders" },
+  { key: "Tuberculosis", label: "Tuberculosis" },
+];
 
-/** Past Medical History — Column 3 conditions */
-const COLUMN_3 = [
-  "Kidney or Bladder Disorder",
-  "Back Injury: Joint Pain/Arthritis/Rheumatism",
-  "Genetic, Hereditary or Familial Disorders",
-  "Sexually Transmitted Diseases",
-  "Last Menstrual Period",
-  "Tropical Diseases",
-  "Schistosomiasis",
-  "Asthma",
-  "Allergies (Specify):",
-  "Gynecological Disorder (For female)",
-  "Operations (Specify)",
-] as const;
+const COLUMN_2: readonly HistoryCondition[] = [
+  { key: "Other Lung Disorders", label: "Other lung Disorders" },
+  { key: "High Blood Pressure", label: "High Blood Pressure" },
+  { key: "Heart Disease/Heart Pain", label: "Heart Disease/Heart Pain" },
+  { key: "Rheumatic Fever", label: "Rheumatic Fever" },
+  { key: "Diabetes Mellitus", label: "Diabetes Mellitus" },
+  {
+    key: "Other Endocrine Disorders (e.g. Goiter)",
+    label: "Other Endocrine Disorders (e.g. Goiter)",
+  },
+  { key: "Cancer or Tumor", label: "Cancer or Tumor" },
+  { key: "Blood Disorders", label: "Blood Disorders" },
+  {
+    key: "Stomach Pain, Gastritis or Ulcer",
+    label: "Stomach Pain, Gastritis or Ulcer",
+  },
+  {
+    key: "Other Abdominal Disorders",
+    label: "Other Abdominal Disorders",
+    detailKey: "Other Abdominal Disorders Details",
+  },
+];
 
-/** All conditions across all columns (used for "Set Normal"). */
-const ALL_CONDITIONS = [...COLUMN_1, ...COLUMN_2, ...COLUMN_3];
+const COLUMN_3: readonly HistoryCondition[] = [
+  {
+    key: "Kidney or Bladder Disorder",
+    label: "Kidney or Bladder Disorder",
+  },
+  {
+    key: "Back Injury: Joint Pain/Arthritis/Rheumatism",
+    label: "Back Injury: Joint Pain/Arthritis/Rheumatism",
+  },
+  {
+    key: "Genetic, Hereditary or Familial Disorders",
+    label: "Genetic, Hereditary or familial Disorders",
+  },
+  {
+    key: "Sexually Transmitted Diseases",
+    label: "Sexually Transmitted Diseases",
+  },
+  { key: "Last Menstrual Period", label: "Last Menstrual Period" },
+  { key: "Tropical Diseases", label: "Tropical Diseases" },
+  { key: "Schistosomiasis", label: "Schistosomiasis" },
+  { key: "Asthma", label: "Asthma" },
+  {
+    key: "Allergies (Specify):",
+    label: "Allergies (Specify):",
+    detailKey: "Allergies (Specify) Details",
+  },
+  {
+    key: "Gynecological Disorder (For female)",
+    label: "Gynecological Disorder (For female)",
+  },
+  {
+    key: "Operations (Specify)",
+    label: "Operations (Specify)",
+    detailKey: "Operations (Specify) Details",
+  },
+];
+
+interface HistoryRowProps {
+  condition: HistoryCondition;
+  value: string;
+  detailValue?: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+  onDetailChange?: (value: string) => void;
+}
+
+function HistoryRow({
+  condition,
+  value,
+  detailValue,
+  disabled,
+  onChange,
+  onDetailChange,
+}: HistoryRowProps) {
+  return (
+    <>
+      <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-primary/20 px-1.5 py-1">
+        <span className="text-[11px] leading-tight text-foreground/80">
+          {condition.label}
+        </span>
+        <div
+          className="flex items-center gap-2"
+          role="radiogroup"
+          aria-label={condition.label}
+        >
+          {[
+            ["yes", "YES"],
+            ["no", "NO"],
+          ].map(([optionValue, optionLabel]) => (
+            <label
+              key={optionValue}
+              className="flex cursor-pointer items-center gap-1"
+            >
+              <input
+                type="radio"
+                name={`medical-history-${condition.key}`}
+                checked={value === optionValue}
+                onChange={() => onChange(optionValue)}
+                tabIndex={disabled ? -1 : undefined}
+                className="h-4 w-4 accent-primary"
+                aria-label={`${condition.label} - ${optionLabel}`}
+              />
+              <span className="text-[11px] text-foreground/80">
+                {optionLabel}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {condition.detailKey && onDetailChange && (
+        <div className="border-b border-primary/20 px-2 py-1">
+          <Input
+            value={detailValue ?? ""}
+            onChange={(event) => onDetailChange(event.target.value)}
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
+            className="h-7 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+            aria-label={`${condition.label} details`}
+          />
+        </div>
+      )}
+    </>
+  );
+}
 
 /**
- * Past Medical History sub-section of the Physical Examination form.
+ * Past Medical History section matching the Seabase examination form.
  *
- * Displays a 3-column Y/N checkbox grid of medical conditions plus
- * free-text fields for "Others", doctor consultation, and maintenance
- * medications.
- *
- * "Set Normal" sets all conditions to "no" (applicant has NOT had
- * these conditions), clears text fields, and unchecks consultation.
- *
- * @see PhysicalExaminationSection — parent orchestrator
- * @see YesNoRadioRow — shared radio row component
+ * Legacy condition keys remain unchanged for compatibility with saved records;
+ * only their display labels and table layout follow the paper form.
  */
-export function PastMedicalHistoryGrid({ data, onChange, disabled }: MedicalSectionProps) {
-  const update = (field: keyof MedicalExam, value: string) =>
-    onChange({ ...data, [field]: value });
-
+export function PastMedicalHistoryGrid({
+  data,
+  onChange,
+  disabled,
+}: MedicalSectionProps) {
   const history = data.medical_history ?? {};
 
-  const updateCondition = (condition: string, value: string) => {
-    const updatedHistory = { ...history, [condition]: value };
-    onChange({ ...data, medical_history: updatedHistory });
+  const updateHistory = (key: string, value: string) => {
+    onChange({
+      ...data,
+      medical_history: { ...history, [key]: value },
+    });
   };
 
-  /** Set all conditions to "no", clear text fields, uncheck consultation. */
   const handleSetNormal = () => {
-    const normalHistory: Record<string, string> = {};
-    ALL_CONDITIONS.forEach((condition) => {
-      normalHistory[condition] = "no";
+    const normalHistory = { ...history };
+
+    [...COLUMN_1, ...COLUMN_2, ...COLUMN_3].forEach((condition) => {
+      normalHistory[condition.key] = "no";
+      if (condition.detailKey) {
+        normalHistory[condition.detailKey] = "";
+      }
     });
+
     onChange({
       ...data,
       medical_history: normalHistory,
@@ -94,86 +207,80 @@ export function PastMedicalHistoryGrid({ data, onChange, disabled }: MedicalSect
     });
   };
 
+  const renderColumn = (conditions: readonly HistoryCondition[]) => (
+    <div>
+      {conditions.map((condition) => (
+        <HistoryRow
+          key={condition.key}
+          condition={condition}
+          value={history[condition.key] ?? ""}
+          detailValue={
+            condition.detailKey ? history[condition.detailKey] ?? "" : undefined
+          }
+          onChange={(value) => updateHistory(condition.key, value)}
+          onDetailChange={
+            condition.detailKey
+              ? (value) => updateHistory(condition.detailKey!, value)
+              : undefined
+          }
+          disabled={disabled}
+        />
+      ))}
+    </div>
+  );
+
   return (
-    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
-      <SectionHeader
-        title="Past Medical History"
-        icon={Activity}
-        subtitle="Has applicant suffered from or been told he has any of the following? Check the appropriate box."
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
-      />
-      <div className="space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6">
-          <div>
-            {COLUMN_1.map((c) => (
-              <YesNoRadioRow
-                key={c}
-                condition={c}
-                name={`pmh-${c}`}
-                value={history[c] || ""}
-                onChange={(v) => updateCondition(c, v)}
-              />
-            ))}
-          </div>
-          <div>
-            {COLUMN_2.map((c) => (
-              <YesNoRadioRow
-                key={c}
-                condition={c}
-                name={`pmh-${c}`}
-                value={history[c] || ""}
-                onChange={(v) => updateCondition(c, v)}
-              />
-            ))}
-          </div>
-          <div>
-            {COLUMN_3.map((c) => (
-              <YesNoRadioRow
-                key={c}
-                condition={c}
-                name={`pmh-${c}`}
-                value={history[c] || ""}
-                onChange={(v) => updateCondition(c, v)}
-              />
-            ))}
-          </div>
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm",
+        disabled && "pointer-events-none",
+      )}
+    >
+      <div className="flex flex-col gap-2 border-b border-primary/20 px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline">
+          <h2 className="shrink-0 text-sm font-bold uppercase tracking-wide text-primary">
+            I. Past Medical History.
+          </h2>
+          <p className="text-xs text-foreground/80">
+            Has applicant suffered from or been told he has any of the following?
+            Check the appropriate box.
+          </p>
         </div>
+        <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
+      </div>
 
-        <div className="flex items-center gap-2 pt-2 border-t border-muted/30">
-          <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Others:</Label>
-          <Input
-            value={data.medical_history_others ?? ""}
-            onChange={(e) => update("medical_history_others", e.target.value)}
-            className="h-7 text-xs flex-1"
-            readOnly={disabled}
-            tabIndex={disabled ? -1 : undefined}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="consulted_doctor_past"
-            checked={data.consulted_doctor_past === "yes"}
-            onChange={(e) => update("consulted_doctor_past", e.target.checked ? "yes" : "no")}
-            className="w-4 h-4 accent-primary rounded"
-          />
-          <Label htmlFor="consulted_doctor_past" className="text-xs text-foreground/80 cursor-pointer">
-            Have you consulted any doctor about a disease in the past? Check if Yes.
-          </Label>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">
-            Are you taking maintenance medications? If yes, specify:
-          </Label>
-          <Input
-            value={data.maintenance_medications ?? ""}
-            onChange={(e) => update("maintenance_medications", e.target.value)}
-            className="h-7 text-xs flex-1"
-            readOnly={disabled}
-            tabIndex={disabled ? -1 : undefined}
-          />
+      <div className="overflow-x-auto">
+        <div className="grid min-w-[960px] grid-cols-3">
+          <section className="border-r border-primary/20" aria-label="Past medical history column one">
+            {renderColumn(COLUMN_1)}
+          </section>
+          <section className="border-r border-primary/20" aria-label="Past medical history column two">
+            {renderColumn(COLUMN_2)}
+          </section>
+          <section aria-label="Past medical history column three">
+            {renderColumn(COLUMN_3)}
+            <div className="grid min-h-9 grid-cols-[100px_1fr] items-center gap-2 px-2 py-1">
+              <label
+                htmlFor="medical-history-others"
+                className="text-[11px] text-foreground/80"
+              >
+                Others
+              </label>
+              <Input
+                id="medical-history-others"
+                value={data.medical_history_others ?? ""}
+                onChange={(event) =>
+                  onChange({
+                    ...data,
+                    medical_history_others: event.target.value,
+                  })
+                }
+                readOnly={disabled}
+                tabIndex={disabled ? -1 : undefined}
+                className="h-7 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+              />
+            </div>
+          </section>
         </div>
       </div>
     </div>

@@ -75,6 +75,7 @@ export interface MedicalExam {
   pe_respiration: string;
   pe_body_temperature: string;
   pe_weight: string;
+  pe_rhythm: string;
   pe_mm_ym: string;
   pe_bmi: string;
   blood_pressure: string;
@@ -117,6 +118,7 @@ export interface MedicalExam {
   audio_ad_left_1: string;
   audio_ad_left_2: string;
   audio_satisfactory: string;
+  audio_unaided_hearing: string;
 
   // Speech
   speech_impaired_hearing: string;
@@ -144,10 +146,13 @@ export interface MedicalExam {
   neurological: ExamFinding;
   neurological_remarks: string;
 
-  // Findings (checkboxes for body systems)
+  // Findings (checkboxes and per-item remarks for body systems)
   findings_a: Record<string, boolean>;
   findings_b: Record<string, boolean>;
   findings_c: Record<string, boolean>;
+  findings_a_remarks: Record<string, string>;
+  findings_b_remarks: Record<string, string>;
+  findings_c_remarks: Record<string, string>;
 
   // Visual Acuity (legacy)
   visual_acuity_right: string;
@@ -190,6 +195,7 @@ export interface MedicalExam {
 
 
   // Final Recommendation
+  final_recommendation: string;
   recommendation_remarks: string;
   cert_basic_ooh: string;
   cert_basic_ooh_findings: string;

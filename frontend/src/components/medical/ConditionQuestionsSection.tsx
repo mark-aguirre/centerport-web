@@ -4,61 +4,85 @@ import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 /**
- * Condition Questions sub-section of the Physical Examination form.
+ * Identification-document confirmation for the Physical Examination form.
  *
- * Captures three Yes/No condition assessments:
- * - Whether the applicant has a condition aggravated by sea service
- * - Whether identification documents were checked
- * - Whether the applicant is fit for look-out duties
- *
- * @see PhysicalExaminationSection — parent orchestrator
+ * The sea-service condition is rendered in AudiometrySpeechSection. Fit for
+ * Look-out Duties is rendered immediately below this confirmation row.
  */
-export function ConditionQuestionsSection({ data, onChange, disabled }: MedicalSectionProps) {
+export function ConditionQuestionsSection({
+  data,
+  onChange,
+  disabled,
+}: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
   return (
-    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10 space-y-0", disabled && "pointer-events-none")}>
-      <div className="flex items-start gap-3 py-2 border-b border-muted/30 rounded-t" style={{ backgroundColor: "#fefdf3" }}>
-        <p className="text-xs text-foreground/80 font-semibold uppercase leading-relaxed flex-1">
-          Is applicant suffering from any medical condition likely to be aggravated by service at sea or to render the seafarer unfit for such service or to endanger the health of other persons on board?
-        </p>
-        <div className="flex items-center gap-4 shrink-0">
-          <label className="flex items-center gap-1.5 cursor-pointer">
-            <input type="radio" name="cond_sea" checked={data.condition_aggravated_sea === "yes"} onChange={() => update("condition_aggravated_sea", "yes")} className="w-4 h-4 accent-primary" />
-            <span className="text-xs text-foreground/80">YES</span>
-          </label>
-          <label className="flex items-center gap-1.5 cursor-pointer">
-            <input type="radio" name="cond_sea" checked={data.condition_aggravated_sea === "no"} onChange={() => update("condition_aggravated_sea", "no")} className="w-4 h-4 accent-primary" />
-            <span className="text-xs text-foreground/80">NO</span>
-          </label>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3 py-2 border-b border-muted/30">
-        <span className="text-xs font-semibold text-foreground/80 uppercase">
-          Confirmation that identification documents were checked at the point of examination:
+    <div
+      className={cn(
+        "rounded-lg border border-primary/10 bg-card p-3 shadow-sm",
+        disabled && "pointer-events-none",
+      )}
+    >
+      <div
+        className="flex flex-wrap items-center gap-4 border-b border-primary/20 pb-2"
+        role="radiogroup"
+        aria-label="Identification documents checked"
+      >
+        <span className="text-xs font-semibold uppercase text-foreground/80">
+          Confirmation that identification documents were checked at the point
+          of examination:
         </span>
-        <label className="flex items-center gap-1.5 cursor-pointer">
-          <input type="radio" name="id_docs" checked={data.identification_docs_checked === "yes"} onChange={() => update("identification_docs_checked", "yes")} className="w-4 h-4 accent-primary" />
-          <span className="text-xs text-foreground/80">YES</span>
-        </label>
-        <label className="flex items-center gap-1.5 cursor-pointer">
-          <input type="radio" name="id_docs" checked={data.identification_docs_checked === "no"} onChange={() => update("identification_docs_checked", "no")} className="w-4 h-4 accent-primary" />
-          <span className="text-xs text-foreground/80">NO</span>
-        </label>
+        {[
+          ["yes", "Yes"],
+          ["no", "No"],
+        ].map(([value, label]) => (
+          <label
+            key={value}
+            className="flex cursor-pointer items-center gap-1.5"
+          >
+            <input
+              type="radio"
+              name="id-documents-checked"
+              checked={data.identification_docs_checked === value}
+              onChange={() => update("identification_docs_checked", value)}
+              tabIndex={disabled ? -1 : undefined}
+              className="h-4 w-4 accent-primary"
+              aria-label={`Identification documents checked - ${label}`}
+            />
+            <span className="text-xs text-foreground/80">{label}</span>
+          </label>
+        ))}
       </div>
 
-      <div className="flex items-center gap-3 py-2">
-        <span className="text-xs font-semibold text-foreground/80 uppercase">Fit for look-out duties:</span>
-        <label className="flex items-center gap-1.5 cursor-pointer">
-          <input type="radio" name="fit_lookout" checked={data.fit_for_lookout === "yes"} onChange={() => update("fit_for_lookout", "yes")} className="w-4 h-4 accent-primary" />
-          <span className="text-xs text-foreground/80">YES</span>
-        </label>
-        <label className="flex items-center gap-1.5 cursor-pointer">
-          <input type="radio" name="fit_lookout" checked={data.fit_for_lookout === "no"} onChange={() => update("fit_for_lookout", "no")} className="w-4 h-4 accent-primary" />
-          <span className="text-xs text-foreground/80">NO</span>
-        </label>
+      <div
+        className="flex flex-wrap items-center justify-center gap-4 pt-2"
+        role="radiogroup"
+        aria-label="Fit for look-out duties"
+      >
+        <span className="text-xs font-bold uppercase tracking-wide text-primary">
+          Fit for Look-out Duties:
+        </span>
+        {[
+          ["yes", "Yes"],
+          ["no", "No"],
+        ].map(([value, label]) => (
+          <label
+            key={value}
+            className="flex cursor-pointer items-center gap-1.5"
+          >
+            <input
+              type="radio"
+              name="fit-for-lookout"
+              checked={data.fit_for_lookout === value}
+              onChange={() => update("fit_for_lookout", value)}
+              tabIndex={disabled ? -1 : undefined}
+              className="h-4 w-4 accent-primary"
+              aria-label={`Fit for look-out duties - ${label}`}
+            />
+            <span className="text-xs text-foreground/80">{label}</span>
+          </label>
+        ))}
       </div>
     </div>
   );

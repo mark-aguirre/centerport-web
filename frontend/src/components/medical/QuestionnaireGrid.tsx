@@ -2,55 +2,153 @@
 
 import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { MedicalExam, MedicalSectionProps } from "./types";
+import type { MedicalSectionProps } from "./types";
 
-/** Standard questionnaire items (questions 1-7) */
-const QUESTIONNAIRE_ITEMS = [
-  "Have you ever been signed off as sick or repatriated from a ship?",
-  "Have you ever been hospitalized?",
-  "Have you ever been declared unfit for sea duty?",
-  "Has your medical certificate ever been restricted or revoked?",
-  "Are you aware that you have any medical problem, disease or illness?",
-  "Do you feel healthy and fit to perform the duties of your designated position/occupation?",
-  "Are you allergic to any medication?",
-] as const;
+interface QuestionnaireItem {
+  key: string;
+  label: string;
+  detailKey?: string;
+}
+
+const QUESTIONNAIRE_ITEMS: readonly QuestionnaireItem[] = [
+  {
+    key: "Have you ever been signed off as sick or repatriated from a ship?",
+    label: "Have you ever been signed off as sick or repatriated from a ship?",
+    detailKey:
+      "Have you ever been signed off as sick or repatriated from a ship? Details",
+  },
+  {
+    key: "Have you ever been hospitalized?",
+    label: "Have you ever been hospitalized?",
+    detailKey: "Have you ever been hospitalized? Details",
+  },
+  {
+    key: "Have you ever been declared unfit for sea duty?",
+    label: "Have you ever been declared unfit for sea duty?",
+    detailKey: "Have you ever been declared unfit for sea duty? Details",
+  },
+  {
+    key: "Has your medical certificate ever been restricted or revoked?",
+    label: "Has your medical certificate ever been restricted or revoked?",
+    detailKey:
+      "Has your medical certificate ever been restricted or revoked? Details",
+  },
+  {
+    key: "Are you aware that you have any medical problem, disease or illness?",
+    label:
+      "Are you aware that you have any medical problem, disease or illness?",
+    detailKey:
+      "Are you aware that you have any medical problem, disease or illness? Details",
+  },
+  {
+    key: "Do you feel healthy and fit to perform the duties of your designated position/occupation?",
+    label:
+      "Do you feel healthy and fit to perform the duties of your designated position/occupation?",
+    detailKey:
+      "Do you feel healthy and fit to perform the duties of your designated position/occupation? Details",
+  },
+  {
+    key: "Are you allergic to any medication?",
+    label: "Are you allergic to any medication?",
+  },
+];
+
+const MEDICATION_QUESTION_KEY =
+  "Non-prescription or prescription medication";
+
+interface QuestionnaireRowProps {
+  number: number;
+  item: QuestionnaireItem;
+  value: string;
+  detailValue?: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+  onDetailChange?: (value: string) => void;
+}
+
+function QuestionnaireRow({
+  number,
+  item,
+  value,
+  detailValue,
+  disabled,
+  onChange,
+  onDetailChange,
+}: QuestionnaireRowProps) {
+  return (
+    <div className="grid min-h-9 grid-cols-[minmax(0,1fr)_56px_56px_minmax(280px,0.78fr)] items-center gap-1 border-b border-primary/20 px-1.5 py-1">
+      <span className="text-xs leading-tight text-foreground/80">
+        <span className="mr-4 font-semibold">{number}.</span>
+        {item.label}
+      </span>
+      {[
+        ["yes", "Yes"],
+        ["no", "No"],
+      ].map(([optionValue, optionLabel]) => (
+        <label
+          key={optionValue}
+          className="flex cursor-pointer justify-center"
+        >
+          <input
+            type="radio"
+            name={`questionnaire-${number}`}
+            checked={value === optionValue}
+            onChange={() => onChange(optionValue)}
+            tabIndex={disabled ? -1 : undefined}
+            className="h-4 w-4 accent-primary"
+            aria-label={`${item.label} - ${optionLabel}`}
+          />
+        </label>
+      ))}
+      {item.detailKey && onDetailChange ? (
+        <Input
+          value={detailValue ?? ""}
+          onChange={(event) => onDetailChange(event.target.value)}
+          readOnly={disabled}
+          tabIndex={disabled ? -1 : undefined}
+          className="h-7 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+          aria-label={`Question ${number} details`}
+        />
+      ) : (
+        <div />
+      )}
+    </div>
+  );
+}
 
 /**
- * Questionnaire sub-section of the Physical Examination form.
+ * Medical questionnaire matching the Seabase examination form.
  *
- * Displays questions 1-8 with Yes/No radio buttons, a comments field,
- * and a medications detail textarea for question 8. Follows the PEME
- * (Pre-Employment Medical Examination) questionnaire format.
- *
- * "Set Normal" defaults:
- * - Q1-Q5, Q7, Q8: "no" (no past issues)
- * - Q6: "yes" (feels healthy and fit)
- * - Clear text fields
- *
- * @see PhysicalExaminationSection — parent orchestrator
+ * Existing answer keys remain unchanged. Q1-Q6 detail values are stored under
+ * adjacent reserved keys in the questionnaire JSONB map.
  */
-export function QuestionnaireGrid({ data, onChange, disabled }: MedicalSectionProps) {
-  const update = (field: keyof MedicalExam, value: string) =>
-    onChange({ ...data, [field]: value });
+export function QuestionnaireGrid({
+  data,
+  onChange,
+  disabled,
+}: MedicalSectionProps) {
+  const questionnaire = data.questionnaire ?? {};
 
-  const updateQuestionnaire = (question: string, value: string) => {
-    const updatedQuestionnaire = { ...data.questionnaire, [question]: value };
-    onChange({ ...data, questionnaire: updatedQuestionnaire });
+  const updateQuestionnaire = (key: string, value: string) => {
+    onChange({
+      ...data,
+      questionnaire: { ...questionnaire, [key]: value },
+    });
   };
 
-  /**
-   * Set normal questionnaire answers:
-   * Q1-Q5, Q7, Q8 → "no"; Q6 → "yes"; clear text fields.
-   */
   const handleSetNormal = () => {
-    const normalAnswers: Record<string, string> = {};
-    QUESTIONNAIRE_ITEMS.forEach((item, idx) => {
-      // Q6 (index 5): "yes" — feels healthy and fit
-      normalAnswers[item] = idx === 5 ? "yes" : "no";
+    const normalAnswers = { ...questionnaire };
+
+    QUESTIONNAIRE_ITEMS.forEach((item, index) => {
+      normalAnswers[item.key] = index === 5 ? "yes" : "no";
+      if (item.detailKey) {
+        normalAnswers[item.detailKey] = "";
+      }
     });
-    normalAnswers["Non-prescription or prescription medication"] = "no";
+    normalAnswers[MEDICATION_QUESTION_KEY] = "no";
+
     onChange({
       ...data,
       questionnaire: normalAnswers,
@@ -60,101 +158,135 @@ export function QuestionnaireGrid({ data, onChange, disabled }: MedicalSectionPr
   };
 
   return (
-    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
-      {/* Column headers */}
-      <div className="flex items-center py-1 mb-1 border-b border-primary/20">
-        <span className="text-[11px] font-bold text-foreground/90 uppercase tracking-wide flex-1">
-          Please select on the appropriate box.
-        </span>
-        <div className="flex items-center gap-3">
-          <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
-          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider w-12 text-center">
-            YES
-          </span>
-          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider w-12 text-center">
-            NO
-          </span>
-        </div>
-      </div>
-
-      {/* Questions 1-7 */}
-      <div className="space-y-0">
-        {QUESTIONNAIRE_ITEMS.map((item, idx) => {
-          const currentValue = data.questionnaire[item] || "";
-          return (
-            <div key={item} className="flex items-center py-1.5 border-b border-muted/30 last:border-0">
-              <span className="text-xs text-foreground/80 flex-1">
-                {idx + 1}. {item}
-              </span>
-              <div className="flex items-center w-24 justify-around shrink-0" role="radiogroup" aria-label={item}>
-                <input
-                  type="radio"
-                  name={`q-${idx}`}
-                  checked={currentValue === "yes"}
-                  onChange={() => updateQuestionnaire(item, "yes")}
-                  className="w-4 h-4 accent-primary"
-                  aria-label={`${item} - Yes`}
-                />
-                <input
-                  type="radio"
-                  name={`q-${idx}`}
-                  checked={currentValue === "no"}
-                  onChange={() => updateQuestionnaire(item, "no")}
-                  className="w-4 h-4 accent-primary"
-                  aria-label={`${item} - No`}
-                />
-              </div>
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm",
+        disabled && "pointer-events-none",
+      )}
+    >
+      <div className="overflow-x-auto">
+        <div className="min-w-[900px]">
+          <div className="grid grid-cols-[minmax(0,1fr)_56px_56px_minmax(280px,0.78fr)] items-center gap-1 border-b border-primary/20 px-1.5 py-1.5">
+            <span className="text-xs font-bold text-foreground/90">
+              Please select on the appropriate box.
+            </span>
+            <span className="text-center text-[11px] font-bold uppercase tracking-wider text-primary/70">
+              Yes
+            </span>
+            <span className="text-center text-[11px] font-bold uppercase tracking-wider text-primary/70">
+              No
+            </span>
+            <div className="flex justify-end">
+              <SetNormalButton
+                onClick={handleSetNormal}
+                disabled={disabled}
+              />
             </div>
-          );
-        })}
-      </div>
+          </div>
 
-      {/* Comments */}
-      <div className="flex items-center gap-2 mt-3 pt-2 border-t border-muted/30">
-        <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Comments:</Label>
-        <Input
-          value={data.questionnaire_comments}
-          onChange={(e) => update("questionnaire_comments", e.target.value)}
-          className="h-7 text-xs flex-1"
-          readOnly={disabled}
-          tabIndex={disabled ? -1 : undefined}
-        />
-      </div>
-
-      {/* Question 8: Non-prescription / prescription medications */}
-      <div className="mt-3 space-y-2">
-        <div className="flex items-center py-2 border-b border-muted/30">
-          <span className="text-xs text-foreground/80 flex-1">
-            8. Are you taking any non-prescription or prescription medication?
-          </span>
-          <div className="flex items-center w-24 justify-around shrink-0" role="radiogroup" aria-label="Non-prescription or prescription medication">
-            <input
-              type="radio"
-              name="q-8"
-              checked={(data.questionnaire["Non-prescription or prescription medication"] || "") === "yes"}
-              onChange={() => updateQuestionnaire("Non-prescription or prescription medication", "yes")}
-              className="w-4 h-4 accent-primary"
+          {QUESTIONNAIRE_ITEMS.slice(0, 6).map((item, index) => (
+            <QuestionnaireRow
+              key={item.key}
+              number={index + 1}
+              item={item}
+              value={questionnaire[item.key] ?? ""}
+              detailValue={
+                item.detailKey ? questionnaire[item.detailKey] ?? "" : undefined
+              }
+              onChange={(value) => updateQuestionnaire(item.key, value)}
+              onDetailChange={
+                item.detailKey
+                  ? (value) => updateQuestionnaire(item.detailKey!, value)
+                  : undefined
+              }
+              disabled={disabled}
             />
-            <input
-              type="radio"
-              name="q-8"
-              checked={(data.questionnaire["Non-prescription or prescription medication"] || "") === "no"}
-              onChange={() => updateQuestionnaire("Non-prescription or prescription medication", "no")}
-              className="w-4 h-4 accent-primary"
+          ))}
+
+          <QuestionnaireRow
+            number={7}
+            item={QUESTIONNAIRE_ITEMS[6]}
+            value={questionnaire[QUESTIONNAIRE_ITEMS[6].key] ?? ""}
+            onChange={(value) =>
+              updateQuestionnaire(QUESTIONNAIRE_ITEMS[6].key, value)
+            }
+            disabled={disabled}
+          />
+
+          <div className="grid grid-cols-[95px_minmax(0,1fr)_112px_minmax(280px,0.78fr)] items-start gap-2 border-b border-primary/20 px-2 py-1">
+            <label
+              htmlFor="questionnaire-comments"
+              className="pt-1 text-xs font-semibold text-foreground/80"
+            >
+              Comments
+            </label>
+            <Textarea
+              id="questionnaire-comments"
+              value={data.questionnaire_comments}
+              onChange={(event) =>
+                onChange({
+                  ...data,
+                  questionnaire_comments: event.target.value,
+                })
+              }
+              readOnly={disabled}
+              tabIndex={disabled ? -1 : undefined}
+              className="col-span-2 h-12 resize-none border border-primary/20 bg-white px-3 py-2 text-sm dark:bg-input/30"
+            />
+            <div />
+          </div>
+
+          <div className="grid min-h-9 grid-cols-[minmax(0,1fr)_56px_56px_minmax(280px,0.78fr)] items-center gap-1 px-1.5 py-1">
+            <span className="text-xs leading-tight text-foreground/80">
+              <span className="mr-4 font-semibold">8.</span>
+              Are you taking any non-prescription or prescription medication?
+            </span>
+            {[
+              ["yes", "Yes"],
+              ["no", "No"],
+            ].map(([optionValue, optionLabel]) => (
+              <label
+                key={optionValue}
+                className="flex cursor-pointer justify-center"
+              >
+                <input
+                  type="radio"
+                  name="questionnaire-8"
+                  checked={questionnaire[MEDICATION_QUESTION_KEY] === optionValue}
+                  onChange={() =>
+                    updateQuestionnaire(MEDICATION_QUESTION_KEY, optionValue)
+                  }
+                  tabIndex={disabled ? -1 : undefined}
+                  className="h-4 w-4 accent-primary"
+                  aria-label={`Medication question - ${optionLabel}`}
+                />
+              </label>
+            ))}
+            <div />
+          </div>
+
+          <div className="space-y-1 px-12 pb-2">
+            <label
+              htmlFor="questionnaire-medications"
+              className="text-[11px] font-semibold text-foreground/80"
+            >
+              If yes, please list the medication(s) taken/being taken, and the
+              purpose(s) and dosage(s).
+            </label>
+            <Textarea
+              id="questionnaire-medications"
+              value={data.questionnaire_medications_detail}
+              onChange={(event) =>
+                onChange({
+                  ...data,
+                  questionnaire_medications_detail: event.target.value,
+                })
+              }
+              readOnly={disabled}
+              tabIndex={disabled ? -1 : undefined}
+              className="h-16 max-w-[560px] resize-none border border-primary/20 bg-white px-3 py-2 text-sm dark:bg-input/30"
             />
           </div>
-        </div>
-        <div className="space-y-1">
-          <Label className="text-[11px] text-muted-foreground italic">
-            If yes, please list the medication(s) taken/being taken, and the purpose(s) and dosage(s).
-          </Label>
-          <textarea
-            value={data.questionnaire_medications_detail}
-            onChange={(e) => update("questionnaire_medications_detail", e.target.value)}
-            className="w-full h-20 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus:border-primary dark:bg-input/30 resize-none"
-            readOnly={disabled}
-            tabIndex={disabled ? -1 : undefined}
-          />
         </div>
       </div>
     </div>

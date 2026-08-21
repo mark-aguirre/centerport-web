@@ -84,8 +84,8 @@ export function FormSelect({
           {required && <span className="text-destructive ml-0.5">*</span>}
         </Label>
       )}
-      <Select value={value ?? ""} onValueChange={(val) => onChange(val as string)} disabled={disabled}>
-        <SelectTrigger className={cn(triggerStyles[size], disabled && "pointer-events-none")}>
+      <Select value={value ?? ""} onValueChange={(val) => onChange(val as string)}>
+        <SelectTrigger className={cn(triggerStyles[size], disabled && "pointer-events-none")} tabIndex={disabled ? -1 : undefined}>
           <SelectValue placeholder="Select..." />
         </SelectTrigger>
         <SelectContent className={contentStyles[size]}>

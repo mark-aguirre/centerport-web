@@ -37,6 +37,7 @@ export const EMPTY_EXAM: MedicalExam = {
   pe_respiration: "",
   pe_body_temperature: "",
   pe_weight: "",
+  pe_rhythm: "",
   pe_mm_ym: "",
   pe_bmi: "",
   blood_pressure: "",
@@ -79,6 +80,7 @@ export const EMPTY_EXAM: MedicalExam = {
   audio_ad_left_1: "",
   audio_ad_left_2: "",
   audio_satisfactory: "",
+  audio_unaided_hearing: "",
 
   // Speech
   speech_impaired_hearing: "",
@@ -116,6 +118,9 @@ export const EMPTY_EXAM: MedicalExam = {
   findings_a: {},
   findings_b: {},
   findings_c: {},
+  findings_a_remarks: {},
+  findings_b_remarks: {},
+  findings_c_remarks: {},
 
   // Questionnaire
   questionnaire: {},
@@ -150,6 +155,7 @@ export const EMPTY_EXAM: MedicalExam = {
   ancillary_additional_tests: "",
 
   // Final Recommendation
+  final_recommendation: "",
   recommendation_remarks: "",
   cert_basic_ooh: "",
   cert_basic_ooh_findings: "",
@@ -190,6 +196,9 @@ const FIELD_DEFAULTS: Record<string, unknown> = {
   findings_a: {},
   findings_b: {},
   findings_c: {},
+  findings_a_remarks: {},
+  findings_b_remarks: {},
+  findings_c_remarks: {},
   questionnaire: {},
   medical_history: {},
 };

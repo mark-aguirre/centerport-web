@@ -59,6 +59,7 @@ public class MedicalExamDto {
     private String peRespiration;
     private String peBodyTemperature;
     private String peWeight;
+    private String peRhythm;
     private String peMmYm;
     private String peBmi;
     private String bloodPressure;
@@ -109,6 +110,7 @@ public class MedicalExamDto {
     @com.fasterxml.jackson.annotation.JsonProperty("audio_ad_left_2")
     private String audioAdLeft2;
     private String audioSatisfactory;
+    private String audioUnaidedHearing;
 
     // --- Speech ---
     private String speechImpairedHearing;
@@ -140,6 +142,12 @@ public class MedicalExamDto {
     private Map<String, Boolean> findingsA;
     private Map<String, Boolean> findingsB;
     private Map<String, Boolean> findingsC;
+    @com.fasterxml.jackson.annotation.JsonProperty("findings_a_remarks")
+    private Map<String, String> findingsARemarks;
+    @com.fasterxml.jackson.annotation.JsonProperty("findings_b_remarks")
+    private Map<String, String> findingsBRemarks;
+    @com.fasterxml.jackson.annotation.JsonProperty("findings_c_remarks")
+    private Map<String, String> findingsCRemarks;
 
     // --- Visual Acuity (legacy) ---
     private String visualAcuityRight;
@@ -182,6 +190,7 @@ public class MedicalExamDto {
 
 
     // --- Final Recommendation ---
+    private String finalRecommendation;
     private String recommendationRemarks;
     private String certBasicOoh;
     private String certBasicOohFindings;

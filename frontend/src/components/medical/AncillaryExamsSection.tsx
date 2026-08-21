@@ -1,139 +1,312 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormSelect } from "@/components/common/form-select";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
+interface ResultOption {
+  label: string;
+  value: string;
+}
+
+interface ResultRowProps {
+  code: string;
+  label: string;
+  name: string;
+  value: string;
+  options: readonly ResultOption[];
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}
+
+const NORMAL_OPTIONS: readonly ResultOption[] = [
+  { label: "normal", value: "normal" },
+  { label: "with findings", value: "with_findings" },
+];
+
+const REACTIVE_OPTIONS: readonly ResultOption[] = [
+  { label: "Reactive", value: "reactive" },
+  { label: "Non Reactive", value: "non_reactive" },
+];
+
+const BLOOD_TYPE_OPTIONS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+const PREGNANCY_OPTIONS = ["Positive", "Negative", "N/A"];
+
+function ResultRow({
+  code,
+  label,
+  name,
+  value,
+  options,
+  disabled,
+  onChange,
+}: ResultRowProps) {
+  return (
+    <div className="grid min-h-9 grid-cols-[130px_1fr] items-center border-b border-primary/20 last:border-b-0">
+      <span className="border-r border-primary/20 px-2 text-xs font-semibold text-foreground/80">
+        {code}. {label}:
+      </span>
+      <div
+        className="flex flex-wrap items-center gap-x-3 gap-y-1 px-2"
+        role="radiogroup"
+        aria-label={`${label} result`}
+      >
+        {options.map((option) => (
+          <label
+            key={option.value}
+            className="flex cursor-pointer items-center gap-1.5"
+          >
+            <input
+              type="radio"
+              name={name}
+              checked={value === option.value}
+              onChange={() => onChange(option.value)}
+              tabIndex={disabled ? -1 : undefined}
+              className="h-4 w-4 accent-primary"
+              aria-label={`${label} - ${option.label}`}
+            />
+            <span className="whitespace-nowrap text-xs text-foreground/80">
+              {option.label}
+            </span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+interface SelectResultRowProps {
+  code: string;
+  label: string;
+  value: string;
+  options: string[];
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}
+
+function SelectResultRow({
+  code,
+  label,
+  value,
+  options,
+  disabled,
+  onChange,
+}: SelectResultRowProps) {
+  return (
+    <div className="grid min-h-9 grid-cols-[130px_1fr] items-center border-b border-primary/20 last:border-b-0">
+      <span className="border-r border-primary/20 px-2 text-xs font-semibold text-foreground/80">
+        {code}. {label}
+      </span>
+      <FormSelect
+        label=""
+        value={value}
+        onChange={onChange}
+        options={options}
+        disabled={disabled}
+        className="px-2"
+      />
+    </div>
+  );
+}
+
 /**
- * Result of Ancillary Examinations sub-section of the Physical Examination form.
+ * Result of Ancillary Examinations section matching the Seabase form.
  *
- * Captures results for Chest X-ray, ECG, CBC, Pregnancy Test, Urinalysis,
- * Stool Exam, HbsAg, HIV/AIDS, RPR, Blood Type, Psychological Test, and
- * additional test specifications.
- *
- * @see PhysicalExaminationSection — parent orchestrator
+ * Presents examination results A-J in three fixed table columns, followed by
+ * the psychological assessment and free-text additional-test specification.
  */
-export function AncillaryExamsSection({ data, onChange, disabled }: MedicalSectionProps) {
+export function AncillaryExamsSection({
+  data,
+  onChange,
+  disabled,
+}: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
-  /** Set all ancillary exam fields to normal/healthy defaults. */
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      xray_no: data.xray_no, // preserve x-ray number
-      ancillary_chest_xray: "normal",
-      ancillary_ecg: "normal",
-      ancillary_cbc: "normal",
-      ancillary_urinalysis: "normal",
-      ancillary_stool_exam: "normal",
-      ancillary_hbsag: "non_reactive",
-      ancillary_hiv_aids: "non_reactive",
-      ancillary_rpr: "non_reactive",
-      ancillary_pregnancy_test: "N/A",
-      ancillary_psychological_test: "recommended",
-      ancillary_additional_tests: "",
-    });
-  };
-
   return (
-    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
-      <SectionHeader
-        title="Result of Ancillary Examinations"
-        subtitle="Check appropriate box"
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
-      />
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">X-ray No.:</Label>
-          <Input value={data.xray_no} onChange={(e) => update("xray_no", e.target.value)} className="h-7 text-xs w-24" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm",
+        disabled && "pointer-events-none",
+      )}
+    >
+      <div className="flex flex-col gap-1 border-b border-primary/20 px-3 py-2 sm:flex-row sm:items-baseline">
+        <h2 className="shrink-0 text-sm font-bold uppercase tracking-wide text-primary">
+          III. Result of Ancillary Examinations.
+        </h2>
+        <p className="text-xs text-foreground/80">Check appropriate box</p>
+      </div>
+
+      <div className="flex items-center gap-2 border-b border-primary/20 px-3 py-2">
+        <label
+          htmlFor="ancillary-xray-number"
+          className="text-xs font-semibold text-foreground/80"
+        >
+          X-ray No.:
+        </label>
+        <Input
+          id="ancillary-xray-number"
+          value={data.xray_no}
+          onChange={(event) => update("xray_no", event.target.value)}
+          readOnly={disabled}
+          tabIndex={disabled ? -1 : undefined}
+          className="h-7 w-28 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+        />
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="grid min-w-[960px] grid-cols-[1.08fr_1.08fr_0.84fr] border-b border-primary/20">
+          <div className="border-r border-primary/20">
+            <ResultRow
+              code="A"
+              label="Chest X-ray"
+              name="ancillary-chest-xray"
+              value={data.ancillary_chest_xray}
+              options={NORMAL_OPTIONS}
+              onChange={(value) => update("ancillary_chest_xray", value)}
+              disabled={disabled}
+            />
+            <ResultRow
+              code="B"
+              label="ECG"
+              name="ancillary-ecg"
+              value={data.ancillary_ecg}
+              options={NORMAL_OPTIONS}
+              onChange={(value) => update("ancillary_ecg", value)}
+              disabled={disabled}
+            />
+            <ResultRow
+              code="C"
+              label="CBC"
+              name="ancillary-cbc"
+              value={data.ancillary_cbc}
+              options={NORMAL_OPTIONS}
+              onChange={(value) => update("ancillary_cbc", value)}
+              disabled={disabled}
+            />
+            <SelectResultRow
+              code="D"
+              label="Pregnancy Test"
+              value={data.ancillary_pregnancy_test}
+              options={PREGNANCY_OPTIONS}
+              onChange={(value) => update("ancillary_pregnancy_test", value)}
+              disabled={disabled}
+            />
+          </div>
+
+          <div className="border-r border-primary/20">
+            <ResultRow
+              code="E"
+              label="Urinalysis"
+              name="ancillary-urinalysis"
+              value={data.ancillary_urinalysis}
+              options={NORMAL_OPTIONS}
+              onChange={(value) => update("ancillary_urinalysis", value)}
+              disabled={disabled}
+            />
+            <ResultRow
+              code="F"
+              label="Stool Exam"
+              name="ancillary-stool-exam"
+              value={data.ancillary_stool_exam}
+              options={NORMAL_OPTIONS}
+              onChange={(value) => update("ancillary_stool_exam", value)}
+              disabled={disabled}
+            />
+            <ResultRow
+              code="G"
+              label="HBsAg"
+              name="ancillary-hbsag"
+              value={data.ancillary_hbsag}
+              options={REACTIVE_OPTIONS}
+              onChange={(value) => update("ancillary_hbsag", value)}
+              disabled={disabled}
+            />
+            <ResultRow
+              code="H"
+              label="HIV/AIDS test"
+              name="ancillary-hiv-aids"
+              value={data.ancillary_hiv_aids}
+              options={REACTIVE_OPTIONS}
+              onChange={(value) => update("ancillary_hiv_aids", value)}
+              disabled={disabled}
+            />
+          </div>
+
+          <div>
+            <ResultRow
+              code="I"
+              label="RPR"
+              name="ancillary-rpr"
+              value={data.ancillary_rpr}
+              options={REACTIVE_OPTIONS}
+              onChange={(value) => update("ancillary_rpr", value)}
+              disabled={disabled}
+            />
+            <SelectResultRow
+              code="J"
+              label="Blood Type:"
+              value={data.ancillary_blood_type}
+              options={BLOOD_TYPE_OPTIONS}
+              onChange={(value) => update("ancillary_blood_type", value)}
+              disabled={disabled}
+            />
+          </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-x-6 gap-y-2">
-          {/* Row: Chest X-ray */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">A. Chest X-ray</span>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_cxr" checked={data.ancillary_chest_xray === "normal"} onChange={() => update("ancillary_chest_xray", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_cxr" checked={data.ancillary_chest_xray === "with_findings"} onChange={() => update("ancillary_chest_xray", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
-          </div>
-          {/* Row: Urinalysis */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">E. Urinalysis</span>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_uri" checked={data.ancillary_urinalysis === "normal"} onChange={() => update("ancillary_urinalysis", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_uri" checked={data.ancillary_urinalysis === "with_findings"} onChange={() => update("ancillary_urinalysis", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
-          </div>
-          {/* Row: RPR */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">I. RPR</span>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_rpr" checked={data.ancillary_rpr === "reactive"} onChange={() => update("ancillary_rpr", "reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Reactive</span></label>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_rpr" checked={data.ancillary_rpr === "non_reactive"} onChange={() => update("ancillary_rpr", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
-          </div>
+      <div
+        className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-primary/20 px-3 py-2"
+        role="radiogroup"
+        aria-label="Psychological test result"
+      >
+        <span className="text-xs font-semibold text-foreground/80">
+          Psychological Test:
+        </span>
+        {[
+          ["recommended", "Recommended"],
+          ["rec_with_reservation", "Rec. w/Reservation"],
+          ["not_recommended", "Not Recommended"],
+          ["not_done", "Not Done"],
+        ].map(([value, label]) => (
+          <label
+            key={value}
+            className="flex cursor-pointer items-center gap-1.5"
+          >
+            <input
+              type="radio"
+              name="ancillary-psychological-test"
+              checked={data.ancillary_psychological_test === value}
+              onChange={() => update("ancillary_psychological_test", value)}
+              tabIndex={disabled ? -1 : undefined}
+              className="h-4 w-4 accent-primary"
+              aria-label={`Psychological test - ${label}`}
+            />
+            <span className="text-xs text-foreground/80">{label}</span>
+          </label>
+        ))}
+      </div>
 
-          {/* Row: ECG */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">B. ECG</span>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_ecg" checked={data.ancillary_ecg === "normal"} onChange={() => update("ancillary_ecg", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_ecg" checked={data.ancillary_ecg === "with_findings"} onChange={() => update("ancillary_ecg", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
-          </div>
-          {/* Row: Stool Exam */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">F. Stool Exam</span>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_stool" checked={data.ancillary_stool_exam === "normal"} onChange={() => update("ancillary_stool_exam", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_stool" checked={data.ancillary_stool_exam === "non_reactive"} onChange={() => update("ancillary_stool_exam", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
-          </div>
-          {/* Row: Blood Type */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">J. Blood Type</span>
-            <FormSelect label="" value={data.ancillary_blood_type} onChange={(v) => update("ancillary_blood_type", v)} options={["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]} />
-          </div>
-
-          {/* Row: CBC */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">C. CBC</span>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_cbc" checked={data.ancillary_cbc === "normal"} onChange={() => update("ancillary_cbc", "normal")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Normal</span></label>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_cbc" checked={data.ancillary_cbc === "with_findings"} onChange={() => update("ancillary_cbc", "with_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">with findings</span></label>
-          </div>
-          {/* Row: HbsAg */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">G. HbsAg</span>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_hbs" checked={data.ancillary_hbsag === "reactive"} onChange={() => update("ancillary_hbsag", "reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Reactive</span></label>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_hbs" checked={data.ancillary_hbsag === "non_reactive"} onChange={() => update("ancillary_hbsag", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
-          </div>
-          {/* Spacer */}
-          <div className="hidden xl:block" />
-
-          {/* Row: Pregnancy Test */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">D. Pregnancy Test</span>
-            <FormSelect label="" value={data.ancillary_pregnancy_test} onChange={(v) => update("ancillary_pregnancy_test", v)} options={["Positive", "Negative", "N/A"]} />
-          </div>
-          {/* Row: HIV/AIDS test */}
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-semibold text-foreground/70 min-w-[100px] shrink-0">H. HIV/AIDS test</span>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_hiv" checked={data.ancillary_hiv_aids === "reactive"} onChange={() => update("ancillary_hiv_aids", "reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Reactive</span></label>
-            <label className="flex items-center gap-1 cursor-pointer shrink-0"><input type="radio" name="anc_hiv" checked={data.ancillary_hiv_aids === "non_reactive"} onChange={() => update("ancillary_hiv_aids", "non_reactive")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Non Reactive</span></label>
-          </div>
-          <div className="hidden xl:block" />
-        </div>
-
-        {/* Psychological Test */}
-        <div className="flex items-center gap-3 pt-2 border-t border-muted/30">
-          <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Psychological Test:</Label>
-          <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="psych" checked={data.ancillary_psychological_test === "recommended"} onChange={() => update("ancillary_psychological_test", "recommended")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Recommended</span></label>
-          <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="psych" checked={data.ancillary_psychological_test === "rec_with_reservation"} onChange={() => update("ancillary_psychological_test", "rec_with_reservation")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Rec. w/Reservation</span></label>
-          <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="psych" checked={data.ancillary_psychological_test === "not_recommended"} onChange={() => update("ancillary_psychological_test", "not_recommended")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Not Recommended</span></label>
-          <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="psych" checked={data.ancillary_psychological_test === "not_done"} onChange={() => update("ancillary_psychological_test", "not_done")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">Not Done</span></label>
-        </div>
-
-        {/* Additional Tests */}
-        <div className="flex items-center gap-2 pt-1">
-          <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Additional Test (Specify):</Label>
-          <Input value={data.ancillary_additional_tests} onChange={(e) => update("ancillary_additional_tests", e.target.value)} className="h-7 text-xs flex-1" placeholder="e.g Blood Chemistries, Drug Tests, Alcohol Tests, Liver Function Test, Stool Culture, etc." readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
-        </div>
+      <div className="space-y-1 px-3 py-2">
+        <label
+          htmlFor="ancillary-additional-tests"
+          className="text-xs font-semibold italic text-foreground/80"
+        >
+          Additional Test (Specify): e.g Blood Chemistries, Drug Tests, Alcohol
+          Test, Liver Function Test, Stool Culture, etc.:
+        </label>
+        <Textarea
+          id="ancillary-additional-tests"
+          value={data.ancillary_additional_tests}
+          onChange={(event) =>
+            update("ancillary_additional_tests", event.target.value)
+          }
+          readOnly={disabled}
+          tabIndex={disabled ? -1 : undefined}
+          className="h-16 resize-none border border-primary/20 bg-white px-3 py-2 text-sm dark:bg-input/30"
+        />
       </div>
     </div>
   );

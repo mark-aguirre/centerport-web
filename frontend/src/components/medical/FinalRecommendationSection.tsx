@@ -1,70 +1,139 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
-import { Label } from "@/components/ui/label";
+import { FormSelect } from "@/components/common/form-select";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
+const FINAL_RECOMMENDATION_OPTIONS = [
+  "FIT FOR SEA DUTY",
+  "FIT WITH RESTRICTIONS",
+  "TEMPORARILY UNFIT FOR SEA DUTY",
+  "UNFIT FOR SEA DUTY",
+];
+
+interface CertificationResultRowProps {
+  label: string;
+  name: string;
+  value: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}
+
+function CertificationResultRow({
+  label,
+  name,
+  value,
+  disabled,
+  onChange,
+}: CertificationResultRowProps) {
+  const options = [
+    { label: "PASSED", value: "passed" },
+    {
+      label: "WITH SIGNIFICANT FINDINGS",
+      value: "with_significant_findings",
+    },
+  ];
+
+  return (
+    <div className="grid min-h-9 grid-cols-[minmax(330px,1.5fr)_minmax(150px,0.65fr)_minmax(250px,1fr)] items-center gap-3 px-2">
+      <span className="text-xs text-foreground/80">{label}:</span>
+      {options.map((option) => (
+        <label
+          key={option.value}
+          className="flex cursor-pointer items-center gap-1.5"
+        >
+          <input
+            type="radio"
+            name={name}
+            checked={value === option.value}
+            onChange={() => onChange(option.value)}
+            tabIndex={disabled ? -1 : undefined}
+            className="h-4 w-4 accent-primary"
+            aria-label={`${label} - ${option.label}`}
+          />
+          <span className="whitespace-nowrap text-xs text-foreground/80">
+            {option.label}
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 /**
- * Final Recommendation sub-section of the Physical Examination form.
- *
- * Captures remarks/special needs and certification results (Basic OOH,
- * Additional Labs, Flag/Post requirements) with Passed/With Significant
- * Findings radio options.
- *
- * @see PhysicalExaminationSection — parent orchestrator
+ * Final recommendation and certification-results section for the Seabase form.
  */
-export function FinalRecommendationSection({ data, onChange, disabled }: MedicalSectionProps) {
+export function FinalRecommendationSection({
+  data,
+  onChange,
+  disabled,
+}: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
-  /** Set all certification results to "passed". */
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      cert_basic_ooh: "passed",
-      cert_additional_labs: "passed",
-      cert_flagpost: "passed",
-    });
-  };
-
   return (
-    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
-      <SectionHeader
-        title="Final Recommendation"
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
-      />
-      <div className="space-y-3">
-        {/* Remarks */}
-        <div className="space-y-1">
-          <Label className="text-[11px] font-bold text-foreground/70 uppercase">Remark / Special Needs:</Label>
-          <textarea
-            value={data.recommendation_remarks}
-            onChange={(e) => update("recommendation_remarks", e.target.value)}
-            className="w-full h-16 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus:border-primary dark:bg-input/30 resize-none"
-            readOnly={disabled}
-            tabIndex={disabled ? -1 : undefined}
-          />
-        </div>
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm",
+        disabled && "pointer-events-none",
+      )}
+    >
+      <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[165px_minmax(260px,360px)] sm:items-center">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
+          IV. Final Recommendation:
+        </h2>
+        <FormSelect
+          label=""
+          value={data.final_recommendation}
+          onChange={(value) => update("final_recommendation", value)}
+          options={FINAL_RECOMMENDATION_OPTIONS}
+          disabled={disabled}
+        />
+      </div>
 
-        {/* Certifications */}
-        <div className="space-y-2 pt-2 border-t border-muted/30">
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-foreground/70 w-64 shrink-0">Basic OOH Mandatory Medical Examination:</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="cert_ooh" checked={data.cert_basic_ooh === "passed"} onChange={() => update("cert_basic_ooh", "passed")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">PASSED</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="cert_ooh" checked={data.cert_basic_ooh === "with_significant_findings"} onChange={() => update("cert_basic_ooh", "with_significant_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">WITH SIGNIFICANT FINDINGS</span></label>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-foreground/70 w-64 shrink-0">Additional Laboratory Tests:</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="cert_labs" checked={data.cert_additional_labs === "passed"} onChange={() => update("cert_additional_labs", "passed")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">PASSED</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="cert_labs" checked={data.cert_additional_labs === "with_significant_findings"} onChange={() => update("cert_additional_labs", "with_significant_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">WITH SIGNIFICANT FINDINGS</span></label>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-foreground/70 w-64 shrink-0">Flag/Post Medical and Laboratory Requirements:</span>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="cert_flag" checked={data.cert_flagpost === "passed"} onChange={() => update("cert_flagpost", "passed")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">PASSED</span></label>
-            <label className="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="cert_flag" checked={data.cert_flagpost === "with_significant_findings"} onChange={() => update("cert_flagpost", "with_significant_findings")} className="w-4 h-4 accent-primary" /><span className="text-xs text-foreground/80">WITH SIGNIFICANT FINDINGS</span></label>
-          </div>
+      <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[165px_1fr] sm:items-center">
+        <label
+          htmlFor="recommendation-remarks"
+          className="text-xs font-bold text-foreground/80"
+        >
+          REMARK/Special Needs:
+        </label>
+        <Input
+          id="recommendation-remarks"
+          value={data.recommendation_remarks}
+          onChange={(event) =>
+            update("recommendation_remarks", event.target.value)
+          }
+          readOnly={disabled}
+          tabIndex={disabled ? -1 : undefined}
+          className="h-8 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+        />
+      </div>
+
+      <div className="overflow-x-auto bg-muted/10 py-1">
+        <div className="min-w-[830px]">
+          <CertificationResultRow
+            label="Basic DOH Mandatory Medical Examination"
+            name="certification-basic-doh"
+            value={data.cert_basic_ooh}
+            onChange={(value) => update("cert_basic_ooh", value)}
+            disabled={disabled}
+          />
+          <CertificationResultRow
+            label="Additional Laboratory Tests"
+            name="certification-additional-labs"
+            value={data.cert_additional_labs}
+            onChange={(value) => update("cert_additional_labs", value)}
+            disabled={disabled}
+          />
+          <CertificationResultRow
+            label="Flag/Host Medical and Laboratory Requirements"
+            name="certification-flag-host"
+            value={data.cert_flagpost}
+            onChange={(value) => update("cert_flagpost", value)}
+            disabled={disabled}
+          />
         </div>
       </div>
     </div>

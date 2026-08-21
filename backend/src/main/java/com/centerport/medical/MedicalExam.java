@@ -97,6 +97,9 @@ public class MedicalExam extends BaseEntity {
     @Column(name = "pe_weight")
     private String peWeight;
 
+    @Column(name = "pe_rhythm")
+    private String peRhythm;
+
     @Column(name = "pe_mm_ym")
     private String peMmYm;
 
@@ -214,6 +217,9 @@ public class MedicalExam extends BaseEntity {
     @Column(name = "audio_satisfactory")
     private String audioSatisfactory;
 
+    @Column(name = "audio_unaided_hearing")
+    private String audioUnaidedHearing;
+
     // --- Speech ---
     @Column(name = "speech_impaired_hearing")
     private String speechImpairedHearing;
@@ -297,6 +303,18 @@ public class MedicalExam extends BaseEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "findings_c", columnDefinition = "jsonb")
     private Map<String, Boolean> findingsC;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "findings_a_remarks", columnDefinition = "jsonb")
+    private Map<String, String> findingsARemarks;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "findings_b_remarks", columnDefinition = "jsonb")
+    private Map<String, String> findingsBRemarks;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "findings_c_remarks", columnDefinition = "jsonb")
+    private Map<String, String> findingsCRemarks;
 
     // --- Visual Acuity (legacy) ---
     @Column(name = "visual_acuity_right")
@@ -399,6 +417,9 @@ public class MedicalExam extends BaseEntity {
 
 
     // --- Final Recommendation ---
+    @Column(name = "final_recommendation", length = 100)
+    private String finalRecommendation;
+
     @Column(name = "recommendation_remarks")
     private String recommendationRemarks;
 

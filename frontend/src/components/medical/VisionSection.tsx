@@ -1,105 +1,266 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
+import { FormSelect } from "@/components/common/form-select";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
+const ACUITY_OPTIONS = ["Adequate", "Defective"];
+const STCW_OPTIONS = ["Yes", "No"];
+
+interface AcuityInputProps {
+  label: string;
+  value: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}
+
+function AcuityInput({
+  label,
+  value,
+  disabled,
+  onChange,
+}: AcuityInputProps) {
+  return (
+    <label className="flex min-w-0 items-center gap-1.5">
+      <span className="shrink-0 text-[11px] font-bold uppercase text-primary/70">
+        {label}
+      </span>
+      <Input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        readOnly={disabled}
+        tabIndex={disabled ? -1 : undefined}
+        className="h-7 min-w-0 flex-1 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+        aria-label={label}
+      />
+    </label>
+  );
+}
+
+interface VisionChoiceProps {
+  label: string;
+  name: string;
+  value: string;
+  checkedValue: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}
+
+function VisionChoice({
+  label,
+  name,
+  value,
+  checkedValue,
+  disabled,
+  onChange,
+}: VisionChoiceProps) {
+  return (
+    <label className="flex cursor-pointer items-center gap-1.5">
+      <input
+        type="radio"
+        name={name}
+        checked={value === checkedValue}
+        onChange={() => onChange(checkedValue)}
+        tabIndex={disabled ? -1 : undefined}
+        className="h-4 w-4 accent-primary"
+        aria-label={label}
+      />
+      <span className="text-xs text-foreground/80">{label}</span>
+    </label>
+  );
+}
+
 /**
- * Vision sub-section of the Physical Examination form.
+ * Vision assessment section matching the Seabase medical examination form.
  *
- * Captures uncorrected/corrected far and near vision for OD/OS,
- * color vision, visual acuity, STCW compliance, contact lens usage,
- * and the date the vision test was taken.
- *
- * @see PhysicalExaminationSection — parent orchestrator
+ * Displays corrected and uncorrected far/near acuity, color-vision findings,
+ * and STCW compliance details in a compact bordered table.
  */
-export function VisionSection({ data, onChange, disabled }: MedicalSectionProps) {
+export function VisionSection({
+  data,
+  onChange,
+  disabled,
+}: MedicalSectionProps) {
   const update = (field: keyof MedicalExam, value: string) =>
     onChange({ ...data, [field]: value });
 
   return (
-    <div className={cn("bg-card rounded-lg p-3 shadow-sm border border-primary/10", disabled && "pointer-events-none")}>
-      <SectionHeader title="Vision" />
-      <div className="grid grid-cols-2 gap-4">
-        {/* Left: Vision table */}
-        <div className="space-y-2">
-          <div className="grid grid-cols-5 gap-1 items-end">
-            <div />
-            <span className="text-[11px] font-bold text-primary/70 uppercase text-center col-span-2">Far Vision</span>
-            <span className="text-[11px] font-bold text-primary/70 uppercase text-center col-span-2">Near Vision</span>
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm",
+        disabled && "pointer-events-none",
+      )}
+    >
+      <div className="border-b border-primary/20 bg-muted px-3 py-1.5 text-center text-sm font-bold uppercase tracking-widest text-foreground">
+        Vision
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[0.62fr_1.18fr_1.12fr_0.78fr_3.6fr]">
+        <div className="hidden border-b border-primary/20 p-2 lg:block lg:border-r" />
+        <div className="border-b border-primary/20 p-2 text-center text-[11px] font-bold uppercase tracking-wider text-primary/70 lg:border-r">
+          Far Vision
+        </div>
+        <div className="border-b border-primary/20 p-2 text-center text-[11px] font-bold uppercase tracking-wider text-primary/70 lg:border-r">
+          Near Vision
+        </div>
+        <div className="border-b border-primary/20 p-2 text-center text-[11px] font-bold uppercase tracking-wider text-primary/70 lg:border-r">
+          Color Vision
+        </div>
+        <div className="border-b border-primary/20 p-2 text-center text-[11px] font-bold uppercase tracking-wider text-primary/70">
+          Meets Standards in
+          <br />
+          STCW Code, Section A-I/9:
+        </div>
+
+        <div className="flex items-center justify-center border-b border-primary/20 p-2 text-xs text-foreground/80 lg:border-r">
+          Uncorrected
+        </div>
+        <div className="grid grid-cols-2 gap-2 border-b border-primary/20 p-2 lg:border-r">
+          <AcuityInput
+            label="OD"
+            value={data.vision_uncorrected_far_od}
+            onChange={(value) => update("vision_uncorrected_far_od", value)}
+            disabled={disabled}
+          />
+          <AcuityInput
+            label="OS"
+            value={data.vision_uncorrected_far_os}
+            onChange={(value) => update("vision_uncorrected_far_os", value)}
+            disabled={disabled}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2 border-b border-primary/20 p-2 lg:border-r">
+          <AcuityInput
+            label="OD J/"
+            value={data.vision_uncorrected_near_od}
+            onChange={(value) => update("vision_uncorrected_near_od", value)}
+            disabled={disabled}
+          />
+          <AcuityInput
+            label="OS J/"
+            value={data.vision_uncorrected_near_os}
+            onChange={(value) => update("vision_uncorrected_near_os", value)}
+            disabled={disabled}
+          />
+        </div>
+        <div
+          className="flex items-center border-b border-primary/20 p-2 lg:border-r lg:row-span-2"
+          role="radiogroup"
+          aria-label="Color vision"
+        >
+          <div className="space-y-3">
+            <VisionChoice
+              label="Adequate"
+              name="vision-color"
+              value={data.vision_color}
+              checkedValue="adequate"
+              onChange={(value) => update("vision_color", value)}
+              disabled={disabled}
+            />
+            <VisionChoice
+              label="Defective"
+              name="vision-color"
+              value={data.vision_color}
+              checkedValue="defective"
+              onChange={(value) => update("vision_color", value)}
+              disabled={disabled}
+            />
           </div>
-          <div className="grid grid-cols-5 gap-1 items-center">
-            <div />
-            <span className="text-[11px] text-muted-foreground text-center">OD</span>
-            <span className="text-[11px] text-muted-foreground text-center">OS</span>
-            <span className="text-[11px] text-muted-foreground text-center">OD</span>
-            <span className="text-[11px] text-muted-foreground text-center">OS</span>
+        </div>
+        <div className="space-y-2 border-b border-primary/20 p-2 lg:row-span-2">
+          <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[96px_100px_1fr]">
+            <span className="text-[11px] font-bold text-primary/70">
+              Visual Acuity:
+            </span>
+            <FormSelect
+              label=""
+              value={data.vision_visual_acuity}
+              onChange={(value) => update("vision_visual_acuity", value)}
+              options={ACUITY_OPTIONS}
+              disabled={disabled}
+            />
+            <div
+              className="flex flex-wrap items-center gap-4"
+              role="radiogroup"
+              aria-label="Visual aid"
+            >
+              <VisionChoice
+                label="Spectacles"
+                name="vision-aid"
+                value={data.vision_contact_lenses}
+                checkedValue="spectacles"
+                onChange={(value) => update("vision_contact_lenses", value)}
+                disabled={disabled}
+              />
+              <VisionChoice
+                label="Contact Lenses"
+                name="vision-aid"
+                value={data.vision_contact_lenses}
+                checkedValue="contact_lenses"
+                onChange={(value) => update("vision_contact_lenses", value)}
+                disabled={disabled}
+              />
+            </div>
           </div>
-          <div className="grid grid-cols-5 gap-1 items-center">
-            <span className="text-[11px] text-foreground/70">Uncorrected</span>
-            <Input value={data.vision_uncorrected_far_od} onChange={(e) => update("vision_uncorrected_far_od", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
-            <Input value={data.vision_uncorrected_far_os} onChange={(e) => update("vision_uncorrected_far_os", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
-            <Input value={data.vision_uncorrected_near_od} onChange={(e) => update("vision_uncorrected_near_od", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
-            <Input value={data.vision_uncorrected_near_os} onChange={(e) => update("vision_uncorrected_near_os", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
-          </div>
-          <div className="grid grid-cols-5 gap-1 items-center">
-            <span className="text-[11px] text-foreground/70">Corrected</span>
-            <Input value={data.vision_corrected_far_od} onChange={(e) => update("vision_corrected_far_od", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
-            <Input value={data.vision_corrected_far_os} onChange={(e) => update("vision_corrected_far_os", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
-            <Input value={data.vision_corrected_near_od} onChange={(e) => update("vision_corrected_near_od", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
-            <Input value={data.vision_corrected_near_os} onChange={(e) => update("vision_corrected_near_os", e.target.value)} className="h-7 text-xs" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
+          <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[96px_100px_auto_1fr]">
+            <span className="text-[11px] font-bold text-primary/70">
+              Color Vision:
+            </span>
+            <FormSelect
+              label=""
+              value={data.vision_meets_stcw}
+              onChange={(value) => update("vision_meets_stcw", value)}
+              options={STCW_OPTIONS}
+              disabled={disabled}
+            />
+            <span className="text-[11px] font-bold text-primary/70 sm:text-right">
+              Date Taken (mm/dd/yyyy):
+            </span>
+            <Input
+              type="date"
+              value={data.vision_date_taken}
+              onChange={(event) =>
+                update("vision_date_taken", event.target.value)
+              }
+              readOnly={disabled}
+              tabIndex={disabled ? -1 : undefined}
+              className="h-8 min-w-36 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+              aria-label="Vision test date taken"
+            />
           </div>
         </div>
 
-        {/* Right: Vision extras — grid for vertical alignment */}
-        <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 items-center">
-          <Label className="text-[11px] font-semibold text-foreground/70">Color Vision:</Label>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="vision_color" checked={data.vision_color === "normal"} onChange={() => update("vision_color", "normal")} className="w-4 h-4 accent-primary" />
-              <span className="text-xs text-foreground/80">Normal</span>
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="vision_color" checked={data.vision_color === "defective"} onChange={() => update("vision_color", "defective")} className="w-4 h-4 accent-primary" />
-              <span className="text-xs text-foreground/80">Defective</span>
-            </label>
-          </div>
-
-          <Label className="text-[11px] font-semibold text-foreground/70">Visual Acuity:</Label>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="vision_va" checked={data.vision_visual_acuity === "normal"} onChange={() => update("vision_visual_acuity", "normal")} className="w-4 h-4 accent-primary" />
-              <span className="text-xs text-foreground/80">Normal</span>
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="vision_va" checked={data.vision_visual_acuity === "defective"} onChange={() => update("vision_visual_acuity", "defective")} className="w-4 h-4 accent-primary" />
-              <span className="text-xs text-foreground/80">Defective</span>
-            </label>
-          </div>
-
-          <Label className="text-[11px] font-semibold text-foreground/70">Meets Standards STCW:</Label>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="vision_stcw" checked={data.vision_meets_stcw === "yes"} onChange={() => update("vision_meets_stcw", "yes")} className="w-4 h-4 accent-primary" />
-              <span className="text-xs text-foreground/80">Yes</span>
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input type="radio" name="vision_stcw" checked={data.vision_meets_stcw === "no"} onChange={() => update("vision_meets_stcw", "no")} className="w-4 h-4 accent-primary" />
-              <span className="text-xs text-foreground/80">No</span>
-            </label>
-          </div>
-
-          <Label className="text-[11px] font-semibold text-foreground/70">Contact Lenses:</Label>
-          <div className="flex items-center">
-            <input type="checkbox" checked={data.vision_contact_lenses === "yes"} onChange={(e) => update("vision_contact_lenses", e.target.checked ? "yes" : "no")} className="w-4 h-4 accent-primary" />
-          </div>
-
-          <Label className="text-[11px] font-semibold text-foreground/70">Date Taken:</Label>
-          <div className="flex items-center">
-            <Input type="date" value={data.vision_date_taken} onChange={(e) => update("vision_date_taken", e.target.value)} className="h-7 text-xs w-36" readOnly={disabled} tabIndex={disabled ? -1 : undefined} />
-          </div>
+        <div className="flex items-center justify-center border-b border-primary/20 p-2 text-xs text-foreground/80 lg:border-r lg:border-b-0">
+          Corrected
+        </div>
+        <div className="grid grid-cols-2 gap-2 border-b border-primary/20 p-2 lg:border-r lg:border-b-0">
+          <AcuityInput
+            label="OD"
+            value={data.vision_corrected_far_od}
+            onChange={(value) => update("vision_corrected_far_od", value)}
+            disabled={disabled}
+          />
+          <AcuityInput
+            label="OS"
+            value={data.vision_corrected_far_os}
+            onChange={(value) => update("vision_corrected_far_os", value)}
+            disabled={disabled}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-2 border-b border-primary/20 p-2 lg:border-r lg:border-b-0">
+          <AcuityInput
+            label="OD J/"
+            value={data.vision_corrected_near_od}
+            onChange={(value) => update("vision_corrected_near_od", value)}
+            disabled={disabled}
+          />
+          <AcuityInput
+            label="OS J/"
+            value={data.vision_corrected_near_os}
+            onChange={(value) => update("vision_corrected_near_os", value)}
+            disabled={disabled}
+          />
         </div>
       </div>
     </div>
