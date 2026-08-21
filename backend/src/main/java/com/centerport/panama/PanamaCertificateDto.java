@@ -50,9 +50,11 @@ public class PanamaCertificateDto {
     private String month;
     private String year;
     private String rhTyping;
+    private String department;
     private String lookoutDuties;
     private String routineEmergencyDuties;
     private ShipType typeOfShip;
+    private String typeOfShipDetails;
     private TradeArea tradeArea;
 
     // --- Conditions ---

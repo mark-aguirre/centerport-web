@@ -70,6 +70,9 @@ public class PanamaCertificate extends BaseEntity {
     @Column(name = "rh_typing")
     private String rhTyping;
 
+    @Column(name = "department")
+    private String department;
+
     @Column(name = "lookout_duties")
     private String lookoutDuties;
 
@@ -79,6 +82,9 @@ public class PanamaCertificate extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "type_of_ship")
     private ShipType typeOfShip;
+
+    @Column(name = "type_of_ship_details")
+    private String typeOfShipDetails;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trade_area")

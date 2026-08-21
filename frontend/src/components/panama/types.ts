@@ -42,6 +42,7 @@ export interface PanamaCertificate {
   lookout_duties: string;
   routine_emergency_duties: string;
   type_of_ship: ShipType;
+  type_of_ship_details: string;
   trade_area: TradeArea;
 
   // Examinee's Personal Declaration — Medical Conditions (1–36)
@@ -225,6 +226,7 @@ export const EMPTY_CERTIFICATE: PanamaCertificate = {
   lookout_duties: "",
   routine_emergency_duties: "",
   type_of_ship: "",
+  type_of_ship_details: "",
   trade_area: "",
 
   // Examinee's Personal Declaration
