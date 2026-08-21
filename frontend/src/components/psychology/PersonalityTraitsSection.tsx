@@ -76,8 +76,20 @@ const TRAIT_CATEGORIES: TraitCategory[] = [
   },
 ];
 
-/** Rating scale values (1-7). */
-const RATINGS: TraitRating[] = ["1", "2", "3", "4", "5", "6", "7"];
+/** Rating scale values and descriptions. */
+const RATING_SCALE: ReadonlyArray<{ value: TraitRating; label: string }> = [
+  { value: "1", label: "Very Low" },
+  { value: "2", label: "Low" },
+  { value: "3", label: "Low Average" },
+  { value: "4", label: "Average" },
+  { value: "5", label: "High Average" },
+  { value: "6", label: "High" },
+  { value: "7", label: "Very High" },
+];
+
+/** Shared columns keep every rating control on the same vertical guide. */
+const TRAIT_GRID_CLASSES =
+  "grid min-w-[52rem] grid-cols-[minmax(22rem,1fr)_repeat(7,minmax(3.25rem,0.42fr))]";
 
 // ---------------------------------------------------------------------------
 // Component
@@ -114,83 +126,116 @@ export default function PersonalityTraitsSection({
   };
 
   return (
-    <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
+    <section className="overflow-hidden rounded-lg border border-primary/20 bg-card p-3 shadow-sm">
       <SectionHeader
         title="II. Personality Traits and Characteristics"
         icon={Users}
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+        className="mb-2 pb-1.5"
+        action={<SetNormalButton onClick={handleSetNormal} readOnly={disabled} />}
       />
 
-      {/* Rating scale legend */}
-      <div className="flex items-center gap-2 mb-3 text-[10px] text-muted-foreground px-1">
-        <span className="font-semibold text-primary/70">Note legend:</span>
-        <span><strong>7</strong> - Very High</span>
-        <span><strong>6</strong> - High</span>
-        <span><strong>5</strong> - High Average</span>
-        <span><strong>4</strong> - Average</span>
-        <span><strong>3</strong> - Low Average</span>
-        <span><strong>2</strong> - Low</span>
-        <span><strong>1</strong> - Very Low</span>
+      <div className="mb-3 grid grid-cols-2 overflow-hidden rounded-md border border-primary/15 bg-muted/20 sm:grid-cols-4 xl:grid-cols-7">
+        {RATING_SCALE.map(({ value, label }, index) => (
+          <div
+            key={value}
+            className={cn(
+              "flex min-h-8 items-center justify-center gap-1.5 px-2 py-1 text-center",
+              "border-primary/10 text-[11px]",
+              index > 0 && "border-l",
+              index >= 2 && "max-sm:border-t",
+              index >= 4 && "max-xl:border-t"
+            )}
+          >
+            <span className="font-bold text-primary">{value}</span>
+            <span className="text-muted-foreground">{label}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Table */}
-      <div className="border border-primary/15 rounded-md overflow-hidden">
-        {/* Column headers */}
-        <div className="grid grid-cols-[1fr_repeat(7,2.5rem)] bg-muted/50 border-b border-primary/15">
-          <div className="px-3 py-1.5" />
-          {RATINGS.map((r) => (
-            <div key={r} className="flex items-center justify-center py-1.5">
-              <span className="text-[11px] font-bold text-primary">{r}</span>
+      <div className="overflow-x-auto rounded-md border border-primary/15">
+        <div className={cn(TRAIT_GRID_CLASSES, "border-b border-primary/15 bg-primary/5")}>
+          <div className="sticky left-0 z-10 flex items-center bg-primary/5 px-3 py-2">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-primary/80">
+              Trait / Characteristic
+            </span>
+          </div>
+          {RATING_SCALE.map(({ value, label }) => (
+            <div
+              key={value}
+              className="flex flex-col items-center justify-center border-l border-primary/10 px-1 py-1.5 text-center"
+            >
+              <span className="text-xs font-bold leading-none text-primary">{value}</span>
+              <span className="mt-0.5 text-[10px] leading-tight text-muted-foreground">
+                {label}
+              </span>
             </div>
           ))}
         </div>
 
-        {/* Categories and traits */}
         {TRAIT_CATEGORIES.map((category) => (
           <div key={category.title}>
-            {/* Category header row */}
-            <div className="grid grid-cols-[1fr_repeat(7,2.5rem)] bg-muted/30 border-b border-primary/10">
-              <div className="px-3 py-1.5">
-                <span className="text-[11px] font-bold text-foreground uppercase">
+            <div className={cn(TRAIT_GRID_CLASSES, "border-b border-primary/15 bg-muted/40")}>
+              <div className="sticky left-0 z-10 flex items-center bg-muted px-3 py-1.5 dark:bg-muted/80">
+                <span className="text-[11px] font-bold uppercase tracking-wide text-foreground/85">
                   {category.title}
                 </span>
               </div>
-              {RATINGS.map((r) => (
-                <div key={r} className="flex items-center justify-center" />
+              {RATING_SCALE.map(({ value }) => (
+                <div key={value} className="border-l border-primary/10" aria-hidden="true" />
               ))}
             </div>
 
-            {/* Individual trait rows */}
-            {category.traits.map((trait, idx) => (
-              <div
+            {category.traits.map((trait, index) => (
+              <fieldset
                 key={trait.key}
+                aria-disabled={disabled}
                 className={cn(
-                  "grid grid-cols-[1fr_repeat(7,2.5rem)] border-b border-muted/30 last:border-b-0",
-                  idx % 2 === 0 ? "bg-white dark:bg-card" : "bg-muted/10",
-                  disabled && "pointer-events-none"
+                  TRAIT_GRID_CLASSES,
+                  "m-0 border-0 border-b border-primary/10 p-0 last:border-b-0",
+                  "transition-colors hover:bg-primary/[0.035]",
+                  disabled && "pointer-events-none",
+                  index % 2 === 0 ? "bg-card" : "bg-muted/10"
                 )}
               >
-                <div className="px-3 py-1.5 pl-8 flex items-center">
-                  <span className="text-xs text-foreground/80">{trait.label}</span>
+                <legend className="sr-only">{trait.label}</legend>
+                <div
+                  className={cn(
+                    "sticky left-0 z-10 flex min-h-9 items-center px-3 py-1.5 pl-6",
+                    index % 2 === 0 ? "bg-card" : "bg-muted/10"
+                  )}
+                >
+                  <span className="text-xs leading-snug text-foreground/85">{trait.label}</span>
                 </div>
-                {RATINGS.map((r) => (
-                  <div key={r} className="flex items-center justify-center py-1">
+                {RATING_SCALE.map(({ value }) => (
+                  <label
+                    key={value}
+                    className={cn(
+                      "flex min-h-9 items-center justify-center border-l border-primary/10",
+                      disabled ? "pointer-events-none" : "cursor-pointer hover:bg-primary/5"
+                    )}
+                  >
                     <input
                       type="radio"
                       name={trait.key}
-                      checked={data[trait.key] === r}
-                      onChange={() => updateField(trait.key, r)}
-                      className="w-3.5 h-3.5 accent-primary"
+                      checked={data[trait.key] === value}
+                      onChange={() => {
+                        if (!disabled) updateField(trait.key, value);
+                      }}
+                      className={cn(
+                        "h-4 w-4 accent-primary",
+                        disabled ? "pointer-events-none" : "cursor-pointer"
+                      )}
                       tabIndex={disabled ? -1 : undefined}
-                      aria-label={`${trait.label} - Rating ${r}`}
+                      aria-disabled={disabled}
+                      aria-label={`${trait.label} - Rating ${value}`}
                     />
-                  </div>
+                  </label>
                 ))}
-              </div>
+              </fieldset>
             ))}
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

@@ -141,14 +141,14 @@ export function useProfileForm(): UseProfileFormResult {
         const updateData = stripProfileSystemFields(data);
         await api.entities.SeafarerProfile.update(editId, updateData);
         setExistingRecord({ ...data });
-        toast.success("Profile updated successfully");
+        toast.success("Patient record updated successfully");
       } else {
         const profileId = await generateProfileId();
         const created = { ...data, profile_id: profileId };
         await api.entities.SeafarerProfile.create(created);
         setExistingRecord(created);
         setIsExistingRecord(true);
-        toast.success("Profile created successfully");
+        toast.success("Patient record created successfully");
       }
       setOriginalData(null);
       setEditing(false);
@@ -160,7 +160,7 @@ export function useProfileForm(): UseProfileFormResult {
       } else if (error instanceof ApiError) {
         toast.error(error.message);
       } else {
-        toast.error("Failed to save profile");
+        toast.error("Failed to save patient record");
       }
     } finally {
       setSaving(false);

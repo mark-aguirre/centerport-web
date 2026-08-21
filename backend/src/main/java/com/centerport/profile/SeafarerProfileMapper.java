@@ -10,8 +10,8 @@ import org.mapstruct.MappingTarget;
  *
  * Update Behavior:
  * The {@code updateEntity} method ignores system-managed fields so that
- * {@code id}, {@code profileId}, {@code createdDate}, and {@code updatedDate}
- * are preserved from the existing entity during PUT updates.
+ * {@code id}, {@code profileId}, {@code createdDate}, {@code updatedDate}, and
+ * {@code createdBy} are preserved from the existing entity during PUT updates.
  *
  * @see SeafarerProfileService consumer of this mapper
  */
@@ -44,5 +44,6 @@ public interface SeafarerProfileMapper {
     @Mapping(target = "profileId", ignore = true)
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "updatedDate", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
     void updateEntity(SeafarerProfileDto dto, @MappingTarget SeafarerProfile entity);
 }

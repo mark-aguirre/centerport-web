@@ -144,6 +144,7 @@ public class SeafarerProfileService {
         entity.setProfileId(null);
         entity.setCreatedDate(null);
         entity.setUpdatedDate(null);
+        entity.setCreatedBy(null);
     }
 
     /**

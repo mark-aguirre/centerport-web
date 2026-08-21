@@ -1,31 +1,29 @@
 "use client";
 
 import { useState } from "react";
-import { SectionHeader } from "@/components/common/section-header";
 import {
   MedicalPersonnelDialog,
   type MedicalPersonnel,
 } from "@/components/common/medical-personnel-dialog";
-import { Stethoscope, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { createFieldUpdater } from "./utils";
+import { Ellipsis } from "lucide-react";
 import type { PsychologySectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
+
+const INPUT_CLASSES = cn(
+  "h-7 min-w-0 border border-primary/20 bg-white px-2 text-xs shadow-none",
+  "transition-colors hover:border-primary/50 focus-visible:border-primary",
+  "focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30"
+);
 
 /**
- * Examination details section for the Psychological Evaluation form.
+ * Captures examination personnel, license details, and tests used.
  *
- * Captures:
- * - Date of Examination
- * - Psychometrician (with search popup) + License No.
- * - Psychologist (with search popup) + License No.
- * - Tests Used: Intelligence Test, Personal Test, Others (checkbox + text)
- *
- * The Psychometrician and Psychologist fields open the global
- * MedicalPersonnelDialog popup for searching and selecting personnel.
- * On selection, both the name and license number are auto-populated.
+ * Personnel names remain searchable through the shared medical-personnel dialog;
+ * selecting a result populates both the displayed name and license number.
  */
 export default function ExaminationDetailsSection({
   data,
@@ -33,8 +31,6 @@ export default function ExaminationDetailsSection({
   disabled,
 }: PsychologySectionProps) {
   const updateField = createFieldUpdater(data, onChange);
-
-  // Dialog state for each personnel field
   const [psychometricianDialogOpen, setPsychometricianDialogOpen] = useState(false);
   const [psychologistDialogOpen, setPsychologistDialogOpen] = useState(false);
 
@@ -54,172 +50,169 @@ export default function ExaminationDetailsSection({
     });
   };
 
-  const inputClasses = cn(
-    "h-8 text-sm bg-white border border-primary/20 rounded-md px-2",
-    "focus:outline-none focus-visible:border-primary dark:bg-input/30",
-    disabled && "pointer-events-none opacity-70"
+  const personnelInput = (
+    value: string,
+    label: string,
+    openDialog: () => void
+  ) => (
+    <div className="flex min-w-0 gap-1">
+      <Input
+        value={value}
+        readOnly
+        tabIndex={disabled ? -1 : undefined}
+        aria-label={label}
+        className={cn(INPUT_CLASSES, "w-full", disabled && "pointer-events-none")}
+      />
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        className={cn(
+          "h-7 w-7 shrink-0 border-primary/20 p-0 hover:border-primary/50",
+          disabled
+            ? "cursor-default disabled:!opacity-100"
+            : "cursor-pointer"
+        )}
+        onClick={openDialog}
+        disabled={disabled}
+        aria-label={`Search ${label.toLowerCase()}`}
+      >
+        <Ellipsis className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+
+  const testField = (
+    label: string,
+    checked: boolean,
+    onCheckedChange: (checked: boolean) => void,
+    value: string,
+    onValueChange: (value: string) => void,
+    placeholder: string
+  ) => (
+    <div className="flex min-w-0 items-center gap-2">
+      <label
+        className={cn(
+          "flex shrink-0 items-center gap-1.5",
+          disabled ? "pointer-events-none" : "cursor-pointer"
+        )}
+      >
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(event) => {
+            if (!disabled) onCheckedChange(event.target.checked);
+          }}
+          className={cn(
+            "h-4 w-4 rounded accent-primary",
+            disabled ? "pointer-events-none" : "cursor-pointer"
+          )}
+          tabIndex={disabled ? -1 : undefined}
+          aria-disabled={disabled}
+          aria-label={`${label} used`}
+        />
+        <span className="whitespace-nowrap text-xs text-foreground/80">{label}:</span>
+      </label>
+      <Input
+        value={value}
+        onChange={(event) => onValueChange(event.target.value)}
+        className={cn(
+          INPUT_CLASSES,
+          "w-full italic",
+          disabled && "pointer-events-none"
+        )}
+        readOnly={disabled}
+        tabIndex={disabled ? -1 : undefined}
+        placeholder={placeholder}
+        aria-label={`${label} name`}
+      />
+    </div>
   );
 
   return (
-    <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
-      <SectionHeader title="Examination Details" icon={Stethoscope} />
-
-      {/* Row 1 & Row 2: inline label + input, grid-aligned */}
-      <div className="grid grid-cols-[auto_1fr_auto_2fr_auto_1fr] gap-x-2 gap-y-2 mb-4 items-center">
-        {/* Row 1: Date of Examination | Psychometrician [search] | License No. */}
-        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+    <section className="overflow-hidden rounded-lg border border-primary/20 bg-card p-3 shadow-sm">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-2 xl:grid-cols-[auto_minmax(8rem,1.25fr)_auto_minmax(18rem,2.8fr)_auto_minmax(8rem,1.15fr)]">
+        <Label className="whitespace-nowrap text-[11px] font-semibold text-foreground/80">
           Date of Examination:
         </Label>
         <Input
           type="date"
           value={data.date_of_examination}
-          onChange={(e) => updateField("date_of_examination", e.target.value)}
-          className={inputClasses}
-          disabled={disabled}
+          onChange={(event) => updateField("date_of_examination", event.target.value)}
+          className={cn(INPUT_CLASSES, "w-full", disabled && "pointer-events-none")}
+          readOnly={disabled}
+          tabIndex={disabled ? -1 : undefined}
         />
-        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+
+        <Label className="whitespace-nowrap text-[11px] font-semibold text-foreground/80">
           Psychometrician:
         </Label>
-        <div className="flex gap-1.5">
-          <Input
-            value={data.psychometrician}
-            onChange={(e) => updateField("psychometrician", e.target.value)}
-            className={cn(inputClasses, "flex-1")}
-            disabled={disabled}
-            placeholder="Select personnel..."
-            readOnly
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
-            onClick={() => setPsychometricianDialogOpen(true)}
-            disabled={disabled}
-            aria-label="Search psychometrician"
-          >
-            <Search className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+        {personnelInput(data.psychometrician, "Psychometrician", () =>
+          setPsychometricianDialogOpen(true)
+        )}
+
+        <Label className="whitespace-nowrap text-[11px] font-semibold text-foreground/80">
           License No.:
         </Label>
         <Input
           value={data.psychometrician_license_no}
-          onChange={(e) => updateField("psychometrician_license_no", e.target.value)}
-          className={inputClasses}
-          disabled={disabled}
           readOnly
+          tabIndex={disabled ? -1 : undefined}
+          aria-label="Psychometrician license number"
+          className={cn(INPUT_CLASSES, "w-full", disabled && "pointer-events-none")}
         />
 
-        {/* Row 2: (empty) | Psychologist [search] | License No. */}
-        <div />
-        <div />
-        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+        <div className="hidden xl:block" aria-hidden="true" />
+        <div className="hidden xl:block" aria-hidden="true" />
+
+        <Label className="whitespace-nowrap text-[11px] font-semibold text-foreground/80 xl:text-right">
           Psychologist:
         </Label>
-        <div className="flex gap-1.5">
-          <Input
-            value={data.psychologist}
-            onChange={(e) => updateField("psychologist", e.target.value)}
-            className={cn(inputClasses, "flex-1")}
-            disabled={disabled}
-            placeholder="Select personnel..."
-            readOnly
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
-            onClick={() => setPsychologistDialogOpen(true)}
-            disabled={disabled}
-            aria-label="Search psychologist"
-          >
-            <Search className="h-3.5 w-3.5" />
-          </Button>
-        </div>
-        <Label className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap">
+        {personnelInput(data.psychologist, "Psychologist", () =>
+          setPsychologistDialogOpen(true)
+        )}
+
+        <Label className="whitespace-nowrap text-[11px] font-semibold text-foreground/80">
           License No.:
         </Label>
         <Input
           value={data.psychologist_license_no}
-          onChange={(e) => updateField("psychologist_license_no", e.target.value)}
-          className={inputClasses}
-          disabled={disabled}
           readOnly
+          tabIndex={disabled ? -1 : undefined}
+          aria-label="Psychologist license number"
+          className={cn(INPUT_CLASSES, "w-full", disabled && "pointer-events-none")}
         />
       </div>
 
-      {/* Tests Used */}
-      <div className="border-t border-primary/10 pt-3">
-        <Label className="text-[11px] font-bold text-primary/70 uppercase tracking-wider mb-2 block">
-          Tests Used
-        </Label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* Intelligence Test */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={data.intelligence_test_used}
-              onChange={(e) => updateField("intelligence_test_used", e.target.checked)}
-              className="w-4 h-4 accent-primary rounded"
-              disabled={disabled}
-              aria-label="Intelligence Test used"
-            />
-            <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Intelligence Test:</Label>
-            <Input
-              value={data.intelligence_test_name}
-              onChange={(e) => updateField("intelligence_test_name", e.target.value)}
-              className={cn(inputClasses, "flex-1")}
-              disabled={disabled}
-              placeholder="e.g. PNLT"
-            />
-          </div>
-
-          {/* Personal Test */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={data.personal_test_used}
-              onChange={(e) => updateField("personal_test_used", e.target.checked)}
-              className="w-4 h-4 accent-primary rounded"
-              disabled={disabled}
-              aria-label="Personal Test used"
-            />
-            <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Personal Test:</Label>
-            <Input
-              value={data.personal_test_name}
-              onChange={(e) => updateField("personal_test_name", e.target.value)}
-              className={cn(inputClasses, "flex-1")}
-              disabled={disabled}
-              placeholder="e.g. BPI"
-            />
-          </div>
-
-          {/* Others */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={data.others_test_used}
-              onChange={(e) => updateField("others_test_used", e.target.checked)}
-              className="w-4 h-4 accent-primary rounded"
-              disabled={disabled}
-              aria-label="Other tests used"
-            />
-            <Label className="text-[11px] font-semibold text-foreground/70 shrink-0">Others:</Label>
-            <Input
-              value={data.others_test_name}
-              onChange={(e) => updateField("others_test_name", e.target.value)}
-              className={cn(inputClasses, "flex-1")}
-              disabled={disabled}
-              placeholder="e.g. Autobiography & Interview"
-            />
-          </div>
+      <div className="mt-3 border-t border-primary/20 pt-3">
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {testField(
+            "Intelligence Test",
+            data.intelligence_test_used,
+            (checked) => updateField("intelligence_test_used", checked),
+            data.intelligence_test_name,
+            (value) => updateField("intelligence_test_name", value),
+            "e.g. PNLT"
+          )}
+          {testField(
+            "Personal Test",
+            data.personal_test_used,
+            (checked) => updateField("personal_test_used", checked),
+            data.personal_test_name,
+            (value) => updateField("personal_test_name", value),
+            "e.g. BPI"
+          )}
+          {testField(
+            "Others",
+            data.others_test_used,
+            (checked) => updateField("others_test_used", checked),
+            data.others_test_name,
+            (value) => updateField("others_test_name", value),
+            "e.g. Autobiography & Interview"
+          )}
         </div>
       </div>
 
-      {/* Medical Personnel Search Dialogs */}
       <MedicalPersonnelDialog
         open={psychometricianDialogOpen}
         onOpenChange={setPsychometricianDialogOpen}
@@ -234,6 +227,6 @@ export default function ExaminationDetailsSection({
         title="Select Psychologist"
         description="Search and select a psychologist for this evaluation."
       />
-    </div>
+    </section>
   );
 }

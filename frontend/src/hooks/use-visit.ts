@@ -79,11 +79,13 @@ export function useVisit(): UseVisitResult {
   const [selectedProfile, setSelectedProfile] = useState<SeafarerProfile | null>(null);
 
   // Tracks the visit created/opened in the current form session.
-  // When set, saves only update the profile — they do NOT create another visit.
+  // When set, saves update that visit instead of creating a duplicate.
   const [currentVisitId, setCurrentVisitId] = useState<string | null>(null);
 
   const [purposeOfVisit, setPurposeOfVisit] = useState("");
   const [sirb, setSirb] = useState("");
+  const [savedPurposeOfVisit, setSavedPurposeOfVisit] = useState("");
+  const [savedSirb, setSavedSirb] = useState("");
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
@@ -101,7 +103,11 @@ export function useVisit(): UseVisitResult {
   }, []);
 
   useEffect(() => {
-    refreshList();
+    const timeoutId = window.setTimeout(() => {
+      void refreshList();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [refreshList]);
 
   // --- Dialog controls ---
@@ -122,25 +128,17 @@ export function useVisit(): UseVisitResult {
 
   /** User selected an existing patient from search results. */
   const handleSelectPatient = useCallback((profile: SeafarerProfile) => {
-    setData({ ...EMPTY_PROFILE, ...profile });
-    setSelectedProfile(profile);
+    const completeProfile = { ...EMPTY_PROFILE, ...profile };
+    setData(completeProfile);
+    setSelectedProfile(completeProfile);
     setIsExistingRecord(true);
     setEditing(true); // Enable editing so they can fill purpose/SIRB and save
     setCurrentVisitId(null); // Fresh session — first save creates one visit
     setPurposeOfVisit("");
     setSirb("");
+    setSavedPurposeOfVisit("");
+    setSavedSirb("");
     setFormDialogOpen(true);
-
-    // Re-fetch full profile to ensure photo_url and all fields are loaded
-    if (profile.id) {
-      api.entities.SeafarerProfile.filter({ id: profile.id }).then((profiles) => {
-        if (profiles.length > 0) {
-          const full = profiles[0];
-          setData({ ...EMPTY_PROFILE, ...full });
-          setSelectedProfile(full);
-        }
-      }).catch(() => {});
-    }
   }, []);
 
   /** User wants to register a brand new patient. */
@@ -152,6 +150,8 @@ export function useVisit(): UseVisitResult {
     setCurrentVisitId(null); // Fresh session — first save creates one visit
     setPurposeOfVisit("");
     setSirb("");
+    setSavedPurposeOfVisit("");
+    setSavedSirb("");
     setFormDialogOpen(true);
     setTimeout(() => firstFieldRef.current?.focus(), 150);
   }, []);
@@ -166,16 +166,16 @@ export function useVisit(): UseVisitResult {
   const handleCancel = useCallback(() => {
     if (selectedProfile) {
       setData({ ...EMPTY_PROFILE, ...selectedProfile });
+      setPurposeOfVisit(savedPurposeOfVisit);
+      setSirb(savedSirb);
       setEditing(false);
     } else {
       closeFormDialog();
     }
-  }, [selectedProfile, closeFormDialog]);
+  }, [selectedProfile, savedPurposeOfVisit, savedSirb, closeFormDialog]);
 
   /**
-   * Save flow:
-   * - If new patient (no profile): create profile first, then create visit record
-   * - If existing patient: just create visit record linked to their profile
+   * Saves all profile fields, then creates or updates the visit-specific fields.
    */
   const handleSave = useCallback(async () => {
     if (!data.last_name.trim()) {
@@ -207,8 +207,6 @@ export function useVisit(): UseVisitResult {
         setIsExistingRecord(true);
       }
 
-      // Only create ONE visit per session. If a visit was already created
-      // (or we're editing an existing visit), skip creation — just save the profile.
       if (!currentVisitId) {
         const visit = await api.entities.PatientVisit.create({
           seafarer_profile_id: profileId,
@@ -216,13 +214,25 @@ export function useVisit(): UseVisitResult {
           sirb: sirb || undefined,
         });
         setCurrentVisitId(visit.id ?? null);
+        setPurposeOfVisit(visit.purpose_of_visit ?? "");
+        setSirb(visit.sirb ?? "");
+        setSavedPurposeOfVisit(visit.purpose_of_visit ?? "");
+        setSavedSirb(visit.sirb ?? "");
         toast.success("Patient visit recorded successfully");
       } else {
+        const visit = await api.entities.PatientVisit.update(currentVisitId, {
+          purpose_of_visit: purposeOfVisit || null,
+          sirb: sirb || null,
+        });
+        setPurposeOfVisit(visit.purpose_of_visit ?? "");
+        setSirb(visit.sirb ?? "");
+        setSavedPurposeOfVisit(visit.purpose_of_visit ?? "");
+        setSavedSirb(visit.sirb ?? "");
         toast.success("Patient record updated");
       }
 
       setEditing(false);
-      refreshList();
+      await refreshList();
     } catch (err) {
       if (err instanceof ApiError) {
         toast.error(err.message);
@@ -234,44 +244,36 @@ export function useVisit(): UseVisitResult {
     }
   }, [data, isExistingRecord, selectedProfile, purposeOfVisit, sirb, currentVisitId, refreshList]);
 
-  /** Select a visit from the today list to view details. Fetches full profile. */
+  /** Select a visit from today's list and load its complete patient profile. */
   const handleSelectVisit = useCallback(async (visit: PatientVisitRecord) => {
-    setFormDialogOpen(true);
-    setEditing(false);
-    setCurrentVisitId(visit.id ?? null); // Existing visit — edits won't create a new one
-    setPurposeOfVisit(visit.purpose_of_visit ?? "");
-    setSirb(visit.sirb ?? "");
-
-    // Fetch full profile to get all fields including photo_url
-    try {
-      const profiles = await api.entities.SeafarerProfile.filter({ id: visit.seafarer_profile_id });
-      if (profiles.length > 0) {
-        const profile = profiles[0];
-        setData({ ...EMPTY_PROFILE, ...profile });
-        setSelectedProfile(profile);
-        setIsExistingRecord(true);
-        return;
-      }
-    } catch {
-      // Fallback to joined fields if fetch fails
+    if (!visit.id) {
+      toast.error("Unable to open this visit because its record ID is missing");
+      return;
     }
 
-    // Fallback: use joined fields from visit record
-    const profileData: SeafarerProfile = {
-      ...EMPTY_PROFILE,
-      id: visit.seafarer_profile_id,
-      profile_id: visit.profile_id ?? "",
-      photo_url: visit.photo_url ?? "",
-      last_name: visit.last_name ?? "",
-      first_name: visit.first_name ?? "",
-      middle_name: visit.middle_name ?? "",
-      gender: visit.gender ?? "",
-      employer: visit.employer ?? "",
-      position: visit.position ?? "",
-    };
-    setData(profileData);
-    setSelectedProfile(profileData);
-    setIsExistingRecord(true);
+    setEditing(false);
+
+    try {
+      const profiles = await api.entities.SeafarerProfile.filter({
+        id: visit.seafarer_profile_id,
+      });
+      const profile = profiles[0];
+      if (!profile) {
+        throw new Error("Linked patient profile was not found");
+      }
+
+      setData({ ...EMPTY_PROFILE, ...profile });
+      setSelectedProfile(profile);
+      setIsExistingRecord(true);
+      setCurrentVisitId(visit.id);
+      setPurposeOfVisit(visit.purpose_of_visit ?? "");
+      setSirb(visit.sirb ?? "");
+      setSavedPurposeOfVisit(visit.purpose_of_visit ?? "");
+      setSavedSirb(visit.sirb ?? "");
+      setFormDialogOpen(true);
+    } catch {
+      toast.error("Unable to load the complete patient record. Please try again.");
+    }
   }, []);
 
   return {

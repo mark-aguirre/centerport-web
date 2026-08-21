@@ -45,7 +45,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="h-full overflow-hidden flex flex-col">
         <TooltipProvider>
           <ThemeProvider>
             <LayoutProvider>{children}</LayoutProvider>

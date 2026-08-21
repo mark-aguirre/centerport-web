@@ -26,7 +26,7 @@ import java.util.UUID;
  * REST controller for PatientVisit CRUD operations.
  *
  * Exposes endpoints at {@code /api/visits} for listing today's visits,
- * creating new visits, fetching a single visit, and deleting visits.
+ * creating and updating visits, fetching a single visit, and deleting visits.
  *
  * @see PatientVisitService
  */
@@ -109,6 +109,27 @@ public class PatientVisitController {
 
         return ResponseEntity.created(location)
                 .body(ApiResponse.success(created, "Visit created successfully"));
+    }
+
+    /**
+     * Update the mutable details of an existing visit.
+     *
+     * @param id  the visit UUID
+     * @param dto the visit-specific values to persist
+     * @return the updated visit with joined profile display data
+     */
+    @PutMapping("/{id}")
+    @Operation(summary = "Update an existing patient visit")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Visit updated"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validation error"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Visit not found")
+    })
+    public ResponseEntity<ApiResponse<PatientVisitDto>> update(
+            @PathVariable UUID id,
+            @Valid @RequestBody PatientVisitUpdateDto dto) {
+        PatientVisitDto updated = service.update(id, dto);
+        return ResponseEntity.ok(ApiResponse.success(updated, "Visit updated successfully"));
     }
 
     /**

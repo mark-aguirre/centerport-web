@@ -74,9 +74,9 @@ function VisitPageContent() {
 
       {/* Step 2: Registration form dialog */}
       <Dialog open={formDialogOpen} onOpenChange={(open) => { if (!open) closeFormDialog(); }}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader className="pb-0">
-            <DialogTitle className="text-base">
+        <DialogContent className="max-h-[90vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0">
+          <DialogHeader className="border-b border-border px-5 py-4 pr-14">
+            <DialogTitle className="text-lg">
               {isExistingRecord ? "Patient Record" : "New Patient Registration"}
             </DialogTitle>
             <DialogDescription className="text-xs">

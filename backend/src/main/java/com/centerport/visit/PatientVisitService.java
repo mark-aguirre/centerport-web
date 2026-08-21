@@ -101,6 +101,33 @@ public class PatientVisitService {
     }
 
     /**
+     * Updates the mutable details of an existing patient visit.
+     *
+     * @param id  the visit UUID
+     * @param dto the visit-specific values to persist
+     * @return the updated visit enriched with profile display data
+     * @throws NotFoundException if the visit or linked profile does not exist
+     */
+    @Transactional
+    public PatientVisitDto update(UUID id, PatientVisitUpdateDto dto) {
+        PatientVisit existing = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("PatientVisit", id));
+
+        existing.setPurposeOfVisit(dto.getPurposeOfVisit());
+        existing.setSirb(dto.getSirb());
+
+        PatientVisit saved = repository.save(existing);
+        SeafarerProfile profile = profileRepository.findById(saved.getSeafarerProfileId())
+                .orElseThrow(() -> new NotFoundException(
+                        "SeafarerProfile", saved.getSeafarerProfileId()));
+
+        log.info("Visit updated — visitId: {}, profileId: {}",
+                saved.getVisitId(), profile.getProfileId());
+
+        return mapper.toDto(saved, profile);
+    }
+
+    /**
      * Delete a visit record.
      *
      * @param id the visit UUID

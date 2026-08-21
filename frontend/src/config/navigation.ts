@@ -37,7 +37,7 @@ export const navigation: NavigationItem[] = [
     icon: CalendarCheck,
   },
   {
-    title: "Profile",
+    title: "Patient",
     subtitle: "Seafarer's Information",
     href: "/profile",
     icon: User,

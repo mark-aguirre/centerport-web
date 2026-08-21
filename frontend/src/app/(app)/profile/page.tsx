@@ -28,7 +28,7 @@ const SECTIONS: SectionEntry[] = [
 ];
 
 /**
- * Profile form content with full CRUD button behavior.
+ * Patient form content with full CRUD button behavior.
  *
  * Uses `useProfileForm` hook for state management including
  * New/Edit/Save/Cancel/Print actions and view/edit mode transitions.
@@ -103,7 +103,7 @@ function ProfileFormContent() {
 }
 
 /**
- * Seafarer profile create/edit page.
+ * Patient information create/edit page.
  *
  * Wraps the form content in a Suspense boundary to handle the
  * `useSearchParams` hook requirement in Next.js App Router.

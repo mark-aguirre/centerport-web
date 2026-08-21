@@ -42,25 +42,33 @@ export default function ConclusionSection({
       <SectionHeader title="III. Conclusion / Remarks" icon={FileCheck} />
 
       {/* Conclusion radio options */}
-      <div className="space-y-2 mb-4" role="radiogroup" aria-label="Conclusion">
+      <div
+        className="space-y-2 mb-4"
+        role="radiogroup"
+        aria-label="Conclusion"
+        aria-disabled={disabled}
+      >
         {CONCLUSION_OPTIONS.map((opt) => (
           <label
             key={opt.value}
             className={cn(
-              "flex items-start gap-2.5 px-3 py-2 rounded-md cursor-pointer transition-colors",
+              "flex items-start gap-2.5 px-3 py-2 rounded-md transition-colors",
               data.conclusion === opt.value
                 ? "bg-primary/5 border border-primary/20"
-                : "hover:bg-muted/30",
-              disabled && "pointer-events-none"
+                : !disabled && "hover:bg-muted/30",
+              disabled ? "pointer-events-none" : "cursor-pointer"
             )}
           >
             <input
               type="radio"
               name="conclusion"
               checked={data.conclusion === opt.value}
-              onChange={() => updateField("conclusion", opt.value)}
+              onChange={() => {
+                if (!disabled) updateField("conclusion", opt.value);
+              }}
               className="w-4 h-4 accent-primary mt-0.5 shrink-0"
               tabIndex={disabled ? -1 : undefined}
+              aria-disabled={disabled}
               aria-label={opt.label}
             />
             <span className="text-xs text-foreground/80">{opt.label}</span>
@@ -81,6 +89,7 @@ export default function ConclusionSection({
           )}
           placeholder="Enter additional remarks..."
           readOnly={disabled}
+          tabIndex={disabled ? -1 : undefined}
         />
       </div>
     </div>

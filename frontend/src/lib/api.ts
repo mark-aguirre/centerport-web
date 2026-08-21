@@ -156,8 +156,8 @@ export interface PatientVisitRecord {
   created_date?: string;
   updated_date?: string;
   seafarer_profile_id: string;
-  purpose_of_visit?: string;
-  sirb?: string;
+  purpose_of_visit?: string | null;
+  sirb?: string | null;
   visit_date?: string;
   // Joined profile fields for display
   profile_id?: string;
@@ -769,6 +769,19 @@ export const api = {
         sirb?: string;
       }): Promise<PatientVisitRecord> {
         return httpClient.post<PatientVisitRecord>("/api/visits", data);
+      },
+
+      /**
+       * Update the mutable details of an existing patient visit.
+       */
+      async update(
+        id: string,
+        data: {
+          purpose_of_visit: string | null;
+          sirb: string | null;
+        }
+      ): Promise<PatientVisitRecord> {
+        return httpClient.put<PatientVisitRecord>(`/api/visits/${id}`, data);
       },
 
       /**
