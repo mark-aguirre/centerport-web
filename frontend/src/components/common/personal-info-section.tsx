@@ -76,7 +76,7 @@ export interface PersonalInfoSectionProps<T extends object = Record<string, stri
  * Clean table-style layout: uses a 6-column grid so labels and inputs
  * align consistently across all rows.
  */
-export default function PersonalInfoSection<T extends object = Record<string, string>>({
+export function PersonalInfoSection<T extends object = Record<string, string>>({
   data,
   onChange,
   subtitle,
@@ -223,3 +223,6 @@ export default function PersonalInfoSection<T extends object = Record<string, st
     </div>
   );
 }
+
+
+export default PersonalInfoSection;

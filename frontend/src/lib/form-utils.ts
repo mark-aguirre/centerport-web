@@ -48,31 +48,22 @@ export function stripSystemFields<T extends BaseRecord>(
  * Sanitize payload before sending to the backend.
  *
  * Converts empty strings to null for enum-typed and optional fields so
- * the backend doesn't reject them during deserialization. Optionally
- * preserves arrays and specific field types.
+ * the backend doesn't reject them during deserialization. Arrays and
+ * non-string values are preserved as-is.
  *
  * @param record - Partial record to sanitize
- * @param options - Configuration for preservation rules
  * @returns Sanitized record with empty strings replaced by null
  *
  * @example
  * ```ts
- * const clean = sanitizePayload(payload, { preserveArrayFields: ["visual_aids"] });
+ * const clean = sanitizePayload(payload);
  * ```
  */
-export function sanitizePayload<T>(
-  record: Partial<T>,
-  options: {
-    preserveArrayFields?: string[];
-  } = {}
-): Partial<T> {
-  const { preserveArrayFields = [] } = options;
+export function sanitizePayload<T>(record: Partial<T>): Partial<T> {
   const result: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(record as Record<string, unknown>)) {
-    if (Array.isArray(value) && preserveArrayFields.includes(key)) {
-      result[key] = value;
-    } else if (Array.isArray(value)) {
+    if (Array.isArray(value)) {
       result[key] = value;
     } else {
       result[key] = value === "" ? null : value;

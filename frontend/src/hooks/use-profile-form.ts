@@ -1,65 +1,16 @@
+"use client";
+
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { api, type SeafarerProfile } from "@/lib/api";
+import { api, type SeafarerProfile, EMPTY_PROFILE, PROFILE_SYSTEM_FIELDS } from "@/lib/api";
 import { ApiError } from "@/lib/http-client";
 import { useProfileSearch } from "./use-profile-search";
-
-const EMPTY_PROFILE: SeafarerProfile = {
-  photo_url: "",
-  last_name: "",
-  first_name: "",
-  middle_name: "",
-  address: "",
-  city: "",
-  contact_no: "",
-  birthdate: "",
-  age: "",
-  gender: "",
-  marital_status: "",
-  place_of_birth: "",
-  religion: "",
-  nationality: "",
-  country: "",
-  employer: "",
-  designation: "",
-  passport_no: "",
-  seamans_book_no: "",
-  position: "",
-  country_of_destination: "",
-  father_name: "",
-  father_occupation: "",
-  mother_name: "",
-  mother_occupation: "",
-  no_of_brothers: "",
-  no_of_sisters: "",
-  birth_order: "",
-  spouse_name: "",
-  spouse_occupation: "",
-  no_of_children: "",
-  elementary: "",
-  high_school: "",
-  college_university: "",
-  course: "",
-  highest_level_attended: "",
-  prev_date_started: "",
-  prev_date_end: "",
-  prev_length_of_stay: "",
-  prev_company: "",
-  prev_position: "",
-  prev_reason_of_leaving: "",
-  remark: "",
-};
-
-/** System-managed fields excluded from profile update payloads. */
-const SYSTEM_FIELDS = ["id", "created_date", "updated_date", "created_by"] as const;
+import { stripSystemFields as genericStrip } from "@/lib/form-utils";
 
 /** Strips system-managed fields from a profile for update operations. */
-function stripSystemFields(profile: SeafarerProfile): Partial<SeafarerProfile> {
-  const entries = Object.entries(profile).filter(
-    ([key]) => !(SYSTEM_FIELDS as readonly string[]).includes(key)
-  );
-  return Object.fromEntries(entries) as Partial<SeafarerProfile>;
+function stripProfileSystemFields(profile: SeafarerProfile): Partial<SeafarerProfile> {
+  return genericStrip(profile, PROFILE_SYSTEM_FIELDS);
 }
 
 export interface UseProfileFormResult {
@@ -103,7 +54,6 @@ export interface UseProfileFormResult {
  * @returns Object with form state, action handlers, and ref for first-field focus
  */
 export function useProfileForm(): UseProfileFormResult {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
 
@@ -188,7 +138,7 @@ export function useProfileForm(): UseProfileFormResult {
     setSaving(true);
     try {
       if (isExistingRecord && editId && existingRecord) {
-        const updateData = stripSystemFields(data);
+        const updateData = stripProfileSystemFields(data);
         await api.entities.SeafarerProfile.update(editId, updateData);
         setExistingRecord({ ...data });
         toast.success("Profile updated successfully");

@@ -13,6 +13,15 @@ import type { MlcRecord } from "@/components/mlc/types";
 import type { PanamaCertificate } from "@/components/panama/types";
 import type { PsychologyRecord } from "@/components/psychology/types";
 
+/** System-managed fields excluded from profile create/update payloads. */
+export const PROFILE_SYSTEM_FIELDS = [
+  "id",
+  "profile_id",
+  "created_date",
+  "updated_date",
+  "created_by",
+] as const;
+
 /**
  * Complete seafarer profile record.
  *
@@ -71,6 +80,59 @@ export interface SeafarerProfile {
   prev_reason_of_leaving: string;
   remark: string;
 }
+
+/**
+ * Empty/default SeafarerProfile instance for form initialization and reset.
+ *
+ * All fields are initialized to empty strings. Used by profile, visit, and
+ * any module that needs a blank profile template. Centralizes the definition
+ * to prevent duplication across hooks.
+ */
+export const EMPTY_PROFILE: SeafarerProfile = {
+  photo_url: "",
+  last_name: "",
+  first_name: "",
+  middle_name: "",
+  address: "",
+  city: "",
+  contact_no: "",
+  birthdate: "",
+  age: "",
+  gender: "",
+  marital_status: "",
+  place_of_birth: "",
+  religion: "",
+  nationality: "",
+  country: "",
+  employer: "",
+  designation: "",
+  passport_no: "",
+  seamans_book_no: "",
+  position: "",
+  country_of_destination: "",
+  father_name: "",
+  father_occupation: "",
+  mother_name: "",
+  mother_occupation: "",
+  no_of_brothers: "",
+  no_of_sisters: "",
+  birth_order: "",
+  spouse_name: "",
+  spouse_occupation: "",
+  no_of_children: "",
+  elementary: "",
+  high_school: "",
+  college_university: "",
+  course: "",
+  highest_level_attended: "",
+  prev_date_started: "",
+  prev_date_end: "",
+  prev_length_of_stay: "",
+  prev_company: "",
+  prev_position: "",
+  prev_reason_of_leaving: "",
+  remark: "",
+};
 
 /** Paged response shape from the backend. */
 interface PagedResponse<T> {

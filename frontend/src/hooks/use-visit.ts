@@ -2,72 +2,18 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
-import { api, type SeafarerProfile, type PatientVisitRecord } from "@/lib/api";
+import { api, type SeafarerProfile, type PatientVisitRecord, EMPTY_PROFILE, PROFILE_SYSTEM_FIELDS } from "@/lib/api";
 import { ApiError } from "@/lib/http-client";
-
-/** Empty profile template for new patient registration. */
-const EMPTY_PROFILE: SeafarerProfile = {
-  photo_url: "",
-  last_name: "",
-  first_name: "",
-  middle_name: "",
-  address: "",
-  city: "",
-  contact_no: "",
-  birthdate: "",
-  age: "",
-  gender: "",
-  marital_status: "",
-  place_of_birth: "",
-  religion: "",
-  nationality: "",
-  country: "",
-  employer: "",
-  designation: "",
-  passport_no: "",
-  seamans_book_no: "",
-  position: "",
-  country_of_destination: "",
-  father_name: "",
-  father_occupation: "",
-  mother_name: "",
-  mother_occupation: "",
-  no_of_brothers: "",
-  no_of_sisters: "",
-  birth_order: "",
-  spouse_name: "",
-  spouse_occupation: "",
-  no_of_children: "",
-  elementary: "",
-  high_school: "",
-  college_university: "",
-  course: "",
-  highest_level_attended: "",
-  prev_date_started: "",
-  prev_date_end: "",
-  prev_length_of_stay: "",
-  prev_company: "",
-  prev_position: "",
-  prev_reason_of_leaving: "",
-  remark: "",
-};
-
-/** System-managed fields excluded from create/update payloads. */
-const SYSTEM_FIELDS = ["id", "profile_id", "created_date", "updated_date", "created_by"] as const;
+import { stripSystemFields as genericStrip, sanitizePayload as genericSanitize } from "@/lib/form-utils";
 
 /** Strips system-managed fields from a profile for API payloads. */
 function stripSystemFields(profile: SeafarerProfile): Partial<SeafarerProfile> {
-  const entries = Object.entries(profile).filter(
-    ([key]) => !(SYSTEM_FIELDS as readonly string[]).includes(key)
-  );
-  return Object.fromEntries(entries) as Partial<SeafarerProfile>;
+  return genericStrip(profile, PROFILE_SYSTEM_FIELDS);
 }
 
 /** Replaces empty strings with null for cleaner backend persistence. */
 function sanitize(payload: Partial<SeafarerProfile>): Partial<SeafarerProfile> {
-  return Object.fromEntries(
-    Object.entries(payload).map(([k, v]) => [k, v === "" ? null : v])
-  ) as Partial<SeafarerProfile>;
+  return genericSanitize(payload);
 }
 
 export interface UseVisitResult {

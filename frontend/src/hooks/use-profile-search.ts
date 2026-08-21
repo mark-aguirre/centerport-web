@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useCallback, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 

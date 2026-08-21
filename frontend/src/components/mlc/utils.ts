@@ -98,7 +98,7 @@ export function stripSystemFields(record: MlcRecord): Partial<MlcRecord> {
 
 /** Sanitize payload before sending to the backend. */
 export function sanitizePayload(record: Partial<MlcRecord>): Partial<MlcRecord> {
-  return genericSanitize(record, { preserveArrayFields: ["visual_aids"] });
+  return genericSanitize(record);
 }
 
 /** Create a field updater for MLC section components. */
