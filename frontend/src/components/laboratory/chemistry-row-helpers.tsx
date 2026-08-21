@@ -1,50 +1,102 @@
 "use client";
 
 /**
- * Shared row sub-components for clinical chemistry table layouts.
- *
- * Used by both `ClinicalChemistrySection` (main form) and
- * `RepeatChemistryDialog` (popup form) to render consistent table rows.
- * Extracted to eliminate duplication between the two consumers.
+ * Shared row components for the main and repeat clinical chemistry tables.
  */
 
 import { cn } from "@/lib/utils";
 
-// ---------------------------------------------------------------------------
-// ChemRow
-// ---------------------------------------------------------------------------
+const cellClassName = "border-r border-primary/15 px-2 py-1.5 last:border-r-0";
+const referenceTextClassName = "text-[11px] text-foreground/70";
+const resultInputClassName =
+  "h-7 min-w-0 w-full rounded border border-primary/20 bg-white px-2 text-center text-xs transition-colors focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30";
 
 export interface ChemRowProps {
-  /** Row label (e.g. "FBS:"). */
+  /** Examination label, for example `FBS:`. */
   label: string;
-  /** S.I. unit reference text (e.g. "mmol/L"). */
+  /** S.I. reference unit. */
   siUnit: string;
-  /** Conventional unit reference text (e.g. "mg/dL"). */
+  /** Conventional reference unit. */
   convUnit: string;
   /** Current S.I. result value. */
   resultSi: string;
-  /** Callback fired when S.I. result changes. */
-  onResultSiChange: (v: string) => void;
+  /** Called when the S.I. result changes. */
+  onResultSiChange: (value: string) => void;
   /** Current conventional result value. */
   resultConv: string;
-  /** Callback fired when conventional result changes. */
-  onResultConvChange: (v: string) => void;
-  /** Whether the result is flagged as high. */
+  /** Called when the conventional result changes. */
+  onResultConvChange: (value: string) => void;
+  /** Whether the result is marked high. */
   high: boolean;
-  /** Callback fired when HIGH checkbox changes. */
-  onHighChange: (v: boolean) => void;
-  /** Unit suffix for the S.I. result input (e.g. "mmol/l"). */
+  /** Called when the HIGH checkbox changes. */
+  onHighChange: (value: boolean) => void;
+  /** Unit shown beside the S.I. result. */
   resultSiUnit: string;
-  /** Unit suffix for the conventional result input (e.g. "mg/dl"). */
+  /** Unit shown beside the conventional result. */
   resultConvUnit: string;
-  /** When true, all inputs are non-interactive. */
+  /** Makes all result controls non-interactive. */
   disabled?: boolean;
 }
 
+interface ChemistryResultCellProps {
+  label: string;
+  value: string;
+  unit: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+}
+
+function ChemistryResultCell({
+  label,
+  value,
+  unit,
+  onChange,
+  disabled,
+}: ChemistryResultCellProps) {
+  return (
+    <div className="flex min-w-0 items-center gap-2">
+      <input
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        readOnly={disabled}
+        aria-label={label}
+        className={cn(
+          resultInputClassName,
+          disabled && "pointer-events-none bg-muted/30"
+        )}
+      />
+      <span className="shrink-0 text-[11px] text-foreground/70">{unit}</span>
+    </div>
+  );
+}
+
+function HighResultCheckbox({
+  label,
+  checked,
+  onChange,
+  disabled,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (value: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <input
+      type="checkbox"
+      checked={checked}
+      onChange={(event) => onChange(event.target.checked)}
+      disabled={disabled}
+      aria-label={`${label} high result`}
+      className="h-4 w-4 cursor-pointer accent-destructive disabled:cursor-not-allowed"
+    />
+  );
+}
+
 /**
- * Table row for chemistry tests with full reference range columns.
- *
- * Columns: Examination | S.I. Unit (ref) | Conv Unit (ref) | Result S.I. | HIGH? | Result Conv
+ * Renders a six-column chemistry row with S.I. and conventional references and
+ * results.
  */
 export function ChemRow({
   label,
@@ -60,93 +112,81 @@ export function ChemRow({
   resultConvUnit,
   disabled,
 }: ChemRowProps) {
-  const inputCls = cn(
-    "h-6 w-full text-xs bg-white border border-primary/20 rounded px-1 text-center focus:outline-none focus:border-primary dark:bg-input/30",
-    disabled && "pointer-events-none"
-  );
-
   return (
-    <tr className="border-t border-primary/20">
-      <td className="py-1.5 px-2 text-[11px] font-medium border-r border-primary/20">
+    <tr className="border-t border-primary/15 transition-colors hover:bg-muted/20">
+      <th
+        scope="row"
+        className={cn(
+          cellClassName,
+          "text-left text-[11px] font-semibold uppercase tracking-wide text-primary/70"
+        )}
+      >
         {label}
+      </th>
+      <td className={cn(cellClassName, "text-center")}>
+        <span className={referenceTextClassName}>{siUnit}</span>
       </td>
-      <td className="py-1.5 px-1 text-center border-r border-primary/20">
-        <span className="text-[9px] text-muted-foreground">{siUnit}</span>
+      <td className={cn(cellClassName, "text-center")}>
+        <span className={referenceTextClassName}>{convUnit}</span>
       </td>
-      <td className="py-1.5 px-1 text-center border-r border-primary/20">
-        <span className="text-[9px] text-muted-foreground">{convUnit}</span>
-      </td>
-      <td className="py-1.5 px-1 border-r border-primary/20">
-        <div className="flex items-center gap-1">
-          <input
-            type="text"
-            value={resultSi}
-            onChange={(e) => onResultSiChange(e.target.value)}
-            readOnly={disabled}
-            className={inputCls}
-          />
-          <span className="text-[9px] text-muted-foreground shrink-0">{resultSiUnit}</span>
-        </div>
-      </td>
-      <td className="py-1.5 px-1 text-center border-r border-primary/20">
-        <input
-          type="checkbox"
-          checked={high}
-          onChange={(e) => onHighChange(e.target.checked)}
+      <td className={cellClassName}>
+        <ChemistryResultCell
+          label={`${label} S.I. result`}
+          value={resultSi}
+          unit={resultSiUnit}
+          onChange={onResultSiChange}
           disabled={disabled}
-          className="h-4 w-4 accent-destructive"
         />
       </td>
-      <td className="py-1.5 px-1">
-        <div className="flex items-center gap-1">
-          <input
-            type="text"
-            value={resultConv}
-            onChange={(e) => onResultConvChange(e.target.value)}
-            readOnly={disabled}
-            className={inputCls}
-          />
-          <span className="text-[9px] text-muted-foreground shrink-0">{resultConvUnit}</span>
-        </div>
+      <td className={cn(cellClassName, "text-center")}>
+        <HighResultCheckbox
+          label={label}
+          checked={high}
+          onChange={onHighChange}
+          disabled={disabled}
+        />
+      </td>
+      <td className={cellClassName}>
+        <ChemistryResultCell
+          label={`${label} conventional result`}
+          value={resultConv}
+          unit={resultConvUnit}
+          onChange={onResultConvChange}
+          disabled={disabled}
+        />
       </td>
     </tr>
   );
 }
 
-// ---------------------------------------------------------------------------
-// ChemRowSimple
-// ---------------------------------------------------------------------------
-
 export interface ChemRowSimpleProps {
-  /** Row label (e.g. "SGOT:"). */
+  /** Examination label, for example `SGOT:`. */
   label: string;
-  /** S.I. unit reference text (e.g. "IU/L"). */
+  /** S.I. reference unit. */
   siUnit: string;
   /** Current S.I. result value. */
   resultSi: string;
-  /** Callback fired when S.I. result changes. */
-  onResultSiChange: (v: string) => void;
+  /** Called when the S.I. result changes. */
+  onResultSiChange: (value: string) => void;
   /** Current conventional result value. */
   resultConv: string;
-  /** Callback fired when conventional result changes. */
-  onResultConvChange: (v: string) => void;
-  /** Whether the result is flagged as high. */
+  /** Called when the conventional result changes. */
+  onResultConvChange: (value: string) => void;
+  /** Whether the result is marked high. */
   high: boolean;
-  /** Callback fired when HIGH checkbox changes. */
-  onHighChange: (v: boolean) => void;
-  /** Unit suffix for the S.I. result input (e.g. "IU/L"). */
+  /** Called when the HIGH checkbox changes. */
+  onHighChange: (value: boolean) => void;
+  /** Unit shown beside the S.I. result. */
   resultSiUnit: string;
-  /** Unit suffix for the conventional result input (e.g. "IU/L"). */
+  /** Unit shown beside the conventional result. */
   resultConvUnit: string;
-  /** When true, all inputs are non-interactive. */
+  /** Makes all result controls non-interactive. */
   disabled?: boolean;
 }
 
 /**
- * Table row for chemistry tests without conventional reference range.
- *
- * Used for SGOT, SGPT, ALK. PHOS — shows S.I. unit label in reference column,
- * empty conventional reference column.
+ * Renders a chemistry row whose conventional reference cell is intentionally
+ * blank, as used by SGOT, SGPT, and alkaline phosphatase.
  */
 export function ChemRowSimple({
   label,
@@ -161,53 +201,46 @@ export function ChemRowSimple({
   resultConvUnit,
   disabled,
 }: ChemRowSimpleProps) {
-  const inputCls = cn(
-    "h-6 w-full text-xs bg-white border border-primary/20 rounded px-1 text-center focus:outline-none focus:border-primary dark:bg-input/30",
-    disabled && "pointer-events-none"
-  );
-
   return (
-    <tr className="border-t border-primary/20">
-      <td className="py-1.5 px-2 text-[11px] font-medium border-r border-primary/20">
+    <tr className="border-t border-primary/15 transition-colors hover:bg-muted/20">
+      <th
+        scope="row"
+        className={cn(
+          cellClassName,
+          "text-left text-[11px] font-semibold uppercase tracking-wide text-primary/70"
+        )}
+      >
         {label}
+      </th>
+      <td className={cn(cellClassName, "text-center")}>
+        <span className={referenceTextClassName}>{siUnit}</span>
       </td>
-      <td className="py-1.5 px-1 text-center border-r border-primary/20">
-        <span className="text-[9px] text-muted-foreground">{siUnit}</span>
-      </td>
-      <td className="py-1.5 px-1 border-r border-primary/20">
-      </td>
-      <td className="py-1.5 px-1 border-r border-primary/20">
-        <div className="flex items-center gap-1">
-          <input
-            type="text"
-            value={resultSi}
-            onChange={(e) => onResultSiChange(e.target.value)}
-            readOnly={disabled}
-            className={inputCls}
-          />
-          <span className="text-[9px] text-muted-foreground shrink-0">{resultSiUnit}</span>
-        </div>
-      </td>
-      <td className="py-1.5 px-1 text-center border-r border-primary/20">
-        <input
-          type="checkbox"
-          checked={high}
-          onChange={(e) => onHighChange(e.target.checked)}
+      <td className={cellClassName} aria-label="No conventional reference" />
+      <td className={cellClassName}>
+        <ChemistryResultCell
+          label={`${label} S.I. result`}
+          value={resultSi}
+          unit={resultSiUnit}
+          onChange={onResultSiChange}
           disabled={disabled}
-          className="h-4 w-4 accent-destructive"
         />
       </td>
-      <td className="py-1.5 px-1">
-        <div className="flex items-center gap-1">
-          <input
-            type="text"
-            value={resultConv}
-            onChange={(e) => onResultConvChange(e.target.value)}
-            readOnly={disabled}
-            className={inputCls}
-          />
-          <span className="text-[9px] text-muted-foreground shrink-0">{resultConvUnit}</span>
-        </div>
+      <td className={cn(cellClassName, "text-center")}>
+        <HighResultCheckbox
+          label={label}
+          checked={high}
+          onChange={onHighChange}
+          disabled={disabled}
+        />
+      </td>
+      <td className={cellClassName}>
+        <ChemistryResultCell
+          label={`${label} conventional result`}
+          value={resultConv}
+          unit={resultConvUnit}
+          onChange={onResultConvChange}
+          disabled={disabled}
+        />
       </td>
     </tr>
   );
