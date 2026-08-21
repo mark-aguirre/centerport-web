@@ -12,7 +12,7 @@ const fieldLabelClassName =
   "shrink-0 text-[11px] font-semibold uppercase tracking-wide text-primary/70";
 const fieldControlClassName =
   "h-7 min-w-0 flex-1 rounded border border-primary/20 bg-white px-2 text-xs transition-colors focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30";
-const unitClassName = "shrink-0 text-[11px] text-foreground/70";
+const unitClassName = "w-8 shrink-0 text-[11px] text-foreground/70";
 
 export interface InlineSelectProps {
   /** Field label displayed to the left of the select. */
