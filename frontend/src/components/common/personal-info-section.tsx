@@ -91,7 +91,7 @@ export default function PersonalInfoSection<T extends object = Record<string, st
   const inputClasses = cn(
     "h-8 text-sm bg-white border border-primary/20 rounded-md px-2",
     "focus:outline-none focus-visible:border-primary dark:bg-input/30",
-    disabled && "pointer-events-none opacity-70"
+    disabled && "pointer-events-none"
   );
 
   const labelClasses = "text-xs font-semibold text-foreground/70 whitespace-nowrap";
@@ -130,10 +130,12 @@ export default function PersonalInfoSection<T extends object = Record<string, st
   };
 
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-      <SectionHeader title="Personal Information" icon={User} subtitle={subtitle} />
+    <div className="overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm">
+      <div className="px-3 pt-3">
+        <SectionHeader title="Personal Information" icon={User} subtitle={subtitle} />
+      </div>
 
-      <div>
+      <div className="px-3 pb-3">
         {/* First row with "Name:" label + sub-labels below inputs */}
         {rows.length > 0 && showNameLabel && (
           <div className="flex items-center gap-3 py-1.5">
@@ -149,7 +151,7 @@ export default function PersonalInfoSection<T extends object = Record<string, st
                       tabIndex={disabled ? -1 : undefined}
                       className={cn(inputClasses, "w-full")}
                     />
-                    <span className="text-[10px] text-muted-foreground text-center block mt-0.5">
+                    <span className="text-[11px] text-muted-foreground text-center block mt-0.5">
                       {config.label}
                     </span>
                   </div>

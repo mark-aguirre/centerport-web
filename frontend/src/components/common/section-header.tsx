@@ -52,7 +52,7 @@ export function SectionHeader({
           {title}
         </h2>
         {subtitle && (
-          <span className="text-[10px] text-muted-foreground italic">
+          <span className="text-[11px] text-muted-foreground italic">
             {subtitle}
           </span>
         )}
