@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { EMPTY_PSYCHOLOGY_RECORD, type PsychologyRecord } from "@/components/psychology/types";
@@ -13,6 +14,24 @@ import {
 // ---------------------------------------------------------------------------
 // Psychology-specific configuration
 // ---------------------------------------------------------------------------
+
+type PsychologyPersonnelDefaults = Pick<
+  PsychologyRecord,
+  | "psychometrician"
+  | "psychometrician_license_no"
+  | "psychologist"
+  | "psychologist_license_no"
+>;
+
+/** Selects only the examiner details that should carry into the next evaluation. */
+function getPersonnelDefaults(record: PsychologyRecord): PsychologyPersonnelDefaults {
+  return {
+    psychometrician: record.psychometrician,
+    psychometrician_license_no: record.psychometrician_license_no,
+    psychologist: record.psychologist,
+    psychologist_license_no: record.psychologist_license_no,
+  };
+}
 
 const psychologyConfig: EntityFormConfig<PsychologyRecord> = {
   entityApi: api.entities.PsychologyEvaluation,
@@ -79,5 +98,25 @@ const psychologyConfig: EntityFormConfig<PsychologyRecord> = {
  * Connected to the backend `/api/psychology-evaluations` endpoint.
  */
 export function usePsychologyForm(): UseEntityFormResult<PsychologyRecord> {
-  return useEntityForm(psychologyConfig);
+  const personnelDefaultsRef = useRef<PsychologyPersonnelDefaults>(
+    getPersonnelDefaults(EMPTY_PSYCHOLOGY_RECORD)
+  );
+
+  const config = useMemo<EntityFormConfig<PsychologyRecord>>(
+    () => ({
+      ...psychologyConfig,
+      getNewRecordDefaults: () => personnelDefaultsRef.current,
+    }),
+    []
+  );
+
+  const form = useEntityForm(config);
+
+  useEffect(() => {
+    if (form.existingRecord) {
+      personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
+    }
+  }, [form.existingRecord]);
+
+  return form;
 }

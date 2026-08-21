@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { EMPTY_REPORT, type LaboratoryReport } from "@/components/laboratory/types";
@@ -69,6 +70,25 @@ const laboratoryConfig: EntityFormConfig<LaboratoryReport> = {
 };
 
 // ---------------------------------------------------------------------------
+// Carry-forward personnel defaults
+// ---------------------------------------------------------------------------
+
+type LabPersonnelDefaults = Pick<
+  LaboratoryReport,
+  "med_tech" | "med_tech_license_no" | "pathologist" | "pathologist_license_no"
+>;
+
+/** Extracts only the personnel fields that carry into the next report. */
+function getPersonnelDefaults(record: LaboratoryReport): LabPersonnelDefaults {
+  return {
+    med_tech: record.med_tech,
+    med_tech_license_no: record.med_tech_license_no,
+    pathologist: record.pathologist,
+    pathologist_license_no: record.pathologist_license_no,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Public hook
 // ---------------------------------------------------------------------------
 
@@ -78,5 +98,25 @@ const laboratoryConfig: EntityFormConfig<LaboratoryReport> = {
  * Delegates to the generic `useEntityForm` with laboratory-specific config.
  */
 export function useLaboratoryForm(): UseEntityFormResult<LaboratoryReport> {
-  return useEntityForm(laboratoryConfig);
+  const personnelDefaultsRef = useRef<LabPersonnelDefaults>(
+    getPersonnelDefaults(EMPTY_REPORT)
+  );
+
+  const config = useMemo<EntityFormConfig<LaboratoryReport>>(
+    () => ({
+      ...laboratoryConfig,
+      getNewRecordDefaults: () => personnelDefaultsRef.current,
+    }),
+    []
+  );
+
+  const form = useEntityForm(config);
+
+  useEffect(() => {
+    if (form.existingRecord) {
+      personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
+    }
+  }, [form.existingRecord]);
+
+  return form;
 }

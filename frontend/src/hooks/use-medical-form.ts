@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import type { MedicalExam } from "@/components/medical/types";
@@ -346,6 +347,24 @@ const medicalConfig: EntityFormConfig<MedicalExam> = {
 };
 
 // ---------------------------------------------------------------------------
+// Carry-forward personnel defaults
+// ---------------------------------------------------------------------------
+
+type MedicalPersonnelDefaults = Pick<
+  MedicalExam,
+  "authorized_physician" | "medical_certification_no" | "medical_director"
+>;
+
+/** Extracts only the certification personnel fields that carry into the next exam. */
+function getPersonnelDefaults(record: MedicalExam): MedicalPersonnelDefaults {
+  return {
+    authorized_physician: record.authorized_physician,
+    medical_certification_no: record.medical_certification_no,
+    medical_director: record.medical_director,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Public hook & types
 // ---------------------------------------------------------------------------
 
@@ -364,5 +383,28 @@ export interface UseMedicalFormResult extends UseEntityFormResult<MedicalExam> {
  * @returns Object with form state, action handlers, and ref for first-field focus
  */
 export function useMedicalForm(): UseMedicalFormResult {
-  return useEntityForm(medicalConfig);
+  const personnelDefaultsRef = useRef<MedicalPersonnelDefaults>(
+    getPersonnelDefaults(EMPTY_EXAM)
+  );
+
+  const config = useMemo<EntityFormConfig<MedicalExam>>(
+    () => ({
+      ...medicalConfig,
+      getNewRecordDefaults: () => ({
+        ...medicalConfig.getNewRecordDefaults!(),
+        ...personnelDefaultsRef.current,
+      }),
+    }),
+    []
+  );
+
+  const form = useEntityForm(config);
+
+  useEffect(() => {
+    if (form.existingRecord) {
+      personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
+    }
+  }, [form.existingRecord]);
+
+  return form;
 }

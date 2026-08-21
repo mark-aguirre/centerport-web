@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { EMPTY_MLC, type MlcRecord } from "@/components/mlc/types";
@@ -71,6 +72,24 @@ const mlcConfig: EntityFormConfig<MlcRecord> = {
 };
 
 // ---------------------------------------------------------------------------
+// Carry-forward personnel defaults
+// ---------------------------------------------------------------------------
+
+type MlcPersonnelDefaults = Pick<
+  MlcRecord,
+  "examining_physician" | "medical_certification_no" | "medical_director"
+>;
+
+/** Extracts only the certification personnel fields that carry into the next record. */
+function getPersonnelDefaults(record: MlcRecord): MlcPersonnelDefaults {
+  return {
+    examining_physician: record.examining_physician,
+    medical_certification_no: record.medical_certification_no,
+    medical_director: record.medical_director,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Public hook & types
 // ---------------------------------------------------------------------------
 
@@ -89,5 +108,25 @@ export interface UseMlcFormResult extends UseEntityFormResult<MlcRecord> {
  * @returns Object with form state, action handlers, and ref for first-field focus
  */
 export function useMlcForm(): UseMlcFormResult {
-  return useEntityForm(mlcConfig);
+  const personnelDefaultsRef = useRef<MlcPersonnelDefaults>(
+    getPersonnelDefaults(EMPTY_MLC)
+  );
+
+  const config = useMemo<EntityFormConfig<MlcRecord>>(
+    () => ({
+      ...mlcConfig,
+      getNewRecordDefaults: () => personnelDefaultsRef.current,
+    }),
+    []
+  );
+
+  const form = useEntityForm(config);
+
+  useEffect(() => {
+    if (form.existingRecord) {
+      personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
+    }
+  }, [form.existingRecord]);
+
+  return form;
 }

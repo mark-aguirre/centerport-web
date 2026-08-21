@@ -171,11 +171,11 @@ export function PersonalInfoSection<T extends object = Record<string, string>>({
                 <Fragment key={actualIndex}>
                   {row.map((config) => (
                     <Fragment key={config.field}>
-                      <Label className={cn(labelClasses, "py-2")}>
+                      <Label className={cn(labelClasses, "py-1.5")}>
                         {config.label}:
                         {config.required && <span className="text-destructive ml-0.5">*</span>}
                       </Label>
-                      <div className="py-2">
+                      <div className="py-1.5">
                         {renderInput(config)}
                       </div>
                     </Fragment>
@@ -187,18 +187,18 @@ export function PersonalInfoSection<T extends object = Record<string, string>>({
             if (row.length === 2) {
               return (
                 <Fragment key={actualIndex}>
-                  <Label className={cn(labelClasses, "py-2")}>
+                  <Label className={cn(labelClasses, "py-1.5")}>
                     {row[0].label}:
                     {row[0].required && <span className="text-destructive ml-0.5">*</span>}
                   </Label>
-                  <div className="py-2 col-span-3">
+                  <div className="py-1.5 col-span-3">
                     {renderInput(row[0])}
                   </div>
-                  <Label className={cn(labelClasses, "py-2")}>
+                  <Label className={cn(labelClasses, "py-1.5")}>
                     {row[1].label}:
                     {row[1].required && <span className="text-destructive ml-0.5">*</span>}
                   </Label>
-                  <div className="py-2">
+                  <div className="py-1.5">
                     {renderInput(row[1])}
                   </div>
                 </Fragment>
@@ -208,11 +208,11 @@ export function PersonalInfoSection<T extends object = Record<string, string>>({
             // 1 field: label + input spanning remaining 5 columns
             return (
               <Fragment key={actualIndex}>
-                <Label className={cn(labelClasses, "py-2")}>
+                <Label className={cn(labelClasses, "py-1.5")}>
                   {row[0].label}:
                   {row[0].required && <span className="text-destructive ml-0.5">*</span>}
                 </Label>
-                <div className="py-2 col-span-5">
+                <div className="py-1.5 col-span-5">
                   {renderInput(row[0])}
                 </div>
               </Fragment>

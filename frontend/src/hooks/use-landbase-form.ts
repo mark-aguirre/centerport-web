@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { EMPTY_PEME, type LandbasePeme } from "@/components/landbase/types";
@@ -91,6 +92,24 @@ const landbaseConfig: EntityFormConfig<LandbasePeme> = {
 };
 
 // ---------------------------------------------------------------------------
+// Carry-forward personnel defaults
+// ---------------------------------------------------------------------------
+
+type LandbasePersonnelDefaults = Pick<
+  LandbasePeme,
+  "authorized_physician" | "medical_certification_no" | "medical_director"
+>;
+
+/** Extracts only the certification personnel fields that carry into the next PEME. */
+function getPersonnelDefaults(record: LandbasePeme): LandbasePersonnelDefaults {
+  return {
+    authorized_physician: record.authorized_physician,
+    medical_certification_no: record.medical_certification_no,
+    medical_director: record.medical_director,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Public hook & types
 // ---------------------------------------------------------------------------
 
@@ -118,7 +137,28 @@ export interface UseLandbaseFormResult extends UseEntityFormResult<LandbasePeme>
  * @returns Object with form state, action handlers, and ref for first-field focus
  */
 export function useLandbaseForm(): UseLandbaseFormResult {
-  const form = useEntityForm(landbaseConfig);
+  const personnelDefaultsRef = useRef<LandbasePersonnelDefaults>(
+    getPersonnelDefaults(EMPTY_PEME)
+  );
+
+  const config = useMemo<EntityFormConfig<LandbasePeme>>(
+    () => ({
+      ...landbaseConfig,
+      getNewRecordDefaults: () => ({
+        ...landbaseConfig.getNewRecordDefaults!(),
+        ...personnelDefaultsRef.current,
+      }),
+    }),
+    []
+  );
+
+  const form = useEntityForm(config);
+
+  useEffect(() => {
+    if (form.existingRecord) {
+      personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
+    }
+  }, [form.existingRecord]);
 
   // Map generic profileRecords to PemeSummary shape for backward compat
   const profilePemes: PemeSummary[] = form.profileRecords.map((r) => ({

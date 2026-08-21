@@ -46,7 +46,7 @@ export default function PersonalInfoSection({
           photoUrl={data.photo_url}
           onPhotoChange={(url) => update("photo_url", url)}
         />
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-1.5">
           <div className="grid grid-cols-3 gap-2">
             <FormField
               label="Last Name"
