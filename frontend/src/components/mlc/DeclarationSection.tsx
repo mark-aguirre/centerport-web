@@ -1,22 +1,23 @@
 "use client";
 
+import { FormField } from "@/components/common/form-field";
 import { SectionHeader } from "@/components/common/section-header";
 import { SetNormalButton } from "@/components/common/set-normal-button";
-import { FormField } from "@/components/common/form-field";
-import { ClipboardCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createFieldUpdater } from "./utils";
-import type { MlcRecord, MlcSectionProps, YesNo, VisualAid } from "./types";
+import { ClipboardCheck } from "lucide-react";
 
-/** Y/N condition questions for the declaration */
+import type { MlcRecord, MlcSectionProps, VisualAid, YesNo } from "./types";
+import { createFieldUpdater } from "./utils";
+
+/** Questions included in the authorized physician declaration. */
 const DECLARATION_CONDITIONS: { field: keyof MlcRecord; label: string }[] = [
   {
     field: "id_documents_checked",
-    label: "Confirmation that identification documents were checked at the point of examination:",
+    label: "Confirmation that identification documents were checked at the point of examination",
   },
   {
     field: "hearing_meets_standards",
-    label: "Hearing meets the standards in STCW Code, Section A-9?",
+    label: "Hearing meets the standards in STCW Code, Section A-I/9?",
   },
   {
     field: "unaided_hearing_satisfactory",
@@ -32,15 +33,54 @@ const DECLARATION_CONDITIONS: { field: keyof MlcRecord; label: string }[] = [
   },
 ];
 
+interface YesNoOptionsProps {
+  name: string;
+  value: YesNo;
+  onChange: (value: Exclude<YesNo, "">) => void;
+  disabled?: boolean;
+  ariaLabel: string;
+}
+
+/** Accessible, consistently styled Yes/No radio controls. */
+function YesNoOptions({
+  name,
+  value,
+  onChange,
+  disabled,
+  ariaLabel,
+}: YesNoOptionsProps) {
+  return (
+    <div
+      className={cn(
+        "flex shrink-0 items-center gap-4",
+        disabled && "pointer-events-none"
+      )}
+      role="radiogroup"
+      aria-label={ariaLabel}
+    >
+      {(["yes", "no"] as const).map((option) => (
+        <label key={option} className="flex cursor-pointer items-center gap-1.5">
+          <input
+            type="radio"
+            name={name}
+            checked={value === option}
+            onChange={() => onChange(option)}
+            tabIndex={disabled ? -1 : undefined}
+            className="h-4 w-4 accent-primary"
+            aria-label={`${ariaLabel} - ${option}`}
+          />
+          <span className="text-xs text-foreground/80 uppercase">{option}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 /**
- * Declaration of the Authorized Physician section for the MLC form.
+ * Declaration completed by the authorized physician for an MLC certificate.
  *
- * Captures: Y/N conditions (hearing, vision, ID docs), visual aids,
- * date of colour vision test, fit for look-out duties, limitations/restrictions,
- * and the applicant condition risk question.
- *
- * In read mode (disabled=true), all controls use pointer-events-none
- * to keep values fully visible while preventing interaction.
+ * The control order and wording follow the supplied declaration form while
+ * retaining CenterPort's responsive card and semantic-token styling.
  */
 export default function DeclarationSection({
   data,
@@ -49,10 +89,14 @@ export default function DeclarationSection({
 }: MlcSectionProps) {
   const updateField = createFieldUpdater(data, onChange);
 
-  const update = (field: keyof MlcRecord, value: string) =>
+  const updateYesNo = (field: keyof MlcRecord, value: Exclude<YesNo, "">) => {
+    if (field === "no_limitations" && value === "yes") {
+      onChange({ ...data, no_limitations: value, limitations_details: "" });
+      return;
+    }
     onChange({ ...data, [field]: value });
+  };
 
-  /** Set all declaration fields to "normal" healthy defaults. */
   const handleSetNormal = () => {
     onChange({
       ...data,
@@ -61,7 +105,7 @@ export default function DeclarationSection({
       unaided_hearing_satisfactory: "yes",
       visual_acuity_meets_standards: "yes",
       colour_vision_meets_standards: "yes",
-      visual_aids: ["none"],
+      visual_aids: [],
       fit_for_lookout: "yes",
       no_limitations: "yes",
       limitations_details: "",
@@ -69,253 +113,135 @@ export default function DeclarationSection({
     });
   };
 
-  const toggleVisualAid = (aid: VisualAid) => {
+  const toggleVisualAid = (aid: Exclude<VisualAid, "none">) => {
     if (disabled) return;
-    const current = data.visual_aids ?? [];
-    if (aid === "none") {
-      onChange({ ...data, visual_aids: ["none"] });
-      return;
-    }
-    const without = current.filter((a) => a !== "none");
-    if (without.includes(aid)) {
-      onChange({ ...data, visual_aids: without.filter((a) => a !== aid) });
-    } else {
-      onChange({ ...data, visual_aids: [...without, aid] });
-    }
+
+    const selected = (data.visual_aids ?? []).filter((item) => item !== "none");
+    const visualAids = selected.includes(aid)
+      ? selected.filter((item) => item !== aid)
+      : [...selected, aid];
+
+    onChange({ ...data, visual_aids: visualAids });
   };
 
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
+    <div className="rounded-lg border border-primary/10 bg-card p-4 shadow-sm">
       <SectionHeader
         title="Declaration of the Authorized Physician"
         icon={ClipboardCheck}
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
       />
-      <div className="space-y-2">
-        {/* Y/N Condition Rows */}
-        <div className="border border-primary/10 rounded-md overflow-hidden">
-          {DECLARATION_CONDITIONS.map((cond) => (
+
+      <div className="space-y-3">
+        <div className="overflow-hidden rounded-md border border-primary/10">
+          {DECLARATION_CONDITIONS.map((condition) => (
             <div
-              key={cond.field}
-              className="flex items-center justify-between py-1.5 px-2 border-b border-muted/30 last:border-b-0"
+              key={condition.field}
+              className="grid gap-2 border-b border-muted/30 px-3 py-2.5 last:border-b-0 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
             >
-              <span className="text-[10px] text-foreground/80 leading-tight flex-1 pr-2 uppercase font-semibold tracking-wide">
-                {cond.label}
+              <span className="text-xs font-semibold uppercase leading-relaxed text-foreground/80">
+                {condition.label}
               </span>
-              <div
-                className={cn(
-                  "flex items-center gap-3 shrink-0",
-                  disabled && "pointer-events-none"
-                )}
-                role="radiogroup"
-                aria-label={cond.label}
-              >
-                <label className="flex items-center gap-1 cursor-pointer">
-                  <input
-                    type="radio"
-                    name={cond.field}
-                    checked={(data[cond.field] as YesNo) === "yes"}
-                    onChange={() => update(cond.field, "yes")}
-                    className="w-3.5 h-3.5 accent-primary"
-                    aria-label={`${cond.label} - Yes`}
-                    tabIndex={disabled ? -1 : undefined}
-                  />
-                  <span className="text-[10px] text-foreground/70">Yes</span>
-                </label>
-                <label className="flex items-center gap-1 cursor-pointer">
-                  <input
-                    type="radio"
-                    name={cond.field}
-                    checked={(data[cond.field] as YesNo) === "no"}
-                    onChange={() => update(cond.field, "no")}
-                    className="w-3.5 h-3.5 accent-primary"
-                    aria-label={`${cond.label} - No`}
-                    tabIndex={disabled ? -1 : undefined}
-                  />
-                  <span className="text-[10px] text-foreground/70">No</span>
-                </label>
-              </div>
+              <YesNoOptions
+                name={condition.field}
+                value={data[condition.field] as YesNo}
+                onChange={(value) => updateYesNo(condition.field, value)}
+                disabled={disabled}
+                ariaLabel={condition.label}
+              />
             </div>
           ))}
         </div>
 
-        {/* Visual Aids + Date of Colour Vision Test */}
-        <div className="grid grid-cols-[1fr_1fr] gap-2 items-end">
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
-              Visual Aids (tick if worn):
+        <div className="grid gap-3 md:grid-cols-2 md:items-end">
+          <div className="space-y-1.5">
+            <span className="block text-[11px] font-semibold uppercase tracking-wider text-primary/60">
+              Visual Aids (tick if worn)
             </span>
-            <div className={cn(
-              "flex items-center gap-4",
-              disabled && "pointer-events-none"
-            )}>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="visual_aids"
-                  checked={data.visual_aids?.includes("spectacles") ?? false}
-                  onChange={() => toggleVisualAid("spectacles")}
-                  className="w-3.5 h-3.5 accent-primary"
-                  aria-label="Visual Aids - Spectacles"
-                  tabIndex={disabled ? -1 : undefined}
-                />
-                <span className="text-[10px] text-foreground/70">Spectacles</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="visual_aids"
-                  checked={data.visual_aids?.includes("contact_lenses") ?? false}
-                  onChange={() => toggleVisualAid("contact_lenses")}
-                  className="w-3.5 h-3.5 accent-primary"
-                  aria-label="Visual Aids - Contact Lenses"
-                  tabIndex={disabled ? -1 : undefined}
-                />
-                <span className="text-[10px] text-foreground/70">Contact Lenses</span>
-              </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input
-                  type="radio"
-                  name="visual_aids"
-                  checked={data.visual_aids?.includes("none") ?? false}
-                  onChange={() => toggleVisualAid("none")}
-                  className="w-3.5 h-3.5 accent-primary"
-                  aria-label="Visual Aids - None"
-                  tabIndex={disabled ? -1 : undefined}
-                />
-                <span className="text-[10px] text-foreground/70">None</span>
-              </label>
+            <div
+              className={cn(
+                "flex flex-wrap items-center gap-5",
+                disabled && "pointer-events-none"
+              )}
+            >
+              {(["spectacles", "contact_lenses"] as const).map((aid) => (
+                <label key={aid} className="flex cursor-pointer items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={data.visual_aids?.includes(aid) ?? false}
+                    onChange={() => toggleVisualAid(aid)}
+                    tabIndex={disabled ? -1 : undefined}
+                    className="h-4 w-4 rounded accent-primary"
+                    aria-label={`Visual aids - ${aid.replace("_", " ")}`}
+                  />
+                  <span className="text-xs capitalize text-foreground/80">
+                    {aid.replace("_", " ")}
+                  </span>
+                </label>
+              ))}
             </div>
           </div>
+
           <FormField
             label="Date of Last Colour Vision Test (DD/MM/YYYY)"
             value={data.date_colour_vision_test}
-            onChange={(v) => updateField("date_colour_vision_test", v)}
+            onChange={(value) => updateField("date_colour_vision_test", value)}
             type="date"
             disabled={disabled}
           />
         </div>
 
-        {/* Fit for Look-Out Duties */}
-        <div className={cn(
-          "flex items-center gap-3",
-          disabled && "pointer-events-none"
-        )}>
-          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wide shrink-0">
-            Fit for Look-Out Duties:
+        <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <span className="text-xs font-semibold uppercase text-foreground/80">
+            Fit for Look-Out Duties
           </span>
-          <div className="flex items-center gap-3" role="radiogroup" aria-label="Fit for Look-Out Duties">
-            <label className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="radio"
-                name="fit_for_lookout"
-                checked={data.fit_for_lookout === "yes"}
-                onChange={() => update("fit_for_lookout", "yes")}
-                className="w-3.5 h-3.5 accent-primary"
-                aria-label="Fit for Look-Out Duties - Yes"
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="text-[10px] text-foreground/70">Yes</span>
-            </label>
-            <label className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="radio"
-                name="fit_for_lookout"
-                checked={data.fit_for_lookout === "no"}
-                onChange={() => update("fit_for_lookout", "no")}
-                className="w-3.5 h-3.5 accent-primary"
-                aria-label="Fit for Look-Out Duties - No"
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="text-[10px] text-foreground/70">No</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Limitations or Restrictions */}
-        <div className="space-y-1">
-          <div className={cn(
-            "flex items-center justify-between",
-            disabled && "pointer-events-none"
-          )}>
-            <span className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
-              No limitations or restrictions on fitness? If &apos;No&apos; specify limitations or restrictions:
-            </span>
-            <div className="flex items-center gap-3 shrink-0" role="radiogroup" aria-label="No limitations or restrictions on fitness">
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input
-                  type="radio"
-                  name="no_limitations"
-                  checked={data.no_limitations === "yes"}
-                  onChange={() => update("no_limitations", "yes")}
-                  className="w-3.5 h-3.5 accent-primary"
-                  aria-label="No limitations - Yes"
-                  tabIndex={disabled ? -1 : undefined}
-                />
-                <span className="text-[10px] text-foreground/70">Yes</span>
-              </label>
-              <label className="flex items-center gap-1 cursor-pointer">
-                <input
-                  type="radio"
-                  name="no_limitations"
-                  checked={data.no_limitations === "no"}
-                  onChange={() => update("no_limitations", "no")}
-                  className="w-3.5 h-3.5 accent-primary"
-                  aria-label="No limitations - No"
-                  tabIndex={disabled ? -1 : undefined}
-                />
-                <span className="text-[10px] text-foreground/70">No</span>
-              </label>
-            </div>
-          </div>
-          <textarea
-            value={data.limitations_details}
-            onChange={(e) => updateField("limitations_details", e.target.value)}
-            placeholder="Specify limitations or restrictions if NO..."
-            className={cn(
-              "w-full h-16 text-xs bg-white border border-primary/20 rounded px-2 py-1.5",
-              "focus:outline-none focus:border-primary dark:bg-input/30 resize-none",
-              disabled && "pointer-events-none"
-            )}
-            aria-label="Limitations or restrictions details"
-            readOnly={disabled}
+          <YesNoOptions
+            name="fit_for_lookout"
+            value={data.fit_for_lookout}
+            onChange={(value) => updateYesNo("fit_for_lookout", value)}
+            disabled={disabled}
+            ariaLabel="Fit for Look-Out Duties"
           />
         </div>
 
-        {/* Applicant Condition Risk */}
-        <div className="space-y-1.5 border-t border-primary/10 pt-2">
-          <span className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider leading-tight block">
-            Is applicant suffering from any medical condition likely to be aggravated by service at sea or to render the seafarer unfit for such service or to endanger the health of other persons on board?
-          </span>
-          <div className={cn(
-            "flex items-center gap-3",
-            disabled && "pointer-events-none"
-          )} role="radiogroup" aria-label="Applicant condition risk">
-            <label className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="radio"
-                name="applicant_condition_risk"
-                checked={data.applicant_condition_risk === "yes"}
-                onChange={() => update("applicant_condition_risk", "yes")}
-                className="w-3.5 h-3.5 accent-primary"
-                aria-label="Applicant condition risk - Yes"
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="text-[10px] text-foreground/70">Yes</span>
-            </label>
-            <label className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="radio"
-                name="applicant_condition_risk"
-                checked={data.applicant_condition_risk === "no"}
-                onChange={() => update("applicant_condition_risk", "no")}
-                className="w-3.5 h-3.5 accent-primary"
-                aria-label="Applicant condition risk - No"
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="text-[10px] text-foreground/70">No</span>
-            </label>
+        <div className="space-y-2">
+          <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+            <span className="text-xs font-semibold uppercase leading-relaxed text-foreground/80">
+              No limitations or restrictions on fitness? If &apos;No&apos;, specify limitations or restrictions
+            </span>
+            <YesNoOptions
+              name="no_limitations"
+              value={data.no_limitations}
+              onChange={(value) => updateYesNo("no_limitations", value)}
+              disabled={disabled}
+              ariaLabel="No limitations or restrictions on fitness"
+            />
           </div>
+          <textarea
+            value={data.limitations_details}
+            onChange={(event) => updateField("limitations_details", event.target.value)}
+            placeholder="Specify limitations or restrictions when the answer is No"
+            readOnly={disabled}
+            aria-label="Limitations or restrictions details"
+            className={cn(
+              "h-20 w-full resize-none rounded-md border border-primary/20 bg-white px-3 py-2 text-sm",
+              "focus:outline-none focus-visible:border-primary dark:bg-input/30",
+              disabled && "pointer-events-none opacity-70"
+            )}
+          />
+        </div>
+
+        <div className="grid gap-2 border-t border-primary/10 pt-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <span className="text-xs font-semibold uppercase leading-relaxed text-foreground/80">
+            Is the applicant suffering from any medical condition likely to be aggravated by service at sea, to render the seafarer unfit for such service, or to endanger the health of other persons on board?
+          </span>
+          <YesNoOptions
+            name="applicant_condition_risk"
+            value={data.applicant_condition_risk}
+            onChange={(value) => updateYesNo("applicant_condition_risk", value)}
+            disabled={disabled}
+            ariaLabel="Applicant condition risk"
+          />
         </div>
       </div>
     </div>

@@ -4,61 +4,19 @@ import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import PersonalInfoSection from "@/components/common/personal-info-section";
-import type { RowConfig } from "@/components/common/personal-info-section";
-import SeafarerDetailsSection from "@/components/mlc/SeafarerDetailsSection";
-import CertificateDetailsSection from "@/components/mlc/CertificateDetailsSection";
+import ApplicantInformationSection from "@/components/mlc/ApplicantInformationSection";
 import DeclarationSection from "@/components/mlc/DeclarationSection";
 import FinalRecommendationSection from "@/components/mlc/FinalRecommendationSection";
 import { useMlcForm } from "@/hooks/use-mlc-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
-import type { MlcRecord, MlcSectionProps } from "@/components/mlc/types";
-
-// ---------------------------------------------------------------------------
-// Personal info configuration (always read-only from profile)
-// ---------------------------------------------------------------------------
-
-/** MLC personal info row layout */
-const MLC_PERSONAL_ROWS: RowConfig[] = [
-  [
-    { field: "last_name", label: "Last Name", required: true },
-    { field: "first_name", label: "First Name", required: true },
-    { field: "middle_name", label: "Middle Name" },
-  ],
-  [
-    { field: "place_of_birth", label: "Place of Birth" },
-    { field: "passport_no", label: "Passport No." },
-    { field: "religion", label: "Religion" },
-  ],
-  [
-    { field: "nationality", label: "Nationality" },
-    { field: "gender", label: "Gender", options: ["Male", "Female"] },
-    { field: "civil_status", label: "Civil Status", options: ["Single", "Married", "Widowed", "Separated"] },
-  ],
-  [
-    { field: "address", label: "Address" },
-    { field: "contact_no", label: "Contact No." },
-  ],
-  [
-    { field: "employer", label: "Employer" },
-    { field: "position", label: "Position" },
-  ],
-];
-
-/** Grid overrides for rows that need custom proportions */
-const MLC_GRID_OVERRIDES: Record<number, string> = {
-  3: "grid-cols-[3fr_2fr]",
-  4: "grid-cols-[3fr_2fr]",
-};
+import type { MlcRecord } from "@/components/mlc/types";
 
 // ---------------------------------------------------------------------------
 // Sections
 // ---------------------------------------------------------------------------
 
-/** MLC-specific sections (personal info rendered separately) */
+/** Sections shown on the authorized physician declaration form. */
 const SECTIONS: SectionEntry<MlcRecord>[] = [
-  { component: SeafarerDetailsSection as React.ComponentType<MlcSectionProps>, key: "seafarer-details" },
-  { component: CertificateDetailsSection, key: "certificate-details" },
   { component: DeclarationSection, key: "declaration" },
   { component: FinalRecommendationSection, key: "recommendation" },
 ];
@@ -90,12 +48,10 @@ function MlcFormContent() {
       animate="visible"
       variants={sectionVariants}
     >
-      <PersonalInfoSection
+      <ApplicantInformationSection
         data={form.data}
         onChange={form.setData}
-        rows={MLC_PERSONAL_ROWS}
-        gridOverrides={MLC_GRID_OVERRIDES}
-        disabled={true}
+        disabled
       />
     </motion.div>
   );

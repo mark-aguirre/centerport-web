@@ -95,7 +95,7 @@ export function CertificationDetailsFields({
   return (
     <div className="space-y-2">
       {/* Row 1: Date of Initial PEME, Date of Fitness, Valid Until */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
         <FormField
           label="Date of Initial PEME (MM/DD/YYYY)"
           value={values.dateInitialPeme}
@@ -120,7 +120,7 @@ export function CertificationDetailsFields({
       </div>
 
       {/* Row 2: Authorized Physician (search dialog), Medical Certification No. */}
-      <div className="grid grid-cols-[3fr_1fr] gap-2">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-[3fr_1fr]">
         <div className="space-y-0.5">
           <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
             Authorized Physician
@@ -137,7 +137,7 @@ export function CertificationDetailsFields({
               type="button"
               variant="outline"
               size="icon"
-              className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
+              className="h-8 w-8 shrink-0 cursor-pointer border-primary/20 hover:border-primary/40"
               onClick={() => setPhysicianDialogOpen(true)}
               disabled={disabled}
               aria-label="Search authorized physician"
@@ -172,7 +172,7 @@ export function CertificationDetailsFields({
               type="button"
               variant="outline"
               size="icon"
-              className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
+              className="h-8 w-8 shrink-0 cursor-pointer border-primary/20 hover:border-primary/40"
               onClick={() => setDirectorDialogOpen(true)}
               disabled={disabled}
               aria-label="Search medical director"

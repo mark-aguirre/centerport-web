@@ -63,7 +63,7 @@ export default function FinalRecommendationSection({
   };
 
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
+    <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
         title="Final Recommendation"
         icon={Award}
@@ -71,7 +71,7 @@ export default function FinalRecommendationSection({
       />
       <div className="space-y-2">
         {/* Row 1: Fitness Determination */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
           <FormSelect
             label="Fitness Determination"
             value={data.fitness_determination}
