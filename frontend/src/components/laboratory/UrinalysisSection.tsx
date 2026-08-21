@@ -1,41 +1,72 @@
 "use client";
 
 /**
- * Urinalysis section for the Laboratory Report form.
+ * Urinalysis section for a Laboratory Report.
  *
- * Layout mirrors the reference: two-column design with Macroscopic + Chemical
- * on the left, and Microscopic + Crystals + Cast on the right.
- * A "Repeat Urinalysis" button sits at the top-right of the header row.
- *
- * @see LaboratorySectionProps — shared section component contract
+ * Follows the supplied reference with Macroscopic and Chemical groups on the
+ * left and Microscopic, Crystals, and Cast groups on the right.
  */
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { Beaker, Printer, RotateCcw } from "lucide-react";
 import { SectionHeader } from "@/components/common/section-header";
-import { Beaker, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { createFieldUpdater } from "./utils";
-import { InlineSelect, InlineField, LabFieldWithUnit } from "./laboratory-field-helpers";
+import {
+  InlineField,
+  InlineSelect,
+  LabFieldWithUnit,
+} from "./laboratory-field-helpers";
 import { RepeatUrinalysisDialog } from "./RepeatUrinalysisDialog";
 import type { LaboratorySectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-/** Urine color options. */
-const COLOR_OPTIONS = ["", "Yellow", "Dark Yellow", "Light Yellow", "Amber", "Red", "Orange", "Brown"];
-
-/** Urine transparency options. */
-const TRANSPARENCY_OPTIONS = ["", "Clear", "Slightly Hazy", "Hazy", "Turbid"];
-
-/** Chemical test options. */
+const COLOR_OPTIONS = [
+  "",
+  "Yellow",
+  "Dark Yellow",
+  "Light Yellow",
+  "Amber",
+  "Red",
+  "Orange",
+  "Brown",
+];
+const TRANSPARENCY_OPTIONS = [
+  "",
+  "Clear",
+  "Slightly Hazy",
+  "Hazy",
+  "Turbid",
+];
 const CHEMICAL_OPTIONS = ["", "Negative", "Trace", "+1", "+2", "+3", "+4"];
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+function UrinalysisGroup({
+  title,
+  children,
+  className,
+}: {
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <fieldset
+      className={cn(
+        "min-w-0 rounded-md border border-primary/15 bg-muted/5 px-3 pb-3",
+        className
+      )}
+    >
+      <legend className="px-1 text-xs font-bold uppercase tracking-widest text-primary">
+        {title}
+      </legend>
+      <div className="mt-1">{children}</div>
+    </fieldset>
+  );
+}
 
+/**
+ * Displays and edits the Urinalysis portion of a laboratory report.
+ */
 export default function UrinalysisSection({
   data,
   onChange,
@@ -43,298 +74,299 @@ export default function UrinalysisSection({
 }: LaboratorySectionProps) {
   const updateField = createFieldUpdater(data, onChange);
   const [repeatDialogOpen, setRepeatDialogOpen] = useState(false);
+  const hasPersistedReport = Boolean(data.id);
 
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-      {/* Header row with Repeat Urinalysis button */}
-      <div className="flex items-center justify-between mb-2">
-        <SectionHeader title="Urinalysis" icon={Beaker} />
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled={!data.id}
-            onClick={() => setRepeatDialogOpen(true)}
-            className={cn(
-              "text-xs px-3 py-1.5 rounded border border-primary/30 bg-muted hover:bg-primary/10 text-primary/80 font-medium transition-colors",
-              !data.id && "opacity-50 pointer-events-none"
-            )}
-          >
-            Repeat Urinalysis
-          </button>
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={() => window.print()}
-            className={cn(
-              "text-xs px-3 py-1.5 rounded border border-primary/30 bg-muted hover:bg-primary/10 text-primary/80 font-medium transition-colors inline-flex items-center gap-1",
-              disabled && "opacity-50 pointer-events-none"
-            )}
-          >
-            <Printer className="w-3.5 h-3.5" />
-            Print
-          </button>
-        </div>
-      </div>
+    <div className="rounded-lg border border-primary/10 bg-card p-4 shadow-sm">
+      <SectionHeader
+        title="Urinalysis"
+        icon={Beaker}
+        action={
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!hasPersistedReport}
+              onClick={() => setRepeatDialogOpen(true)}
+              className="cursor-pointer"
+            >
+              <RotateCcw aria-hidden="true" />
+              Repeat Urinalysis
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!hasPersistedReport}
+              onClick={() => window.print()}
+              className="cursor-pointer"
+            >
+              <Printer aria-hidden="true" />
+              Print
+            </Button>
+          </div>
+        }
+      />
 
-      {/* Repeat Urinalysis Dialog */}
       <RepeatUrinalysisDialog
         open={repeatDialogOpen}
         onOpenChange={setRepeatDialogOpen}
         laboratoryReportId={data.id}
       />
 
-      {/* Result Date */}
-      <div className="mb-3">
-        <div className="w-36">
-          <label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
-            Result Date
-          </label>
-          <input
-            type="date"
-            value={data.urinalysis_result_date}
-            onChange={(e) => updateField("urinalysis_result_date", e.target.value)}
-            readOnly={disabled}
-            className={cn(
-              "h-7 w-full text-xs bg-white border border-primary/20 rounded px-2 focus:outline-none focus:border-primary dark:bg-input/30",
-              disabled && "pointer-events-none"
-            )}
-          />
-        </div>
+      <div className="mb-4 flex items-center gap-3">
+        <label
+          htmlFor="urinalysis-result-date"
+          className="text-[11px] font-bold uppercase tracking-wide text-primary/70"
+        >
+          Result Date:
+        </label>
+        <input
+          id="urinalysis-result-date"
+          type="date"
+          value={data.urinalysis_result_date}
+          onChange={(event) =>
+            updateField("urinalysis_result_date", event.target.value)
+          }
+          readOnly={disabled}
+          className={cn(
+            "h-8 w-40 rounded-md border border-primary/30 bg-white px-2 text-xs shadow-sm transition-colors hover:border-primary/50 focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30",
+            disabled && "pointer-events-none bg-muted/30"
+          )}
+        />
       </div>
 
-      <div className="grid grid-cols-[1fr_auto] gap-8">
-        {/* ============ Left Column: Macroscopic + Chemical ============ */}
-        <div className="space-y-4">
-          {/* Macroscopic */}
-          <div>
-            <h3 className="text-[11px] font-bold text-primary/80 uppercase tracking-wide mb-2">
-              Macroscopic
-            </h3>
-            <div className="space-y-1.5">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(22rem,2fr)]">
+        <div className="min-w-0 space-y-4">
+          <UrinalysisGroup title="Macroscopic">
+            <div className="max-w-xl space-y-2">
               <InlineSelect
                 label="Color"
+                labelWidth="w-32"
                 value={data.urine_color}
-                onChange={(v) => updateField("urine_color", v)}
+                onChange={(value) => updateField("urine_color", value)}
                 options={COLOR_OPTIONS}
                 disabled={disabled}
               />
               <InlineSelect
                 label="Transparency"
+                labelWidth="w-32"
                 value={data.urine_transparency}
-                onChange={(v) => updateField("urine_transparency", v)}
+                onChange={(value) => updateField("urine_transparency", value)}
                 options={TRANSPARENCY_OPTIONS}
                 disabled={disabled}
               />
             </div>
-          </div>
+          </UrinalysisGroup>
 
-          {/* Chemical */}
-          <div>
-            <h3 className="text-[11px] font-bold text-primary/80 uppercase tracking-wide mb-2">
-              Chemical
-            </h3>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-              <InlineSelect
-                label="Leucocytes"
-                value={data.urine_leucocytes}
-                onChange={(v) => updateField("urine_leucocytes", v)}
-                options={CHEMICAL_OPTIONS}
-                disabled={disabled}
-              />
-              <InlineField
-                label="Spec. Gravity"
-                value={data.urine_specific_gravity}
-                onChange={(v) => updateField("urine_specific_gravity", v)}
-                disabled={disabled}
-              />
-              <InlineSelect
-                label="Nitrite"
-                value={data.urine_nitrite}
-                onChange={(v) => updateField("urine_nitrite", v)}
-                options={CHEMICAL_OPTIONS}
-                disabled={disabled}
-              />
-              <InlineSelect
-                label="Ketone"
-                value={data.urine_ketone}
-                onChange={(v) => updateField("urine_ketone", v)}
-                options={CHEMICAL_OPTIONS}
-                disabled={disabled}
-              />
-              <InlineSelect
-                label="Urobilinogen"
-                value={data.urine_urobilinogen}
-                onChange={(v) => updateField("urine_urobilinogen", v)}
-                options={CHEMICAL_OPTIONS}
-                disabled={disabled}
-              />
-              <InlineSelect
-                label="Bilirubin"
-                value={data.urine_bilirubin}
-                onChange={(v) => updateField("urine_bilirubin", v)}
-                options={CHEMICAL_OPTIONS}
-                disabled={disabled}
-              />
-              <InlineSelect
-                label="Protein"
-                value={data.urine_protein}
-                onChange={(v) => updateField("urine_protein", v)}
-                options={CHEMICAL_OPTIONS}
-                disabled={disabled}
-              />
-              <InlineSelect
-                label="Glucose"
-                value={data.urine_glucose}
-                onChange={(v) => updateField("urine_glucose", v)}
-                options={CHEMICAL_OPTIONS}
-                disabled={disabled}
-              />
-              <InlineField
-                label="pH"
-                value={data.urine_ph}
-                onChange={(v) => updateField("urine_ph", v)}
-                disabled={disabled}
-              />
-              <InlineField
-                label="Others"
-                value={data.urine_others}
-                onChange={(v) => updateField("urine_others", v)}
-                disabled={disabled}
-              />
-              <InlineSelect
-                label="Blood"
-                value={data.urine_blood}
-                onChange={(v) => updateField("urine_blood", v)}
-                options={CHEMICAL_OPTIONS}
-                disabled={disabled}
-              />
+          <UrinalysisGroup title="Chemical">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="min-w-0 space-y-2">
+                <InlineSelect
+                  label="Leucocytes"
+                  value={data.urine_leucocytes}
+                  onChange={(value) => updateField("urine_leucocytes", value)}
+                  options={CHEMICAL_OPTIONS}
+                  disabled={disabled}
+                />
+                <InlineSelect
+                  label="Nitrite"
+                  value={data.urine_nitrite}
+                  onChange={(value) => updateField("urine_nitrite", value)}
+                  options={CHEMICAL_OPTIONS}
+                  disabled={disabled}
+                />
+                <InlineSelect
+                  label="Urobilinogen"
+                  value={data.urine_urobilinogen}
+                  onChange={(value) => updateField("urine_urobilinogen", value)}
+                  options={CHEMICAL_OPTIONS}
+                  disabled={disabled}
+                />
+                <InlineSelect
+                  label="Protein"
+                  value={data.urine_protein}
+                  onChange={(value) => updateField("urine_protein", value)}
+                  options={CHEMICAL_OPTIONS}
+                  disabled={disabled}
+                />
+                <InlineField
+                  label="pH"
+                  value={data.urine_ph}
+                  onChange={(value) => updateField("urine_ph", value)}
+                  disabled={disabled}
+                />
+                <InlineSelect
+                  label="Blood"
+                  value={data.urine_blood}
+                  onChange={(value) => updateField("urine_blood", value)}
+                  options={CHEMICAL_OPTIONS}
+                  disabled={disabled}
+                />
+              </div>
+
+              <div className="min-w-0 space-y-2">
+                <InlineField
+                  label="Spec. Gravity"
+                  value={data.urine_specific_gravity}
+                  onChange={(value) =>
+                    updateField("urine_specific_gravity", value)
+                  }
+                  disabled={disabled}
+                />
+                <InlineSelect
+                  label="Ketone"
+                  value={data.urine_ketone}
+                  onChange={(value) => updateField("urine_ketone", value)}
+                  options={CHEMICAL_OPTIONS}
+                  disabled={disabled}
+                />
+                <InlineSelect
+                  label="Bilirubin"
+                  value={data.urine_bilirubin}
+                  onChange={(value) => updateField("urine_bilirubin", value)}
+                  options={CHEMICAL_OPTIONS}
+                  disabled={disabled}
+                />
+                <InlineSelect
+                  label="Glucose"
+                  value={data.urine_glucose}
+                  onChange={(value) => updateField("urine_glucose", value)}
+                  options={CHEMICAL_OPTIONS}
+                  disabled={disabled}
+                />
+                <InlineField
+                  label="Others"
+                  value={data.urine_others}
+                  onChange={(value) => updateField("urine_others", value)}
+                  disabled={disabled}
+                />
+              </div>
             </div>
-          </div>
+          </UrinalysisGroup>
         </div>
 
-        {/* ============ Right Column: Microscopic + Crystals + Cast ============ */}
-        <div className="space-y-4 w-80">
-          {/* Microscopic */}
-          <div>
-            <h3 className="text-[11px] font-bold text-primary/80 uppercase tracking-wide mb-2">
-              Microscopic
-            </h3>
-            <div className="space-y-1.5">
+        <div className="min-w-0 space-y-4">
+          <UrinalysisGroup title="Microscopic">
+            <div className="space-y-2">
               <LabFieldWithUnit
                 label="Red Blood Cells"
                 unit="/HPF"
                 value={data.urine_rbc}
-                onChange={(v) => updateField("urine_rbc", v)}
+                onChange={(value) => updateField("urine_rbc", value)}
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="White Blood Cells"
                 unit="/HPF"
                 value={data.urine_wbc}
-                onChange={(v) => updateField("urine_wbc", v)}
+                onChange={(value) => updateField("urine_wbc", value)}
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="Amorphous Urates"
                 unit="/LPF"
                 value={data.urine_amorphous_urates}
-                onChange={(v) => updateField("urine_amorphous_urates", v)}
+                onChange={(value) =>
+                  updateField("urine_amorphous_urates", value)
+                }
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="Amorphous Phosphate"
                 unit="/LPF"
                 value={data.urine_amorphous_phosphate}
-                onChange={(v) => updateField("urine_amorphous_phosphate", v)}
+                onChange={(value) =>
+                  updateField("urine_amorphous_phosphate", value)
+                }
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="Epithelial Cells"
                 unit="/LPF"
                 value={data.urine_epithelial_cells}
-                onChange={(v) => updateField("urine_epithelial_cells", v)}
+                onChange={(value) =>
+                  updateField("urine_epithelial_cells", value)
+                }
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="Mucus Threads"
                 unit="/LPF"
                 value={data.urine_mucus_threads}
-                onChange={(v) => updateField("urine_mucus_threads", v)}
+                onChange={(value) => updateField("urine_mucus_threads", value)}
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="Others"
                 unit="/LPF"
                 value={data.urine_microscopic_others}
-                onChange={(v) => updateField("urine_microscopic_others", v)}
+                onChange={(value) =>
+                  updateField("urine_microscopic_others", value)
+                }
                 disabled={disabled}
               />
             </div>
-          </div>
+          </UrinalysisGroup>
 
-          {/* Crystals */}
-          <div>
-            <h3 className="text-[11px] font-bold text-primary/80 uppercase tracking-wide mb-2">
-              Crystals
-            </h3>
-            <div className="space-y-1.5">
+          <UrinalysisGroup title="Crystals">
+            <div className="space-y-2">
               <LabFieldWithUnit
                 label="Uric Acid"
                 unit="/LPF"
                 value={data.urine_uric_acid}
-                onChange={(v) => updateField("urine_uric_acid", v)}
+                onChange={(value) => updateField("urine_uric_acid", value)}
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="Calcium Oxalate"
                 unit="/LPF"
                 value={data.urine_calcium_oxalate}
-                onChange={(v) => updateField("urine_calcium_oxalate", v)}
+                onChange={(value) => updateField("urine_calcium_oxalate", value)}
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="Others"
                 unit="/LPF"
                 value={data.urine_crystals_others}
-                onChange={(v) => updateField("urine_crystals_others", v)}
+                onChange={(value) =>
+                  updateField("urine_crystals_others", value)
+                }
                 disabled={disabled}
               />
             </div>
-          </div>
+          </UrinalysisGroup>
 
-          {/* Cast */}
-          <div>
-            <h3 className="text-[11px] font-bold text-primary/80 uppercase tracking-wide mb-2">
-              Cast
-            </h3>
-            <div className="space-y-1.5">
+          <UrinalysisGroup title="Cast">
+            <div className="space-y-2">
               <LabFieldWithUnit
                 label="Fine Granular"
                 unit="/LPF"
                 value={data.urine_fine_granular}
-                onChange={(v) => updateField("urine_fine_granular", v)}
+                onChange={(value) => updateField("urine_fine_granular", value)}
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="Coarse Granular"
                 unit="/LPF"
                 value={data.urine_coarse_granular}
-                onChange={(v) => updateField("urine_coarse_granular", v)}
+                onChange={(value) =>
+                  updateField("urine_coarse_granular", value)
+                }
                 disabled={disabled}
               />
               <LabFieldWithUnit
                 label="Others"
                 unit="/LPF"
                 value={data.urine_cast_others}
-                onChange={(v) => updateField("urine_cast_others", v)}
+                onChange={(value) => updateField("urine_cast_others", value)}
                 disabled={disabled}
               />
             </div>
-          </div>
+          </UrinalysisGroup>
         </div>
       </div>
     </div>
   );
 }
-
-
