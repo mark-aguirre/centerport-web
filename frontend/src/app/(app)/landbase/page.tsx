@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import PersonalInfoSection from "@/components/landbase/PersonalInfoSection";
 import PastMedicalHistorySection from "@/components/landbase/PastMedicalHistorySection";
 import QuestionnaireSection from "@/components/landbase/QuestionnaireSection";
+import PhysicalExaminationSection from "@/components/landbase/PhysicalExaminationSection";
 import AncillaryExaminationsSection from "@/components/landbase/AncillaryExaminationsSection";
 import RemarksSection from "@/components/landbase/RemarksSection";
 import ResultsSection from "@/components/landbase/ResultsSection";
@@ -23,6 +24,7 @@ const SECTIONS: SectionEntry<LandbasePeme>[] = [
   { component: PersonalInfoSection as React.ComponentType<LandbaseSectionProps>, key: "personal" },
   { component: PastMedicalHistorySection, key: "medical-history" },
   { component: QuestionnaireSection, key: "questionnaire" },
+  { component: PhysicalExaminationSection, key: "physical-examination" },
   { component: AncillaryExaminationsSection, key: "ancillary" },
   { component: RemarksSection, key: "remarks" },
   { component: ResultsSection, key: "results" },

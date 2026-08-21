@@ -1,19 +1,14 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
-import { MessageSquare } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { createFieldUpdater } from "./utils";
 import type { LandbaseSectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
 
 /**
- * Remarks / Restriction section for the Landbase PEME form.
+ * Paper-form remarks and restriction row for the Landbase PEME form.
  *
- * Provides a free-text area for the physician to enter medical
- * remarks, restrictions, or notes about the applicant's fitness.
- *
- * @see RecommendationSection — related section for formal recommendation
+ * The combined remarks value is persisted in the existing `remarks` field.
  */
 export default function RemarksSection({
   data,
@@ -23,19 +18,29 @@ export default function RemarksSection({
   const updateField = createFieldUpdater(data, onChange);
 
   return (
-    <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
-      <SectionHeader title="Remarks / Restriction" icon={MessageSquare} />
-      <Textarea
-        value={data.remarks ?? ""}
-        onChange={(e) => updateField("remarks", e.target.value)}
-        className={cn(
-          "min-h-[80px] text-sm bg-white border border-primary/20 rounded-md px-3 py-2",
-          "focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
-          disabled && "pointer-events-none"
-        )}
-        placeholder="Enter remarks or restrictions..."
-        readOnly={disabled}
-      />
+    <div
+      className={cn(
+        "overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm",
+        disabled && "pointer-events-none",
+      )}
+    >
+      <div className="grid grid-cols-1 gap-2 px-3 py-2 sm:grid-cols-[215px_minmax(0,1fr)] sm:items-center">
+        <label
+          htmlFor="landbase-remarks-restriction"
+          className="text-sm font-bold uppercase tracking-wide text-primary"
+        >
+          IV. Remarks/Restriction:
+        </label>
+        <Input
+          id="landbase-remarks-restriction"
+          value={data.remarks ?? ""}
+          onChange={(event) => updateField("remarks", event.target.value)}
+          readOnly={disabled}
+          tabIndex={disabled ? -1 : undefined}
+          placeholder="Enter remarks or restrictions..."
+          className="h-8 border border-primary/20 bg-white px-2 text-xs focus-visible:border-primary dark:bg-input/30"
+        />
+      </div>
     </div>
   );
 }

@@ -42,21 +42,34 @@ public class LandbasePemeDto {
     private Map<String, String> medicalHistory;
     private String medicalHistoryOthers;
     private Boolean consultedDoctor;
+    private String consultedDoctorDetails;
     private String maintenanceMedications;
 
     // --- Questionnaire ---
     @JsonProperty("questionnaire_1")
     private YesNo questionnaire1;
+    @JsonProperty("questionnaire_1_details")
+    private String questionnaire1Details;
     @JsonProperty("questionnaire_2")
     private YesNo questionnaire2;
+    @JsonProperty("questionnaire_2_details")
+    private String questionnaire2Details;
     @JsonProperty("questionnaire_3")
     private YesNo questionnaire3;
+    @JsonProperty("questionnaire_3_details")
+    private String questionnaire3Details;
     @JsonProperty("questionnaire_4")
     private YesNo questionnaire4;
+    @JsonProperty("questionnaire_4_details")
+    private String questionnaire4Details;
     @JsonProperty("questionnaire_5")
     private YesNo questionnaire5;
+    @JsonProperty("questionnaire_5_details")
+    private String questionnaire5Details;
     @JsonProperty("questionnaire_6")
     private YesNo questionnaire6;
+    @JsonProperty("questionnaire_6_details")
+    private String questionnaire6Details;
     @JsonProperty("questionnaire_7")
     private YesNo questionnaire7;
     private String questionnaireComments;
@@ -91,7 +104,10 @@ public class LandbasePemeDto {
     private String peBmi;
     private String pePulseRate;
     private String peBloodPressure;
+    private String peBpSystolic;
+    private String peBpDiastolic;
     private String peRespiration;
+    private String peRhythm;
     private String peBodyTemperature;
 
     // --- Vision Acuity - Far Vision ---
@@ -105,13 +121,20 @@ public class LandbasePemeDto {
     private String visionNearOsUncorrected;
     private String visionNearOdCorrected;
     private String visionNearOsCorrected;
+    private YesNo visionSatisfactorySight;
+    private String visionVisualAid;
 
     // --- Ishihara Color Vision ---
     private Boolean visionColorAdequate;
 
-    // --- Hearing Audiometry ---
+    // --- Hearing Audiometry, Speech, and Psychological Assessment ---
     private String hearingAd;
     private String hearingAs;
+    private YesNo hearingSatisfactory;
+    private String hearingRightAdequacy;
+    private String hearingLeftAdequacy;
+    private String speechClarity;
+    private YesNo psychologicalSatisfactory;
 
     // --- Physical Exploration - Column A ---
     private PhysicalExplorationValue peSkin;

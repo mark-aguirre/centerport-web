@@ -75,6 +75,19 @@ const landbaseConfig: EntityFormConfig<LandbasePeme> = {
     create: "PEME record created successfully",
     update: "PEME record updated successfully",
   },
+
+  getNewRecordDefaults: () => {
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const validUntil = new Date(today);
+    validUntil.setFullYear(validUntil.getFullYear() + 2);
+    const validUntilStr = validUntil.toISOString().slice(0, 10);
+    return {
+      date_initial_peme: todayStr,
+      date_of_fitness: todayStr,
+      valid_until: validUntilStr,
+    };
+  },
 };
 
 // ---------------------------------------------------------------------------

@@ -48,6 +48,9 @@ public class LandbasePeme extends BaseEntity {
     @Column(name = "consulted_doctor")
     private Boolean consultedDoctor;
 
+    @Column(name = "consulted_doctor_details")
+    private String consultedDoctorDetails;
+
     @Column(name = "maintenance_medications")
     private String maintenanceMedications;
 
@@ -56,25 +59,43 @@ public class LandbasePeme extends BaseEntity {
     @Column(name = "questionnaire_1")
     private YesNo questionnaire1;
 
+    @Column(name = "questionnaire_1_details")
+    private String questionnaire1Details;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "questionnaire_2")
     private YesNo questionnaire2;
+
+    @Column(name = "questionnaire_2_details")
+    private String questionnaire2Details;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "questionnaire_3")
     private YesNo questionnaire3;
 
+    @Column(name = "questionnaire_3_details")
+    private String questionnaire3Details;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "questionnaire_4")
     private YesNo questionnaire4;
+
+    @Column(name = "questionnaire_4_details")
+    private String questionnaire4Details;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "questionnaire_5")
     private YesNo questionnaire5;
 
+    @Column(name = "questionnaire_5_details")
+    private String questionnaire5Details;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "questionnaire_6")
     private YesNo questionnaire6;
+
+    @Column(name = "questionnaire_6_details")
+    private String questionnaire6Details;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "questionnaire_7")
@@ -168,8 +189,17 @@ public class LandbasePeme extends BaseEntity {
     @Column(name = "pe_blood_pressure")
     private String peBloodPressure;
 
+    @Column(name = "pe_bp_systolic")
+    private String peBpSystolic;
+
+    @Column(name = "pe_bp_diastolic")
+    private String peBpDiastolic;
+
     @Column(name = "pe_respiration")
     private String peRespiration;
+
+    @Column(name = "pe_rhythm")
+    private String peRhythm;
 
     @Column(name = "pe_body_temperature")
     private String peBodyTemperature;
@@ -200,16 +230,40 @@ public class LandbasePeme extends BaseEntity {
     @Column(name = "vision_near_os_corrected")
     private String visionNearOsCorrected;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "vision_satisfactory_sight")
+    private YesNo visionSatisfactorySight;
+
+    @Column(name = "vision_visual_aid")
+    private String visionVisualAid;
+
     // --- Ishihara Color Vision ---
     @Column(name = "vision_color_adequate")
     private Boolean visionColorAdequate;
 
-    // --- Hearing Audiometry ---
+    // --- Hearing Audiometry, Speech, and Psychological Assessment ---
     @Column(name = "hearing_ad")
     private String hearingAd;
 
     @Column(name = "hearing_as")
     private String hearingAs;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "hearing_satisfactory")
+    private YesNo hearingSatisfactory;
+
+    @Column(name = "hearing_right_adequacy")
+    private String hearingRightAdequacy;
+
+    @Column(name = "hearing_left_adequacy")
+    private String hearingLeftAdequacy;
+
+    @Column(name = "speech_clarity")
+    private String speechClarity;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "psychological_satisfactory")
+    private YesNo psychologicalSatisfactory;
 
     // --- Physical Exploration - Column A ---
     @Enumerated(EnumType.STRING)

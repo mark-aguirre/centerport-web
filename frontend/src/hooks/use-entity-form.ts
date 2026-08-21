@@ -114,6 +114,13 @@ export interface EntityFormConfig<T> {
    * Defaults to checking `last_name` via getEditGuardValue.
    */
   getEditGuardValue?: (data: T) => boolean;
+
+  /**
+   * Optional callback that returns computed default values for a new record.
+   * Merged on top of emptyRecord when the user clicks New.
+   * Useful for date fields that depend on the current date.
+   */
+  getNewRecordDefaults?: () => Partial<T>;
 }
 
 // ---------------------------------------------------------------------------
@@ -293,14 +300,15 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
 
   /** Clear form, enter edit mode for a new record. */
   const handleNew = useCallback(() => {
-    setData(emptyRecord);
+    const defaults = config.getNewRecordDefaults?.() ?? {};
+    setData({ ...emptyRecord, ...defaults } as T);
     setOriginalData(null);
     setEditing(true);
     setIsExistingRecord(false);
     setExistingRecord(null);
     setProfileRecords([]);
     setTimeout(() => firstFieldRef.current?.focus(), 0);
-  }, [emptyRecord]);
+  }, [emptyRecord, config]);
 
   /** Enter edit mode, snapshot current data for cancel/restore. */
   const handleEdit = useCallback(() => {

@@ -1,17 +1,14 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
-import { FormSelect } from "@/components/common/form-select";
 import {
   CertificationDetailsFields,
   type CertificationDetailsValues,
 } from "@/components/common/certification-details-fields";
-import { Award } from "lucide-react";
+import { FormSelect } from "@/components/common/form-select";
+import { SetNormalButton } from "@/components/common/set-normal-button";
+import type { LandbasePeme, LandbaseSectionProps } from "./types";
 import { createFieldUpdater } from "./utils";
-import type { LandbaseSectionProps, LandbasePeme } from "./types";
 
-/** Available recommendation values for the fitness determination. */
 const RECOMMENDATION_OPTIONS = [
   "Fit for Employment",
   "Unfit for Employment",
@@ -20,18 +17,20 @@ const RECOMMENDATION_OPTIONS = [
   "Fit with Restriction",
 ];
 
+const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
+  dateInitialPeme: "date_initial_peme",
+  dateOfFitness: "date_of_fitness",
+  validUntil: "valid_until",
+  authorizedPhysician: "authorized_physician",
+  medicalCertificationNo: "medical_certification_no",
+  medicalDirector: "medical_director",
+};
+
 /**
- * Recommendation section for the Landbase PEME form.
+ * Paper-form recommendation and certification section for Landbase PEME.
  *
- * Split into two visual cards:
- * 1. Fitness recommendation select with "Set Normal" shortcut
- * 2. Certification details: dates, authorized physician,
- *    medical certification number, and medical director
- *
- * The "Set Normal" button sets recommendation to "Fit for Employment"
- * for quick entry when the applicant passes all examinations.
- *
- * @see ResultsSection — provides the examination outcomes that inform this recommendation
+ * Uses the existing recommendation, date, physician, certification number,
+ * and medical director fields without changing their persistence contract.
  */
 export default function RecommendationSection({
   data,
@@ -40,54 +39,54 @@ export default function RecommendationSection({
 }: LandbaseSectionProps) {
   const updateField = createFieldUpdater(data, onChange);
 
-  /** Set recommendation to "Fit for Employment". */
   const handleSetNormal = () => {
     onChange({ ...data, recommendation: "Fit for Employment" });
   };
 
-  /** Map from CertificationDetailsValues keys to landbase field names. */
-  const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
-    dateInitialPeme: "date_initial_peme",
-    dateOfFitness: "date_of_fitness",
-    validUntil: "valid_until",
-    authorizedPhysician: "authorized_physician",
-    medicalCertificationNo: "medical_certification_no",
-    medicalDirector: "medical_director",
-  };
-
-  const handleCertChange = (field: keyof CertificationDetailsValues, value: string) => {
+  const handleCertChange = (
+    field: keyof CertificationDetailsValues,
+    value: string,
+  ) => {
     updateField(FIELD_MAP[field] as keyof LandbasePeme, value);
   };
 
-  const handleCertBatchChange = (updates: Partial<CertificationDetailsValues>) => {
+  const handleCertBatchChange = (
+    updates: Partial<CertificationDetailsValues>,
+  ) => {
     const mapped: Record<string, string> = {};
-    for (const [key, val] of Object.entries(updates)) {
-      mapped[FIELD_MAP[key as keyof CertificationDetailsValues]] = val as string;
+    for (const [key, value] of Object.entries(updates)) {
+      mapped[FIELD_MAP[key as keyof CertificationDetailsValues]] = value;
     }
-    onChange({ ...data, ...mapped } as typeof data);
+    onChange({ ...data, ...mapped });
   };
 
   return (
-    <div className="space-y-3">
-      {/* Card 1: Recommendation */}
-      <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-        <SectionHeader
-          title="Recommendation"
-          icon={Award}
-          action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+    <div className="overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm">
+      <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[190px_minmax(0,1fr)_auto] sm:items-center">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
+          V. Recommendation:
+        </h2>
+        <FormSelect
+          value={data.recommendation}
+          onChange={(value) => updateField("recommendation", value)}
+          options={RECOMMENDATION_OPTIONS}
+          disabled={disabled}
+          className="w-full"
         />
-        <div className="max-w-sm">
-          <FormSelect
-            value={data.recommendation}
-            onChange={(v) => updateField("recommendation", v)}
-            options={RECOMMENDATION_OPTIONS}
-            disabled={disabled}
-          />
-        </div>
+        <SetNormalButton
+          onClick={handleSetNormal}
+          readOnly={disabled}
+          className="justify-self-end"
+        />
       </div>
 
-      {/* Card 2: Dates, Physician, Certification, Director */}
-      <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
+      <div
+        className={
+          disabled
+            ? "p-3 [&_button]:!opacity-100 [&_input]:!opacity-100"
+            : "p-3"
+        }
+      >
         <CertificationDetailsFields
           values={{
             dateInitialPeme: data.date_initial_peme,

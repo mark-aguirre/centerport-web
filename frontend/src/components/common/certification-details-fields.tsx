@@ -120,9 +120,9 @@ export function CertificationDetailsFields({
       </div>
 
       {/* Row 2: Authorized Physician (search dialog), Medical Certification No. */}
-      <div className="grid grid-cols-[2fr_3fr] gap-2">
+      <div className="grid grid-cols-[3fr_1fr] gap-2">
         <div className="space-y-0.5">
-          <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
+          <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
             Authorized Physician
           </Label>
           <div className="flex gap-1.5">
@@ -155,9 +155,9 @@ export function CertificationDetailsFields({
       </div>
 
       {/* Row 3: Medical Director (search dialog) */}
-      <div className="max-w-sm">
+      <div>
         <div className="space-y-0.5">
-          <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
+          <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
             Medical Director
           </Label>
           <div className="flex gap-1.5">
