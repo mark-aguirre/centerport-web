@@ -3,41 +3,67 @@
 /**
  * Shared row sub-components for hematology form layouts.
  *
- * Used by both `HematologySection` (main form) and `RepeatHematologyDialog`
- * (popup form) to render consistent CBC and Differential Count rows.
- * Extracted to eliminate duplication between the two consumers.
+ * Used by both the main hematology section and the repeat-test dialog so
+ * result, unit, and reference-value columns remain aligned.
  */
 
+import { useId } from "react";
 import { cn } from "@/lib/utils";
 
-// ---------------------------------------------------------------------------
-// HemaRow
-// ---------------------------------------------------------------------------
+type HematologyRowLayout = "standard" | "compact";
+
+const HEMA_GRID = {
+  standard:
+    "grid-cols-[6.75rem_4.5rem_3.5rem_minmax(5rem,1fr)] gap-x-2",
+  compact:
+    "grid-cols-[5rem_4rem_3.25rem_minmax(4.5rem,1fr)] gap-x-1.5",
+} satisfies Record<HematologyRowLayout, string>;
+
+const DIFF_GRID = {
+  standard:
+    "grid-cols-[7.5rem_3.75rem_1.25rem_minmax(3rem,1fr)] gap-x-2",
+  compact:
+    "grid-cols-[5rem_3.25rem_1.25rem_minmax(2.5rem,1fr)] gap-x-1.5",
+} satisfies Record<HematologyRowLayout, string>;
+
+const rowLabelClassName =
+  "text-[11px] font-semibold text-primary/70 uppercase tracking-wide text-right leading-tight";
+const inputClassName =
+  "h-7 w-full rounded border border-primary/20 bg-white px-2 text-xs transition-colors focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30";
+const supportingTextClassName =
+  "text-[11px] leading-tight text-foreground/70";
+
+function resolveLayout(
+  layout: HematologyRowLayout | undefined,
+  legacyWidthOverride: string | undefined
+): HematologyRowLayout {
+  return layout ?? (legacyWidthOverride ? "compact" : "standard");
+}
 
 export interface HemaRowProps {
-  /** Row label (e.g. "HEMOGLOBIN:"). */
+  /** Row label, for example `HEMOGLOBIN:`. */
   label: string;
   /** Current field value. */
   value: string;
-  /** Callback fired when value changes. */
-  onValueChange: (v: string) => void;
-  /** Unit suffix displayed after the input (e.g. "gm/dl"). */
+  /** Called when the result value changes. */
+  onValueChange: (value: string) => void;
+  /** Unit shown beside the result. */
   unit: string;
-  /** Normal range text displayed at the end (e.g. "12.0 - 16.0 gm/dl"). */
+  /** Persisted reference range or a unit-only fallback. */
   normalRange?: string;
-  /** When true, the field is non-interactive. */
+  /** Makes the result non-interactive while retaining its visual value. */
   disabled?: boolean;
-  /** Label width class override (default: "w-[88px]"). */
+  /** Controls standard page or compact dialog spacing. */
+  layout?: HematologyRowLayout;
+  /** @deprecated Use `layout="compact"`; retained for repeat-dialog compatibility. */
   labelWidth?: string;
-  /** Input width class override (default: "w-[72px]"). */
+  /** @deprecated Use `layout="compact"`; retained for repeat-dialog compatibility. */
   inputWidth?: string;
 }
 
 /**
- * CBC row: label | [result input] | unit | normal range text.
- *
- * Renders a horizontal row for Complete Blood Count values with an
- * inline result input, unit suffix, and optional reference range.
+ * Renders one complete-blood-count result row with aligned unit and reference
+ * value columns.
  */
 export function HemaRow({
   label,
@@ -46,68 +72,75 @@ export function HemaRow({
   unit,
   normalRange,
   disabled,
-  labelWidth = "w-[88px]",
-  inputWidth = "w-[72px]",
+  layout,
+  labelWidth,
+  inputWidth,
 }: HemaRowProps) {
-  const inputCls = cn(
-    "h-7 text-xs bg-white border border-primary/20 rounded px-1 focus:outline-none focus:border-primary dark:bg-input/30",
-    inputWidth,
-    disabled && "pointer-events-none"
-  );
+  const inputId = useId();
+  const resolvedLayout = resolveLayout(layout, labelWidth ?? inputWidth);
 
   return (
-    <div className="flex items-center gap-1.5">
-      <label
-        className={cn(
-          "text-[10px] font-semibold text-primary/60 uppercase tracking-wider shrink-0 text-right pr-1",
-          labelWidth
-        )}
-      >
+    <div className={cn("grid min-w-0 items-center", HEMA_GRID[resolvedLayout])}>
+      <label htmlFor={inputId} className={rowLabelClassName}>
         {label}
       </label>
       <input
+        id={inputId}
         type="text"
         value={value ?? ""}
-        onChange={(e) => onValueChange(e.target.value)}
+        onChange={(event) => onValueChange(event.target.value)}
         readOnly={disabled}
-        className={inputCls}
+        className={cn(inputClassName, disabled && "pointer-events-none bg-muted/30")}
       />
-      <span className="text-[9px] text-muted-foreground w-9 shrink-0 ml-1">{unit}</span>
-      {normalRange && (
-        <span className="text-[9px] text-muted-foreground ml-2 italic">{normalRange}</span>
-      )}
+      <span className={supportingTextClassName}>{unit}</span>
+      <span className={cn(supportingTextClassName, "min-w-0 break-words")}>
+        {normalRange ?? ""}
+      </span>
     </div>
   );
 }
 
-// ---------------------------------------------------------------------------
-// DiffRow
-// ---------------------------------------------------------------------------
+/**
+ * Renders the reference-value heading aligned with the CBC reference column.
+ */
+export function HemaNormalValuesHeader({
+  layout = "standard",
+}: {
+  layout?: HematologyRowLayout;
+}) {
+  return (
+    <div className={cn("grid items-end", HEMA_GRID[layout])} aria-hidden="true">
+      <span className="col-start-4 text-[11px] font-semibold text-primary">
+        Normal Values
+      </span>
+    </div>
+  );
+}
 
 export interface DiffRowProps {
-  /** Row label (e.g. "LYMPHOCYTES:"). */
+  /** Row label, for example `LYMPHOCYTES:`. */
   label: string;
   /** Current field value. */
   value: string;
-  /** Callback fired when value changes. */
-  onValueChange: (v: string) => void;
-  /** Normal range text displayed at the end (e.g. "20-40%"). */
+  /** Called when the result value changes. */
+  onValueChange: (value: string) => void;
+  /** Persisted reference range or a percent-only fallback. */
   normalRange?: string;
-  /** When true, the field is non-interactive. */
+  /** Makes the result non-interactive while retaining its visual value. */
   disabled?: boolean;
-  /** When true, hides the trailing "%" unit. */
+  /** Hides the result unit for exceptional free-text fields. */
   hideTrailingUnit?: boolean;
-  /** Label width class override (default: "w-[88px]"). */
+  /** Controls standard page or compact dialog spacing. */
+  layout?: HematologyRowLayout;
+  /** @deprecated Use `layout="compact"`; retained for repeat-dialog compatibility. */
   labelWidth?: string;
-  /** Input width class override (default: "w-[60px]"). */
+  /** @deprecated Use `layout="compact"`; retained for repeat-dialog compatibility. */
   inputWidth?: string;
 }
 
 /**
- * Differential Count row: label | [result input] | % | normal range text.
- *
- * Renders a horizontal row for differential count values with an
- * inline result input, optional "%" suffix, and optional reference range.
+ * Renders one differential-count result row with aligned percent and
+ * reference-value columns.
  */
 export function DiffRow({
   label,
@@ -116,38 +149,48 @@ export function DiffRow({
   normalRange,
   disabled,
   hideTrailingUnit,
-  labelWidth = "w-[88px]",
-  inputWidth = "w-[60px]",
+  layout,
+  labelWidth,
+  inputWidth,
 }: DiffRowProps) {
-  const inputCls = cn(
-    "h-7 text-xs bg-white border border-primary/20 rounded px-1 focus:outline-none focus:border-primary dark:bg-input/30",
-    inputWidth,
-    disabled && "pointer-events-none"
-  );
+  const inputId = useId();
+  const resolvedLayout = resolveLayout(layout, labelWidth ?? inputWidth);
 
   return (
-    <div className="flex items-center gap-1.5">
-      <label
-        className={cn(
-          "text-[10px] font-semibold text-primary/60 uppercase tracking-wider shrink-0 text-right pr-1",
-          labelWidth
-        )}
-      >
+    <div className={cn("grid min-w-0 items-center", DIFF_GRID[resolvedLayout])}>
+      <label htmlFor={inputId} className={rowLabelClassName}>
         {label}
       </label>
       <input
+        id={inputId}
         type="text"
         value={value ?? ""}
-        onChange={(e) => onValueChange(e.target.value)}
+        onChange={(event) => onValueChange(event.target.value)}
         readOnly={disabled}
-        className={inputCls}
+        className={cn(inputClassName, disabled && "pointer-events-none bg-muted/30")}
       />
-      {!hideTrailingUnit && (
-        <span className="text-[9px] text-muted-foreground ml-1 w-3 shrink-0">%</span>
-      )}
-      {normalRange && (
-        <span className="text-[9px] text-muted-foreground ml-2 italic">{normalRange}</span>
-      )}
+      <span className={supportingTextClassName}>
+        {hideTrailingUnit ? "" : "%"}
+      </span>
+      <span className={supportingTextClassName}>{normalRange ?? ""}</span>
+    </div>
+  );
+}
+
+/**
+ * Renders the reference-value heading aligned with a differential-count
+ * reference column.
+ */
+export function DiffNormalValuesHeader({
+  layout = "standard",
+}: {
+  layout?: HematologyRowLayout;
+}) {
+  return (
+    <div className={cn("grid items-end", DIFF_GRID[layout])} aria-hidden="true">
+      <span className="col-start-4 text-[11px] font-semibold text-primary">
+        Normal Values
+      </span>
     </div>
   );
 }

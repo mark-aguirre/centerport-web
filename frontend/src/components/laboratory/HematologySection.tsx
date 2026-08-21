@@ -3,28 +3,49 @@
 /**
  * Hematology section for the Laboratory Report form.
  *
- * Three-column layout matching the reference:
- * - Left: CBC (Hemoglobin, Hematocrit, RBC, WBC, Platelet, Blood Type, ESR)
- * - Middle: Differential Count (Lymphocytes, Segmenters, Eosinophils, Monocytes, Myelocytes, Juveniles)
- * - Right: Stab Cells, Basophils, Others
- *
- * Includes a "Repeat Hematology" button that opens the repeat test dialog
- * (only enabled when the record has been persisted).
- *
- * @see RepeatHematologyDialog — popup for managing repeat hematology tests
- * @see HemaRow — shared CBC row component
- * @see DiffRow — shared Differential Count row component
+ * Mirrors the supplied laboratory reference: result date and actions first,
+ * CBC values on the left, and a two-column differential count on the right.
+ * Existing persisted reference ranges are shown when present; unit-only
+ * placeholders are used otherwise so clinical values are never invented.
  */
 
 import { useState } from "react";
+import { Droplets, Printer, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/common/section-header";
-import { Droplets, Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createFieldUpdater } from "./utils";
-import { HemaRow, DiffRow } from "./hematology-row-helpers";
+import {
+  DiffNormalValuesHeader,
+  DiffRow,
+  HemaNormalValuesHeader,
+  HemaRow,
+} from "./hematology-row-helpers";
 import { RepeatHematologyDialog } from "./RepeatHematologyDialog";
 import type { LaboratorySectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
 
+function formatReferenceRange(min: string, max: string, unit: string): string {
+  const minimum = min.trim();
+  const maximum = max.trim();
+
+  if (minimum && maximum) return `${minimum} - ${maximum} ${unit}`;
+  if (minimum || maximum) return `${minimum || maximum} ${unit}`;
+  return unit;
+}
+
+function formatEsrReference(male: string, female: string): string {
+  const maleReference = male.trim();
+  const femaleReference = female.trim();
+
+  return [
+    `${maleReference ? `${maleReference} ` : ""}mm/hr (Male)`,
+    `${femaleReference ? `${femaleReference} ` : ""}mm/hr (Female)`,
+  ].join(" / ");
+}
+
+/**
+ * Displays and edits the hematology portion of a laboratory report.
+ */
 export default function HematologySection({
   data,
   onChange,
@@ -32,224 +53,244 @@ export default function HematologySection({
 }: LaboratorySectionProps) {
   const updateField = createFieldUpdater(data, onChange);
   const [repeatDialogOpen, setRepeatDialogOpen] = useState(false);
+  const hasPersistedReport = Boolean(data.id);
 
   return (
-    <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-      {/* Header row with Repeat Hematology button */}
-      <div className="flex items-center justify-between mb-2">
-        <SectionHeader title="Laboratory Report (Hematology)" icon={Droplets} />
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            disabled={!data.id}
-            onClick={() => setRepeatDialogOpen(true)}
-            className={cn(
-              "text-xs px-3 py-1.5 rounded border border-primary/30 bg-muted hover:bg-primary/10 text-primary/80 font-medium transition-colors",
-              !data.id && "opacity-50 pointer-events-none"
-            )}
-          >
-            Repeat Hematology
-          </button>
-          <button
-            type="button"
-            disabled={!data.id}
-            onClick={() => window.print()}
-            className={cn(
-              "text-xs px-3 py-1.5 rounded border border-primary/30 bg-muted hover:bg-primary/10 text-primary/80 font-medium transition-colors inline-flex items-center gap-1",
-              !data.id && "opacity-50 pointer-events-none"
-            )}
-          >
-            <Printer className="w-3.5 h-3.5" />
-            Print
-          </button>
-        </div>
-      </div>
+    <div className="rounded-lg border border-primary/10 bg-card p-4 shadow-sm">
+      <SectionHeader
+        title="Laboratory Report (Hematology)"
+        icon={Droplets}
+        action={
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!hasPersistedReport}
+              onClick={() => setRepeatDialogOpen(true)}
+              className="cursor-pointer"
+            >
+              <RotateCcw aria-hidden="true" />
+              Repeat Hematology
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={!hasPersistedReport}
+              onClick={() => window.print()}
+              className="cursor-pointer"
+            >
+              <Printer aria-hidden="true" />
+              Print
+            </Button>
+          </div>
+        }
+      />
 
-      {/* Repeat Hematology Dialog */}
       <RepeatHematologyDialog
         open={repeatDialogOpen}
         onOpenChange={setRepeatDialogOpen}
         laboratoryReportId={data.id}
       />
 
-      {/* Result Date */}
-      <div className="mb-4">
-        <div className="w-36">
-          <label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
-            Result Date
-          </label>
-          <input
-            type="date"
-            value={data.hematology_result_date}
-            onChange={(e) => updateField("hematology_result_date", e.target.value)}
-            readOnly={disabled}
-            className={cn(
-              "h-7 w-full text-xs bg-white border border-primary/20 rounded px-2 focus:outline-none focus:border-primary dark:bg-input/30",
-              disabled && "pointer-events-none"
-            )}
-          />
-        </div>
+      <div className="mb-5 flex items-center gap-3">
+        <label
+          htmlFor="hematology-result-date"
+          className="text-[11px] font-bold uppercase tracking-wide text-primary/70"
+        >
+          Result Date:
+        </label>
+        <input
+          id="hematology-result-date"
+          type="date"
+          value={data.hematology_result_date}
+          onChange={(event) =>
+            updateField("hematology_result_date", event.target.value)
+          }
+          readOnly={disabled}
+          className={cn(
+            "h-8 w-40 rounded-md border border-primary/30 bg-white px-2 text-xs shadow-sm transition-colors hover:border-primary/50 focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30",
+            disabled && "pointer-events-none bg-muted/30"
+          )}
+        />
       </div>
 
-      <div className="grid grid-cols-[auto_auto_auto] gap-x-8 items-start">
-        {/* ============ Left Column: CBC ============ */}
-        <div>
-          <div className="space-y-1">
-            <HemaRow
-              label="HEMOGLOBIN:"
-              value={data.hemoglobin}
-              onValueChange={(v) => updateField("hemoglobin", v)}
-              unit="gm/dl"
-              normalRange={`${data.hemoglobin_normal_min} - ${data.hemoglobin_normal_max} gm/dl`}
-              disabled={disabled}
-            />
-            <HemaRow
-              label="HEMATOCRIT:"
-              value={data.hematocrit}
-              onValueChange={(v) => updateField("hematocrit", v)}
-              unit="vol%"
-              normalRange={`${data.hematocrit_normal_min} - ${data.hematocrit_normal_max} vol%`}
-              disabled={disabled}
-            />
-            <HemaRow
-              label="RBC COUNT:"
-              value={data.rbc_count}
-              onValueChange={(v) => updateField("rbc_count", v)}
-              unit="/cumm"
-              normalRange={`${data.rbc_count_normal_min} - ${data.rbc_count_normal_max} m/cumm`}
-              disabled={disabled}
-            />
-            <HemaRow
-              label="WBC COUNT:"
-              value={data.wbc_count}
-              onValueChange={(v) => updateField("wbc_count", v)}
-              unit="/cumm"
-              normalRange={`${data.wbc_count_normal_min} - ${data.wbc_count_normal_max} /cumm`}
-              disabled={disabled}
-            />
-            <HemaRow
-              label="PLATELET:"
-              value={data.platelet}
-              onValueChange={(v) => updateField("platelet", v)}
-              unit="/cumm"
-              normalRange={`${data.platelet_normal_min} - ${data.platelet_normal_max} /cumm`}
-              disabled={disabled}
-            />
+      <div className="grid items-start gap-8 xl:grid-cols-3">
+        <section aria-label="Complete blood count" className="min-w-0 space-y-1.5">
+          <HemaNormalValuesHeader />
+          <HemaRow
+            label="Hemoglobin:"
+            value={data.hemoglobin}
+            onValueChange={(value) => updateField("hemoglobin", value)}
+            unit="gm/dl"
+            normalRange={formatReferenceRange(
+              data.hemoglobin_normal_min,
+              data.hemoglobin_normal_max,
+              "gm/dl"
+            )}
+            disabled={disabled}
+          />
+          <HemaRow
+            label="Hematocrit:"
+            value={data.hematocrit}
+            onValueChange={(value) => updateField("hematocrit", value)}
+            unit="vol%"
+            normalRange={formatReferenceRange(
+              data.hematocrit_normal_min,
+              data.hematocrit_normal_max,
+              "vol%"
+            )}
+            disabled={disabled}
+          />
+          <HemaRow
+            label="RBC Count:"
+            value={data.rbc_count}
+            onValueChange={(value) => updateField("rbc_count", value)}
+            unit="/cumm"
+            normalRange={formatReferenceRange(
+              data.rbc_count_normal_min,
+              data.rbc_count_normal_max,
+              "m/cumm"
+            )}
+            disabled={disabled}
+          />
+          <HemaRow
+            label="WBC Count:"
+            value={data.wbc_count}
+            onValueChange={(value) => updateField("wbc_count", value)}
+            unit="/cumm"
+            normalRange={formatReferenceRange(
+              data.wbc_count_normal_min,
+              data.wbc_count_normal_max,
+              "/cumm"
+            )}
+            disabled={disabled}
+          />
+          <HemaRow
+            label="Platelet:"
+            value={data.platelet}
+            onValueChange={(value) => updateField("platelet", value)}
+            unit="/cumm"
+            normalRange={formatReferenceRange(
+              data.platelet_normal_min,
+              data.platelet_normal_max,
+              "/cumm"
+            )}
+            disabled={disabled}
+          />
+          <HemaRow
+            label="Blood Type:"
+            value={data.blood_type}
+            onValueChange={(value) => updateField("blood_type", value)}
+            unit=""
+            disabled={disabled}
+          />
+          <HemaRow
+            label="ESR:"
+            value={data.esr}
+            onValueChange={(value) => updateField("esr", value)}
+            unit="mm/hr"
+            normalRange={formatEsrReference(
+              data.esr_normal_male,
+              data.esr_normal_female
+            )}
+            disabled={disabled}
+          />
+        </section>
 
-            {/* Blood Type */}
-            <div className="flex items-center">
-              <label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider w-[88px] shrink-0 text-right pr-1">
-                Blood Type:
-              </label>
-              <input
-                type="text"
-                value={data.blood_type}
-                onChange={(e) => updateField("blood_type", e.target.value)}
-                readOnly={disabled}
-                className={cn(
-                  "h-7 w-[72px] text-xs bg-white border border-primary/20 rounded px-1 focus:outline-none focus:border-primary dark:bg-input/30",
-                  disabled && "pointer-events-none"
-                )}
-              />
-            </div>
-
-            {/* ESR */}
-            <div className="flex items-center gap-1">
-              <label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider w-[88px] shrink-0 text-right pr-1">
-                ESR:
-              </label>
-              <input
-                type="text"
-                value={data.esr}
-                onChange={(e) => updateField("esr", e.target.value)}
-                readOnly={disabled}
-                className={cn(
-                  "h-7 w-[72px] text-xs bg-white border border-primary/20 rounded px-1 focus:outline-none focus:border-primary dark:bg-input/30",
-                  disabled && "pointer-events-none"
-                )}
-              />
-              <span className="text-[9px] text-muted-foreground">mm/hr</span>
-              <span className="text-[9px] text-muted-foreground ml-1">mm/hr(MALE)/mm/hr(FEMALE)</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ============ Middle Column: Differential Count ============ */}
-        <div>
-          <h3 className="text-[11px] font-bold text-primary/80 uppercase tracking-wide mb-1.5 text-center">
+        <section
+          aria-labelledby="differential-count-title"
+          className="min-w-0 xl:col-span-2"
+        >
+          <h3
+            id="differential-count-title"
+            className="mb-2 text-center text-sm font-bold uppercase tracking-widest text-foreground"
+          >
             Differential Count:
           </h3>
 
-          <div className="space-y-1">
-            <DiffRow
-              label="LYMPHOCYTES:"
-              value={data.lymphocytes}
-              onValueChange={(v) => updateField("lymphocytes", v)}
-              normalRange={data.lymphocytes_normal_min && data.lymphocytes_normal_max ? `${data.lymphocytes_normal_min}-${data.lymphocytes_normal_max}%` : undefined}
-              disabled={disabled}
-            />
-            <DiffRow
-              label="SEGMENTERS:"
-              value={data.segmenters}
-              onValueChange={(v) => updateField("segmenters", v)}
-              disabled={disabled}
-            />
-            <DiffRow
-              label="EOSINOPHILS:"
-              value={data.eosinophils}
-              onValueChange={(v) => updateField("eosinophils", v)}
-              disabled={disabled}
-            />
-            <DiffRow
-              label="MONOCYTES:"
-              value={data.monocytes}
-              onValueChange={(v) => updateField("monocytes", v)}
-              disabled={disabled}
-            />
-            <DiffRow
-              label="MYELOCYTES:"
-              value={data.myelocytes}
-              onValueChange={(v) => updateField("myelocytes", v)}
-              disabled={disabled}
-            />
-            <DiffRow
-              label="JUVENILES:"
-              value={data.juveniles}
-              onValueChange={(v) => updateField("juveniles", v)}
-              disabled={disabled}
-            />
-          </div>
-        </div>
+          <div className="grid items-start gap-6 md:grid-cols-2">
+            <div className="min-w-0 space-y-1.5">
+              <DiffNormalValuesHeader />
+              <DiffRow
+                label="Lymphocytes:"
+                value={data.lymphocytes}
+                onValueChange={(value) => updateField("lymphocytes", value)}
+                normalRange={formatReferenceRange(
+                  data.lymphocytes_normal_min,
+                  data.lymphocytes_normal_max,
+                  "%"
+                )}
+                disabled={disabled}
+              />
+              <DiffRow
+                label="Segmenters:"
+                value={data.segmenters}
+                onValueChange={(value) => updateField("segmenters", value)}
+                normalRange="%"
+                disabled={disabled}
+              />
+              <DiffRow
+                label="Eosinophils:"
+                value={data.eosinophils}
+                onValueChange={(value) => updateField("eosinophils", value)}
+                normalRange="%"
+                disabled={disabled}
+              />
+              <DiffRow
+                label="Monocytes:"
+                value={data.monocytes}
+                onValueChange={(value) => updateField("monocytes", value)}
+                normalRange="%"
+                disabled={disabled}
+              />
+              <DiffRow
+                label="Myelocytes:"
+                value={data.myelocytes}
+                onValueChange={(value) => updateField("myelocytes", value)}
+                normalRange="%"
+                disabled={disabled}
+              />
+              <DiffRow
+                label="Juveniles:"
+                value={data.juveniles}
+                onValueChange={(value) => updateField("juveniles", value)}
+                normalRange="%"
+                disabled={disabled}
+              />
+            </div>
 
-        {/* ============ Right Column: Stab Cells, Basophils, Others ============ */}
-        <div>
-          <div className="mb-1.5">
-            <span className="text-[10px] font-semibold text-primary/60 italic">&nbsp;</span>
+            <div className="min-w-0 space-y-1.5">
+              <DiffNormalValuesHeader />
+              <DiffRow
+                label="Stab Cells:"
+                value={data.stab_cells}
+                onValueChange={(value) => updateField("stab_cells", value)}
+                normalRange={formatReferenceRange(
+                  data.stab_cells_normal_min,
+                  data.stab_cells_normal_max,
+                  "%"
+                )}
+                disabled={disabled}
+              />
+              <DiffRow
+                label="Basophils:"
+                value={data.basophils}
+                onValueChange={(value) => updateField("basophils", value)}
+                normalRange="%"
+                disabled={disabled}
+              />
+              <DiffRow
+                label="Others:"
+                value={data.others_diff}
+                onValueChange={(value) => updateField("others_diff", value)}
+                normalRange="%"
+                disabled={disabled}
+              />
+            </div>
           </div>
-
-          <div className="space-y-1">
-            <DiffRow
-              label="STAB CELLS:"
-              value={data.stab_cells}
-              onValueChange={(v) => updateField("stab_cells", v)}
-              normalRange={data.stab_cells_normal_min && data.stab_cells_normal_max ? `${data.stab_cells_normal_min}-${data.stab_cells_normal_max}%` : undefined}
-              disabled={disabled}
-            />
-            <DiffRow
-              label="BASOPHILS:"
-              value={data.basophils}
-              onValueChange={(v) => updateField("basophils", v)}
-              disabled={disabled}
-            />
-            <DiffRow
-              label="OTHERS:"
-              value={data.others_diff}
-              onValueChange={(v) => updateField("others_diff", v)}
-              disabled={disabled}
-              hideTrailingUnit
-            />
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   );
