@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -9,6 +9,7 @@ import DeclarationSection from "@/components/mlc/DeclarationSection";
 import FinalRecommendationSection from "@/components/mlc/FinalRecommendationSection";
 import { useMlcForm } from "@/hooks/use-mlc-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
+import { PrintDialog } from "@/components/mlc/PrintDialog";
 import type { MlcRecord } from "@/components/mlc/types";
 
 // ---------------------------------------------------------------------------
@@ -39,6 +40,11 @@ const sectionVariants = {
  */
 function MlcFormContent() {
   const form = useMlcForm();
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+
+  const handlePrint = useCallback(() => {
+    setPrintDialogOpen(true);
+  }, []);
 
   // Personal info section is always read-only (data from profile)
   const preSections = (
@@ -57,13 +63,20 @@ function MlcFormContent() {
   );
 
   return (
-    <FormPage
-      form={form}
-      sections={SECTIONS}
-      getBusinessId={(record) => record?.mlc_id}
-      editGuard={(data) => !!data.last_name}
-      preSections={preSections}
-    />
+    <>
+      <FormPage
+        form={{ ...form, handlePrint }}
+        sections={SECTIONS}
+        getBusinessId={(record) => record?.mlc_id}
+        editGuard={(data) => !!data.last_name}
+        preSections={preSections}
+      />
+      <PrintDialog
+        open={printDialogOpen}
+        onClose={() => setPrintDialogOpen(false)}
+        data={form.existingRecord ?? form.data}
+      />
+    </>
   );
 }
 

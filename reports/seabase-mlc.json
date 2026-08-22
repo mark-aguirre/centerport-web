@@ -1,0 +1,418 @@
+{
+  "outputFileName": "output.pdf",
+  "pages": [
+    {
+      "templateFileName": "seafarer-MLC.jpg",
+      "fields": [
+        {
+          "value": "{{last_name}}",
+          "x": 40,
+          "y": 689,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{first_name}}",
+          "x": 239,
+          "y": 689,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{middle_name}}",
+          "x": 458,
+          "y": 689,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{age}}",
+          "x": 49,
+          "y": 664,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{birthdate}}",
+          "x": 92,
+          "y": 664,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{place_of_birth}}",
+          "x": 238,
+          "y": 664,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{country}}",
+          "x": 382,
+          "y": 664,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{nationality}}",
+          "x": 457,
+          "y": 664,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{gender}}",
+          "x": 122,
+          "y": 642,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{gender}}",
+          "x": 186,
+          "y": 644,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{marital_status}}",
+          "x": 273,
+          "y": 641,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{religion}}",
+          "x": 454,
+          "y": 641,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{address}}",
+          "x": 34,
+          "y": 617,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{passport_no}}",
+          "x": 34,
+          "y": 593,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{position_deck}}",
+          "x": 70,
+          "y": 570,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{position_engine}}",
+          "x": 128,
+          "y": 570,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{position_steward}}",
+          "x": 194,
+          "y": 570,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{position_other}}",
+          "x": 241,
+          "y": 568,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{shipping_company}}",
+          "x": 353,
+          "y": 568,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{sirb_no}}",
+          "x": 352,
+          "y": 593,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{id_documents_checked}}",
+          "x": 452,
+          "y": 536,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{id_documents_checked}}",
+          "x": 524,
+          "y": 536,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{hearing_meets_standards}}",
+          "x": 452,
+          "y": 517,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{hearing_meets_standards}}",
+          "x": 524,
+          "y": 517,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{unaided_hearing_satisfactory}}",
+          "x": 452,
+          "y": 499,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{unaided_hearing_satisfactory}}",
+          "x": 524,
+          "y": 499,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{visual_acuity_meets_standards}}",
+          "x": 452,
+          "y": 482,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{visual_acuity_meets_standards}}",
+          "x": 524,
+          "y": 482,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{colour_vision_meets_standards}}",
+          "x": 452,
+          "y": 464,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{colour_vision_meets_standards}}",
+          "x": 524,
+          "y": 464,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{visual_aids}}",
+          "x": 193,
+          "y": 449,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{visual_aids}}",
+          "x": 302,
+          "y": 449,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{fit_for_lookout}}",
+          "x": 452,
+          "y": 429,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{fit_for_lookout}}",
+          "x": 524,
+          "y": 429,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{no_limitations}}",
+          "x": 452,
+          "y": 407,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{no_limitations}}",
+          "x": 524,
+          "y": 407,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{applicant_condition_risk}}",
+          "x": 475,
+          "y": 353,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{applicant_condition_risk}}",
+          "x": 524,
+          "y": 354,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{photo_url}}",
+          "x": 43,
+          "y": 334,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{last_name}}, {{first_name}} {{middle_name}}",
+          "x": 164,
+          "y": 320,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{fitness_determination}}",
+          "x": 381,
+          "y": 286,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{fitness_determination}}",
+          "x": 543,
+          "y": 286,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{date_of_fitness}}",
+          "x": 260,
+          "y": 231,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{medical_director}}",
+          "x": 164,
+          "y": 197,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{examining_physician}}",
+          "x": 319,
+          "y": 142,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{limitations_details}}",
+          "x": 288,
+          "y": 130,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{last_name}}, {{first_name}} {{middle_name}}",
+          "x": 190,
+          "y": 95,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{date_initial_peme}}",
+          "x": 491,
+          "y": 95,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{date_of_fitness}}",
+          "x": 125,
+          "y": 59,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{valid_until_date}}",
+          "x": 411,
+          "y": 59,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        },
+        {
+          "value": "{{medical_certification_no}}",
+          "x": 357,
+          "y": 46,
+          "fontSize": 12,
+          "fontName": "HELVETICA",
+          "color": "#000000"
+        }
+      ]
+    }
+  ]
+}
