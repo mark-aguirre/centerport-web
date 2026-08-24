@@ -76,8 +76,11 @@ public class PanamaCertificate extends BaseEntity {
     @Column(name = "lookout_duties")
     private String lookoutDuties;
 
-    @Column(name = "routine_emergency_duties")
-    private String routineEmergencyDuties;
+    @Column(name = "routine_duties", columnDefinition = "TEXT")
+    private String routineDuties;
+
+    @Column(name = "emergency_duties", columnDefinition = "TEXT")
+    private String emergencyDuties;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type_of_ship")
@@ -89,6 +92,9 @@ public class PanamaCertificate extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "trade_area")
     private TradeArea tradeArea;
+
+    @Column(name = "trade_area_details", columnDefinition = "TEXT")
+    private String tradeAreaDetails;
 
     // --- Examinee's Personal Declaration — Conditions ---
     @JdbcTypeCode(SqlTypes.JSON)
@@ -157,6 +163,9 @@ public class PanamaCertificate extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "covid_4")
     private YesNo covid4;
+
+    @Column(name = "covid_4_details", columnDefinition = "TEXT")
+    private String covid4Details;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "covid_5")

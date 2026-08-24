@@ -9,11 +9,11 @@
 /** Sex options */
 export type Sex = "Male" | "Female" | "";
 
-/** Type of ship options */
+/** Type of vessel options */
 export type ShipType = "Container" | "Tanker" | "Passenger" | "Others" | "";
 
-/** Trade area options */
-export type TradeArea = "Coastal" | "Tropical" | "Worldwide" | "";
+/** Sailing area options */
+export type TradeArea = "Near-Coastal" | "Oceangoing" | "Others" | "";
 
 /** Yes/No answer type */
 export type YesNo = "yes" | "no" | "";
@@ -35,17 +35,20 @@ export interface PanamaCertificate {
   year: string;
   sex: Sex;
   rh_typing: string;
-  passport_seaman_no: string;
   home_address: string;
+  passport_no: string;
+  seamans_book_no: string;
   department: string;
   crew_position: string;
   lookout_duties: string;
-  routine_emergency_duties: string;
+  routine_duties: string;
+  emergency_duties: string;
   type_of_ship: ShipType;
   type_of_ship_details: string;
   trade_area: TradeArea;
+  trade_area_details: string;
 
-  // Examinee's Personal Declaration — Medical Conditions (1–36)
+  // Examinee's Personal Declaration — Medical Conditions (1–41)
   conditions: Record<string, YesNo>;
   conditions_details: string;
 
@@ -69,6 +72,7 @@ export interface PanamaCertificate {
   covid_2: YesNo;
   covid_3_date: string;
   covid_4: YesNo;
+  covid_4_details: string;
   covid_5: YesNo;
   covid_6_vaccine_type: string;
   covid_6_num_doses: string;
@@ -219,15 +223,18 @@ export const EMPTY_CERTIFICATE: PanamaCertificate = {
   year: "",
   sex: "",
   rh_typing: "",
-  passport_seaman_no: "",
   home_address: "",
+  passport_no: "",
+  seamans_book_no: "",
   department: "",
   crew_position: "",
   lookout_duties: "",
-  routine_emergency_duties: "",
+  routine_duties: "",
+  emergency_duties: "",
   type_of_ship: "",
   type_of_ship_details: "",
   trade_area: "",
+  trade_area_details: "",
 
   // Examinee's Personal Declaration
   conditions: {},
@@ -253,6 +260,7 @@ export const EMPTY_CERTIFICATE: PanamaCertificate = {
   covid_2: "",
   covid_3_date: "",
   covid_4: "",
+  covid_4_details: "",
   covid_5: "",
   covid_6_vaccine_type: "",
   covid_6_num_doses: "",

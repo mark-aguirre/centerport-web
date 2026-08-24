@@ -21,8 +21,8 @@ import java.util.UUID;
  * create/update input — the service layer clears them before persistence.
  *
  * Validation:
- * {@code fullName} is required on create and update operations. All other
- * fields are optional.
+ * {@code seafarerProfileId} is required on create and update operations. All
+ * other fields are optional.
  *
  * @see PanamaCertificate
  * @see PanamaCertificateMapper
@@ -52,10 +52,12 @@ public class PanamaCertificateDto {
     private String rhTyping;
     private String department;
     private String lookoutDuties;
-    private String routineEmergencyDuties;
+    private String routineDuties;
+    private String emergencyDuties;
     private ShipType typeOfShip;
     private String typeOfShipDetails;
     private TradeArea tradeArea;
+    private String tradeAreaDetails;
 
     // --- Conditions ---
     private Map<String, String> conditions;
@@ -95,6 +97,8 @@ public class PanamaCertificateDto {
     private String covid3Date;
     @JsonProperty("covid_4")
     private YesNo covid4;
+    @JsonProperty("covid_4_details")
+    private String covid4Details;
     @JsonProperty("covid_5")
     private YesNo covid5;
     @JsonProperty("covid_6_vaccine_type")

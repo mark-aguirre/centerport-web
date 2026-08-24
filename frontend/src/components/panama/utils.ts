@@ -16,8 +16,22 @@ import {
 // Re-export shared utilities
 export { humanizeField } from "@/lib/form-utils";
 
-/** System-managed fields excluded from Panama certificate update payloads. */
-const SYSTEM_FIELDS = ["id", "panama_id", "created_date", "updated_date"] as const;
+/** Fields excluded from Panama certificate mutation payloads. */
+const MUTATION_EXCLUDED_FIELDS = [
+  "id",
+  "panama_id",
+  "created_date",
+  "updated_date",
+  "full_name",
+  "day",
+  "month",
+  "year",
+  "sex",
+  "home_address",
+  "passport_no",
+  "seamans_book_no",
+  "crew_position",
+] as const;
 
 /**
  * Shape of the nested seafarer profile returned by the Panama API.
@@ -41,10 +55,15 @@ interface NestedSeafarerProfile {
   birthdate?: string;
 }
 
+/** Legacy sailing-area values returned by records created before this form revision. */
+type LegacyTradeArea = "Coastal" | "Tropical" | "Worldwide";
+
 /**
  * Raw Panama certificate shape as returned by the API before flattening.
  */
-export interface RawPanamaResponse extends Partial<PanamaCertificate> {
+export interface RawPanamaResponse
+  extends Omit<Partial<PanamaCertificate>, "trade_area"> {
+  trade_area?: PanamaCertificate["trade_area"] | LegacyTradeArea;
   seafarer_profile?: NestedSeafarerProfile;
   seafarer_profile_id?: string;
 }
@@ -78,8 +97,9 @@ export function flattenProfileIntoRecord(record: RawPanamaResponse): PanamaCerti
           .filter(Boolean)
           .join(", ") || "",
         sex: (profile.gender === "Male" ? "Male" : profile.gender === "Female" ? "Female" : "") as PanamaCertificate["sex"],
-        passport_seaman_no: profile.passport_no ?? profile.seamans_book_no ?? "",
         home_address: profile.address ?? "",
+        passport_no: profile.passport_no ?? "",
+        seamans_book_no: profile.seamans_book_no ?? "",
         crew_position: profile.position ?? "",
         ...parseBirthdate(profile.birthdate),
       }
@@ -96,13 +116,22 @@ export function flattenProfileIntoRecord(record: RawPanamaResponse): PanamaCerti
   }
 
   const coerced = coerceNulls(rest as Record<string, unknown>, fieldDefaults);
+  const sailingAreaData = normalizeSailingArea(
+    record.trade_area,
+    record.trade_area_details
+  );
 
-  return { ...EMPTY_CERTIFICATE, ...coerced, ...personalData } as PanamaCertificate;
+  return {
+    ...EMPTY_CERTIFICATE,
+    ...coerced,
+    ...sailingAreaData,
+    ...personalData,
+  } as PanamaCertificate;
 }
 
 /** Strip system-managed fields from a Panama certificate for API mutations. */
 export function stripSystemFields(record: PanamaCertificate): Partial<PanamaCertificate> {
-  return genericStrip(record, SYSTEM_FIELDS);
+  return genericStrip(record, MUTATION_EXCLUDED_FIELDS);
 }
 
 /** Sanitize payload before sending to the backend. */
@@ -116,6 +145,30 @@ export function createFieldUpdater(
   onChange: (data: PanamaCertificate) => void
 ): (field: keyof PanamaCertificate, value: string | boolean) => void {
   return genericUpdater(data, onChange) as (field: keyof PanamaCertificate, value: string | boolean) => void;
+}
+
+/**
+ * Normalize legacy sailing-area values without rewriting historical database
+ * data. Tropical has no exact new equivalent, so preserve that value in the
+ * visible Others detail field.
+ */
+function normalizeSailingArea(
+  tradeArea?: PanamaCertificate["trade_area"] | LegacyTradeArea,
+  details?: string
+): Pick<PanamaCertificate, "trade_area" | "trade_area_details"> {
+  switch (tradeArea) {
+    case "Coastal":
+      return { trade_area: "Near-Coastal", trade_area_details: details ?? "" };
+    case "Worldwide":
+      return { trade_area: "Oceangoing", trade_area_details: details ?? "" };
+    case "Tropical":
+      return { trade_area: "Others", trade_area_details: details || "Tropical" };
+    default:
+      return {
+        trade_area: tradeArea ?? "",
+        trade_area_details: details ?? "",
+      };
+  }
 }
 
 /**

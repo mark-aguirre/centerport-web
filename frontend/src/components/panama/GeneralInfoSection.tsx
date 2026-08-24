@@ -3,33 +3,43 @@
 import { SectionHeader } from "@/components/common/section-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Info } from "lucide-react";
-import type { PanamaCertificate, PanamaSectionProps, ShipType } from "./types";
+import type {
+  PanamaCertificate,
+  PanamaSectionProps,
+  ShipType,
+  TradeArea,
+} from "./types";
 
-const SHIP_TYPE_OPTIONS = [
+const VESSEL_TYPE_OPTIONS = [
   { label: "Container", value: "Container" },
   { label: "Tanker", value: "Tanker" },
   { label: "Passenger", value: "Passenger" },
-  { label: "Others", value: "Others" },
 ] as const;
 
-const TRADE_AREA_OPTIONS = [
-  { label: "Coastal", value: "Coastal" },
-  { label: "Tropical", value: "Tropical" },
-  { label: "Worldwide", value: "Worldwide" },
+const SAILING_AREA_OPTIONS = [
+  { label: "Near-Coastal", value: "Near-Coastal" },
+  { label: "Oceangoing", value: "Oceangoing" },
 ] as const;
 
 const INPUT_CLASSES = cn(
-  "h-8 bg-white px-2 text-xs border border-primary/20 rounded-md",
+  "h-8 rounded-md border border-primary/20 bg-white px-2 text-xs",
+  "transition-colors hover:border-primary/50 focus-visible:border-primary",
+  "focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30",
+  "disabled:cursor-not-allowed disabled:bg-muted/30 disabled:opacity-70"
+);
+const TEXTAREA_CLASSES = cn(
+  "min-h-16 resize-none rounded-md border border-primary/20 bg-white px-3 py-2 text-sm",
   "transition-colors hover:border-primary/50 focus-visible:border-primary",
   "focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30",
   "disabled:cursor-not-allowed disabled:bg-muted/30 disabled:opacity-70"
 );
 const LABEL_CLASSES =
-  "text-[11px] font-semibold uppercase tracking-wider text-primary/60 whitespace-nowrap";
+  "text-[11px] font-semibold uppercase leading-snug tracking-wider text-primary/60";
 const ROW_CLASSES =
-  "grid grid-cols-1 gap-1.5 py-1.5 md:grid-cols-[200px_minmax(0,1fr)] md:items-center md:gap-3";
+  "grid grid-cols-1 gap-1.5 py-1.5 md:grid-cols-[260px_minmax(0,1fr)] md:items-center md:gap-3";
 
 /**
  * Panama Medical Certificate General Information section.
@@ -48,19 +58,34 @@ export default function GeneralInfoSection({
     value: PanamaCertificate[K]
   ) => onChange({ ...data, [field]: value });
 
-  const updateShipType = (shipType: Exclude<ShipType, "">) => {
+  const updateVesselType = (vesselType: Exclude<ShipType, "" | "Others">) => {
     onChange({
       ...data,
-      type_of_ship: shipType,
-      type_of_ship_details:
-        shipType === "Others" ? data.type_of_ship_details : "",
+      type_of_ship: vesselType,
+      type_of_ship_details: "",
     });
+  };
+
+  const updateOtherVesselType = (details: string) => {
+    onChange({ ...data, type_of_ship: "Others", type_of_ship_details: details });
+  };
+
+  const updateSailingArea = (sailingArea: Exclude<TradeArea, "" | "Others">) => {
+    onChange({
+      ...data,
+      trade_area: sailingArea,
+      trade_area_details: "",
+    });
+  };
+
+  const updateOtherSailingArea = (details: string) => {
+    onChange({ ...data, trade_area: "Others", trade_area_details: details });
   };
 
   return (
     <div className="rounded-lg border border-primary/10 bg-card p-4 shadow-sm">
       <SectionHeader
-        title="General Information"
+        title="I. General Information"
         icon={Info}
         subtitle="Seafarer identity and assignment details"
       />
@@ -68,7 +93,7 @@ export default function GeneralInfoSection({
       <div className="divide-y divide-primary/10">
         <div className={ROW_CLASSES}>
           <Label htmlFor="panama-full-name" className={LABEL_CLASSES}>
-            Fullname:
+            Name (last, first, middle):
           </Label>
           <Input
             id="panama-full-name"
@@ -150,18 +175,6 @@ export default function GeneralInfoSection({
         </div>
 
         <div className={ROW_CLASSES}>
-          <Label htmlFor="panama-passport-seaman" className={LABEL_CLASSES}>
-            Passport / Seaman No.:
-          </Label>
-          <Input
-            id="panama-passport-seaman"
-            value={data.passport_seaman_no}
-            disabled
-            className={cn(INPUT_CLASSES, "min-w-0")}
-          />
-        </div>
-
-        <div className={ROW_CLASSES}>
           <Label htmlFor="panama-home-address" className={LABEL_CLASSES}>
             Home address:
           </Label>
@@ -174,27 +187,51 @@ export default function GeneralInfoSection({
         </div>
 
         <div className={ROW_CLASSES}>
+          <Label htmlFor="panama-passport-number" className={LABEL_CLASSES}>
+            Passport No. :
+          </Label>
+          <Input
+            id="panama-passport-number"
+            value={data.passport_no}
+            disabled
+            className={cn(INPUT_CLASSES, "min-w-0")}
+          />
+        </div>
+
+        <div className={ROW_CLASSES}>
+          <Label htmlFor="panama-seaman-book-number" className={LABEL_CLASSES}>
+            Seaman Book No:
+          </Label>
+          <Input
+            id="panama-seaman-book-number"
+            value={data.seamans_book_no}
+            disabled
+            className={cn(INPUT_CLASSES, "min-w-0")}
+          />
+        </div>
+
+        <div className={ROW_CLASSES}>
           <Label htmlFor="panama-department" className={LABEL_CLASSES}>
-            Department:
+            Department (deck/engine/radio communication/food handlers/other):
           </Label>
           <Input
             id="panama-department"
             value={data.department}
             onChange={(event) => update("department", event.target.value)}
             disabled={disabled}
-            className={cn(INPUT_CLASSES, "w-full sm:w-72")}
+            className={cn(INPUT_CLASSES, "min-w-0")}
           />
         </div>
 
         <div className={ROW_CLASSES}>
           <Label htmlFor="panama-crew-position" className={LABEL_CLASSES}>
-            Crew position:
+            Crew positions:
           </Label>
           <Input
             id="panama-crew-position"
             value={data.crew_position}
             disabled
-            className={cn(INPUT_CLASSES, "w-full sm:w-72")}
+            className={cn(INPUT_CLASSES, "min-w-0")}
           />
         </div>
 
@@ -211,30 +248,41 @@ export default function GeneralInfoSection({
           />
         </div>
 
-        <div className={ROW_CLASSES}>
-          <Label htmlFor="panama-routine-duties" className={LABEL_CLASSES}>
-            Routine and emergency duties:
+        <div className={cn(ROW_CLASSES, "md:items-start")}>
+          <Label htmlFor="panama-routine-duties" className={cn(LABEL_CLASSES, "md:pt-2")}>
+            Routine duties:
           </Label>
-          <Input
+          <Textarea
             id="panama-routine-duties"
-            value={data.routine_emergency_duties}
-            onChange={(event) =>
-              update("routine_emergency_duties", event.target.value)
-            }
+            value={data.routine_duties}
+            onChange={(event) => update("routine_duties", event.target.value)}
             disabled={disabled}
-            className={cn(INPUT_CLASSES, "min-w-0")}
+            className={TEXTAREA_CLASSES}
+          />
+        </div>
+
+        <div className={cn(ROW_CLASSES, "md:items-start")}>
+          <Label htmlFor="panama-emergency-duties" className={cn(LABEL_CLASSES, "md:pt-2")}>
+            Emergency duties:
+          </Label>
+          <Textarea
+            id="panama-emergency-duties"
+            value={data.emergency_duties}
+            onChange={(event) => update("emergency_duties", event.target.value)}
+            disabled={disabled}
+            className={TEXTAREA_CLASSES}
           />
         </div>
 
         <div className={ROW_CLASSES}>
-          <Label className={LABEL_CLASSES}>Type of ship:</Label>
+          <Label className={LABEL_CLASSES}>Type of vessel:</Label>
           <div className="flex min-w-0 flex-col gap-2 py-0.5">
             <div
               className="flex flex-wrap items-center gap-4"
               role="radiogroup"
-              aria-label="Type of ship"
+              aria-label="Type of vessel"
             >
-              {SHIP_TYPE_OPTIONS.map((option) => (
+              {VESSEL_TYPE_OPTIONS.map((option) => (
                 <label
                   key={option.value}
                   className={cn(
@@ -244,62 +292,75 @@ export default function GeneralInfoSection({
                 >
                   <input
                     type="radio"
-                    name="panama_type_of_ship"
+                    name="panama_type_of_vessel"
                     checked={data.type_of_ship === option.value}
-                    onChange={() => updateShipType(option.value)}
+                    onChange={() => updateVesselType(option.value)}
                     disabled={disabled}
                     className="h-4 w-4 accent-primary"
-                    aria-label={`Type of ship - ${option.label}`}
+                    aria-label={`Type of vessel - ${option.label}`}
                   />
-                  <span className="text-xs text-foreground/80">
-                    {option.label}
-                  </span>
+                  <span className="text-xs text-foreground/80">{option.label}</span>
                 </label>
               ))}
             </div>
-            <Input
-              id="panama-type-of-ship-details"
-              value={data.type_of_ship_details}
-              onChange={(event) =>
-                update("type_of_ship_details", event.target.value)
-              }
-              disabled={disabled || data.type_of_ship !== "Others"}
-              placeholder="Specify other ship type"
-              aria-label="Other ship type"
-              className={cn(INPUT_CLASSES, "min-w-0")}
-            />
+            <div className="flex items-center gap-2">
+              <Label htmlFor="panama-type-of-vessel-details" className={LABEL_CLASSES}>
+                Others:
+              </Label>
+              <Input
+                id="panama-type-of-vessel-details"
+                value={data.type_of_ship_details}
+                onChange={(event) => updateOtherVesselType(event.target.value)}
+                disabled={disabled}
+                aria-label="Other vessel type"
+                className={cn(INPUT_CLASSES, "min-w-0 flex-1")}
+              />
+            </div>
           </div>
         </div>
 
         <div className={cn(ROW_CLASSES, "border-b-0")}>
-          <Label className={LABEL_CLASSES}>Trade area:</Label>
-          <div
-            className="flex flex-wrap items-center gap-4"
-            role="radiogroup"
-            aria-label="Trade area"
-          >
-            {TRADE_AREA_OPTIONS.map((option) => (
-              <label
-                key={option.value}
-                className={cn(
-                  "flex items-center gap-1.5",
-                  !disabled && "cursor-pointer"
-                )}
-              >
-                <input
-                  type="radio"
-                  name="panama_trade_area"
-                  checked={data.trade_area === option.value}
-                  onChange={() => update("trade_area", option.value)}
-                  disabled={disabled}
-                  className="h-4 w-4 accent-primary"
-                  aria-label={`Trade area - ${option.label}`}
-                />
-                <span className="text-xs text-foreground/80">
-                  {option.label}
-                </span>
-              </label>
-            ))}
+          <Label className={LABEL_CLASSES}>Sailing area:</Label>
+          <div className="flex min-w-0 flex-col gap-2 py-0.5">
+            <div
+              className="flex flex-wrap items-center gap-4"
+              role="radiogroup"
+              aria-label="Sailing area"
+            >
+              {SAILING_AREA_OPTIONS.map((option) => (
+                <label
+                  key={option.value}
+                  className={cn(
+                    "flex items-center gap-1.5",
+                    !disabled && "cursor-pointer"
+                  )}
+                >
+                  <input
+                    type="radio"
+                    name="panama_sailing_area"
+                    checked={data.trade_area === option.value}
+                    onChange={() => updateSailingArea(option.value)}
+                    disabled={disabled}
+                    className="h-4 w-4 accent-primary"
+                    aria-label={`Sailing area - ${option.label}`}
+                  />
+                  <span className="text-xs text-foreground/80">{option.label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="panama-sailing-area-details" className={LABEL_CLASSES}>
+                Others:
+              </Label>
+              <Input
+                id="panama-sailing-area-details"
+                value={data.trade_area_details}
+                onChange={(event) => updateOtherSailingArea(event.target.value)}
+                disabled={disabled}
+                aria-label="Other sailing area"
+                className={cn(INPUT_CLASSES, "min-w-0 flex-1")}
+              />
+            </div>
           </div>
         </div>
       </div>

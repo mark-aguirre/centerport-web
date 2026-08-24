@@ -14,6 +14,39 @@ import {
 import { Button } from "@/components/ui/button";
 import type { MlcRecord } from "@/components/mlc/types";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+
+/** Resolve a photo URL — prepends the API base if it's a relative path. */
+function resolvePhotoUrl(url: string | undefined): string {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  return `${API_BASE}${url}`;
+}
+
+/**
+ * Fetches an image from a URL and returns it as a base64 data URL.
+ * Returns empty string if the fetch fails or the URL is empty.
+ */
+async function fetchPhotoAsBase64(url: string | undefined): Promise<string> {
+  const resolved = resolvePhotoUrl(url);
+  if (!resolved) return "";
+
+  try {
+    const response = await fetch(resolved);
+    if (!response.ok) return "";
+
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve("");
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return "";
+  }
+}
+
 interface PrintDialogProps {
   /** Whether the dialog is open. */
   open: boolean;
@@ -27,12 +60,15 @@ interface PrintDialogProps {
  * Builds the PrintIO payload from the current MLC form data.
  *
  * Maps frontend field names to the PrintIO template variable names.
+ * Fetches the photo and converts it to base64 for inline embedding.
  */
-function buildPrintPayload(data: MlcRecord): Record<string, string> {
+async function buildPrintPayload(data: MlcRecord): Promise<Record<string, string>> {
   const lastName = data.last_name ?? "";
   const firstName = data.first_name ?? "";
   const middleName = data.middle_name ?? "";
   const fullname = [lastName, firstName, middleName].filter(Boolean).join(", ");
+
+  const photoBase64 = await fetchPhotoAsBase64(data.photo_url);
 
   return {
     fullname,
@@ -65,7 +101,7 @@ function buildPrintPayload(data: MlcRecord): Record<string, string> {
     date_colour_vision_test: data.date_colour_vision_test ?? "",
     no_limitations: data.no_limitations ?? "",
     applicant_condition_risk: data.applicant_condition_risk ?? "",
-    photo_url: "",
+    photo_url: photoBase64,
     fitness_determination: data.fitness_determination ?? "",
     date_of_fitness: data.date_of_fitness ?? "",
     medical_director: data.medical_director ?? "",
@@ -95,7 +131,7 @@ export function PrintDialog({ open, onClose, data }: PrintDialogProps) {
 
     setGenerating(true);
     try {
-      const payload = buildPrintPayload(data);
+      const payload = await buildPrintPayload(data);
 
       const response = await fetch("/api/print/mlc", {
         method: "POST",

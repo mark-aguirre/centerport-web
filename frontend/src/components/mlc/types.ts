@@ -56,6 +56,7 @@ export interface MlcRecord {
   contact_no: string;
   employer: string;
   position: string;
+  photo_url: string;
 
   // Additional Seafarer Details
   date_of_birth: string;
@@ -133,6 +134,7 @@ export const EMPTY_MLC: MlcRecord = {
   contact_no: "",
   employer: "",
   position: "",
+  photo_url: "",
 
   // Additional Seafarer Details
   date_of_birth: "",

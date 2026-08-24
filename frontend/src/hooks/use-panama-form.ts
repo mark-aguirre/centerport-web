@@ -58,8 +58,9 @@ const panamaConfig: EntityFormConfig<PanamaCertificate> = {
       month,
       year,
       sex: (profile.gender === "Male" ? "Male" : profile.gender === "Female" ? "Female" : "") as PanamaCertificate["sex"],
-      passport_seaman_no: profile.passport_no || profile.seamans_book_no || "",
       home_address: profile.address ?? "",
+      passport_no: profile.passport_no ?? "",
+      seamans_book_no: profile.seamans_book_no ?? "",
       crew_position: profile.position ?? "",
     };
   },

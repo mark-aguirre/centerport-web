@@ -4,10 +4,15 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Maritime trade area classification for Panama certificates.
+ * Sailing area classification for Panama certificates.
  * Affects which medical standards and fitness criteria apply.
  */
 public enum TradeArea {
+    NEAR_COASTAL("Near-Coastal"),
+    OCEANGOING("Oceangoing"),
+    OTHERS("Others"),
+
+    /** Legacy values retained so records created before migration V23 remain readable. */
     COASTAL("Coastal"),
     TROPICAL("Tropical"),
     WORLDWIDE("Worldwide");
@@ -28,9 +33,9 @@ public enum TradeArea {
         if (value == null || value.isEmpty()) {
             return null;
         }
-        for (TradeArea t : values()) {
-            if (t.value.equals(value)) {
-                return t;
+        for (TradeArea tradeArea : values()) {
+            if (tradeArea.value.equals(value)) {
+                return tradeArea;
             }
         }
         throw new IllegalArgumentException("Invalid TradeArea: " + value);

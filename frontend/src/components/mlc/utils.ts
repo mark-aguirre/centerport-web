@@ -24,6 +24,7 @@ const SYSTEM_FIELDS = ["id", "mlc_id", "created_date", "updated_date"] as const;
  */
 interface NestedSeafarerProfile {
   id?: string;
+  photo_url?: string;
   last_name?: string;
   first_name?: string;
   middle_name?: string;
@@ -66,6 +67,7 @@ export function flattenProfileIntoRecord(record: RawMlcResponse): MlcRecord {
   const personalData: Partial<MlcRecord> = profile
     ? {
         seafarer_profile_id: profile.id ?? record.seafarer_profile_id,
+        photo_url: profile.photo_url ?? "",
         last_name: profile.last_name ?? "",
         first_name: profile.first_name ?? "",
         middle_name: profile.middle_name ?? "",
