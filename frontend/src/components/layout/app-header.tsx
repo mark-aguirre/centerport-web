@@ -41,15 +41,25 @@ export function AppHeader({ onToggleSidebar, sidebarCollapsed }: AppHeaderProps)
       </Button>
 
       {/* Page Title */}
-      <div className="flex items-center gap-3">
-        <h1 className="text-base font-bold tracking-tight">{pageTitle}</h1>
+      <div className="flex min-w-0 items-center gap-3">
+        <h1 className="truncate text-base font-bold tracking-tight">{pageTitle}</h1>
         {currentNav?.subtitle && (
-          <span className="text-sm text-muted-foreground font-normal">{currentNav.subtitle}</span>
+          <span className="hidden truncate text-sm font-normal text-muted-foreground 2xl:inline">
+            {currentNav.subtitle}
+          </span>
         )}
       </div>
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Page-level actions are injected here by form pages on large screens. */}
+      <div
+        id="app-header-actions"
+        role="toolbar"
+        aria-label="Page actions"
+        className="hidden shrink-0 items-center lg:flex"
+      />
 
       {/* Right Section */}
       <div className="flex items-center gap-2">

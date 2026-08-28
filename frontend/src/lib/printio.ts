@@ -38,9 +38,26 @@ export async function handlePrintRequest(
 ): Promise<NextResponse> {
   const { apiKey, filename = "report.pdf" } = config;
 
-  try {
-    const payload = await request.json();
+  if (!apiKey) {
+    console.error("PrintIO: API key is missing or undefined");
+    return NextResponse.json(
+      { message: "Print service is not configured (missing API key)" },
+      { status: 500 }
+    );
+  }
 
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    console.error("PrintIO: Failed to parse request body");
+    return NextResponse.json(
+      { message: "Invalid request body" },
+      { status: 400 }
+    );
+  }
+
+  try {
     // Step 1: Exchange API key for access token
     const tokenResponse = await fetch(`${PRINTIO_BASE_URL}/api/auth/token`, {
       method: "POST",
@@ -93,14 +110,17 @@ export async function handlePrintRequest(
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename=${filename}`,
+        "Content-Disposition": `inline; filename="${filename}"`,
         "Content-Length": String(pdfBuffer.byteLength),
       },
     });
   } catch (error) {
-    console.error("PrintIO route error:", error);
+    const message = error instanceof Error ? error.message : String(error);
+    const stack = error instanceof Error ? error.stack : undefined;
+    console.error("PrintIO route error:", message);
+    if (stack) console.error("PrintIO route stack:", stack);
     return NextResponse.json(
-      { message: "Internal server error while generating report" },
+      { message: `Print service error: ${message}` },
       { status: 500 }
     );
   }

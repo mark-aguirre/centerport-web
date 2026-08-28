@@ -18,4 +18,5 @@ public class OtherLabTestResult {
     private String normal;
     private String abnormal;
     private String observations;
+    private String performedDate;
 }

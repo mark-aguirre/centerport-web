@@ -17,7 +17,7 @@ const LAB_CATEGORIES = [
     items: [{ key: "hemogram", label: "Hemogram" }],
   },
   {
-    category: "BLOOD",
+    category: "BLOOD CHEMISTRY",
     items: [
       { key: "lipid_profile", label: "Lipid Profile" },
       { key: "creatinine", label: "Creatinine" },
@@ -41,29 +41,32 @@ const LAB_CATEGORIES = [
     items: [{ key: "general_urin", label: "*General urin", mandatory: true }],
   },
   {
-    category: "STOOL",
-    items: [{ key: "stool_transit", label: "*Stool (transit parasitosis)", mandatory: true }],
+    category: "STOOL ANALYSIS",
+    items: [{ key: "stool_transit", label: "*Stool (food handlers)", mandatory: true }],
   },
   {
-    category: "TOXICOLOGIC",
+    category: "TOXICOLOGIC TEST (urine)",
     items: [
-      { key: "drug_test", label: "*Drug test", mandatory: true },
+      { key: "drug_test", label: "*Drug test (cocaine and Cannabis)", mandatory: true },
       { key: "alcohol", label: "*Alcohol", mandatory: true },
     ],
   },
 ];
 
 /** Other tests with checkboxes */
-const OTHER_TESTS = [
-  { key: "breast_examination", label: "Breast examination / female" },
+const OTHER_TESTS_GROUP_1 = [
+  { key: "breast_examination", label: "Breast examination female" },
   { key: "pap_test", label: "PAP Test" },
-  { key: "psa_men", label: "PSA men (over 50)" },
-  { key: "chest_xray", label: "Chest X ray" },
-  { key: "ekg", label: "EKG (over 50)" },
+];
+
+const OTHER_TESTS_GROUP_2 = [
+  { key: "psa_men", label: "PSA men (over 40 years)" },
+  { key: "chest_xray", label: "Chest X-ray", hasDate: true },
+  { key: "ekg", label: "EKG (over 50 years)", hasDate: true },
 ];
 
 const EMPTY_LAB_RESULT: LabTestResult = { normal: "", abnormal: "", observations: "" };
-const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abnormal: "", observations: "" };
+const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abnormal: "", observations: "", performedDate: "" };
 
 /**
  * Panama Medical Certificate — Diagnostic Test and Results section (Section V)
@@ -100,8 +103,8 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
     });
 
     const normalOtherTests: Record<string, OtherLabTestResult> = {};
-    OTHER_TESTS.forEach((item) => {
-      normalOtherTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "" };
+    [...OTHER_TESTS_GROUP_1, ...OTHER_TESTS_GROUP_2].forEach((item) => {
+      normalOtherTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "", performedDate: "" };
     });
 
     onChange({
@@ -117,10 +120,11 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
-        title="Diagnostic Test and Results"
+        title="v. Diagnostic Test and Results"
         icon={FlaskConical}
         subtitle="at medical discretion"
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+        titleStyle={{ textTransform: "none" }}
       />
 
       {/* Laboratory Test heading */}
@@ -160,6 +164,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
                       className="w-4 h-4 accent-primary rounded"
                       aria-label={item.label}
                       tabIndex={disabled ? -1 : undefined}
+                      disabled
                     />
                     <span className="text-xs text-foreground/80">{item.label}</span>
                   </label>
@@ -196,21 +201,24 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
 
       {/* Other Tests section */}
       <div className="border-t border-primary/10 pt-3 mb-4">
-        <h4 className="text-xs font-bold text-foreground/80 mb-2">Other test</h4>
+        <h4 className="text-xs font-bold text-foreground/80 mb-2">Other test:</h4>
 
-        {/* Other tests header */}
-        <div className="grid grid-cols-[2fr_1fr_1fr_3fr] gap-1 mb-1 px-1">
+        {/* Table header */}
+        <div className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 mb-1 px-1">
+          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider" />
           <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider" />
           <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider text-center">Normal</span>
-          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider text-center">Abnormal</span>
+          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider text-center">Anormal</span>
           <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">Observations</span>
         </div>
 
-        {OTHER_TESTS.map((item) => {
+        {/* Group 1: Breast examination & PAP Test */}
+        {OTHER_TESTS_GROUP_1.map((item) => {
           const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
           return (
-            <div key={item.key} className="grid grid-cols-[2fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-              <label className={cn("flex items-center gap-2 cursor-pointer pl-10", disabled && "pointer-events-none")}>
+            <div key={item.key} className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
+              <span className="text-xs text-foreground/80 pl-2">{item.label}</span>
+              <div className="flex justify-center">
                 <input
                   type="checkbox"
                   checked={result.checked}
@@ -218,9 +226,9 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
                   className="w-4 h-4 accent-primary rounded"
                   aria-label={item.label}
                   tabIndex={disabled ? -1 : undefined}
+                  disabled={disabled}
                 />
-                <span className="text-xs text-foreground/80">{item.label}</span>
-              </label>
+              </div>
               <Input
                 value={result.normal}
                 onChange={(e) => updateOtherTest(item.key, "normal", e.target.value)}
@@ -245,12 +253,84 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
             </div>
           );
         })}
+
+        {/* Separator between groups */}
+        <div className="my-2 border-t border-muted/30" />
+
+        {/* Group 2: PSA, Chest X-ray, EKG — with optional date fields */}
+        {OTHER_TESTS_GROUP_2.map((item) => {
+          const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
+          return (
+            <div key={item.key} className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
+              <span className="text-xs text-foreground/80 pl-2">{item.label}</span>
+              <div className="flex justify-center">
+                <input
+                  type="checkbox"
+                  checked={result.checked}
+                  onChange={(e) => updateOtherTest(item.key, "checked", e.target.checked)}
+                  className={cn("w-4 h-4 accent-primary rounded", disabled && "pointer-events-none")}
+                  aria-label={item.label}
+                  tabIndex={disabled ? -1 : undefined}
+                  disabled={disabled}
+                />
+              </div>
+              {item.hasDate ? (
+                <>
+                  <div className="col-span-2">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-foreground/60 whitespace-nowrap">Performed (dd/mm/yyyy):</span>
+                      <Input
+                        type="date"
+                        value={result.performedDate || ""}
+                        onChange={(e) => updateOtherTest(item.key, "performedDate", e.target.value)}
+                        className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30 flex-1", disabled && "pointer-events-none")}
+                        aria-label={`${item.label} - Performed date`}
+                        readOnly={disabled}
+                      />
+                    </div>
+                  </div>
+                  <Input
+                    value={result.observations}
+                    onChange={(e) => updateOtherTest(item.key, "observations", e.target.value)}
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    aria-label={`${item.label} - Observations`}
+                    readOnly={disabled}
+                  />
+                </>
+              ) : (
+                <>
+                  <Input
+                    value={result.normal}
+                    onChange={(e) => updateOtherTest(item.key, "normal", e.target.value)}
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    aria-label={`${item.label} - Normal`}
+                    readOnly={disabled}
+                  />
+                  <Input
+                    value={result.abnormal}
+                    onChange={(e) => updateOtherTest(item.key, "abnormal", e.target.value)}
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    aria-label={`${item.label} - Abnormal`}
+                    readOnly={disabled}
+                  />
+                  <Input
+                    value={result.observations}
+                    onChange={(e) => updateOtherTest(item.key, "observations", e.target.value)}
+                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    aria-label={`${item.label} - Observations`}
+                    readOnly={disabled}
+                  />
+                </>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* VI. Other Diagnostic Tests and Results */}
       <div className="border-t border-primary/10 pt-4">
-        <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-3">
-          Other Diagnostic Tests and Results
+        <h3 className="text-xs font-bold text-primary italic tracking-wide mb-3">
+          <span className="lowercase">vi.</span> OTHER DIAGNOSTIC TESTS AND RESULTS:
         </h3>
 
         <div className="grid grid-cols-2 gap-2 mb-3">

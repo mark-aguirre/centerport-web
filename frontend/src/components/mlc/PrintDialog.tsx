@@ -12,6 +12,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { printPdfBlob } from "@/lib/print-pdf";
 import type { MlcRecord } from "@/components/mlc/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
@@ -151,22 +152,9 @@ export function PrintDialog({ open, onClose, data }: PrintDialogProps) {
       }
 
       const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
 
-      // Open PDF in new tab for print preview
-      const newTab = window.open(blobUrl, "_blank");
-      if (!newTab) {
-        // Fallback: trigger download if popup was blocked
-        const link = document.createElement("a");
-        link.href = blobUrl;
-        link.download = "mlc-certificate.pdf";
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-
-      // Clean up blob URL after a delay
-      setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
+      // Load the PDF into a hidden iframe and open the browser print dialog.
+      await printPdfBlob(blob);
 
       onClose();
     } catch (error) {
@@ -179,10 +167,10 @@ export function PrintDialog({ open, onClose, data }: PrintDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md" aria-describedby="print-dialog-description">
         <DialogHeader>
           <DialogTitle>Print Report</DialogTitle>
-          <DialogDescription>
+          <DialogDescription id="print-dialog-description">
             Generate the MLC Health Certificate report for this record.
           </DialogDescription>
         </DialogHeader>

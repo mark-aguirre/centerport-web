@@ -28,13 +28,13 @@ const INPUT_CLASSES = cn(
   "h-8 rounded-md border border-primary/20 bg-white px-2 text-xs",
   "transition-colors hover:border-primary/50 focus-visible:border-primary",
   "focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30",
-  "disabled:cursor-not-allowed disabled:bg-muted/30 disabled:opacity-70"
+  "disabled:cursor-not-allowed disabled:pointer-events-none"
 );
 const TEXTAREA_CLASSES = cn(
   "min-h-16 resize-none rounded-md border border-primary/20 bg-white px-3 py-2 text-sm",
   "transition-colors hover:border-primary/50 focus-visible:border-primary",
   "focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30",
-  "disabled:cursor-not-allowed disabled:bg-muted/30 disabled:opacity-70"
+  "disabled:cursor-not-allowed disabled:pointer-events-none"
 );
 const LABEL_CLASSES =
   "text-[11px] font-semibold uppercase leading-snug tracking-wider text-primary/60";
@@ -169,7 +169,8 @@ export default function GeneralInfoSection({
             id="panama-rh-typing"
             value={data.rh_typing}
             onChange={(event) => update("rh_typing", event.target.value)}
-            disabled={disabled}
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
             className={cn(INPUT_CLASSES, "w-full sm:w-52")}
           />
         </div>
@@ -181,7 +182,8 @@ export default function GeneralInfoSection({
           <Input
             id="panama-home-address"
             value={data.home_address}
-            disabled
+            readOnly
+            tabIndex={-1}
             className={cn(INPUT_CLASSES, "min-w-0")}
           />
         </div>
@@ -193,7 +195,8 @@ export default function GeneralInfoSection({
           <Input
             id="panama-passport-number"
             value={data.passport_no}
-            disabled
+            readOnly
+            tabIndex={-1}
             className={cn(INPUT_CLASSES, "min-w-0")}
           />
         </div>
@@ -205,7 +208,8 @@ export default function GeneralInfoSection({
           <Input
             id="panama-seaman-book-number"
             value={data.seamans_book_no}
-            disabled
+            readOnly
+            tabIndex={-1}
             className={cn(INPUT_CLASSES, "min-w-0")}
           />
         </div>
@@ -218,7 +222,8 @@ export default function GeneralInfoSection({
             id="panama-department"
             value={data.department}
             onChange={(event) => update("department", event.target.value)}
-            disabled={disabled}
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
             className={cn(INPUT_CLASSES, "min-w-0")}
           />
         </div>
@@ -230,7 +235,8 @@ export default function GeneralInfoSection({
           <Input
             id="panama-crew-position"
             value={data.crew_position}
-            disabled
+            readOnly
+            tabIndex={-1}
             className={cn(INPUT_CLASSES, "min-w-0")}
           />
         </div>
@@ -243,7 +249,8 @@ export default function GeneralInfoSection({
             id="panama-lookout-duties"
             value={data.lookout_duties}
             onChange={(event) => update("lookout_duties", event.target.value)}
-            disabled={disabled}
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
             className={cn(INPUT_CLASSES, "min-w-0")}
           />
         </div>
@@ -256,7 +263,8 @@ export default function GeneralInfoSection({
             id="panama-routine-duties"
             value={data.routine_duties}
             onChange={(event) => update("routine_duties", event.target.value)}
-            disabled={disabled}
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
             className={TEXTAREA_CLASSES}
           />
         </div>
@@ -269,7 +277,8 @@ export default function GeneralInfoSection({
             id="panama-emergency-duties"
             value={data.emergency_duties}
             onChange={(event) => update("emergency_duties", event.target.value)}
-            disabled={disabled}
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
             className={TEXTAREA_CLASSES}
           />
         </div>
@@ -278,26 +287,23 @@ export default function GeneralInfoSection({
           <Label className={LABEL_CLASSES}>Type of vessel:</Label>
           <div className="flex min-w-0 flex-col gap-2 py-0.5">
             <div
-              className="flex flex-wrap items-center gap-4"
+              className={cn("flex flex-wrap items-center gap-4", disabled && "pointer-events-none")}
               role="radiogroup"
               aria-label="Type of vessel"
             >
               {VESSEL_TYPE_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className={cn(
-                    "flex items-center gap-1.5",
-                    !disabled && "cursor-pointer"
-                  )}
+                  className="flex items-center gap-1.5 cursor-pointer"
                 >
                   <input
                     type="radio"
                     name="panama_type_of_vessel"
                     checked={data.type_of_ship === option.value}
                     onChange={() => updateVesselType(option.value)}
-                    disabled={disabled}
                     className="h-4 w-4 accent-primary"
                     aria-label={`Type of vessel - ${option.label}`}
+                    tabIndex={disabled ? -1 : undefined}
                   />
                   <span className="text-xs text-foreground/80">{option.label}</span>
                 </label>
@@ -311,7 +317,8 @@ export default function GeneralInfoSection({
                 id="panama-type-of-vessel-details"
                 value={data.type_of_ship_details}
                 onChange={(event) => updateOtherVesselType(event.target.value)}
-                disabled={disabled}
+                readOnly={disabled}
+                tabIndex={disabled ? -1 : undefined}
                 aria-label="Other vessel type"
                 className={cn(INPUT_CLASSES, "min-w-0 flex-1")}
               />
@@ -323,26 +330,23 @@ export default function GeneralInfoSection({
           <Label className={LABEL_CLASSES}>Sailing area:</Label>
           <div className="flex min-w-0 flex-col gap-2 py-0.5">
             <div
-              className="flex flex-wrap items-center gap-4"
+              className={cn("flex flex-wrap items-center gap-4", disabled && "pointer-events-none")}
               role="radiogroup"
               aria-label="Sailing area"
             >
               {SAILING_AREA_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className={cn(
-                    "flex items-center gap-1.5",
-                    !disabled && "cursor-pointer"
-                  )}
+                  className="flex items-center gap-1.5 cursor-pointer"
                 >
                   <input
                     type="radio"
                     name="panama_sailing_area"
                     checked={data.trade_area === option.value}
                     onChange={() => updateSailingArea(option.value)}
-                    disabled={disabled}
                     className="h-4 w-4 accent-primary"
                     aria-label={`Sailing area - ${option.label}`}
+                    tabIndex={disabled ? -1 : undefined}
                   />
                   <span className="text-xs text-foreground/80">{option.label}</span>
                 </label>
@@ -356,7 +360,8 @@ export default function GeneralInfoSection({
                 id="panama-sailing-area-details"
                 value={data.trade_area_details}
                 onChange={(event) => updateOtherSailingArea(event.target.value)}
-                disabled={disabled}
+                readOnly={disabled}
+                tabIndex={disabled ? -1 : undefined}
                 aria-label="Other sailing area"
                 className={cn(INPUT_CLASSES, "min-w-0 flex-1")}
               />

@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, Loader2, Pencil, Plus, Printer, X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const subscribeToHydration = () => () => undefined;
+const getClientSnapshot = () => true;
+const getServerSnapshot = () => false;
 
 interface FormToolbarMetadata {
   /** Record identifier displayed as a badge. */
@@ -44,6 +49,9 @@ export interface FormToolbarProps {
   /** Optional custom element rendered inline in the metadata area (e.g. PEME selector dropdown). */
   metadataSlot?: React.ReactNode;
 
+  /** DOM element ID where actions are rendered on large screens. */
+  actionsPortalId?: string;
+
   // Action handlers — only rendered when provided
   onSave?: () => void;
   onCancel?: () => void;
@@ -81,6 +89,7 @@ export function FormToolbar({
   isExistingRecord = false,
   metadata,
   metadataSlot,
+  actionsPortalId,
   onSave,
   onCancel,
   onEdit,
@@ -97,9 +106,27 @@ export function FormToolbar({
   const [searchValue, setSearchValue] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const isHydrated = useSyncExternalStore(
+    subscribeToHydration,
+    getClientSnapshot,
+    getServerSnapshot
+  );
+  const actionsPortalTarget = isHydrated && actionsPortalId
+    ? document.getElementById(actionsPortalId)
+    : null;
   const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const internalInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+
+  /** Wraps the onNew handler to also focus the search input. */
+  const handleNewClick = () => {
+    onNew?.();
+    setTimeout(() => internalInputRef.current?.focus(), 50);
+  };
+
+  const setInputRef = (el: HTMLInputElement | null) => {
+    internalInputRef.current = el;
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -109,12 +136,12 @@ export function FormToolbar({
     onSearch?.(value);
   };
 
-  const handleSelectItem = (result: SearchResultItem) => {
+  const handleSelectItem = useCallback((result: SearchResultItem) => {
     onSelectResult?.(result);
     setSearchValue("");
     setSearchOpen(false);
     setHighlightedIndex(-1);
-  };
+  }, [onSelectResult]);
 
   const handleSearchBlur = (e: React.FocusEvent) => {
     // Keep open if focus stays within the search container
@@ -163,12 +190,83 @@ export function FormToolbar({
         setHighlightedIndex(-1);
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [showDropdown, searchResults, highlightedIndex]
+    [showDropdown, searchResults, highlightedIndex, handleSelectItem]
+  );
+
+  const renderActions = (className?: string) => (
+    <div className={cn("flex items-center gap-2", className)}>
+      {editing ? (
+        <>
+          {onSave && (
+            <Button
+              size="sm"
+              onClick={onSave}
+              disabled={saving}
+              className="cursor-pointer disabled:cursor-not-allowed"
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-1" />
+              )}
+              {saving ? "Saving..." : resolvedSaveLabel}
+            </Button>
+          )}
+          {onCancel && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onCancel}
+              disabled={saving}
+              className="cursor-pointer disabled:cursor-not-allowed"
+            >
+              <X className="w-4 h-4 mr-1" />
+              Cancel
+            </Button>
+          )}
+        </>
+      ) : (
+        <>
+          {onEdit && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onEdit}
+              className="cursor-pointer"
+            >
+              <Pencil className="w-4 h-4 mr-1" />
+              Edit
+            </Button>
+          )}
+        </>
+      )}
+      {!editing && onNew && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handleNewClick}
+          className="cursor-pointer"
+        >
+          <Plus className="w-4 h-4 mr-1" />
+          New
+        </Button>
+      )}
+      {onPrint && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onPrint}
+          className="cursor-pointer"
+        >
+          <Printer className="w-4 h-4 mr-1" />
+          Print
+        </Button>
+      )}
+    </div>
   );
 
   return (
-    <div className="flex items-center gap-3 mb-4">
+    <div className="flex flex-wrap items-center gap-3 mb-4">
       {/* Metadata */}
       {(metadata || metadataSlot) && (
         <div className="flex items-center gap-3">
@@ -180,73 +278,32 @@ export function FormToolbar({
           {metadataSlot}
           {metadata?.createdDate && (
             <span className="text-[10px] text-muted-foreground">
-              {metadata.createdLabel ?? "Registered"}:{" "}
+              {metadata.createdLabel ?? "Registered"}: {" "}
               {format(new Date(metadata.createdDate), "MMM d, yyyy h:mm a")}
             </span>
           )}
           {metadata?.updatedDate && (
             <span className="text-[10px] text-muted-foreground">
-              {metadata.updatedLabel ?? "Updated"}:{" "}
+              {metadata.updatedLabel ?? "Updated"}: {" "}
               {format(new Date(metadata.updatedDate), "MMM d, yyyy h:mm a")}
             </span>
           )}
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex items-center gap-2">
-        {editing ? (
-          <>
-            {onSave && (
-              <Button size="sm" onClick={onSave} disabled={saving}>
-                {saving ? (
-                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4 mr-1" />
-                )}
-                {saving ? "Saving..." : resolvedSaveLabel}
-              </Button>
-            )}
-            {onCancel && (
-              <Button size="sm" variant="outline" onClick={onCancel} disabled={saving}>
-                <X className="w-4 h-4 mr-1" />
-                Cancel
-              </Button>
-            )}
-          </>
-        ) : (
-          <>
-            {onEdit && (
-              <Button size="sm" variant="outline" onClick={onEdit}>
-                <Pencil className="w-4 h-4 mr-1" />
-                Edit
-              </Button>
-            )}
-          </>
-        )}
-        {!editing && onNew && (
-          <Button size="sm" variant="outline" onClick={onNew}>
-            <Plus className="w-4 h-4 mr-1" />
-            New
-          </Button>
-        )}
-        {onPrint && (
-          <Button size="sm" variant="outline" onClick={onPrint}>
-            <Printer className="w-4 h-4 mr-1" />
-            Print
-          </Button>
-        )}
-      </div>
+      {/* Actions stay near the form on narrow screens. */}
+      {renderActions(actionsPortalId ? "lg:hidden" : undefined)}
+      {actionsPortalTarget && createPortal(renderActions(), actionsPortalTarget)}
 
       {/* Search */}
       <div
         ref={containerRef}
-        className="relative flex-1"
+        className="relative min-w-64 flex-1"
         onBlur={handleSearchBlur}
       >
         <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          ref={inputRef}
+          ref={setInputRef}
           type="search"
           placeholder="Search..."
           value={searchValue}

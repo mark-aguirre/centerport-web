@@ -123,7 +123,7 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
   const inputClasses = cn(
     "h-8 text-sm bg-white border border-primary/20 rounded-md px-2",
     "focus:outline-none focus-visible:border-primary dark:bg-input/30",
-    disabled && "pointer-events-none opacity-70"
+    disabled && "pointer-events-none"
   );
 
   const getConditionValue = (item: DeclarationCondition): YesNo => {
@@ -153,23 +153,23 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
           {item.label}
         </span>
         <div
-          className="grid w-[72px] shrink-0 grid-cols-2 place-items-center gap-2"
+          className={cn("grid w-[72px] shrink-0 grid-cols-2 place-items-center gap-2", disabled && "pointer-events-none")}
           role="radiogroup"
           aria-label={item.label}
         >
           {(["yes", "no"] as const).map((answer) => (
             <label
               key={answer}
-              className={cn("cursor-pointer", disabled && "cursor-not-allowed")}
+              className="cursor-pointer"
             >
               <input
                 type="radio"
                 name={`panama_declaration_${item.num}`}
                 checked={currentValue === answer}
                 onChange={() => updateCondition(item.storageKey, answer)}
-                disabled={disabled}
                 className="h-4 w-4 accent-primary"
                 aria-label={`${item.label} - ${answer === "yes" ? "Yes" : "No"}`}
+                tabIndex={disabled ? -1 : undefined}
               />
               <span className="sr-only">{answer === "yes" ? "Yes" : "No"}</span>
             </label>
@@ -202,23 +202,23 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
           </span>
         </div>
         <div
-          className="grid grid-cols-2 place-items-center"
+          className={cn("grid grid-cols-2 place-items-center", disabled && "pointer-events-none")}
           role="radiogroup"
           aria-label={question.text}
         >
           {(["yes", "no"] as const).map((answer) => (
             <label
               key={answer}
-              className={cn("cursor-pointer", disabled && "cursor-not-allowed")}
+              className="cursor-pointer"
             >
               <input
                 type="radio"
                 name={`panama_${question.key}`}
                 checked={data[question.key] === answer}
                 onChange={() => update(question.key, answer)}
-                disabled={disabled}
                 className="h-4 w-4 accent-primary"
                 aria-label={`${question.text} - ${answer === "yes" ? "Yes" : "No"}`}
+                tabIndex={disabled ? -1 : undefined}
               />
               <span className="sr-only">{answer === "yes" ? "Yes" : "No"}</span>
             </label>
@@ -312,23 +312,23 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
               {question.text}
             </span>
             <div
-              className="grid grid-cols-2 place-items-center border-l border-primary/20"
+              className={cn("grid grid-cols-2 place-items-center border-l border-primary/20", disabled && "pointer-events-none")}
               role="radiogroup"
               aria-label={question.text}
             >
               {(["yes", "no"] as const).map((answer) => (
                 <label
                   key={answer}
-                  className={cn("cursor-pointer", disabled && "cursor-not-allowed")}
+                  className="cursor-pointer"
                 >
                   <input
                     type="radio"
                     name={`panama_${question.key}`}
                     checked={data[question.key] === answer}
                     onChange={() => update(question.key, answer)}
-                    disabled={disabled}
                     className="h-4 w-4 accent-primary"
                     aria-label={`${question.text} - ${answer === "yes" ? "Yes" : "No"}`}
+                    tabIndex={disabled ? -1 : undefined}
                   />
                   <span className="sr-only">{answer === "yes" ? "Yes" : "No"}</span>
                 </label>
@@ -379,23 +379,23 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
             Are you taking any non-prescription or prescription medications?
           </span>
           <div
-            className="grid grid-cols-2 place-items-center border-l border-primary/20"
+            className={cn("grid grid-cols-2 place-items-center border-l border-primary/20", disabled && "pointer-events-none")}
             role="radiogroup"
             aria-label="Are you taking any non-prescription or prescription medications?"
           >
             {(["yes", "no"] as const).map((answer) => (
               <label
                 key={answer}
-                className={cn("cursor-pointer", disabled && "cursor-not-allowed")}
+                className="cursor-pointer"
               >
                 <input
                   type="radio"
                   name="panama_question_45"
                   checked={data.question_45 === answer}
                   onChange={() => update("question_45", answer)}
-                  disabled={disabled}
                   className="h-4 w-4 accent-primary"
                   aria-label={`Medication question - ${answer === "yes" ? "Yes" : "No"}`}
+                  tabIndex={disabled ? -1 : undefined}
                 />
                 <span className="sr-only">{answer === "yes" ? "Yes" : "No"}</span>
               </label>
@@ -452,7 +452,8 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
                 value={data.covid_3_date}
                 onChange={(event) => update("covid_3_date", event.target.value)}
                 className={cn(inputClasses, "min-w-0 flex-1")}
-                disabled={disabled}
+                readOnly={disabled}
+                tabIndex={disabled ? -1 : undefined}
               />
             </div>
           </div>
@@ -471,7 +472,8 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
               value={data.covid_4_details}
               onChange={(event) => update("covid_4_details", event.target.value)}
               className={cn(inputClasses, "min-w-0 flex-1")}
-              disabled={disabled}
+              readOnly={disabled}
+              tabIndex={disabled ? -1 : undefined}
             />
           </div>
 
@@ -496,7 +498,8 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
                   value={data.covid_6_vaccine_type}
                   onChange={(event) => update("covid_6_vaccine_type", event.target.value)}
                   className={cn(inputClasses, "w-full")}
-                  disabled={disabled}
+                  readOnly={disabled}
+                  tabIndex={disabled ? -1 : undefined}
                 />
               </div>
               <div className="space-y-1">
@@ -511,7 +514,8 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
                   value={data.covid_6_num_doses}
                   onChange={(event) => update("covid_6_num_doses", event.target.value)}
                   className={cn(inputClasses, "w-full")}
-                  disabled={disabled}
+                  readOnly={disabled}
+                  tabIndex={disabled ? -1 : undefined}
                 />
               </div>
               <div className="space-y-1">
@@ -526,7 +530,8 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
                   value={data.covid_6_boosters}
                   onChange={(event) => update("covid_6_boosters", event.target.value)}
                   className={cn(inputClasses, "w-full")}
-                  disabled={disabled}
+                  readOnly={disabled}
+                  tabIndex={disabled ? -1 : undefined}
                 />
               </div>
             </div>

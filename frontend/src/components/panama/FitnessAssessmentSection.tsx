@@ -55,7 +55,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
     "h-8 text-xs bg-white border border-primary/30 rounded-md px-2 shadow-sm",
     "hover:border-primary/50 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20",
     "dark:bg-input/30 transition-colors",
-    disabled && "pointer-events-none opacity-70"
+    disabled && "pointer-events-none"
   );
 
   /** Set fitness to fit for all services, no restrictions, fit for lookout. */
@@ -80,110 +80,142 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
-        title="Assessment of Fitness for Service at Sea"
+        title="vii. Assessment of Fitness for Service at Sea"
         icon={ShieldCheck}
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+        titleStyle={{ textTransform: "none" }}
       />
 
-      {/* Intro text */}
-      <p className="text-xs text-foreground/80 mb-3">
-        On the basis of the examinee&apos;s personal declaration, my clinical examination and the diagnostic test results recorded above, I declare the examinee medically:
+      {/* Assessment declaration and fitness table */}
+      <p className="mb-3 text-xs leading-relaxed text-foreground/80">
+        On the basis of the examinee&apos;s personal declaration, my clinical examination and the diagnostic test
+        results recorded above, I declare the examinee medically:
       </p>
 
-      {/* Fit for lookout / Not fit */}
-      <div className={cn("flex items-center gap-6 mb-4", disabled && "pointer-events-none")} role="radiogroup" aria-label="Lookout fitness">
-        <label className="flex items-center gap-1.5 cursor-pointer">
-          <input
-            type="radio"
-            name="panama_fitness_lookout"
-            checked={data.fitness_lookout === "fit"}
-            onChange={() => update("fitness_lookout", "fit")}
-            className="w-4 h-4 accent-primary"
-            aria-label="Fit for look out"
-            tabIndex={disabled ? -1 : undefined}
-          />
-          <span className="text-xs text-foreground/80 font-semibold">Fit for look out</span>
-        </label>
-        <label className="flex items-center gap-1.5 cursor-pointer">
-          <input
-            type="radio"
-            name="panama_fitness_lookout"
-            checked={data.fitness_lookout === "not_fit"}
-            onChange={() => update("fitness_lookout", "not_fit")}
-            className="w-4 h-4 accent-primary"
-            aria-label="Not fit for look out duty"
-            tabIndex={disabled ? -1 : undefined}
-          />
-          <span className="text-xs text-foreground/80 font-semibold">Not fit for look out duty</span>
-        </label>
-      </div>
-
-      {/* Service type table */}
-      <div className="overflow-x-auto mb-4">
-        <table className="w-full border-collapse text-xs">
-          <thead>
-            <tr>
-              <th className="border border-primary/20 bg-primary/5 p-2" />
-              <th className="border border-primary/20 bg-primary/5 p-2 text-center text-[11px] font-bold text-primary uppercase tracking-wider">
-                Deck service
-              </th>
-              <th className="border border-primary/20 bg-primary/5 p-2 text-center text-[11px] font-bold text-primary uppercase tracking-wider">
-                Engine service
-              </th>
-              <th className="border border-primary/20 bg-primary/5 p-2 text-center text-[11px] font-bold text-primary uppercase tracking-wider">
-                Catering service
-              </th>
-              <th className="border border-primary/20 bg-primary/5 p-2 text-center text-[11px] font-bold text-primary uppercase tracking-wider">
-                Other service
-              </th>
-            </tr>
-          </thead>
+      <div className="mb-6 overflow-x-auto">
+        <table className="w-full min-w-[680px] border-collapse text-xs">
           <tbody>
-            {/* Fit row */}
             <tr>
-              <td className="border border-primary/20 p-2 text-xs font-semibold text-foreground/80">Fit</td>
-              <td className="border border-primary/20 p-2 text-center">
-                <label className={cn("flex items-center justify-center cursor-pointer", disabled && "pointer-events-none")}>
-                  <input type="checkbox" checked={data.fitness_deck_fit} onChange={(e) => updateBool("fitness_deck_fit", e.target.checked)} className="w-4 h-4 accent-primary rounded" aria-label="Fit - Deck service" tabIndex={disabled ? -1 : undefined} />
+              <td colSpan={2} className="border border-primary/30 p-2">
+                <label className={cn("flex cursor-pointer items-center gap-2", disabled && "pointer-events-none")}>
+                  <input
+                    type="radio"
+                    name="panama_fitness_lookout"
+                    checked={data.fitness_lookout === "fit"}
+                    onChange={() => update("fitness_lookout", "fit")}
+                    className="h-4 w-4 accent-primary"
+                    aria-label="Fit for look-out"
+                    tabIndex={disabled ? -1 : undefined}
+                  />
+                  <span className="text-xs text-foreground/80">Fit for look-out</span>
                 </label>
               </td>
-              <td className="border border-primary/20 p-2 text-center">
-                <label className={cn("flex items-center justify-center cursor-pointer", disabled && "pointer-events-none")}>
-                  <input type="checkbox" checked={data.fitness_engine_fit} onChange={(e) => updateBool("fitness_engine_fit", e.target.checked)} className="w-4 h-4 accent-primary rounded" aria-label="Fit - Engine service" tabIndex={disabled ? -1 : undefined} />
-                </label>
-              </td>
-              <td className="border border-primary/20 p-2 text-center">
-                <label className={cn("flex items-center justify-center cursor-pointer", disabled && "pointer-events-none")}>
-                  <input type="checkbox" checked={data.fitness_catering_fit} onChange={(e) => updateBool("fitness_catering_fit", e.target.checked)} className="w-4 h-4 accent-primary rounded" aria-label="Fit - Catering service" tabIndex={disabled ? -1 : undefined} />
-                </label>
-              </td>
-              <td className="border border-primary/20 p-2 text-center">
-                <label className={cn("flex items-center justify-center cursor-pointer", disabled && "pointer-events-none")}>
-                  <input type="checkbox" checked={data.fitness_other_fit} onChange={(e) => updateBool("fitness_other_fit", e.target.checked)} className="w-4 h-4 accent-primary rounded" aria-label="Fit - Other service" tabIndex={disabled ? -1 : undefined} />
+              <td colSpan={3} className="border border-primary/30 p-2">
+                <label className={cn("flex cursor-pointer items-center gap-2", disabled && "pointer-events-none")}>
+                  <input
+                    type="radio"
+                    name="panama_fitness_lookout"
+                    checked={data.fitness_lookout === "not_fit"}
+                    onChange={() => update("fitness_lookout", "not_fit")}
+                    className="h-4 w-4 accent-primary"
+                    aria-label="Not fit for look-out duty"
+                    tabIndex={disabled ? -1 : undefined}
+                  />
+                  <span className="text-xs text-foreground/80">Not fit for look-out duty</span>
                 </label>
               </td>
             </tr>
-            {/* Unfit row */}
+            <tr className="bg-primary/5">
+              <th className="w-32 border border-primary/30 p-1.5" />
+              <th className="border border-primary/30 p-1.5 text-center text-[11px] font-semibold text-foreground/80">Deck service</th>
+              <th className="border border-primary/30 p-1.5 text-center text-[11px] font-semibold text-foreground/80">Engine service</th>
+              <th className="border border-primary/30 p-1.5 text-center text-[11px] font-semibold text-foreground/80">Catering service</th>
+              <th className="border border-primary/30 p-1.5 text-center text-[11px] font-semibold text-foreground/80">Other services</th>
+            </tr>
+            {([
+              {
+                label: "Fit",
+                fields: ["fitness_deck_fit", "fitness_engine_fit", "fitness_catering_fit", "fitness_other_fit"],
+              },
+              {
+                label: "Unfit",
+                fields: ["fitness_deck_unfit", "fitness_engine_unfit", "fitness_catering_unfit", "fitness_other_unfit"],
+              },
+            ] as const).map((row) => (
+              <tr key={row.label}>
+                <th className="border border-primary/30 p-1.5 text-left text-xs font-semibold text-foreground/80">{row.label}</th>
+                {row.fields.map((field, index) => (
+                  <td key={field} className="border border-primary/30 p-1.5 text-center">
+                    <label className={cn("flex cursor-pointer items-center justify-center", disabled && "pointer-events-none")}>
+                      <input
+                        type="checkbox"
+                        checked={data[field]}
+                        onChange={(e) => updateBool(field, e.target.checked)}
+                        className="h-4 w-4 rounded accent-primary"
+                        aria-label={`${row.label} - ${["Deck", "Engine", "Catering", "Other"][index]} service`}
+                        tabIndex={disabled ? -1 : undefined}
+                      />
+                    </label>
+                  </td>
+                ))}
+              </tr>
+            ))}
             <tr>
-              <td className="border border-primary/20 p-2 text-xs font-semibold text-foreground/80">Unfit</td>
-              <td className="border border-primary/20 p-2 text-center">
-                <label className={cn("flex items-center justify-center cursor-pointer", disabled && "pointer-events-none")}>
-                  <input type="checkbox" checked={data.fitness_deck_unfit} onChange={(e) => updateBool("fitness_deck_unfit", e.target.checked)} className="w-4 h-4 accent-primary rounded" aria-label="Unfit - Deck service" tabIndex={disabled ? -1 : undefined} />
+              <td className="border border-primary/30 p-2">
+                <label className={cn("flex cursor-pointer items-center justify-between gap-2", disabled && "pointer-events-none")}>
+                  <span className="text-xs text-foreground/80">Without restrictions</span>
+                  <input
+                    type="radio"
+                    name="panama_restriction"
+                    checked={data.fitness_restriction === "without"}
+                    onChange={() => update("fitness_restriction", "without")}
+                    className="h-4 w-4 shrink-0 accent-primary"
+                    aria-label="Without restrictions"
+                    tabIndex={disabled ? -1 : undefined}
+                  />
                 </label>
               </td>
-              <td className="border border-primary/20 p-2 text-center">
-                <label className={cn("flex items-center justify-center cursor-pointer", disabled && "pointer-events-none")}>
-                  <input type="checkbox" checked={data.fitness_engine_unfit} onChange={(e) => updateBool("fitness_engine_unfit", e.target.checked)} className="w-4 h-4 accent-primary rounded" aria-label="Unfit - Engine service" tabIndex={disabled ? -1 : undefined} />
+              <td className="border border-primary/30 p-2">
+                <label className={cn("flex cursor-pointer items-center justify-between gap-2", disabled && "pointer-events-none")}>
+                  <span className="text-xs text-foreground/80">With restrictions</span>
+                  <input
+                    type="radio"
+                    name="panama_restriction"
+                    checked={data.fitness_restriction === "with"}
+                    onChange={() => update("fitness_restriction", "with")}
+                    className="h-4 w-4 shrink-0 accent-primary"
+                    aria-label="With restrictions"
+                    tabIndex={disabled ? -1 : undefined}
+                  />
                 </label>
               </td>
-              <td className="border border-primary/20 p-2 text-center">
-                <label className={cn("flex items-center justify-center cursor-pointer", disabled && "pointer-events-none")}>
-                  <input type="checkbox" checked={data.fitness_catering_unfit} onChange={(e) => updateBool("fitness_catering_unfit", e.target.checked)} className="w-4 h-4 accent-primary rounded" aria-label="Unfit - Catering service" tabIndex={disabled ? -1 : undefined} />
+              <th className="border border-primary/30 p-2 text-left text-xs font-normal text-foreground/80">Visual aid required</th>
+              <td className="border border-primary/30 p-2">
+                <label className={cn("flex cursor-pointer items-center justify-center gap-2", disabled && "pointer-events-none")}>
+                  <span className="text-xs text-foreground/80">Yes</span>
+                  <input
+                    type="radio"
+                    name="panama_visual_aid"
+                    checked={data.fitness_visual_aid === "yes"}
+                    onChange={() => update("fitness_visual_aid", "yes")}
+                    className="h-4 w-4 accent-primary"
+                    aria-label="Visual aid required - Yes"
+                    tabIndex={disabled ? -1 : undefined}
+                  />
                 </label>
               </td>
-              <td className="border border-primary/20 p-2 text-center">
-                <label className={cn("flex items-center justify-center cursor-pointer", disabled && "pointer-events-none")}>
-                  <input type="checkbox" checked={data.fitness_other_unfit} onChange={(e) => updateBool("fitness_other_unfit", e.target.checked)} className="w-4 h-4 accent-primary rounded" aria-label="Unfit - Other service" tabIndex={disabled ? -1 : undefined} />
+              <td className="border border-primary/30 p-2">
+                <label className={cn("flex cursor-pointer items-center justify-center gap-2", disabled && "pointer-events-none")}>
+                  <span className="text-xs text-foreground/80">No</span>
+                  <input
+                    type="radio"
+                    name="panama_visual_aid"
+                    checked={data.fitness_visual_aid === "no"}
+                    onChange={() => update("fitness_visual_aid", "no")}
+                    className="h-4 w-4 accent-primary"
+                    aria-label="Visual aid required - No"
+                    tabIndex={disabled ? -1 : undefined}
+                  />
                 </label>
               </td>
             </tr>
@@ -191,184 +223,121 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
         </table>
       </div>
 
-      {/* Restrictions */}
-      <div className="mb-4">
-        <div className="flex items-center gap-6 mb-2 flex-wrap">
-          {/* Restriction type */}
-          <div className={cn("flex items-center gap-4", disabled && "pointer-events-none")} role="radiogroup" aria-label="Restrictions">
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input
-                type="radio"
-                name="panama_restriction"
-                checked={data.fitness_restriction === "without"}
-                onChange={() => update("fitness_restriction", "without")}
-                className="w-4 h-4 accent-primary"
-                aria-label="Restriction - Without restrictions"
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="text-xs text-foreground/80">W/o restrictions</span>
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input
-                type="radio"
-                name="panama_restriction"
-                checked={data.fitness_restriction === "with"}
-                onChange={() => update("fitness_restriction", "with")}
-                className="w-4 h-4 accent-primary"
-                aria-label="Restriction - With restrictions"
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="text-xs text-foreground/80">With restrictions</span>
-            </label>
-          </div>
-
-          {/* Visual aid required */}
-          <div className={cn("flex items-center gap-4", disabled && "pointer-events-none")} role="radiogroup" aria-label="Visual aid required">
-            <span className="text-xs text-foreground/80 font-semibold">Visual aid required</span>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input
-                type="radio"
-                name="panama_visual_aid"
-                checked={data.fitness_visual_aid === "yes"}
-                onChange={() => update("fitness_visual_aid", "yes")}
-                className="w-4 h-4 accent-primary"
-                aria-label="Visual aid required - Yes"
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="text-xs text-foreground/80">Yes</span>
-            </label>
-            <label className="flex items-center gap-1.5 cursor-pointer">
-              <input
-                type="radio"
-                name="panama_visual_aid"
-                checked={data.fitness_visual_aid === "no"}
-                onChange={() => update("fitness_visual_aid", "no")}
-                className="w-4 h-4 accent-primary"
-                aria-label="Visual aid required - No"
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="text-xs text-foreground/80">No</span>
-            </label>
-          </div>
-        </div>
-
-        {/* Restriction details */}
-        <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
+      {data.fitness_restriction === "with" && (
+        <div className="mb-6 space-y-1">
+          <Label className="text-[11px] font-semibold uppercase tracking-wider text-primary/60">
             Describe restrictions (e.g. specific positions, type of ship, trade area):
           </Label>
           <Textarea
             value={data.fitness_restriction_details}
             onChange={(e) => update("fitness_restriction_details", e.target.value)}
             className={cn(
-              "h-16 text-sm bg-white border border-primary/20 rounded-md px-3 py-2 focus:outline-none focus-visible:border-primary dark:bg-input/30 resize-none",
+              "h-16 resize-none rounded-md border border-primary/20 bg-white px-3 py-2 text-sm focus:outline-none focus-visible:border-primary dark:bg-input/30",
               disabled && "pointer-events-none"
             )}
-            placeholder=""
             readOnly={disabled}
           />
         </div>
-      </div>
+      )}
 
-      {/* Certificate details */}
-      <div className="border-t border-primary/10 pt-4 space-y-3">
-        {/* Expiry & Issued dates — side by side */}
-        <div className="grid grid-cols-2 gap-6">
-          {/* Expiry date */}
-          <div className="grid grid-cols-3 gap-2">
-            <FormField
-              label="Expiry Day"
-              value={data.cert_expiry_day}
-              onChange={(v) => update("cert_expiry_day", v)}
-              type="number"
-              disabled={disabled}
-            />
-            <FormSelect
-              label="Expiry Month"
-              value={data.cert_expiry_month}
-              onChange={(v) => update("cert_expiry_month", v)}
-              options={MONTH_OPTIONS}
-              disabled={disabled}
-            />
-            <FormField
-              label="Expiry Year"
-              value={data.cert_expiry_year}
-              onChange={(v) => update("cert_expiry_year", v)}
-              type="number"
-              disabled={disabled}
-            />
-          </div>
-
-          {/* Issued date */}
-          <div className="grid grid-cols-3 gap-2">
-            <FormField
-              label="Issued Day"
-              value={data.cert_issued_day}
-              onChange={(v) => update("cert_issued_day", v)}
-              type="number"
-              disabled={disabled}
-            />
-            <FormSelect
-              label="Issued Month"
-              value={data.cert_issued_month}
-              onChange={(v) => update("cert_issued_month", v)}
-              options={MONTH_OPTIONS}
-              disabled={disabled}
-            />
-            <FormField
-              label="Issued Year"
-              value={data.cert_issued_year}
-              onChange={(v) => update("cert_issued_year", v)}
-              type="number"
-              disabled={disabled}
-            />
-          </div>
-        </div>
-
-        {/* Certificate number — full width */}
-        <div>
-          <FormField
-            label="Certificate Number"
-            value={data.cert_number}
-            onChange={(v) => update("cert_number", v)}
-            disabled={disabled}
-          />
-        </div>
-
-        {/* Physician details — 2 columns */}
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-0.5">
-            <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
-              Physician&apos;s Name and Registration
-            </Label>
-            <div className="flex gap-1.5">
-              <Input
-                value={data.physician_name ?? ""}
-                readOnly
-                placeholder="Select physician..."
-                className={cn(inputClasses, "flex-1")}
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="h-8 w-8 shrink-0 border-primary/20 hover:border-primary/40"
-                onClick={() => setPhysicianDialogOpen(true)}
-                disabled={disabled}
-                aria-label="Search physician"
-              >
-                <Search className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-          </div>
-          <FormField
-            label="Signature and Stamp"
-            value={data.physician_signature}
-            onChange={(v) => update("physician_signature", v)}
-            disabled={disabled}
-          />
-        </div>
+      {/* Certificate details table */}
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[680px] table-fixed border-collapse text-xs">
+          <colgroup>
+            <col className="w-[42%]" />
+            <col className="w-[15%]" />
+            <col className="w-[25%]" />
+            <col className="w-[18%]" />
+          </colgroup>
+          <tbody>
+            <tr>
+              <th className="border border-primary/30 p-2 text-left text-[11px] font-bold text-foreground/80">
+                Medical certificate&apos;s issue date:
+              </th>
+              <td className="border border-primary/30 p-1.5">
+                <FormField label="Day" value={data.cert_issued_day} onChange={(v) => update("cert_issued_day", v)} type="number" disabled={disabled} />
+              </td>
+              <td className="border border-primary/30 p-1.5">
+                <FormSelect label="Month" value={data.cert_issued_month} onChange={(v) => update("cert_issued_month", v)} options={MONTH_OPTIONS} disabled={disabled} />
+              </td>
+              <td className="border border-primary/30 p-1.5">
+                <FormField label="Year" value={data.cert_issued_year} onChange={(v) => update("cert_issued_year", v)} type="number" disabled={disabled} />
+              </td>
+            </tr>
+            <tr>
+              <th className="border border-primary/30 p-2 text-left text-[11px] font-bold text-foreground/80">
+                Medical certificate&apos;s expiration:
+              </th>
+              <td className="border border-primary/30 p-1.5">
+                <FormField label="Day" value={data.cert_expiry_day} onChange={(v) => update("cert_expiry_day", v)} type="number" disabled={disabled} />
+              </td>
+              <td className="border border-primary/30 p-1.5">
+                <FormSelect label="Month" value={data.cert_expiry_month} onChange={(v) => update("cert_expiry_month", v)} options={MONTH_OPTIONS} disabled={disabled} />
+              </td>
+              <td className="border border-primary/30 p-1.5">
+                <FormField label="Year" value={data.cert_expiry_year} onChange={(v) => update("cert_expiry_year", v)} type="number" disabled={disabled} />
+              </td>
+            </tr>
+            <tr>
+              <th className="border border-primary/30 p-2 text-left text-[11px] font-bold text-foreground/80">
+                Number of medical certificate issued on the platform:
+              </th>
+              <td colSpan={3} className="border border-primary/30 p-2">
+                <Input
+                  value={data.cert_number}
+                  onChange={(e) => update("cert_number", e.target.value)}
+                  className={inputClasses}
+                  aria-label="Medical certificate number"
+                  readOnly={disabled}
+                />
+              </td>
+            </tr>
+            <tr>
+              <th className="border border-primary/30 p-2 text-left text-[11px] font-bold text-foreground/80">
+                Physician&apos;s name and registration (typed or printed):
+              </th>
+              <td colSpan={3} className="border border-primary/30 p-2">
+                <div className="flex gap-1.5">
+                  <Input
+                    value={data.physician_name ?? ""}
+                    readOnly
+                    placeholder="Select physician..."
+                    className={cn(inputClasses, "flex-1")}
+                    tabIndex={disabled ? -1 : undefined}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 shrink-0 cursor-pointer border-primary/20 hover:border-primary/40"
+                    onClick={() => setPhysicianDialogOpen(true)}
+                    disabled={disabled}
+                    aria-label="Search physician"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <th className="h-24 border border-primary/30 p-2 text-left align-middle text-[11px] font-bold text-foreground/80">
+                Signature and stamp of medical practitioner:
+              </th>
+              <td colSpan={3} className="border border-primary/30 p-2 align-top">
+                <Textarea
+                  value={data.physician_signature}
+                  onChange={(e) => update("physician_signature", e.target.value)}
+                  className={cn(
+                    "h-20 resize-none rounded-md border border-primary/20 bg-white px-3 py-2 text-sm focus:outline-none focus-visible:border-primary dark:bg-input/30",
+                    disabled && "pointer-events-none"
+                  )}
+                  aria-label="Signature and stamp of medical practitioner"
+                  readOnly={disabled}
+                />
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       {/* Medical Personnel Search Dialog */}

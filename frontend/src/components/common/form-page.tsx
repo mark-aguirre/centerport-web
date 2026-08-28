@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, UserSearch } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { PageContainer } from "@/components/common/page-container";
@@ -48,6 +48,18 @@ export interface FormPageProps<T> {
   getBusinessId?: (record: T | null) => string | undefined;
 
   /**
+   * Extract the record's UUID (used by RecordSelector for `selectedId`).
+   * Defaults to reading `(record as any).id`.
+   */
+  getRecordId?: (record: T) => string | undefined;
+
+  /**
+   * Extract the created date from a record (used by toolbar metadata).
+   * Defaults to reading `(record as any).created_date`.
+   */
+  getCreatedDate?: (record: T) => string | undefined;
+
+  /**
    * Whether the Edit button should be enabled.
    * Defaults to checking if form.existingRecord is not null.
    */
@@ -59,6 +71,13 @@ export interface FormPageProps<T> {
    * that is always disabled regardless of edit mode).
    */
   preSections?: React.ReactNode;
+
+  /**
+   * DOM element ID where CRUD actions are rendered on large screens.
+   * Defaults to "app-header-actions" (the slot in AppHeader).
+   * Set to undefined/empty string to keep actions inline in the toolbar.
+   */
+  actionsPortalId?: string;
 
   /**
    * Optional custom metadata slot (e.g. PemeSelector for landbase).
@@ -103,8 +122,11 @@ function FormPageContent<T>({
   form,
   sections,
   getBusinessId,
+  getRecordId: getRecordIdProp,
+  getCreatedDate: getCreatedDateProp,
   editGuard,
   preSections,
+  actionsPortalId = "app-header-actions",
   metadataSlot,
 }: FormPageProps<T>) {
   const {
@@ -125,9 +147,17 @@ function FormPageContent<T>({
     handleSearch,
     handleSelectResult,
     saveAlert,
+    needsPatientSelection,
     profileRecords,
     handleSelectRecord,
   } = form;
+
+  /** Alias kept for potential future pre-new logic (e.g. search focus). */
+  const onNew = handleNew;
+
+  // Safe accessor defaults
+  const getRecordId = getRecordIdProp ?? ((r: T) => (r as Record<string, unknown>).id as string | undefined);
+  const getCreatedDate = getCreatedDateProp ?? ((r: T) => (r as Record<string, unknown>).created_date as string | undefined);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -146,7 +176,7 @@ function FormPageContent<T>({
     profileRecords.length >= 2 ? (
       <RecordSelector
         items={profileRecords}
-        selectedId={existingRecord ? (existingRecord as Record<string, unknown>).id as string : undefined}
+        selectedId={existingRecord ? getRecordId(existingRecord) : undefined}
         onSelect={handleSelectRecord}
         disabled={editing}
       />
@@ -161,14 +191,15 @@ function FormPageContent<T>({
         isExistingRecord={isExistingRecord}
         metadata={{
           recordId,
-          createdDate: existingRecord ? (existingRecord as Record<string, unknown>).created_date as string : undefined,
+          createdDate: existingRecord ? getCreatedDate(existingRecord) : undefined,
           createdLabel: "Created",
         }}
         metadataSlot={resolvedMetadataSlot}
+        actionsPortalId={actionsPortalId}
         onSave={handleSave}
         onCancel={handleCancel}
         onEdit={canEdit ? handleEdit : undefined}
-        onNew={handleNew}
+        onNew={onNew}
         onPrint={handlePrint}
         onSearch={handleSearch}
         searchResults={searchResults}
@@ -183,21 +214,33 @@ function FormPageContent<T>({
         </Alert>
       )}
 
-      <div className="space-y-3">
-        {preSections}
+      {needsPatientSelection ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+          <UserSearch className="h-10 w-10 text-primary/40" />
+          <p className="text-sm font-medium text-foreground/70">
+            Search and select a patient to continue
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Use the search bar above to find a seafarer by name
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {preSections}
 
-        {sections.map(({ component: Section, key }, index) => (
-          <motion.div
-            key={key}
-            custom={preSections ? index + 1 : index}
-            initial="hidden"
-            animate="visible"
-            variants={sectionVariants}
-          >
-            <Section data={data} onChange={setData} disabled={!editing} />
-          </motion.div>
-        ))}
-      </div>
+          {sections.map(({ component: Section, key }, index) => (
+            <motion.div
+              key={key}
+              custom={preSections ? index + 1 : index}
+              initial="hidden"
+              animate="visible"
+              variants={sectionVariants}
+            >
+              <Section data={data} onChange={setData} disabled={!editing} />
+            </motion.div>
+          ))}
+        </div>
+      )}
     </PageContainer>
   );
 }
@@ -272,8 +315,11 @@ export function createFormPage<T>(
         form={form}
         sections={config.sections}
         getBusinessId={config.getBusinessId}
+        getRecordId={config.getRecordId}
+        getCreatedDate={config.getCreatedDate}
         editGuard={config.editGuard}
         preSections={config.preSections}
+        actionsPortalId={config.actionsPortalId}
         metadataSlot={metadataSlot}
       />
     );

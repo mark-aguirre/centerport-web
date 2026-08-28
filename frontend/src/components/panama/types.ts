@@ -194,6 +194,7 @@ export interface OtherLabTestResult {
   normal: string;
   abnormal: string;
   observations: string;
+  performedDate?: string;
 }
 
 /**

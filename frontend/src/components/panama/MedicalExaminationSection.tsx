@@ -127,15 +127,16 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
-        title="Medical Examination"
+        title="IV. MEDICAL EXAMINATION"
         icon={Stethoscope}
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+        titleStyle={{ textTransform: "none" }}
       />
 
       {/* ===== i. Clinical Data ===== */}
       <div className="mb-6">
         <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
-          i. Clinical Data
+          <span className="lowercase">i.</span> Clinical Data
         </h3>
 
         <div className="space-y-2">
@@ -214,7 +215,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
       {/* ===== ii. Sight ===== */}
       <div className="mb-6 border-t border-primary/10 pt-4">
         <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
-          ii. Sight
+          <span className="lowercase">ii.</span> Sight
         </h3>
 
         {/* Glasses/contact question */}
@@ -412,7 +413,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
       {/* ===== iii. Hearing (Tonal Audiometric) ===== */}
       <div className="mb-6 border-t border-primary/10 pt-4">
         <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
-          iii. Hearing: (Tonal Audiometric)
+          <span className="lowercase">iii.</span> Hearing: (Tonal Audiometric)
         </h3>
 
         <div className="overflow-x-auto">
@@ -476,7 +477,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
       {/* ===== iv. Physical Exploration ===== */}
       <div className="border-t border-primary/10 pt-4">
         <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
-          iv. Physical Exploration
+          <span className="lowercase">iv.</span> Physical Exploration
         </h3>
 
         {/* Column headers */}

@@ -29,7 +29,7 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
-        title="Statement"
+        title="III Statement"
         icon={FileSignature}
         subtitle="Certification and authorization"
       />

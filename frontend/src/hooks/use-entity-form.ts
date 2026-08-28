@@ -170,6 +170,8 @@ export interface UseEntityFormResult<T> {
   handleSelectResult: (profile: SeafarerProfile) => void;
   /** Transient error message shown when save is blocked (auto-clears). */
   saveAlert: string | null;
+  /** True when the user must search/select a patient before proceeding. */
+  needsPatientSelection: boolean;
   /** List of record summaries for the current patient (for the dropdown). */
   profileRecords: RecordSummary[];
   /** Switch to a different record by its UUID. */
@@ -230,6 +232,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
   const [existingRecord, setExistingRecord] = useState<T | null>(null);
   const [saveAlert, setSaveAlert] = useState<string | null>(null);
   const [profileRecords, setProfileRecords] = useState<RecordSummary[]>([]);
+  const [needsPatientSelection, setNeedsPatientSelection] = useState(false);
 
   const {
     searchResults: profileSearchResults,
@@ -254,7 +257,8 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         created_date: getCreatedDate(r) ?? "",
       }));
       setProfileRecords(summaries);
-    } catch {
+    } catch (error: unknown) {
+      console.warn("Failed to fetch profile records:", error instanceof Error ? error.message : error);
       setProfileRecords([]);
     }
   }, [entityApi, getRecordId, getBusinessId, getCreatedDate]);
@@ -307,7 +311,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     setIsExistingRecord(false);
     setExistingRecord(null);
     setProfileRecords([]);
-    setTimeout(() => firstFieldRef.current?.focus(), 0);
+    setNeedsPatientSelection(true);
   }, [emptyRecord, config]);
 
   /** Enter edit mode, snapshot current data for cancel/restore. */
@@ -327,6 +331,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     }
     setOriginalData(null);
     setEditing(false);
+    setNeedsPatientSelection(false);
   }, [isExistingRecord, originalData, existingRecord, emptyRecord]);
 
   /** Validate, persist via API, and return to view mode. */
@@ -422,6 +427,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
    */
   const handleSelectResult = useCallback(
     (profile: SeafarerProfile) => {
+      setNeedsPatientSelection(false);
       const personalData = buildPersonalData(profile);
 
       const applyPersonalOnly = () => {
@@ -492,6 +498,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     handleSearch,
     handleSelectResult,
     saveAlert,
+    needsPatientSelection,
     profileRecords,
     handleSelectRecord,
   };
