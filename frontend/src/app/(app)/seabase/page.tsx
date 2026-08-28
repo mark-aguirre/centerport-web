@@ -4,43 +4,14 @@ import { Suspense, useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import PersonalInfoSection from "@/components/common/personal-info-section";
-import type { RowConfig } from "@/components/common/personal-info-section";
+import PersonalInfoSection, {
+  STANDARD_PERSONAL_INFO_ROWS,
+} from "@/components/common/personal-info-section";
 import PhysicalExaminationSection from "@/components/medical/PhysicalExaminationSection";
 import { useMedicalForm } from "@/hooks/use-medical-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
 import { PrintDialog } from "@/components/medical/PrintDialog";
-import type { MedicalExam, MedicalSectionProps } from "@/components/medical/types";
-
-// ---------------------------------------------------------------------------
-// Personal info configuration (same layout as MLC page)
-// ---------------------------------------------------------------------------
-
-const SEABASE_PERSONAL_ROWS: RowConfig[] = [
-  [
-    { field: "last_name", label: "Last Name", required: true },
-    { field: "first_name", label: "First Name", required: true },
-    { field: "middle_name", label: "Middle Name" },
-  ],
-  [
-    { field: "place_of_birth", label: "Place of Birth" },
-    { field: "passport_no", label: "Passport No." },
-    { field: "religion", label: "Religion" },
-  ],
-  [
-    { field: "nationality", label: "Nationality" },
-    { field: "gender", label: "Gender", options: ["Male", "Female"] },
-    { field: "civil_status", label: "Civil Status", options: ["Single", "Married", "Widowed", "Separated"] },
-  ],
-  [
-    { field: "address", label: "Address" },
-    { field: "contact_no", label: "Contact No." },
-  ],
-  [
-    { field: "employer", label: "Employer" },
-    { field: "position", label: "Position" },
-  ],
-];
+import type { MedicalExam } from "@/components/medical/types";
 
 // ---------------------------------------------------------------------------
 // Sections
@@ -81,7 +52,7 @@ function SeabaseFormContent() {
       <PersonalInfoSection
         data={form.data}
         onChange={form.setData}
-        rows={SEABASE_PERSONAL_ROWS}
+        rows={STANDARD_PERSONAL_INFO_ROWS}
         disabled={true}
       />
     </motion.div>

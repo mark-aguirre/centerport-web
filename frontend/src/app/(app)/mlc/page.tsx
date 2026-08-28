@@ -4,7 +4,9 @@ import { Suspense, useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 
-import ApplicantInformationSection from "@/components/mlc/ApplicantInformationSection";
+import PersonalInfoSection, {
+  STANDARD_PERSONAL_INFO_ROWS,
+} from "@/components/common/personal-info-section";
 import DeclarationSection from "@/components/mlc/DeclarationSection";
 import FinalRecommendationSection from "@/components/mlc/FinalRecommendationSection";
 import { useMlcForm } from "@/hooks/use-mlc-form";
@@ -54,9 +56,11 @@ function MlcFormContent() {
       animate="visible"
       variants={sectionVariants}
     >
-      <ApplicantInformationSection
+      <PersonalInfoSection
         data={form.data}
         onChange={form.setData}
+        rows={STANDARD_PERSONAL_INFO_ROWS}
+        subtitle="From the selected seafarer profile"
         disabled
       />
     </motion.div>

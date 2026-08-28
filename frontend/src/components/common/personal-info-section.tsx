@@ -47,6 +47,39 @@ interface FieldConfig {
 export type RowConfig = FieldConfig[];
 
 /**
+ * Standard profile fields shared by Seabase and MLC personal-information cards.
+ */
+export const STANDARD_PERSONAL_INFO_ROWS: RowConfig[] = [
+  [
+    { field: "last_name", label: "Last Name", required: true },
+    { field: "first_name", label: "First Name", required: true },
+    { field: "middle_name", label: "Middle Name" },
+  ],
+  [
+    { field: "place_of_birth", label: "Place of Birth" },
+    { field: "passport_no", label: "Passport No." },
+    { field: "religion", label: "Religion" },
+  ],
+  [
+    { field: "nationality", label: "Nationality" },
+    { field: "gender", label: "Gender", options: ["Male", "Female"] },
+    {
+      field: "civil_status",
+      label: "Civil Status",
+      options: ["Single", "Married", "Widowed", "Separated"],
+    },
+  ],
+  [
+    { field: "address", label: "Address" },
+    { field: "contact_no", label: "Contact No." },
+  ],
+  [
+    { field: "employer", label: "Employer" },
+    { field: "position", label: "Position" },
+  ],
+];
+
+/**
  * Props for the common PersonalInfoSection.
  *
  * Uses a generic type parameter constrained to record types so any
@@ -81,7 +114,6 @@ export function PersonalInfoSection<T extends object = Record<string, string>>({
   onChange,
   subtitle,
   rows,
-  gridOverrides: _gridOverrides,
   showNameLabel = true,
   disabled,
 }: PersonalInfoSectionProps<T>) {
