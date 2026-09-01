@@ -156,9 +156,8 @@ export function AncillaryExamsSection({
         />
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="grid min-w-[960px] grid-cols-[1.08fr_1.08fr_0.84fr] border-b border-primary/20">
-          <div className="border-r border-primary/20">
+      <div className="grid grid-cols-1 border-b border-primary/20 md:grid-cols-2 xl:grid-cols-3 md:divide-x md:divide-primary/20">
+          <div>
             <ResultRow
               code="A"
               label="Chest X-ray"
@@ -196,7 +195,7 @@ export function AncillaryExamsSection({
             />
           </div>
 
-          <div className="border-r border-primary/20">
+          <div>
             <ResultRow
               code="E"
               label="Urinalysis"
@@ -254,7 +253,6 @@ export function AncillaryExamsSection({
               disabled={disabled}
             />
           </div>
-        </div>
       </div>
 
       <div

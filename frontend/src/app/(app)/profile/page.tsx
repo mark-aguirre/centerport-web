@@ -70,6 +70,7 @@ function ProfileFormContent() {
         editing={editing}
         saving={saving}
         isExistingRecord={isExistingRecord}
+        actionsPortalId="app-header-actions"
         metadata={{
           recordId: existingRecord?.profile_id,
           createdDate: existingRecord?.created_date,

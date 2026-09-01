@@ -118,12 +118,12 @@ function HistoryRow({
 }: HistoryRowProps) {
   return (
     <>
-      <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-primary/20 px-1.5 py-1">
+      <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-primary/20 px-2 py-1">
         <span className="text-[11px] leading-tight text-foreground/80">
           {condition.label}
         </span>
         <div
-          className="flex items-center gap-2"
+          className="flex shrink-0 items-center gap-2"
           role="radiogroup"
           aria-label={condition.label}
         >
@@ -207,26 +207,22 @@ export function PastMedicalHistoryGrid({
     });
   };
 
-  const renderColumn = (conditions: readonly HistoryCondition[]) => (
-    <div>
-      {conditions.map((condition) => (
-        <HistoryRow
-          key={condition.key}
-          condition={condition}
-          value={history[condition.key] ?? ""}
-          detailValue={
-            condition.detailKey ? history[condition.detailKey] ?? "" : undefined
-          }
-          onChange={(value) => updateHistory(condition.key, value)}
-          onDetailChange={
-            condition.detailKey
-              ? (value) => updateHistory(condition.detailKey!, value)
-              : undefined
-          }
-          disabled={disabled}
-        />
-      ))}
-    </div>
+  const renderRow = (condition: HistoryCondition) => (
+    <HistoryRow
+      key={condition.key}
+      condition={condition}
+      value={history[condition.key] ?? ""}
+      detailValue={
+        condition.detailKey ? history[condition.detailKey] ?? "" : undefined
+      }
+      onChange={(value) => updateHistory(condition.key, value)}
+      onDetailChange={
+        condition.detailKey
+          ? (value) => updateHistory(condition.detailKey!, value)
+          : undefined
+      }
+      disabled={disabled}
+    />
   );
 
   return (
@@ -249,39 +245,37 @@ export function PastMedicalHistoryGrid({
         <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
       </div>
 
-      <div className="overflow-x-auto">
-        <div className="grid min-w-[960px] grid-cols-3">
-          <section className="border-r border-primary/20" aria-label="Past medical history column one">
-            {renderColumn(COLUMN_1)}
-          </section>
-          <section className="border-r border-primary/20" aria-label="Past medical history column two">
-            {renderColumn(COLUMN_2)}
-          </section>
-          <section aria-label="Past medical history column three">
-            {renderColumn(COLUMN_3)}
-            <div className="grid min-h-9 grid-cols-[100px_1fr] items-center gap-2 px-2 py-1">
-              <label
-                htmlFor="medical-history-others"
-                className="text-[11px] text-foreground/80"
-              >
-                Others
-              </label>
-              <Input
-                id="medical-history-others"
-                value={data.medical_history_others ?? ""}
-                onChange={(event) =>
-                  onChange({
-                    ...data,
-                    medical_history_others: event.target.value,
-                  })
-                }
-                readOnly={disabled}
-                tabIndex={disabled ? -1 : undefined}
-                className="h-7 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
-              />
-            </div>
-          </section>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 md:divide-x md:divide-primary/20">
+        <section aria-label="Past medical history column one">
+          {COLUMN_1.map(renderRow)}
+        </section>
+        <section aria-label="Past medical history column two">
+          {COLUMN_2.map(renderRow)}
+        </section>
+        <section aria-label="Past medical history column three">
+          {COLUMN_3.map(renderRow)}
+          <div className="grid min-h-9 grid-cols-[minmax(0,auto)_1fr] items-center gap-2 border-b border-primary/20 px-2 py-1">
+            <label
+              htmlFor="medical-history-others"
+              className="text-[11px] text-foreground/80"
+            >
+              Others
+            </label>
+            <Input
+              id="medical-history-others"
+              value={data.medical_history_others ?? ""}
+              onChange={(event) =>
+                onChange({
+                  ...data,
+                  medical_history_others: event.target.value,
+                })
+              }
+              readOnly={disabled}
+              tabIndex={disabled ? -1 : undefined}
+              className="h-7 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+            />
+          </div>
+        </section>
       </div>
     </div>
   );
