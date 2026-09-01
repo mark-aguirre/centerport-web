@@ -12,7 +12,19 @@ import type { PanamaSectionProps, PanamaCertificate, YesNo } from "./types";
 interface DeclarationCondition {
   num: number;
   label: string;
+  /** Semantic key persisted in the `conditions` JSONB map. */
   storageKey: string;
+  /**
+   * Former opaque key that held this exact condition (1:1). Any value read
+   * from it — "yes" or "no" — carries over safely for records saved before
+   * the semantic-key migration.
+   */
+  legacyExactKey?: string;
+  /**
+   * Former combined key that grouped several conditions together. Only a "no"
+   * can be applied unambiguously; a combined "yes" needs reconfirmation
+   * because the specific positive item is unknown.
+   */
   legacyCombinedKey?: string;
 }
 
@@ -25,47 +37,47 @@ interface DeclarationCondition {
  * only when a historical "no" can be applied unambiguously.
  */
 const DECLARATION_CONDITIONS: DeclarationCondition[] = [
-  { num: 1, label: "High blood pressure", storageKey: "condition_1" },
-  { num: 2, label: "Eye/vision problem", storageKey: "condition_2" },
-  { num: 3, label: "Ear (hearing/tinnitus)", storageKey: "condition_ear", legacyCombinedKey: "condition_3" },
-  { num: 4, label: "Heart surgery", storageKey: "condition_4" },
-  { num: 5, label: "Varicose veins", storageKey: "condition_varicose_veins", legacyCombinedKey: "condition_5" },
-  { num: 6, label: "Hemorroids", storageKey: "condition_hemorrhoids", legacyCombinedKey: "condition_5" },
-  { num: 7, label: "Nose problems", storageKey: "condition_nose", legacyCombinedKey: "condition_3" },
-  { num: 8, label: "Throat problems", storageKey: "condition_throat", legacyCombinedKey: "condition_3" },
-  { num: 9, label: "Asthma/bronchitis", storageKey: "condition_6" },
-  { num: 10, label: "Blood disorders", storageKey: "condition_7" },
-  { num: 11, label: "Diabetes", storageKey: "condition_8" },
-  { num: 12, label: "Thyroid problems", storageKey: "condition_9" },
-  { num: 13, label: "Digestive disorders", storageKey: "condition_10" },
-  { num: 14, label: "Kidney problems", storageKey: "condition_11" },
-  { num: 15, label: "Skin problems", storageKey: "condition_12" },
-  { num: 16, label: "Allergies", storageKey: "condition_13" },
-  { num: 17, label: "Epilepsy / seizures", storageKey: "condition_14" },
-  { num: 18, label: "Sleep problem", storageKey: "condition_19" },
-  { num: 19, label: "Sickle-cell disease (or a close family member)", storageKey: "condition_15" },
-  { num: 20, label: "Hernias", storageKey: "condition_16" },
-  { num: 21, label: "Genital disorders (or any sexually transmitted disease)", storageKey: "condition_17" },
-  { num: 22, label: "Do you smoke?", storageKey: "condition_smoking", legacyCombinedKey: "condition_20" },
-  { num: 23, label: "Surgeries", storageKey: "condition_21" },
-  { num: 24, label: "Infectious diseases", storageKey: "condition_22" },
-  { num: 25, label: "Dizziness/fainting", storageKey: "condition_23" },
-  { num: 26, label: "Loss of consciousness", storageKey: "condition_24" },
-  { num: 27, label: "Do you use alcohol?", storageKey: "condition_alcohol", legacyCombinedKey: "condition_20" },
-  { num: 28, label: "Do you use drugs?", storageKey: "condition_drugs", legacyCombinedKey: "condition_20" },
-  { num: 29, label: "Psychiatric problems", storageKey: "condition_25" },
-  { num: 30, label: "Depression", storageKey: "condition_26" },
-  { num: 31, label: "Loss of memory", storageKey: "condition_28" },
-  { num: 32, label: "Balance problems", storageKey: "condition_29" },
-  { num: 33, label: "Severe headaches", storageKey: "condition_30" },
-  { num: 34, label: "Heart/vascular disease", storageKey: "condition_31" },
-  { num: 35, label: "Restricted mobility", storageKey: "condition_32" },
-  { num: 36, label: "Back problems", storageKey: "condition_back", legacyCombinedKey: "condition_33" },
-  { num: 37, label: "Joint problems", storageKey: "condition_joint", legacyCombinedKey: "condition_33" },
-  { num: 38, label: "Amputation", storageKey: "condition_34" },
-  { num: 39, label: "Fractures/dislocation", storageKey: "condition_35" },
-  { num: 40, label: "COVID-19", storageKey: "condition_36" },
-  { num: 41, label: "Pregnancy", storageKey: "condition_18" },
+  { num: 1, label: "High blood pressure", storageKey: "high_blood_pressure", legacyExactKey: "condition_1" },
+  { num: 2, label: "Eye/vision problem", storageKey: "eye_vision_problem", legacyExactKey: "condition_2" },
+  { num: 3, label: "Ear (hearing/tinnitus)", storageKey: "ear_problem", legacyExactKey: "condition_ear", legacyCombinedKey: "condition_3" },
+  { num: 4, label: "Heart surgery", storageKey: "heart_surgery", legacyExactKey: "condition_4" },
+  { num: 5, label: "Varicose veins", storageKey: "varicose_veins", legacyExactKey: "condition_varicose_veins", legacyCombinedKey: "condition_5" },
+  { num: 6, label: "Hemorroids", storageKey: "hemorrhoids", legacyExactKey: "condition_hemorrhoids", legacyCombinedKey: "condition_5" },
+  { num: 7, label: "Nose problems", storageKey: "nose_problem", legacyExactKey: "condition_nose", legacyCombinedKey: "condition_3" },
+  { num: 8, label: "Throat problems", storageKey: "throat_problem", legacyExactKey: "condition_throat", legacyCombinedKey: "condition_3" },
+  { num: 9, label: "Asthma/bronchitis", storageKey: "asthma_bronchitis", legacyExactKey: "condition_6" },
+  { num: 10, label: "Blood disorders", storageKey: "blood_disorders", legacyExactKey: "condition_7" },
+  { num: 11, label: "Diabetes", storageKey: "diabetes", legacyExactKey: "condition_8" },
+  { num: 12, label: "Thyroid problems", storageKey: "thyroid_problems", legacyExactKey: "condition_9" },
+  { num: 13, label: "Digestive disorders", storageKey: "digestive_disorders", legacyExactKey: "condition_10" },
+  { num: 14, label: "Kidney problems", storageKey: "kidney_problems", legacyExactKey: "condition_11" },
+  { num: 15, label: "Skin problems", storageKey: "skin_problems", legacyExactKey: "condition_12" },
+  { num: 16, label: "Allergies", storageKey: "allergies", legacyExactKey: "condition_13" },
+  { num: 17, label: "Epilepsy / seizures", storageKey: "epilepsy_seizures", legacyExactKey: "condition_14" },
+  { num: 18, label: "Sleep problem", storageKey: "sleep_problem", legacyExactKey: "condition_19" },
+  { num: 19, label: "Sickle-cell disease (or a close family member)", storageKey: "sickle_cell_disease", legacyExactKey: "condition_15" },
+  { num: 20, label: "Hernias", storageKey: "hernias", legacyExactKey: "condition_16" },
+  { num: 21, label: "Genital disorders (or any sexually transmitted disease)", storageKey: "genital_disorders", legacyExactKey: "condition_17" },
+  { num: 22, label: "Do you smoke?", storageKey: "smoking", legacyExactKey: "condition_smoking", legacyCombinedKey: "condition_20" },
+  { num: 23, label: "Surgeries", storageKey: "surgeries", legacyExactKey: "condition_21" },
+  { num: 24, label: "Infectious diseases", storageKey: "infectious_diseases", legacyExactKey: "condition_22" },
+  { num: 25, label: "Dizziness/fainting", storageKey: "dizziness_fainting", legacyExactKey: "condition_23" },
+  { num: 26, label: "Loss of consciousness", storageKey: "loss_of_consciousness", legacyExactKey: "condition_24" },
+  { num: 27, label: "Do you use alcohol?", storageKey: "alcohol", legacyExactKey: "condition_alcohol", legacyCombinedKey: "condition_20" },
+  { num: 28, label: "Do you use drugs?", storageKey: "drugs", legacyExactKey: "condition_drugs", legacyCombinedKey: "condition_20" },
+  { num: 29, label: "Psychiatric problems", storageKey: "psychiatric_problems", legacyExactKey: "condition_25" },
+  { num: 30, label: "Depression", storageKey: "depression", legacyExactKey: "condition_26" },
+  { num: 31, label: "Loss of memory", storageKey: "loss_of_memory", legacyExactKey: "condition_28" },
+  { num: 32, label: "Balance problems", storageKey: "balance_problems", legacyExactKey: "condition_29" },
+  { num: 33, label: "Severe headaches", storageKey: "severe_headaches", legacyExactKey: "condition_30" },
+  { num: 34, label: "Heart/vascular disease", storageKey: "heart_vascular_disease", legacyExactKey: "condition_31" },
+  { num: 35, label: "Restricted mobility", storageKey: "restricted_mobility", legacyExactKey: "condition_32" },
+  { num: 36, label: "Back problems", storageKey: "back_problem", legacyExactKey: "condition_back", legacyCombinedKey: "condition_33" },
+  { num: 37, label: "Joint problems", storageKey: "joint_problem", legacyExactKey: "condition_joint", legacyCombinedKey: "condition_33" },
+  { num: 38, label: "Amputation", storageKey: "amputation", legacyExactKey: "condition_34" },
+  { num: 39, label: "Fractures/dislocation", storageKey: "fractures_dislocation", legacyExactKey: "condition_35" },
+  { num: 40, label: "COVID-19", storageKey: "covid_19", legacyExactKey: "condition_36" },
+  { num: 41, label: "Pregnancy", storageKey: "pregnancy", legacyExactKey: "condition_18" },
 ];
 
 const CONDITIONS_COL_1 = DECLARATION_CONDITIONS.slice(0, 21);
@@ -129,6 +141,13 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
   const getConditionValue = (item: DeclarationCondition): YesNo => {
     const currentValue = data.conditions[item.storageKey] as YesNo | undefined;
     if (currentValue) return currentValue;
+
+    // Backward compatibility for records saved before the semantic-key rename.
+    // A former 1:1 key carries any value directly.
+    if (item.legacyExactKey) {
+      const exactValue = data.conditions[item.legacyExactKey] as YesNo | undefined;
+      if (exactValue) return exactValue;
+    }
 
     if (item.legacyCombinedKey) {
       const legacyValue = data.conditions[item.legacyCombinedKey];
