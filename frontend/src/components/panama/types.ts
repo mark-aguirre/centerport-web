@@ -183,6 +183,8 @@ export type PhysicalExplorationValue = "N" | "A" | "";
 
 /** Lab test result with normal/abnormal status and observations */
 export interface LabTestResult {
+  /** Whether this lab test was performed/selected */
+  checked?: boolean;
   normal: string;
   abnormal: string;
   observations: string;
@@ -194,7 +196,14 @@ export interface OtherLabTestResult {
   normal: string;
   abnormal: string;
   observations: string;
-  performedDate?: string;
+  /**
+   * Date the test was performed (ISO `yyyy-mm-dd`).
+   *
+   * Uses snake_case to match the backend `OtherLabTestResult.performedDate`
+   * field, which serializes to `performed_date` via the global snake_case
+   * Jackson strategy. A camelCase key here would be dropped on save.
+   */
+  performed_date?: string;
 }
 
 /**

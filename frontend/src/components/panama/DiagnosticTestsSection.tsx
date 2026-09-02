@@ -65,8 +65,8 @@ const OTHER_TESTS_GROUP_2 = [
   { key: "ekg", label: "EKG (over 50 years)", hasDate: true },
 ];
 
-const EMPTY_LAB_RESULT: LabTestResult = { normal: "", abnormal: "", observations: "" };
-const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abnormal: "", observations: "", performedDate: "" };
+const EMPTY_LAB_RESULT: LabTestResult = { checked: false, normal: "", abnormal: "", observations: "" };
+const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abnormal: "", observations: "", performed_date: "" };
 
 /**
  * Panama Medical Certificate — Diagnostic Test and Results section (Section V)
@@ -81,7 +81,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
   const update = (field: keyof PanamaCertificate, value: string) =>
     onChange({ ...data, [field]: value });
 
-  const updateLabTest = (key: string, field: keyof LabTestResult, value: string) => {
+  const updateLabTest = (key: string, field: keyof LabTestResult, value: string | boolean) => {
     const current = data.lab_tests[key] || { ...EMPTY_LAB_RESULT };
     const updated = { ...data.lab_tests, [key]: { ...current, [field]: value } };
     onChange({ ...data, lab_tests: updated });
@@ -98,13 +98,13 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
     const normalLabTests: Record<string, LabTestResult> = {};
     LAB_CATEGORIES.forEach((cat) => {
       cat.items.forEach((item) => {
-        normalLabTests[item.key] = { normal: "X", abnormal: "", observations: "" };
+        normalLabTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "" };
       });
     });
 
     const normalOtherTests: Record<string, OtherLabTestResult> = {};
     [...OTHER_TESTS_GROUP_1, ...OTHER_TESTS_GROUP_2].forEach((item) => {
-      normalOtherTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "", performedDate: "" };
+      normalOtherTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "", performed_date: "" };
     });
 
     onChange({
@@ -159,12 +159,12 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
                   <label className={cn("flex items-center gap-2 cursor-pointer pl-10", disabled && "pointer-events-none")}>
                     <input
                       type="checkbox"
-                      checked={!!result.normal || !!result.abnormal}
-                      readOnly
-                      className="w-4 h-4 accent-primary rounded"
+                      checked={result.checked ?? (!!result.normal || !!result.abnormal)}
+                      onChange={(e) => updateLabTest(item.key, "checked", e.target.checked)}
+                      className={cn("w-4 h-4 accent-primary rounded", disabled && "pointer-events-none")}
                       aria-label={item.label}
                       tabIndex={disabled ? -1 : undefined}
-                      disabled
+                      disabled={disabled}
                     />
                     <span className="text-xs text-foreground/80">{item.label}</span>
                   </label>
@@ -281,8 +281,8 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
                       <span className="text-[10px] text-foreground/60 whitespace-nowrap">Performed (dd/mm/yyyy):</span>
                       <Input
                         type="date"
-                        value={result.performedDate || ""}
-                        onChange={(e) => updateOtherTest(item.key, "performedDate", e.target.value)}
+                        value={result.performed_date || ""}
+                        onChange={(e) => updateOtherTest(item.key, "performed_date", e.target.value)}
                         className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30 flex-1", disabled && "pointer-events-none")}
                         aria-label={`${item.label} - Performed date`}
                         readOnly={disabled}

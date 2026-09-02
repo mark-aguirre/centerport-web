@@ -10,36 +10,48 @@ import { Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { PanamaSectionProps, PanamaCertificate, PhysicalExplorationValue } from "./types";
 
+/**
+ * Physical exploration item.
+ *
+ * `key` is the stable snake_case identifier persisted as the JSON map key.
+ * `label` is the human-readable text shown in the UI. Data is keyed by `key`
+ * so the stored JSON stays free of spaces, punctuation, and parentheses.
+ */
+type ExplorationItem = { key: string; label: string };
+
 /** Physical exploration items — Column 1 */
-const EXPLORATION_COL_1 = [
-  "Head",
-  "Mouth, Nose, Throat",
-  "Dental Exam",
-  "Ears (general)",
-  "Tympanic Membrane",
-  "Eyes",
-  "Pupils",
-  "Ophthalmoscopy",
-  "Eye movement",
-  "Lungs and Chest",
-  "Breast examination",
-  "Heart",
+const EXPLORATION_COL_1: ExplorationItem[] = [
+  { key: "head", label: "Head" },
+  { key: "mouth", label: "Mouth" },
+  { key: "nose", label: "Nose" },
+  { key: "throat", label: "Throat" },
+  { key: "dental_exam", label: "Dental Exam" },
+  { key: "ears_general", label: "Ears (general)" },
+  { key: "tympanic_membrane", label: "Tympanic Membrane" },
+  { key: "eyes", label: "Eyes" },
+  { key: "pupils", label: "Pupils" },
+  { key: "ophthalmoscopy", label: "Ophthalmoscopy" },
+  { key: "eye_movement", label: "Eye movement" },
+  { key: "lungs", label: "Lungs" },
+  { key: "chest", label: "Chest" },
+  { key: "breast_examination", label: "Breast examination" },
+  { key: "heart", label: "Heart" },
 ];
 
 /** Physical exploration items — Column 2 */
-const EXPLORATION_COL_2 = [
-  "Skin",
-  "Varicose veins",
-  "Vascular (inc. Pedal)",
-  "Abdomen and viscera",
-  "Hernias",
-  "Anus (not rectal exam)",
-  "G-U system",
-  "Upper and lower",
-  "Spine (Cervical, Thoracic and Lumbar)",
-  "Neurologic (full brief)",
-  "Psychiatric",
-  "General appearance",
+const EXPLORATION_COL_2: ExplorationItem[] = [
+  { key: "skin", label: "Skin" },
+  { key: "varicose_veins", label: "Varicose veins" },
+  { key: "vascular_incl_pedal", label: "Vascular (inc. Pedal)" },
+  { key: "abdomen_and_viscera", label: "Abdomen and viscera" },
+  { key: "hernias", label: "Hernias" },
+  { key: "anus_not_rectal_exam", label: "Anus (not rectal exam)" },
+  { key: "gu_system", label: "G-U system" },
+  { key: "upper_and_lower", label: "Upper and lower" },
+  { key: "spine_cervical_thoracic_lumbar", label: "Spine (Cervical, Thoracic and Lumbar)" },
+  { key: "neurologic_full_brief", label: "Neurologic (full brief)" },
+  { key: "psychiatric", label: "Psychiatric" },
+  { key: "general_appearance", label: "General appearance" },
 ];
 
 /** Hearing frequency columns */
@@ -104,8 +116,8 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
   const update = (field: keyof PanamaCertificate, value: string) =>
     onChange({ ...data, [field]: value });
 
-  const updateExploration = (item: string, value: PhysicalExplorationValue) => {
-    const updated = { ...data.physical_exploration, [item]: value };
+  const updateExploration = (key: string, value: PhysicalExplorationValue) => {
+    const updated = { ...data.physical_exploration, [key]: value };
     onChange({ ...data, physical_exploration: updated });
   };
 
@@ -113,7 +125,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
   const handleSetNormal = () => {
     const normalExploration: Record<string, PhysicalExplorationValue> = {};
     [...EXPLORATION_COL_1, ...EXPLORATION_COL_2].forEach((item) => {
-      normalExploration[item] = "N";
+      normalExploration[item.key] = "N";
     });
 
     onChange({
@@ -500,16 +512,16 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
         <div className="grid grid-cols-2 gap-4 mb-3">
           <div>
             {EXPLORATION_COL_1.map((item, index) => {
-              const currentValue = (data.physical_exploration[item] || "") as PhysicalExplorationValue;
+              const currentValue = (data.physical_exploration[item.key] || "") as PhysicalExplorationValue;
               return (
-                <div key={item} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
-                  <span className="text-xs text-foreground/80">{item}</span>
+                <div key={item.key} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
+                  <span className="text-xs text-foreground/80">{item.label}</span>
                   <div className="flex justify-center">
                     <NRARadio
-                      name={`panama_pe_${item.replace(/[^a-zA-Z]/g, "_")}`}
+                      name={`panama_pe_${item.key}`}
                       value={currentValue}
-                      onChange={(v) => updateExploration(item, v)}
-                      ariaLabel={item}
+                      onChange={(v) => updateExploration(item.key, v)}
+                      ariaLabel={item.label}
                       disabled={disabled}
                     />
                   </div>
@@ -519,16 +531,16 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
           </div>
           <div>
             {EXPLORATION_COL_2.map((item, index) => {
-              const currentValue = (data.physical_exploration[item] || "") as PhysicalExplorationValue;
+              const currentValue = (data.physical_exploration[item.key] || "") as PhysicalExplorationValue;
               return (
-                <div key={item} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
-                  <span className="text-xs text-foreground/80">{item}</span>
+                <div key={item.key} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
+                  <span className="text-xs text-foreground/80">{item.label}</span>
                   <div className="flex justify-center">
                     <NRARadio
-                      name={`panama_pe_${item.replace(/[^a-zA-Z]/g, "_")}`}
+                      name={`panama_pe_${item.key}`}
                       value={currentValue}
-                      onChange={(v) => updateExploration(item, v)}
-                      ariaLabel={item}
+                      onChange={(v) => updateExploration(item.key, v)}
+                      ariaLabel={item.label}
                       disabled={disabled}
                     />
                   </div>
