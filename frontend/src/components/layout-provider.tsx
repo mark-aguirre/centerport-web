@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useSyncExternalStore,
+} from "react";
 
 interface LayoutContextValue {
   fullWidth: boolean;
@@ -12,6 +18,38 @@ const LayoutContext = createContext<LayoutContextValue | undefined>(undefined);
 
 const STORAGE_KEY = "centerport-full-width";
 
+/**
+ * Subscribes to cross-tab `storage` events so the layout preference stays in
+ * sync when changed in another tab.
+ *
+ * @param onChange - Callback invoked when the stored value may have changed
+ * @returns Cleanup function that removes the listener
+ */
+function subscribeToFullWidth(onChange: () => void): () => void {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
+}
+
+/**
+ * Reads the persisted full-width preference from `localStorage`.
+ *
+ * @returns `true` when full-width mode is enabled, otherwise `false`
+ */
+function getFullWidthSnapshot(): boolean {
+  return localStorage.getItem(STORAGE_KEY) === "true";
+}
+
+/**
+ * Server snapshot for `useSyncExternalStore`.
+ *
+ * Always `false` to match the SSR output. The blocking `<script>` in
+ * `layout.tsx` sets `data-full-width` on `<html>` to prevent layout flash
+ * before hydration completes.
+ */
+function getFullWidthServerSnapshot(): boolean {
+  return false;
+}
+
 interface LayoutProviderProps {
   children: React.ReactNode;
 }
@@ -19,45 +57,39 @@ interface LayoutProviderProps {
 /**
  * Provides layout preferences (full-width toggle) to the component tree.
  *
- * Persists the user's preference in localStorage so it survives page reloads.
- * Follows the same pattern as `ThemeProvider`.
+ * Persists the user's preference in `localStorage` so it survives page reloads
+ * and stays in sync across tabs via the `storage` event. Reads the value with
+ * `useSyncExternalStore`, which is SSR-safe and avoids hydration mismatch
+ * without needing a `mounted` flag.
+ *
+ * @see useLayout — consumer hook for reading and updating the preference
  */
 export function LayoutProvider({ children }: LayoutProviderProps) {
-  // Always start false to match SSR output and avoid hydration mismatch.
-  // The blocking <script> in layout.tsx sets data-full-width on <html> to
-  // prevent layout flash before this effect runs.
-  const [fullWidth, setFullWidthState] = useState<boolean>(false);
-  const [mounted, setMounted] = useState(false);
+  const fullWidth = useSyncExternalStore(
+    subscribeToFullWidth,
+    getFullWidthSnapshot,
+    getFullWidthServerSnapshot,
+  );
 
-  // Sync from localStorage after mount.
+  // Keep the data-full-width attribute on <html> in sync with the preference.
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    setFullWidthState(saved === "true");
-    setMounted(true);
-  }, []);
-
-  // Keep data-full-width attribute in sync on <html> — only after initial mount
-  // to avoid overriding the blocking script's attribute before localStorage is read.
-  useEffect(() => {
-    if (!mounted) return;
     if (fullWidth) {
       document.documentElement.setAttribute("data-full-width", "true");
     } else {
       document.documentElement.removeAttribute("data-full-width");
     }
-  }, [fullWidth, mounted]);
+  }, [fullWidth]);
 
   const setFullWidth = useCallback((value: boolean) => {
-    setFullWidthState(value);
     localStorage.setItem(STORAGE_KEY, String(value));
+    // Notify same-tab subscribers (storage event only fires in other tabs).
+    window.dispatchEvent(new StorageEvent("storage", { key: STORAGE_KEY }));
   }, []);
 
   const toggleFullWidth = useCallback(() => {
-    setFullWidthState((prev) => {
-      const next = !prev;
-      localStorage.setItem(STORAGE_KEY, String(next));
-      return next;
-    });
+    const next = localStorage.getItem(STORAGE_KEY) !== "true";
+    localStorage.setItem(STORAGE_KEY, String(next));
+    window.dispatchEvent(new StorageEvent("storage", { key: STORAGE_KEY }));
   }, []);
 
   return (

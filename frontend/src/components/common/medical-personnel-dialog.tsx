@@ -86,8 +86,11 @@ export function MedicalPersonnelDialog({
 
   /**
    * Fetches personnel from the backend search endpoint.
-   * The API returns all active personnel when keyword is empty,
-   * or filters by name/license/specialization when provided.
+   *
+   * The API returns all active personnel when `term` is empty, or filters by
+   * name/license/specialization when provided. State updates happen inside the
+   * async callback (not synchronously in an effect), so this is safe to invoke
+   * from effects and handlers alike.
    */
   const fetchPersonnel = useCallback(async (term: string) => {
     setSearching(true);
@@ -113,14 +116,25 @@ export function MedicalPersonnelDialog({
     }
   }, []);
 
-  // Load all personnel when dialog opens, reset state
+  // Reset the search field and load all personnel each time the dialog opens.
+  // The keyword reset is deferred into the async fetch callback to avoid a
+  // synchronous setState in the effect body.
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+
+    let cancelled = false;
+    const focusTimer = setTimeout(() => inputRef.current?.focus(), 150);
+
+    void (async () => {
+      if (cancelled) return;
       setKeyword("");
-      setHasSearched(false);
-      fetchPersonnel("");
-      setTimeout(() => inputRef.current?.focus(), 150);
-    }
+      await fetchPersonnel("");
+    })();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(focusTimer);
+    };
   }, [open, fetchPersonnel]);
 
   const handleInputChange = (value: string) => {

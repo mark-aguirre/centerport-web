@@ -129,11 +129,13 @@ export function useRepeatHematologyForm({
     setLoadingExams(true);
     try {
       const results = await httpClient.get<HematologyRepeatTest[]>(basePath);
-      const summaries: RepeatTestSummary[] = results.map((r) => ({
-        id: r.id!,
-        result_id: r.result_id ?? "",
-        result_date: r.result_date ?? "",
-      }));
+      const summaries: RepeatTestSummary[] = results
+        .filter((r): r is HematologyRepeatTest & { id: string } => Boolean(r.id))
+        .map((r) => ({
+          id: r.id,
+          result_id: r.result_id ?? "",
+          result_date: r.result_date ?? "",
+        }));
       setPreviousExams(summaries);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -211,7 +213,7 @@ export function useRepeatHematologyForm({
       } else {
         const created = await httpClient.post<HematologyRepeatTest>(basePath, body);
         setData(sanitizeRecord(created));
-        setSelectedId(created.id!);
+        setSelectedId(created.id ?? null);
         toast.success("Repeat test created successfully");
       }
       setEditing(false);

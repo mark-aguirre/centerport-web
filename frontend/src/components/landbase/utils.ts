@@ -25,6 +25,7 @@ const SYSTEM_FIELDS = ["id", "peme_id", "created_date", "updated_date"] as const
  */
 interface NestedSeafarerProfile {
   id?: string;
+  photo_url?: string;
   last_name?: string;
   first_name?: string;
   middle_name?: string;
@@ -38,6 +39,10 @@ interface NestedSeafarerProfile {
   contact_no?: string;
   employer?: string;
   position?: string;
+  birthdate?: string;
+  age?: string;
+  seamans_book_no?: string;
+  country_of_destination?: string;
 }
 
 /**
@@ -66,6 +71,7 @@ export function flattenProfileIntoRecord(record: RawPemeResponse): LandbasePeme 
   const personalData: Partial<LandbasePeme> = profile
     ? {
         seafarer_profile_id: profile.id ?? record.seafarer_profile_id,
+        photo_url: profile.photo_url ?? "",
         last_name: profile.last_name ?? "",
         first_name: profile.first_name ?? "",
         middle_name: profile.middle_name ?? "",
@@ -79,6 +85,10 @@ export function flattenProfileIntoRecord(record: RawPemeResponse): LandbasePeme 
         contact_no: profile.contact_no ?? "",
         employer: profile.employer ?? "",
         position: profile.position ?? "",
+        birthdate: profile.birthdate ?? "",
+        age: profile.age ?? "",
+        seamans_book_no: profile.seamans_book_no ?? "",
+        country_of_destination: profile.country_of_destination ?? "",
       }
     : {};
 

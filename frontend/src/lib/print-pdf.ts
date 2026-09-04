@@ -77,3 +77,4 @@ export function printPdfBlob(blob: Blob): Promise<void> {
     document.body.appendChild(iframe);
   });
 }
+

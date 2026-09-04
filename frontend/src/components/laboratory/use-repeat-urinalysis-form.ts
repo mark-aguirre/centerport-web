@@ -66,11 +66,13 @@ export function useRepeatUrinalysisForm({
     setLoadingExams(true);
     try {
       const results = await httpClient.get<UrinalysisRepeatTest[]>(basePath);
-      const summaries: UrinalysisRepeatTestSummary[] = results.map((r) => ({
-        id: r.id!,
-        result_id: r.result_id ?? "",
-        result_date: r.result_date ?? "",
-      }));
+      const summaries: UrinalysisRepeatTestSummary[] = results
+        .filter((r): r is UrinalysisRepeatTest & { id: string } => Boolean(r.id))
+        .map((r) => ({
+          id: r.id,
+          result_id: r.result_id ?? "",
+          result_date: r.result_date ?? "",
+        }));
       setPreviousExams(summaries);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -130,7 +132,7 @@ export function useRepeatUrinalysisForm({
       } else {
         const created = await httpClient.post<UrinalysisRepeatTest>(basePath, body);
         setData(sanitizeRecord(created));
-        setSelectedId(created.id!);
+        setSelectedId(created.id ?? null);
         toast.success("Urinalysis repeat test created successfully");
       }
       setEditing(false);

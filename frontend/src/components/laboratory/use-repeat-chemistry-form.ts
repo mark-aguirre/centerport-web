@@ -125,11 +125,13 @@ export function useRepeatChemistryForm({
     setLoadingExams(true);
     try {
       const results = await httpClient.get<ChemistryRepeatTest[]>(basePath);
-      const summaries: ChemistryRepeatTestSummary[] = results.map((r) => ({
-        id: r.id!,
-        result_id: r.result_id ?? "",
-        result_date: r.result_date ?? "",
-      }));
+      const summaries: ChemistryRepeatTestSummary[] = results
+        .filter((r): r is ChemistryRepeatTest & { id: string } => Boolean(r.id))
+        .map((r) => ({
+          id: r.id,
+          result_id: r.result_id ?? "",
+          result_date: r.result_date ?? "",
+        }));
       setPreviousExams(summaries);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
@@ -204,7 +206,7 @@ export function useRepeatChemistryForm({
       } else {
         const created = await httpClient.post<ChemistryRepeatTest>(basePath, body);
         setData(sanitizeRecord(created));
-        setSelectedId(created.id!);
+        setSelectedId(created.id ?? null);
         toast.success("Chemistry repeat test created successfully");
       }
       setEditing(false);

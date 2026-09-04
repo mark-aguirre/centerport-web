@@ -6,10 +6,14 @@ import { cn } from "@/lib/utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 const FINAL_RECOMMENDATION_OPTIONS = [
+  "FIT",
+  "UNFIT",
+  "FIT TO WORK",
+  "FIT w/ RESTRICTION",
+  "FIT FOR EMPLOYMENT",
+  "FIT FOR TRAINING",
+  "FIT FOR ENROLLMENT",
   "FIT FOR SEA DUTY",
-  "FIT WITH RESTRICTIONS",
-  "TEMPORARILY UNFIT FOR SEA DUTY",
-  "UNFIT FOR SEA DUTY",
 ];
 
 interface CertificationResultRowProps {

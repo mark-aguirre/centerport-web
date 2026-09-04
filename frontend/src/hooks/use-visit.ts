@@ -201,7 +201,10 @@ export function useVisit(): UseVisitResult {
       } else {
         // New patient — create profile first
         const created = await api.entities.SeafarerProfile.create(payload as SeafarerProfile);
-        profileId = created.id!;
+        if (!created.id) {
+          throw new ApiError(500, "Profile was created without an ID");
+        }
+        profileId = created.id;
         setData({ ...EMPTY_PROFILE, ...created });
         setSelectedProfile(created);
         setIsExistingRecord(true);

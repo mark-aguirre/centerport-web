@@ -53,6 +53,50 @@ type RequestOptions = Omit<RequestInit, "body"> & {
 };
 
 /**
+ * Loosely-typed shape of a backend error body.
+ *
+ * Every field is optional because error responses come from multiple sources
+ * (validation handler, RFC 9457 problem details, generic 500s) and are treated
+ * as untrusted external data until narrowed.
+ */
+interface ErrorBody {
+  message?: string;
+  detail?: string;
+  violations?: ValidationViolation[];
+  properties?: { violations?: ValidationViolation[] };
+}
+
+/**
+ * Parses a failed `Response` into a message and validation violations.
+ *
+ * Reads the JSON body defensively: any parse failure falls back to the
+ * provided default message with no violations. Supports both the flat
+ * `violations` array and the RFC 9457 `properties.violations` location.
+ *
+ * @param response - The non-OK fetch response
+ * @param defaultMessage - Message to use when the body has none
+ * @returns Parsed error message and any field-level violations
+ */
+async function parseErrorResponse(
+  response: Response,
+  defaultMessage: string
+): Promise<{ message: string; violations: ValidationViolation[] }> {
+  try {
+    const body = (await response.json()) as ErrorBody;
+    const message = body.detail ?? body.message ?? defaultMessage;
+    const violations = Array.isArray(body.violations)
+      ? body.violations
+      : Array.isArray(body.properties?.violations)
+        ? body.properties.violations
+        : [];
+    return { message, violations };
+  } catch {
+    // Body is missing or not JSON — fall back to the default message.
+    return { message: defaultMessage, violations: [] };
+  }
+}
+
+/**
  * Core fetch wrapper.
  * Automatically handles JSON, error responses, and the ApiResponse unwrap.
  */
@@ -88,21 +132,10 @@ async function request<T>(
   });
 
   if (!response.ok) {
-    let message = `Request failed with status ${response.status}`;
-    let violations: ValidationViolation[] = [];
-    try {
-      const errorBody = await response.json();
-      if (errorBody.message) message = errorBody.message;
-      if (errorBody.detail) message = errorBody.detail;
-      // Support both flat `violations` and RFC 9457 `properties.violations`
-      if (Array.isArray(errorBody.violations)) {
-        violations = errorBody.violations;
-      } else if (Array.isArray(errorBody.properties?.violations)) {
-        violations = errorBody.properties.violations;
-      }
-    } catch {
-      // Ignore parse errors — use default message
-    }
+    const { message, violations } = await parseErrorResponse(
+      response,
+      `Request failed with status ${response.status}`
+    );
     throw new ApiError(response.status, message, violations);
   }
 
@@ -126,17 +159,11 @@ async function uploadFile(
   });
 
   if (!response.ok) {
-    let message = "File upload failed";
-    try {
-      const errorBody = await response.json();
-      if (errorBody.message) message = errorBody.message;
-    } catch {
-      // Ignore
-    }
+    const { message } = await parseErrorResponse(response, "File upload failed");
     throw new ApiError(response.status, message);
   }
 
-  return response.json();
+  return response.json() as Promise<{ file_url: string }>;
 }
 
 /**
@@ -152,14 +179,10 @@ async function downloadPdf(path: string, filename?: string): Promise<void> {
   });
 
   if (!response.ok) {
-    let message = "Failed to generate report";
-    try {
-      const errorBody = await response.json();
-      if (errorBody.message) message = errorBody.message;
-      if (errorBody.detail) message = errorBody.detail;
-    } catch {
-      // Ignore parse errors
-    }
+    const { message } = await parseErrorResponse(
+      response,
+      "Failed to generate report"
+    );
     throw new ApiError(response.status, message);
   }
 

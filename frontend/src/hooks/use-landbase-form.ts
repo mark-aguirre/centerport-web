@@ -36,6 +36,7 @@ const landbaseConfig: EntityFormConfig<LandbasePeme> = {
 
   buildPersonalData: (profile: SeafarerProfile): Partial<LandbasePeme> => ({
     seafarer_profile_id: profile.id,
+    photo_url: profile.photo_url ?? "",
     last_name: profile.last_name ?? "",
     first_name: profile.first_name ?? "",
     middle_name: profile.middle_name ?? "",

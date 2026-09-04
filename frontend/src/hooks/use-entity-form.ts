@@ -268,6 +268,10 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
   // -------------------------------------------------------------------------
 
   useEffect(() => {
+    // Guard against races: if editId changes or the component unmounts while
+    // a load is in flight, skip the stale state updates.
+    let cancelled = false;
+
     const loadRecord = async () => {
       try {
         let results: T[];
@@ -276,6 +280,8 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         } else {
           results = await entityApi.list("-updated_date", 1);
         }
+
+        if (cancelled) return;
 
         if (results.length > 0) {
           const flattened = flattenResponse(results[0]);
@@ -291,11 +297,15 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
       } catch {
         // Silently handle — form stays empty for new entry
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     loadRecord();
+
+    return () => {
+      cancelled = true;
+    };
   }, [editId, entityApi, flattenResponse, getProfileId, fetchProfileRecords]);
 
   // -------------------------------------------------------------------------

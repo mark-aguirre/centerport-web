@@ -103,7 +103,11 @@ export function useRepeatFecalysisForm({
     setLoadingExams(true);
     try {
       const results = await httpClient.get<FecalysisRepeatTest[]>(basePath);
-      setPreviousExams(results.map((r) => ({ id: r.id!, result_id: r.result_id ?? "", result_date: r.result_date ?? "" })));
+      setPreviousExams(
+        results
+          .filter((r): r is FecalysisRepeatTest & { id: string } => Boolean(r.id))
+          .map((r) => ({ id: r.id, result_id: r.result_id ?? "", result_date: r.result_date ?? "" }))
+      );
     } catch (error: unknown) {
       console.error("Failed to fetch fecalysis repeat tests:", error instanceof Error ? error.message : "Unknown error");
     } finally {
@@ -152,7 +156,7 @@ export function useRepeatFecalysisForm({
       } else {
         const created = await httpClient.post<FecalysisRepeatTest>(basePath, body);
         setData(sanitizeRecord(created));
-        setSelectedId(created.id!);
+        setSelectedId(created.id ?? null);
         toast.success("Fecalysis repeat test created successfully");
       }
       setEditing(false);

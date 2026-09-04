@@ -64,6 +64,7 @@ function LandbaseFormContent() {
         open={printDialogOpen}
         onClose={() => setPrintDialogOpen(false)}
         pemeId={form.existingRecord?.id}
+        data={form.existingRecord ?? form.data}
       />
     </>
   );

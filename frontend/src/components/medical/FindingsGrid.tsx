@@ -2,7 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { MedicalExam, MedicalSectionProps } from "./types";
+import type { MedicalSectionProps } from "./types";
 
 interface FindingItem {
   key: string;

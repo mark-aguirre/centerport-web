@@ -58,7 +58,7 @@ export default function CameraCapture({ onCapture, disabled }: CameraCaptureProp
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-    } catch (err) {
+    } catch {
       setError("Unable to access camera. Please check permissions.");
     }
   }, []);
@@ -140,17 +140,31 @@ export default function CameraCapture({ onCapture, disabled }: CameraCaptureProp
     setOpen(false);
   }, [captured, onCapture]);
 
-  /** Manage stream lifecycle with dialog open/close. */
+  /**
+   * Manage stream lifecycle with dialog open/close.
+   *
+   * State resets are deferred into an async callback so the effect body does
+   * not call `setState` synchronously (avoids cascading renders).
+   */
   useEffect(() => {
-    if (open) {
-      startCamera();
-    } else {
+    let cancelled = false;
+
+    void (async () => {
+      if (cancelled) return;
+      if (open) {
+        await startCamera();
+      } else {
+        stopCamera();
+        setCaptured(null);
+        setError(null);
+        setZoom(ZOOM_MIN);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
       stopCamera();
-      setCaptured(null);
-      setError(null);
-      setZoom(ZOOM_MIN);
-    }
-    return () => stopCamera();
+    };
   }, [open, startCamera, stopCamera]);
 
   return (
@@ -181,6 +195,9 @@ export default function CameraCapture({ onCapture, disabled }: CameraCaptureProp
                 {error}
               </div>
             ) : captured ? (
+              // `captured` is an in-memory base64 data URL, not a static/remote
+              // asset, so next/image optimization does not apply here.
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={captured}
                 alt="Captured preview"

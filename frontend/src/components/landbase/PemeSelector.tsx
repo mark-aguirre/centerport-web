@@ -1,7 +1,6 @@
 "use client";
 
 import { format } from "date-fns";
-import { ChevronDown } from "lucide-react";
 import {
   Select,
   SelectContent,

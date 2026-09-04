@@ -43,14 +43,26 @@ export function PatientSearchDialog({
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Focus input when dialog opens
+  // Reset the search state and focus the input each time the dialog opens.
+  // State resets are deferred to a microtask so the effect body does not call
+  // setState synchronously (avoids cascading renders).
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+
+    let cancelled = false;
+    const focusTimer = setTimeout(() => inputRef.current?.focus(), 150);
+
+    queueMicrotask(() => {
+      if (cancelled) return;
       setKeyword("");
       setResults([]);
       setHasSearched(false);
-      setTimeout(() => inputRef.current?.focus(), 150);
-    }
+    });
+
+    return () => {
+      cancelled = true;
+      clearTimeout(focusTimer);
+    };
   }, [open]);
 
   const doSearch = useCallback(async (term: string) => {

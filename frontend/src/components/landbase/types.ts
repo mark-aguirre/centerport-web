@@ -54,11 +54,14 @@ export type BloodType = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" 
 
 /** PEME recommendation options */
 export type RecommendationValue =
-  | "Fit for Employment"
-  | "Unfit for Employment"
-  | "Requires Further Evaluation"
-  | "Temporarily Unfit"
-  | "Fit with Restriction"
+  | "FIT"
+  | "UNFIT"
+  | "FIT TO WORK"
+  | "FIT w/ RESTRICTION"
+  | "FIT FOR EMPLOYMENT"
+  | "FIT FOR TRAINING"
+  | "FIT FOR ENROLLMENT"
+  | "FIT FOR SEA DUTY"
   | "";
 
 /** Full Landbase PEME record */
@@ -70,6 +73,9 @@ export interface LandbasePeme {
 
   // Seafarer Profile link (required on create)
   seafarer_profile_id?: string;
+
+  // Patient photo (sourced from the linked seafarer profile; used by the MLC print template)
+  photo_url?: string;
 
   // Personal Information
   last_name: string;
@@ -85,6 +91,13 @@ export interface LandbasePeme {
   contact_no: string;
   employer: string;
   position: string;
+
+  // Additional personal details (sourced from the linked seafarer profile;
+  // used by the detailed print template, not editable on the PEME form)
+  birthdate?: string;
+  age?: string;
+  seamans_book_no?: string;
+  country_of_destination?: string;
 
   // Past Medical History - stored as record of condition keys to values
   medical_history: Record<string, string>;
@@ -240,6 +253,7 @@ export interface LandbaseSectionProps {
  */
 export const EMPTY_PEME: LandbasePeme = {
   seafarer_profile_id: undefined,
+  photo_url: "",
   last_name: "",
   first_name: "",
   middle_name: "",
@@ -253,6 +267,10 @@ export const EMPTY_PEME: LandbasePeme = {
   contact_no: "",
   employer: "",
   position: "",
+  birthdate: "",
+  age: "",
+  seamans_book_no: "",
+  country_of_destination: "",
   medical_history: {},
   medical_history_others: "",
   consulted_doctor: false,

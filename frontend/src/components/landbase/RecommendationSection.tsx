@@ -10,11 +10,14 @@ import type { LandbasePeme, LandbaseSectionProps } from "./types";
 import { createFieldUpdater } from "./utils";
 
 const RECOMMENDATION_OPTIONS = [
-  "Fit for Employment",
-  "Unfit for Employment",
-  "Requires Further Evaluation",
-  "Temporarily Unfit",
-  "Fit with Restriction",
+  "FIT",
+  "UNFIT",
+  "FIT TO WORK",
+  "FIT w/ RESTRICTION",
+  "FIT FOR EMPLOYMENT",
+  "FIT FOR TRAINING",
+  "FIT FOR ENROLLMENT",
+  "FIT FOR SEA DUTY",
 ];
 
 const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
@@ -40,7 +43,7 @@ export default function RecommendationSection({
   const updateField = createFieldUpdater(data, onChange);
 
   const handleSetNormal = () => {
-    onChange({ ...data, recommendation: "Fit for Employment" });
+    onChange({ ...data, recommendation: "FIT FOR EMPLOYMENT" });
   };
 
   const handleCertChange = (
