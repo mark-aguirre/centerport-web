@@ -4,17 +4,9 @@ import React, { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { resolvePhotoUrl } from "@/lib/photo";
 import { Upload, User } from "lucide-react";
 import CameraCapture from "./CameraCapture";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-
-/** Resolve a photo URL — prepends the API base if it's a relative path. */
-function resolvePhotoUrl(url: string): string {
-  if (!url) return "";
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  return `${API_BASE}${url}`;
-}
 
 interface PhotoUploadProps {
   photoUrl: string;

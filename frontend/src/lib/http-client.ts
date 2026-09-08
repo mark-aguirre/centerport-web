@@ -2,7 +2,7 @@
  * Lightweight HTTP client wrapping the Fetch API.
  *
  * All requests are directed at the backend base URL defined by
- * NEXT_PUBLIC_API_URL (defaults to http://localhost:8080 for local dev).
+ * NEXT_PUBLIC_API_URL (defaults to INVALID_PUBLIC_API_URL for local dev).
  *
  * Features:
  * - Automatic JSON serialization/deserialization
@@ -10,7 +10,7 @@
  * - Consistent error handling with status and message
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "INVALID_PUBLIC_API_URL";
 
 /** A single field-level validation violation from the backend. */
 export interface ValidationViolation {

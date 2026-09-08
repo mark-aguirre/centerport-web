@@ -12,41 +12,9 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { printPdfBlob } from "@/lib/print-pdf";
+import { requestPrint } from "@/lib/print-request";
+import { buildMlcPayload } from "@/components/mlc/printPayload";
 import type { MlcRecord } from "@/components/mlc/types";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-
-/** Resolve a photo URL — prepends the API base if it's a relative path. */
-function resolvePhotoUrl(url: string | undefined): string {
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  return `${API_BASE}${url}`;
-}
-
-/**
- * Fetches an image from a URL and returns it as a base64 data URL.
- * Returns empty string if the fetch fails or the URL is empty.
- */
-async function fetchPhotoAsBase64(url: string | undefined): Promise<string> {
-  const resolved = resolvePhotoUrl(url);
-  if (!resolved) return "";
-
-  try {
-    const response = await fetch(resolved);
-    if (!response.ok) return "";
-
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve("");
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return "";
-  }
-}
 
 interface PrintDialogProps {
   /** Whether the dialog is open. */
@@ -58,68 +26,19 @@ interface PrintDialogProps {
 }
 
 /**
- * Builds the PrintIO payload from the current MLC form data.
- *
- * Maps frontend field names to the PrintIO template variable names.
- * Fetches the photo and converts it to base64 for inline embedding.
- */
-async function buildPrintPayload(data: MlcRecord): Promise<Record<string, string>> {
-  const lastName = data.last_name ?? "";
-  const firstName = data.first_name ?? "";
-  const middleName = data.middle_name ?? "";
-  const fullname = [lastName, firstName, middleName].filter(Boolean).join(", ");
-
-  const photoBase64 = await fetchPhotoAsBase64(data.photo_url);
-
-  return {
-    fullname,
-    last_name: lastName,
-    first_name: firstName,
-    middle_name: middleName,
-    age: data.age ?? "",
-    birthdate: data.date_of_birth ?? "",
-    place_of_birth: data.place_of_birth ?? "",
-    country: "",
-    nationality: data.nationality ?? "",
-    gender: data.gender ?? "",
-    marital_status: data.civil_status ?? "",
-    religion: data.religion ?? "",
-    address: data.address ?? "",
-    passport_no: data.passport_no ?? "",
-    position_deck: data.position ?? "",
-    position_engine: "",
-    position_steward: "",
-    position_other: "",
-    shipping_company: data.shipping_company ?? "",
-    sirb_no: data.sirb_no ?? "",
-    id_documents_checked: data.id_documents_checked ?? "",
-    hearing_meets_standards: data.hearing_meets_standards ?? "",
-    unaided_hearing_satisfactory: data.unaided_hearing_satisfactory ?? "",
-    visual_acuity_meets_standards: data.visual_acuity_meets_standards ?? "",
-    colour_vision_meets_standards: data.colour_vision_meets_standards ?? "",
-    visual_aids: Array.isArray(data.visual_aids) ? data.visual_aids.join(", ") : "",
-    fit_for_lookout: data.fit_for_lookout ?? "",
-    date_colour_vision_test: data.date_colour_vision_test ?? "",
-    no_limitations: data.no_limitations ?? "",
-    applicant_condition_risk: data.applicant_condition_risk ?? "",
-    photo_url: photoBase64,
-    fitness_determination: data.fitness_determination ?? "",
-    date_of_fitness: data.date_of_fitness ?? "",
-    medical_director: data.medical_director ?? "",
-    examining_physician: data.examining_physician ?? "",
-    limitations_details: data.limitations_details ?? "",
-    date_initial_peme: data.date_initial_peme ?? "",
-    valid_until_date: data.valid_until_date ?? "",
-    medical_certification_no: data.medical_certification_no ?? "",
-  };
-}
-
-/**
  * Dialog that generates an MLC certificate PDF via PrintIO.
  *
- * When the user clicks the generate button, it sends the current form data
- * to the Next.js API route which proxies to PrintIO, then opens the
- * resulting PDF in a new browser tab for print preview.
+ * When the user clicks the generate button, it builds a flat payload from the
+ * current record (see `buildMlcPayload`), posts it to the Next.js print route
+ * which proxies to PrintIO, then loads the returned PDF into a hidden iframe
+ * and opens the browser print dialog.
+ *
+ * Props:
+ * - `data` — the current MLC record; a loaded record (with `last_name`) is
+ *   required before the certificate can be generated
+ *
+ * @see buildMlcPayload — builds the PrintIO payload from the record
+ * @see printPdfBlob — opens the browser print dialog for the returned PDF
  */
 export function PrintDialog({ open, onClose, data }: PrintDialogProps) {
   const [generating, setGenerating] = useState(false);
@@ -132,30 +51,7 @@ export function PrintDialog({ open, onClose, data }: PrintDialogProps) {
 
     setGenerating(true);
     try {
-      const payload = await buildPrintPayload(data);
-
-      const response = await fetch("/api/print/mlc", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        let message = "Failed to generate report";
-        try {
-          const errorBody = await response.json();
-          if (errorBody.message) message = errorBody.message;
-        } catch {
-          // Ignore parse errors
-        }
-        throw new Error(message);
-      }
-
-      const blob = await response.blob();
-
-      // Load the PDF into a hidden iframe and open the browser print dialog.
-      await printPdfBlob(blob);
-
+      await requestPrint("mlc", await buildMlcPayload(data));
       onClose();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to generate report";
