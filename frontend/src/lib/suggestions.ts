@@ -5,6 +5,7 @@
  * type free-form text — these just speed up data entry.
  */
 
+/** Nationality suggestions for the seafarer profile nationality field. */
 export const NATIONALITIES = [
   "Filipino",
   "American",
@@ -48,6 +49,7 @@ export const NATIONALITIES = [
   "Vietnamese",
 ];
 
+/** Religion suggestions for the profile religion field. */
 export const RELIGIONS = [
   "Roman Catholic",
   "Islam",
@@ -65,6 +67,7 @@ export const RELIGIONS = [
   "Others",
 ];
 
+/** Shipboard rank/position suggestions for the profile position field. */
 export const POSITIONS = [
   "Able Seaman",
   "Bosun",
@@ -94,6 +97,7 @@ export const POSITIONS = [
   "Wiper",
 ];
 
+/** Country suggestions for address/nationality-related profile fields. */
 export const COUNTRIES = [
   "Philippines",
   "United States",
@@ -138,6 +142,7 @@ export const COUNTRIES = [
   "Vietnam",
 ];
 
+/** City suggestions (Philippine cities) for profile address fields. */
 export const CITIES = [
   "Manila",
   "Cebu City",
@@ -171,6 +176,7 @@ export const CITIES = [
   "Cotabato City",
 ];
 
+/** Manning-agency/employer suggestions for the profile employer field. */
 export const EMPLOYERS = [
   "Magsaysay Maritime",
   "NYK-Fil Ship Management",
@@ -194,6 +200,7 @@ export const EMPLOYERS = [
   "Philippine Transmarine Carriers",
 ];
 
+/** Crew designation/category suggestions for the profile designation field. */
 export const DESIGNATIONS = [
   "Seafarer",
   "Officer",
@@ -207,6 +214,7 @@ export const DESIGNATIONS = [
   "Supernumerary",
 ];
 
+/** Educational course/program suggestions for the profile education fields. */
 export const COURSES = [
   "BS Marine Transportation",
   "BS Marine Engineering",

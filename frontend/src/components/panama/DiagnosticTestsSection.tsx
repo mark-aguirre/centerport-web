@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { PanamaSectionProps, PanamaCertificate, LabTestResult, OtherLabTestResult } from "./types";
+import { CELL_INPUT_CLASS } from "./constants";
+import { createFieldUpdater } from "./utils";
+import type { PanamaSectionProps, LabTestResult, OtherLabTestResult } from "./types";
 
 /** Lab test categories with their items */
 const LAB_CATEGORIES = [
@@ -69,6 +71,39 @@ const EMPTY_LAB_RESULT: LabTestResult = { checked: false, normal: "", abnormal: 
 const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abnormal: "", observations: "", performed_date: "" };
 
 /**
+ * Compact text input for a single lab-result cell (Normal, Abnormal, or
+ * Observations) inside the diagnostic test tables.
+ *
+ * Props:
+ * - `label` — human-readable test name used to build the cell `aria-label`
+ * - `field` — which column this cell represents; appended to the `aria-label`
+ * - `onValueChange` — fires with the raw input value on every change
+ */
+function ResultInput({
+  label,
+  field,
+  value,
+  onValueChange,
+  disabled,
+}: {
+  label: string;
+  field: "Normal" | "Abnormal" | "Observations" | "Performed date";
+  value: string;
+  onValueChange: (value: string) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Input
+      value={value}
+      onChange={(e) => onValueChange(e.target.value)}
+      className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+      aria-label={`${label} - ${field}`}
+      readOnly={disabled}
+    />
+  );
+}
+
+/**
  * Panama Medical Certificate — Diagnostic Test and Results section (Section V)
  * and Other Diagnostic Tests and Results (Section VI).
  *
@@ -78,8 +113,7 @@ const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abn
  * additional diagnostic tests with practitioner comments.
  */
 export default function DiagnosticTestsSection({ data, onChange, disabled }: PanamaSectionProps) {
-  const update = (field: keyof PanamaCertificate, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   const updateLabTest = (key: string, field: keyof LabTestResult, value: string | boolean) => {
     const current = data.lab_tests[key] || { ...EMPTY_LAB_RESULT };
@@ -168,26 +202,26 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
                     />
                     <span className="text-xs text-foreground/80">{item.label}</span>
                   </label>
-                  <Input
+                  <ResultInput
+                    label={item.label}
+                    field="Normal"
                     value={result.normal}
-                    onChange={(e) => updateLabTest(item.key, "normal", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                    aria-label={`${item.label} - Normal`}
-                    readOnly={disabled}
+                    onValueChange={(v) => updateLabTest(item.key, "normal", v)}
+                    disabled={disabled}
                   />
-                  <Input
+                  <ResultInput
+                    label={item.label}
+                    field="Abnormal"
                     value={result.abnormal}
-                    onChange={(e) => updateLabTest(item.key, "abnormal", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                    aria-label={`${item.label} - Abnormal`}
-                    readOnly={disabled}
+                    onValueChange={(v) => updateLabTest(item.key, "abnormal", v)}
+                    disabled={disabled}
                   />
-                  <Input
+                  <ResultInput
+                    label={item.label}
+                    field="Observations"
                     value={result.observations}
-                    onChange={(e) => updateLabTest(item.key, "observations", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                    aria-label={`${item.label} - Observations`}
-                    readOnly={disabled}
+                    onValueChange={(v) => updateLabTest(item.key, "observations", v)}
+                    disabled={disabled}
                   />
                 </div>
               );
@@ -229,26 +263,26 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
                   disabled={disabled}
                 />
               </div>
-              <Input
+              <ResultInput
+                label={item.label}
+                field="Normal"
                 value={result.normal}
-                onChange={(e) => updateOtherTest(item.key, "normal", e.target.value)}
-                className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                aria-label={`${item.label} - Normal`}
-                readOnly={disabled}
+                onValueChange={(v) => updateOtherTest(item.key, "normal", v)}
+                disabled={disabled}
               />
-              <Input
+              <ResultInput
+                label={item.label}
+                field="Abnormal"
                 value={result.abnormal}
-                onChange={(e) => updateOtherTest(item.key, "abnormal", e.target.value)}
-                className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                aria-label={`${item.label} - Abnormal`}
-                readOnly={disabled}
+                onValueChange={(v) => updateOtherTest(item.key, "abnormal", v)}
+                disabled={disabled}
               />
-              <Input
+              <ResultInput
+                label={item.label}
+                field="Observations"
                 value={result.observations}
-                onChange={(e) => updateOtherTest(item.key, "observations", e.target.value)}
-                className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                aria-label={`${item.label} - Observations`}
-                readOnly={disabled}
+                onValueChange={(v) => updateOtherTest(item.key, "observations", v)}
+                disabled={disabled}
               />
             </div>
           );
@@ -283,42 +317,42 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
                         type="date"
                         value={result.performed_date || ""}
                         onChange={(e) => updateOtherTest(item.key, "performed_date", e.target.value)}
-                        className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30 flex-1", disabled && "pointer-events-none")}
+                        className={cn(CELL_INPUT_CLASS, "flex-1", disabled && "pointer-events-none")}
                         aria-label={`${item.label} - Performed date`}
                         readOnly={disabled}
                       />
                     </div>
                   </div>
-                  <Input
+                  <ResultInput
+                    label={item.label}
+                    field="Observations"
                     value={result.observations}
-                    onChange={(e) => updateOtherTest(item.key, "observations", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                    aria-label={`${item.label} - Observations`}
-                    readOnly={disabled}
+                    onValueChange={(v) => updateOtherTest(item.key, "observations", v)}
+                    disabled={disabled}
                   />
                 </>
               ) : (
                 <>
-                  <Input
+                  <ResultInput
+                    label={item.label}
+                    field="Normal"
                     value={result.normal}
-                    onChange={(e) => updateOtherTest(item.key, "normal", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                    aria-label={`${item.label} - Normal`}
-                    readOnly={disabled}
+                    onValueChange={(v) => updateOtherTest(item.key, "normal", v)}
+                    disabled={disabled}
                   />
-                  <Input
+                  <ResultInput
+                    label={item.label}
+                    field="Abnormal"
                     value={result.abnormal}
-                    onChange={(e) => updateOtherTest(item.key, "abnormal", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                    aria-label={`${item.label} - Abnormal`}
-                    readOnly={disabled}
+                    onValueChange={(v) => updateOtherTest(item.key, "abnormal", v)}
+                    disabled={disabled}
                   />
-                  <Input
+                  <ResultInput
+                    label={item.label}
+                    field="Observations"
                     value={result.observations}
-                    onChange={(e) => updateOtherTest(item.key, "observations", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
-                    aria-label={`${item.label} - Observations`}
-                    readOnly={disabled}
+                    onValueChange={(v) => updateOtherTest(item.key, "observations", v)}
+                    disabled={disabled}
                   />
                 </>
               )}

@@ -2,7 +2,8 @@
 
 import { FormSelect } from "@/components/common/form-select";
 import { cn } from "@/lib/utils";
-import type { MedicalExam, MedicalSectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
+import type { MedicalSectionProps } from "./types";
 
 const HEARING_OPTIONS = ["Adequate", "Inadequate"];
 const YES_NO_OPTIONS = ["Yes", "No"];
@@ -65,8 +66,7 @@ export function AudiometrySpeechSection({
   onChange,
   disabled,
 }: MedicalSectionProps) {
-  const update = (field: keyof MedicalExam, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   return (
     <div

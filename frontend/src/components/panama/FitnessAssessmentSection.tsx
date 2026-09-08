@@ -15,12 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ShieldCheck, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { PanamaSectionProps, PanamaCertificate } from "./types";
-
-const MONTH_OPTIONS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
+import { MONTH_OPTIONS } from "./constants";
+import { createFieldUpdater } from "./utils";
+import type { PanamaSectionProps } from "./types";
 
 /**
  * Panama Medical Certificate — Assessment of Fitness for Service at Sea (Section VII).
@@ -34,11 +31,7 @@ const MONTH_OPTIONS = [
  * - Physician details
  */
 export default function FitnessAssessmentSection({ data, onChange, disabled }: PanamaSectionProps) {
-  const update = (field: keyof PanamaCertificate, value: string) =>
-    onChange({ ...data, [field]: value });
-
-  const updateBool = (field: keyof PanamaCertificate, value: boolean) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   // Dialog state for physician search
   const [physicianDialogOpen, setPhysicianDialogOpen] = useState(false);
@@ -150,7 +143,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
                       <input
                         type="checkbox"
                         checked={data[field]}
-                        onChange={(e) => updateBool(field, e.target.checked)}
+                        onChange={(e) => update(field, e.target.checked)}
                         className="h-4 w-4 rounded accent-primary"
                         aria-label={`${row.label} - ${["Deck", "Engine", "Catering", "Other"][index]} service`}
                         tabIndex={disabled ? -1 : undefined}

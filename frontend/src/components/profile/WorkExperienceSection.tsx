@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { POSITIONS } from "@/lib/suggestions";
-import type { SeafarerProfile } from "@/lib/api";
+import { createFieldUpdater } from "./utils";
 import type { ProfileSectionProps } from "./types";
 
 /**
@@ -22,8 +22,7 @@ export default function WorkExperienceSection({
   onChange,
   disabled,
 }: ProfileSectionProps) {
-  const update = (field: keyof SeafarerProfile, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">

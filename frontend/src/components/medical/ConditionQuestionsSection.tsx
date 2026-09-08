@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { MedicalExam, MedicalSectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
+import type { MedicalSectionProps } from "./types";
 
 /**
  * Identification-document confirmation for the Physical Examination form.
@@ -14,8 +15,7 @@ export function ConditionQuestionsSection({
   onChange,
   disabled,
 }: MedicalSectionProps) {
-  const update = (field: keyof MedicalExam, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   return (
     <div

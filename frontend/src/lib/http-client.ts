@@ -205,6 +205,13 @@ async function downloadPdf(path: string, filename?: string): Promise<void> {
   setTimeout(() => window.URL.revokeObjectURL(blobUrl), 10000);
 }
 
+/**
+ * Public HTTP client used across the app.
+ *
+ * `get`/`post`/`put`/`delete` send JSON, unwrap the backend `ApiResponse`
+ * envelope, and throw `ApiError` on failure. `uploadFile` posts
+ * multipart/form-data, and `downloadPdf` streams a binary file to a new tab.
+ */
 export const httpClient = {
   get: <T>(path: string, params?: Record<string, string | number | undefined>) =>
     request<T>(path, { method: "GET", params }),

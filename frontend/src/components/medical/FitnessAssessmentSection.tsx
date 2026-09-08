@@ -10,7 +10,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { MedicalExam, MedicalSectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
+import type { MedicalSectionProps } from "./types";
 
 interface FitnessChoiceProps {
   label: string;
@@ -76,8 +77,7 @@ export function FitnessAssessmentSection({
   const [physicianDialogOpen, setPhysicianDialogOpen] = useState(false);
   const [directorDialogOpen, setDirectorDialogOpen] = useState(false);
 
-  const update = (field: keyof MedicalExam, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   const selectPhysician = (personnel: MedicalPersonnel) => {
     onChange({

@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CELL_INPUT_CLASS } from "./constants";
+import { createFieldUpdater } from "./utils";
 import type { PanamaSectionProps, PanamaCertificate, PhysicalExplorationValue } from "./types";
 
 /**
@@ -113,8 +115,7 @@ function NRARadio({
  * - iv. Physical Exploration (body systems Normal/Abnormal grid)
  */
 export default function MedicalExaminationSection({ data, onChange, disabled }: PanamaSectionProps) {
-  const update = (field: keyof PanamaCertificate, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   const updateExploration = (key: string, value: PhysicalExplorationValue) => {
     const updated = { ...data.physical_exploration, [key]: value };
@@ -283,7 +284,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_distant_right}
                     onChange={(e) => update("sight_unaided_distant_right", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Distant - Unaided Right Eye"
                     readOnly={disabled}
                   />
@@ -292,7 +293,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_distant_left}
                     onChange={(e) => update("sight_unaided_distant_left", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Distant - Unaided Left Eye"
                     readOnly={disabled}
                   />
@@ -301,7 +302,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_distant_binocular}
                     onChange={(e) => update("sight_unaided_distant_binocular", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Distant - Unaided Binocular"
                     readOnly={disabled}
                   />
@@ -310,7 +311,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_aided_distant_right}
                     onChange={(e) => update("sight_aided_distant_right", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Distant - Aided Right Eye"
                     readOnly={disabled}
                   />
@@ -319,7 +320,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_aided_distant_left}
                     onChange={(e) => update("sight_aided_distant_left", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Distant - Aided Left Eye"
                     readOnly={disabled}
                   />
@@ -329,7 +330,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_fields_right}
                     onChange={(e) => update("sight_fields_right", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Visual Fields - Right Eye"
                     readOnly={disabled}
                   />
@@ -342,7 +343,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_short_right}
                     onChange={(e) => update("sight_unaided_short_right", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Short distance - Unaided Right Eye"
                     readOnly={disabled}
                   />
@@ -351,7 +352,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_short_left}
                     onChange={(e) => update("sight_unaided_short_left", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Short distance - Unaided Left Eye"
                     readOnly={disabled}
                   />
@@ -361,7 +362,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_aided_short_right}
                     onChange={(e) => update("sight_aided_short_right", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Short distance - Aided Right Eye"
                     readOnly={disabled}
                   />
@@ -370,7 +371,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_aided_short_left}
                     onChange={(e) => update("sight_aided_short_left", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Short distance - Aided Left Eye"
                     readOnly={disabled}
                   />
@@ -380,7 +381,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_fields_left}
                     onChange={(e) => update("sight_fields_left", e.target.value)}
-                    className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30", disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                     aria-label="Visual Fields - Left Eye"
                     readOnly={disabled}
                   />
@@ -457,7 +458,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                       <Input
                         value={(data[field] as string) ?? ""}
                         onChange={(e) => update(field, e.target.value)}
-                        className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30 w-full", disabled && "pointer-events-none")}
+                        className={cn(CELL_INPUT_CLASS, "w-full", disabled && "pointer-events-none")}
                         readOnly={disabled}
                       />
                     </td>
@@ -474,7 +475,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                       <Input
                         value={(data[field] as string) ?? ""}
                         onChange={(e) => update(field, e.target.value)}
-                        className={cn("h-7 text-xs bg-white border-primary/20 dark:bg-input/30 w-full", disabled && "pointer-events-none")}
+                        className={cn(CELL_INPUT_CLASS, "w-full", disabled && "pointer-events-none")}
                         readOnly={disabled}
                       />
                     </td>

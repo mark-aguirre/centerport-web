@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { PanamaSectionProps, PanamaCertificate, YesNo } from "./types";
+import { createFieldUpdater } from "./utils";
+import type { PanamaSectionProps, YesNo } from "./types";
 
 interface DeclarationCondition {
   num: number;
@@ -104,14 +105,67 @@ const COVID_YES_NO_QUESTIONS = [
 ];
 
 /**
+ * Grid-aligned Yes/No radio pair used throughout the declaration tables.
+ *
+ * Unlike the shared `YesNoRadio`, this variant hides the option text (via
+ * `sr-only` labels) so the two radios line up under the table's visible
+ * YES/NO column headers. The wrapper layout is supplied by `className` so each
+ * table can control column widths and borders.
+ *
+ * Props:
+ * - `name` — HTML radio name for mutual exclusivity
+ * - `value` — current selection ("yes", "no", or "")
+ * - `onChange` — fires with "yes" or "no" on selection
+ * - `ariaLabel` — question text announced to screen readers
+ * - `className` — layout classes for the 2-column radio wrapper
+ */
+function GridYesNoRadio({
+  name,
+  value,
+  onChange,
+  ariaLabel,
+  className,
+  disabled,
+}: {
+  name: string;
+  value: YesNo;
+  onChange: (value: YesNo) => void;
+  ariaLabel: string;
+  className?: string;
+  disabled?: boolean;
+}) {
+  return (
+    <div
+      className={cn(className, disabled && "pointer-events-none")}
+      role="radiogroup"
+      aria-label={ariaLabel}
+    >
+      {(["yes", "no"] as const).map((answer) => (
+        <label key={answer} className="cursor-pointer">
+          <input
+            type="radio"
+            name={name}
+            checked={value === answer}
+            onChange={() => onChange(answer)}
+            className="h-4 w-4 accent-primary"
+            aria-label={`${ariaLabel} - ${answer === "yes" ? "Yes" : "No"}`}
+            tabIndex={disabled ? -1 : undefined}
+          />
+          <span className="sr-only">{answer === "yes" ? "Yes" : "No"}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/**
  * Panama Medical Certificate — Examinee's Personal Declaration section.
  *
  * Clean grid layout: conditions in 2-column grid, additional questions and
  * covid section use consistent row-based table style.
  */
 export default function PersonalDeclarationSection({ data, onChange, disabled }: PanamaSectionProps) {
-  const update = (field: keyof PanamaCertificate, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   const updateCondition = (conditionKey: string, value: YesNo) => {
     const updatedConditions = { ...data.conditions, [conditionKey]: value };
@@ -171,29 +225,14 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
           <span className="mr-1 font-semibold text-primary/70">{item.num}.</span>
           {item.label}
         </span>
-        <div
-          className={cn("grid w-[72px] shrink-0 grid-cols-2 place-items-center gap-2", disabled && "pointer-events-none")}
-          role="radiogroup"
-          aria-label={item.label}
-        >
-          {(["yes", "no"] as const).map((answer) => (
-            <label
-              key={answer}
-              className="cursor-pointer"
-            >
-              <input
-                type="radio"
-                name={`panama_declaration_${item.num}`}
-                checked={currentValue === answer}
-                onChange={() => updateCondition(item.storageKey, answer)}
-                className="h-4 w-4 accent-primary"
-                aria-label={`${item.label} - ${answer === "yes" ? "Yes" : "No"}`}
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="sr-only">{answer === "yes" ? "Yes" : "No"}</span>
-            </label>
-          ))}
-        </div>
+        <GridYesNoRadio
+          name={`panama_declaration_${item.num}`}
+          value={currentValue}
+          onChange={(answer) => updateCondition(item.storageKey, answer)}
+          ariaLabel={item.label}
+          className="grid w-[72px] shrink-0 grid-cols-2 place-items-center gap-2"
+          disabled={disabled}
+        />
       </div>
     );
   };
@@ -220,29 +259,14 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
             NO
           </span>
         </div>
-        <div
-          className={cn("grid grid-cols-2 place-items-center", disabled && "pointer-events-none")}
-          role="radiogroup"
-          aria-label={question.text}
-        >
-          {(["yes", "no"] as const).map((answer) => (
-            <label
-              key={answer}
-              className="cursor-pointer"
-            >
-              <input
-                type="radio"
-                name={`panama_${question.key}`}
-                checked={data[question.key] === answer}
-                onChange={() => update(question.key, answer)}
-                className="h-4 w-4 accent-primary"
-                aria-label={`${question.text} - ${answer === "yes" ? "Yes" : "No"}`}
-                tabIndex={disabled ? -1 : undefined}
-              />
-              <span className="sr-only">{answer === "yes" ? "Yes" : "No"}</span>
-            </label>
-          ))}
-        </div>
+        <GridYesNoRadio
+          name={`panama_${question.key}`}
+          value={data[question.key]}
+          onChange={(answer) => update(question.key, answer)}
+          ariaLabel={question.text}
+          className="grid grid-cols-2 place-items-center"
+          disabled={disabled}
+        />
       </div>
     </div>
   );
@@ -330,29 +354,14 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
             <span className="border-l border-primary/20 px-2 py-2 text-xs leading-tight text-foreground/80">
               {question.text}
             </span>
-            <div
-              className={cn("grid grid-cols-2 place-items-center border-l border-primary/20", disabled && "pointer-events-none")}
-              role="radiogroup"
-              aria-label={question.text}
-            >
-              {(["yes", "no"] as const).map((answer) => (
-                <label
-                  key={answer}
-                  className="cursor-pointer"
-                >
-                  <input
-                    type="radio"
-                    name={`panama_${question.key}`}
-                    checked={data[question.key] === answer}
-                    onChange={() => update(question.key, answer)}
-                    className="h-4 w-4 accent-primary"
-                    aria-label={`${question.text} - ${answer === "yes" ? "Yes" : "No"}`}
-                    tabIndex={disabled ? -1 : undefined}
-                  />
-                  <span className="sr-only">{answer === "yes" ? "Yes" : "No"}</span>
-                </label>
-              ))}
-            </div>
+            <GridYesNoRadio
+              name={`panama_${question.key}`}
+              value={data[question.key]}
+              onChange={(answer) => update(question.key, answer)}
+              ariaLabel={question.text}
+              className="grid grid-cols-2 place-items-center border-l border-primary/20"
+              disabled={disabled}
+            />
           </div>
         ))}
       </div>
@@ -397,29 +406,14 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
           <span className="border-l border-primary/20 px-2 py-2 text-xs leading-tight text-foreground/80">
             Are you taking any non-prescription or prescription medications?
           </span>
-          <div
-            className={cn("grid grid-cols-2 place-items-center border-l border-primary/20", disabled && "pointer-events-none")}
-            role="radiogroup"
-            aria-label="Are you taking any non-prescription or prescription medications?"
-          >
-            {(["yes", "no"] as const).map((answer) => (
-              <label
-                key={answer}
-                className="cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  name="panama_question_45"
-                  checked={data.question_45 === answer}
-                  onChange={() => update("question_45", answer)}
-                  className="h-4 w-4 accent-primary"
-                  aria-label={`Medication question - ${answer === "yes" ? "Yes" : "No"}`}
-                  tabIndex={disabled ? -1 : undefined}
-                />
-                <span className="sr-only">{answer === "yes" ? "Yes" : "No"}</span>
-              </label>
-            ))}
-          </div>
+          <GridYesNoRadio
+            name="panama_question_45"
+            value={data.question_45}
+            onChange={(answer) => update("question_45", answer)}
+            ariaLabel="Are you taking any non-prescription or prescription medications?"
+            className="grid grid-cols-2 place-items-center border-l border-primary/20"
+            disabled={disabled}
+          />
         </div>
       </div>
 

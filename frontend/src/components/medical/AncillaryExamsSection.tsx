@@ -4,7 +4,8 @@ import { FormSelect } from "@/components/common/form-select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { MedicalExam, MedicalSectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
+import type { MedicalSectionProps } from "./types";
 
 interface ResultOption {
   label: string;
@@ -122,8 +123,7 @@ export function AncillaryExamsSection({
   onChange,
   disabled,
 }: MedicalSectionProps) {
-  const update = (field: keyof MedicalExam, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   return (
     <div

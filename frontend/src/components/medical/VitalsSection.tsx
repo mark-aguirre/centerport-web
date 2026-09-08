@@ -3,7 +3,8 @@
 import { FormSelect } from "@/components/common/form-select";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { MedicalExam, MedicalSectionProps } from "./types";
+import { createFieldUpdater } from "./utils";
+import type { MedicalSectionProps } from "./types";
 
 interface InlineVitalFieldProps {
   label: string;
@@ -46,8 +47,7 @@ export function VitalsSection({
   onChange,
   disabled,
 }: MedicalSectionProps) {
-  const update = (field: keyof MedicalExam, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   return (
     <div

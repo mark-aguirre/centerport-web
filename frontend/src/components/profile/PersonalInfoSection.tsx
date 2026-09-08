@@ -8,6 +8,7 @@ import PhotoUpload from "./PhotoUpload";
 import { User } from "lucide-react";
 import { NATIONALITIES, RELIGIONS, CITIES } from "@/lib/suggestions";
 import type { SeafarerProfile } from "@/lib/api";
+import { createFieldUpdater } from "./utils";
 import type { ProfileSectionProps } from "./types";
 
 /**
@@ -22,8 +23,7 @@ export default function PersonalInfoSection({
   onChange,
   disabled,
 }: ProfileSectionProps) {
-  const update = (field: keyof SeafarerProfile, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   const handleBirthdateChange = (val: string) => {
     const updates: Partial<SeafarerProfile> = { birthdate: val };

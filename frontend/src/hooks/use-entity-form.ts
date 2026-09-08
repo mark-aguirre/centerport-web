@@ -294,8 +294,17 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
             fetchProfileRecords(profileId);
           }
         }
-      } catch {
-        // Silently handle — form stays empty for new entry
+      } catch (error: unknown) {
+        if (cancelled) return;
+        // A failed load leaves the form empty. That's the intended state for a
+        // brand-new entry, but when an editId was requested it means the record
+        // could not be fetched, so log it rather than swallow silently.
+        if (editId) {
+          console.warn(
+            "Failed to load record for editing:",
+            error instanceof Error ? error.message : error
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }

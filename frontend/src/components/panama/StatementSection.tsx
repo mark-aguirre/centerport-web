@@ -4,12 +4,9 @@ import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { FormSelect } from "@/components/common/form-select";
 import { FileSignature } from "lucide-react";
-import type { PanamaSectionProps, PanamaCertificate } from "./types";
-
-const MONTH_OPTIONS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
+import { MONTH_OPTIONS } from "./constants";
+import { createFieldUpdater } from "./utils";
+import type { PanamaSectionProps } from "./types";
 
 /**
  * Panama Medical Certificate — Statement section (Section III).
@@ -23,8 +20,7 @@ const MONTH_OPTIONS = [
  * - Previous medical examination details
  */
 export default function StatementSection({ data, onChange, disabled }: PanamaSectionProps) {
-  const update = (field: keyof PanamaCertificate, value: string) =>
-    onChange({ ...data, [field]: value });
+  const update = createFieldUpdater(data, onChange);
 
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
