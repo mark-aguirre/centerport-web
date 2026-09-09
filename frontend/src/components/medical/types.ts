@@ -39,6 +39,9 @@ export interface MedicalExam {
   /** ISO timestamp of last update */
   updated_date?: string;
 
+   // Patient photo (sourced from the linked seafarer profile; used by the MLC print template)
+  photo_url?: string;
+  
   /** UUID of the linked seafarer profile (required for backend persistence) */
   seafarer_profile_id?: string;
   /** Populated in responses — the full seafarer profile snapshot */
@@ -197,6 +200,8 @@ export interface MedicalExam {
   // Final Recommendation
   final_recommendation: string;
   recommendation_remarks: string;
+  /** Restriction details, shown only when the recommendation includes a restriction */
+  restriction_details: string;
   cert_basic_ooh: string;
   cert_basic_ooh_findings: string;
   cert_additional_labs: string;

@@ -192,6 +192,7 @@ public class MedicalExamDto {
     // --- Final Recommendation ---
     private String finalRecommendation;
     private String recommendationRemarks;
+    private String restrictionDetails;
     private String certBasicOoh;
     private String certBasicOohFindings;
     private String certAdditionalLabs;

@@ -77,6 +77,10 @@ export function FinalRecommendationSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
+  const showRestrictionDetails = (data.final_recommendation ?? "")
+    .toUpperCase()
+    .includes("RESTRICTION");
+
   const handleSetNormal = () => {
     onChange({
       ...data,
@@ -131,6 +135,28 @@ export function FinalRecommendationSection({
           className="h-8 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
         />
       </div>
+
+      {showRestrictionDetails && (
+        <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[165px_1fr] sm:items-center">
+          <label
+            htmlFor="restriction-details"
+            className="text-xs font-bold text-foreground/80"
+          >
+            Restriction Details:
+          </label>
+          <Input
+            id="restriction-details"
+            value={data.restriction_details}
+            onChange={(event) =>
+              update("restriction_details", event.target.value)
+            }
+            placeholder="Specify the restriction (e.g. specific positions, type of ship, trade area)"
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
+            className="h-8 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+          />
+        </div>
+      )}
 
       <div className="overflow-x-auto bg-muted/10 py-1">
         <div className="min-w-[830px]">

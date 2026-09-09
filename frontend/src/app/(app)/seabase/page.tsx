@@ -71,6 +71,7 @@ function SeabaseFormContent() {
         open={printDialogOpen}
         onClose={() => setPrintDialogOpen(false)}
         examId={form.existingRecord?.id}
+        data={form.existingRecord ?? form.data}
       />
     </>
   );

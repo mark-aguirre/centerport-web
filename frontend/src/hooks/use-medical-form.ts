@@ -158,6 +158,7 @@ export const EMPTY_EXAM: MedicalExam = {
   // Final Recommendation
   final_recommendation: "",
   recommendation_remarks: "",
+  restriction_details: "",
   cert_basic_ooh: "",
   cert_basic_ooh_findings: "",
   cert_additional_labs: "",
@@ -211,6 +212,7 @@ function flattenResponse(record: MedicalExam): MedicalExam {
   const raw = record as MedicalExam & {
     seafarer_profile?: {
       id?: string;
+      photo_url?: string;
       last_name?: string;
       first_name?: string;
       middle_name?: string;
@@ -241,6 +243,7 @@ function flattenResponse(record: MedicalExam): MedicalExam {
     ...EMPTY_EXAM,
     ...coerced,
     seafarer_profile_id: profile.id ?? record.seafarer_profile_id,
+    photo_url: record.photo_url || profile.photo_url || "",
     last_name: record.last_name || profile.last_name || "",
     first_name: record.first_name || profile.first_name || "",
     middle_name: record.middle_name || profile.middle_name || "",
@@ -297,6 +300,7 @@ const medicalConfig: EntityFormConfig<MedicalExam> = {
 
   buildPersonalData: (profile: SeafarerProfile): Partial<MedicalExam> => ({
     seafarer_profile_id: profile.id,
+    photo_url: profile.photo_url ?? "",
     last_name: profile.last_name ?? "",
     first_name: profile.first_name ?? "",
     middle_name: profile.middle_name ?? "",

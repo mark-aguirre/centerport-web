@@ -118,10 +118,11 @@ export async function buildMlcPayload(data: LandbasePeme): Promise<Record<string
  * Fields with no corresponding data on the PEME model are sent as empty strings:
  * `field51` (no source), `last_menstrual_period` (not captured on the form).
  */
-export function buildMerPayload(data: LandbasePeme): Record<string, string> {
+export async function buildMerPayload(data: LandbasePeme): Promise<Record<string, string>>{
   const initialPeme = splitDate(data.date_initial_peme);
   const validUntil = splitDate(data.valid_until);
 
+  const photoBase64 = await fetchPhotoAsBase64(data.photo_url);
   return {
     // Identity / personal information
     last_name: data.last_name ?? "",
@@ -140,6 +141,7 @@ export function buildMerPayload(data: LandbasePeme): Record<string, string> {
     country_of_destination: data.country_of_destination ?? "",
     employer_name: data.employer ?? "",
 
+    photo_url:photoBase64,
     // Past Medical History (read from the medical_history map by exact key)
     head_or_neck_injury: history(data, "Head or Neck Injury"),
     frequent_headaches: history(data, "Frequent Headaches"),
@@ -454,7 +456,7 @@ export async function buildDetailedPayload(data: LandbasePeme): Promise<Record<s
     gynecological_disorder: history(data, "Gynecological Disorder (For female)"),
     operations: history(data, "Operations (Specify)"),
     // No corresponding model field
-    field27: "",
+    consulted_doctor: data.consulted_doctor ? "yes" : "no",
     consulted_doctor_details: data.consulted_doctor_details ?? "",
     maintenance_medications: data.maintenance_medications ?? "",
 

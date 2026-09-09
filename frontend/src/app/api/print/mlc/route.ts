@@ -9,7 +9,7 @@ import { handlePrintRequest } from "@/lib/printio";
  */
 export async function POST(request: NextRequest) {
   return handlePrintRequest(request, {
-    apiKey: process.env.PRINTIO_API_KEY_SEABASE_MLC!,
+    apiKey: process.env.PRINTIO_API_KEY_MLC!,
     filename: "mlc-certificate.pdf",
   });
 }

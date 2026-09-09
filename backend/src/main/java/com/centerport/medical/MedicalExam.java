@@ -423,6 +423,9 @@ public class MedicalExam extends BaseEntity {
     @Column(name = "recommendation_remarks")
     private String recommendationRemarks;
 
+    @Column(name = "restriction_details")
+    private String restrictionDetails;
+
     @Column(name = "cert_basic_ooh")
     private String certBasicOoh;
 
