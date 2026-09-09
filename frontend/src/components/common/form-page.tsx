@@ -2,9 +2,9 @@
 
 import { Suspense } from "react";
 import { AlertCircle, Loader2, UserSearch } from "lucide-react";
-import { motion } from "framer-motion";
 
 import { PageContainer } from "@/components/common/page-container";
+import { SectionReveal } from "@/components/common/section-reveal";
 import { FormToolbar } from "@/components/common/form-toolbar";
 import { RecordSelector } from "@/components/common/record-selector";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -87,18 +87,8 @@ export interface FormPageProps<T> {
 }
 
 // ---------------------------------------------------------------------------
-// Animation variants
+// Loading
 // ---------------------------------------------------------------------------
-
-/** Staggered fade-in animation for section cards on initial mount. */
-const sectionVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: index * 0.06, duration: 0.25 },
-  }),
-};
 
 /** Loading spinner rendered during Suspense fallback and initial load. */
 function LoadingSpinner() {
@@ -229,15 +219,9 @@ function FormPageContent<T>({
           {preSections}
 
           {sections.map(({ component: Section, key }, index) => (
-            <motion.div
-              key={key}
-              custom={preSections ? index + 1 : index}
-              initial="hidden"
-              animate="visible"
-              variants={sectionVariants}
-            >
+            <SectionReveal key={key} index={preSections ? index + 1 : index}>
               <Section data={data} onChange={setData} disabled={!editing} />
-            </motion.div>
+            </SectionReveal>
           ))}
         </div>
       )}

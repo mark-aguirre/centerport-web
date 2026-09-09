@@ -2,9 +2,9 @@
 
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import { FormToolbar } from "@/components/common/form-toolbar";
+import { SectionReveal } from "@/components/common/section-reveal";
 import PersonalInfoSection from "@/components/profile/PersonalInfoSection";
 import EmploymentSection from "@/components/profile/EmploymentSection";
 import FamilyDataSection from "@/components/profile/FamilyDataSection";
@@ -89,14 +89,9 @@ function ProfileFormContent() {
 
       <div className="space-y-3">
         {SECTIONS.map(({ component: Section, key }, index) => (
-          <motion.div
-            key={key}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.06, duration: 0.25 }}
-          >
+          <SectionReveal key={key} index={index}>
             <Section data={data} onChange={setData} disabled={!editing} />
-          </motion.div>
+          </SectionReveal>
         ))}
       </div>
     </PageContainer>

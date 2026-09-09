@@ -217,3 +217,32 @@ label[for],
 [data-slot="button"] {
   cursor: pointer !important;
 }
+
+/* ------------------------------------------------------------------ */
+/* Section card mount animation (replaces framer-motion)              */
+/*                                                                    */
+/* Staggered fade-in-and-rise applied to form section cards on mount. */
+/* The per-card delay is supplied inline via the --section-index      */
+/* custom property (see SectionReveal). Respects reduced-motion.      */
+/* ------------------------------------------------------------------ */
+@keyframes section-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-reveal {
+  animation: section-reveal 0.25s ease-out both;
+  animation-delay: calc(var(--section-index, 0) * 0.06s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .section-reveal {
+    animation: none;
+  }
+}

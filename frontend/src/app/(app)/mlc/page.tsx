@@ -2,11 +2,11 @@
 
 import { Suspense, useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import PersonalInfoSection, {
   STANDARD_PERSONAL_INFO_ROWS,
 } from "@/components/common/personal-info-section";
+import { SectionReveal } from "@/components/common/section-reveal";
 import DeclarationSection from "@/components/mlc/DeclarationSection";
 import FinalRecommendationSection from "@/components/mlc/FinalRecommendationSection";
 import { useMlcForm } from "@/hooks/use-mlc-form";
@@ -24,16 +24,6 @@ const SECTIONS: SectionEntry<MlcRecord>[] = [
   { component: FinalRecommendationSection, key: "recommendation" },
 ];
 
-/** Staggered fade-in animation variant */
-const sectionVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: index * 0.06, duration: 0.25 },
-  }),
-};
-
 /**
  * MLC Health Certificate form content.
  *
@@ -50,12 +40,7 @@ function MlcFormContent() {
 
   // Personal info section is always read-only (data from profile)
   const preSections = (
-    <motion.div
-      custom={0}
-      initial="hidden"
-      animate="visible"
-      variants={sectionVariants}
-    >
+    <SectionReveal index={0}>
       <PersonalInfoSection
         data={form.data}
         onChange={form.setData}
@@ -63,7 +48,7 @@ function MlcFormContent() {
         subtitle="From the selected seafarer profile"
         disabled
       />
-    </motion.div>
+    </SectionReveal>
   );
 
   return (

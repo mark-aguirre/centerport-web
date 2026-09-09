@@ -2,11 +2,11 @@
 
 import { Suspense, useState, useCallback } from "react";
 import { Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import PersonalInfoSection, {
   STANDARD_PERSONAL_INFO_ROWS,
 } from "@/components/common/personal-info-section";
+import { SectionReveal } from "@/components/common/section-reveal";
 import PhysicalExaminationSection from "@/components/medical/PhysicalExaminationSection";
 import { useMedicalForm } from "@/hooks/use-medical-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
@@ -21,16 +21,6 @@ const SECTIONS: SectionEntry<MedicalExam>[] = [
   { component: PhysicalExaminationSection, key: "physical-exam" },
 ];
 
-/** Staggered fade-in animation variant */
-const sectionVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: (index: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: index * 0.06, duration: 0.25 },
-  }),
-};
-
 /**
  * Seabase Medical Examination form content with full CRUD button behavior.
  */
@@ -43,19 +33,14 @@ function SeabaseFormContent() {
   }, []);
 
   const preSections = (
-    <motion.div
-      custom={0}
-      initial="hidden"
-      animate="visible"
-      variants={sectionVariants}
-    >
+    <SectionReveal index={0}>
       <PersonalInfoSection
         data={form.data}
         onChange={form.setData}
         rows={STANDARD_PERSONAL_INFO_ROWS}
         disabled={true}
       />
-    </motion.div>
+    </SectionReveal>
   );
 
   return (

@@ -1,39 +1,16 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Loader2, UserCheck } from "lucide-react";
-import { api, type PatientVisitRecord } from "@/lib/api";
+import { UserCheck } from "lucide-react";
+import { getTodaysVisits } from "@/lib/dashboard-data";
+import type { PatientVisitRecord } from "@/lib/api";
 
 /**
- * Recently added patient visit records.
+ * Presentational list of recent patient visits.
  *
- * Fetches today's visits from the backend and shows the most recent ones,
- * giving an at-a-glance view of who has been encoded. Each row links to the
- * Visit page.
+ * Pure render — receives already-fetched visits. Kept separate from the
+ * data-fetching wrapper so it has no server/client coupling.
  */
-export function AttentionItems() {
-  const [visits, setVisits] = useState<PatientVisitRecord[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    api.entities.PatientVisit.listToday()
-      .then((data) => {
-        if (active) setVisits(data.slice(0, 6));
-      })
-      .catch(() => {
-        if (active) setVisits([]);
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
-
+function AttentionItemsView({ visits }: { visits: PatientVisitRecord[] }) {
   return (
     <section>
       <div className="flex items-center justify-between mb-3">
@@ -48,11 +25,7 @@ export function AttentionItems() {
         </Link>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center py-10 rounded-md border bg-card">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-        </div>
-      ) : visits.length === 0 ? (
+      {visits.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 rounded-md border bg-card text-center">
           <UserCheck className="h-7 w-7 text-muted-foreground/40 mb-2" />
           <p className="text-sm text-muted-foreground">No visits recorded today yet.</p>
@@ -97,4 +70,24 @@ export function AttentionItems() {
       )}
     </section>
   );
+}
+
+/**
+ * Recently added patient visit records.
+ *
+ * Server Component: fetches today's visits on the server during render and
+ * shows the most recent ones, giving an at-a-glance view of who has been
+ * encoded. Rendered inside a `<Suspense>` boundary on the dashboard, so the
+ * spinner fallback lives with the boundary rather than in component state.
+ * On fetch failure the empty state is shown.
+ */
+export async function AttentionItems() {
+  let visits: PatientVisitRecord[] = [];
+  try {
+    visits = (await getTodaysVisits()).slice(0, 6);
+  } catch {
+    visits = [];
+  }
+
+  return <AttentionItemsView visits={visits} />;
 }
