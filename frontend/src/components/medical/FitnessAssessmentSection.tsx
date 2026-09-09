@@ -80,6 +80,32 @@ export function FitnessAssessmentSection({
 
   const update = createFieldUpdater(data, onChange);
 
+  /**
+   * Add two years to an ISO date string (`yyyy-mm-dd`).
+   *
+   * Returns an empty string when the input is empty or unparseable so the
+   * derived "Valid until" clears alongside an empty "Date of Fitness".
+   */
+  const addTwoYears = (isoDate: string): string => {
+    if (!isoDate) return "";
+    const parsed = new Date(isoDate);
+    if (Number.isNaN(parsed.getTime())) return "";
+    parsed.setFullYear(parsed.getFullYear() + 2);
+    return parsed.toISOString().slice(0, 10);
+  };
+
+  /**
+   * Set Date of Fitness and derive Valid until as exactly two years later.
+   * Both fields update together so the certificate validity stays in sync.
+   */
+  const handleDateOfFitnessChange = (value: string) => {
+    onChange({
+      ...data,
+      date_of_fitness: value,
+      valid_until: addTwoYears(value),
+    });
+  };
+
   const selectPhysician = (personnel: MedicalPersonnel) => {
     onChange({
       ...data,
@@ -200,7 +226,7 @@ export function FitnessAssessmentSection({
           <FormField
             label="Date of Fitness (mm/dd/yyyy)"
             value={data.date_of_fitness}
-            onChange={(value) => update("date_of_fitness", value)}
+            onChange={handleDateOfFitnessChange}
             type="date"
             disabled={disabled}
           />

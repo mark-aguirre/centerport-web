@@ -49,7 +49,7 @@ const REPORT_OPTIONS: readonly ReportOption[] = [
     slug: "seabase-detailed",
     label: "Detailed Report",
     description: "Complete medical examination with all sections",
-    engine: "backend",
+    engine: "printio",
   },
   {
     slug: "seabase-mlc",

@@ -85,6 +85,37 @@ export function CertificationDetailsFields({
     onChange("medicalDirector", personnel.name);
   };
 
+  /**
+   * Add two years to an ISO date string (`yyyy-mm-dd`).
+   *
+   * Returns an empty string when the input is empty or unparseable so the
+   * derived "Valid Until" clears alongside an empty "Date of Fitness".
+   */
+  const addTwoYears = (isoDate: string): string => {
+    if (!isoDate) return "";
+    const parsed = new Date(isoDate);
+    if (Number.isNaN(parsed.getTime())) return "";
+    parsed.setFullYear(parsed.getFullYear() + 2);
+    return parsed.toISOString().slice(0, 10);
+  };
+
+  /**
+   * Set Date of Fitness and derive Valid Until as exactly two years later.
+   *
+   * Both fields update together (via `onBatchChange` when available) so the
+   * certificate validity stays in sync; Valid Until remains editable for
+   * manual overrides.
+   */
+  const handleDateOfFitnessChange = (value: string) => {
+    const validUntil = addTwoYears(value);
+    if (onBatchChange) {
+      onBatchChange({ dateOfFitness: value, validUntil });
+    } else {
+      onChange("dateOfFitness", value);
+      onChange("validUntil", validUntil);
+    }
+  };
+
   const inputClasses = cn(
     "h-8 text-xs bg-white border border-primary/30 rounded-md px-2 shadow-sm",
     "hover:border-primary/50 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20",
@@ -106,7 +137,7 @@ export function CertificationDetailsFields({
         <FormField
           label="Date of Fitness (MM/DD/YYYY)"
           value={values.dateOfFitness}
-          onChange={(v) => onChange("dateOfFitness", v)}
+          onChange={handleDateOfFitnessChange}
           type="date"
           disabled={disabled}
         />
