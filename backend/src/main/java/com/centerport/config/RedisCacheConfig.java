@@ -7,7 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
@@ -25,10 +29,10 @@ import java.time.Duration;
  * Serialization:
  * Keys are stored as plain strings; values are stored as JSON via
  * {@link GenericJackson2JsonRedisSerializer}. The serializer uses a dedicated
- * {@link ObjectMapper} (separate from the web {@link JacksonConfig} mapper)
- * that embeds type information so cached objects can be deserialized back into
- * their concrete types. {@link JavaTimeModule} is registered so
- * {@code java.time} values round-trip correctly.
+ * {@link ObjectMapper} (separate from the web {@link JacksonConfig} mapper) with
+ * default typing activated so an {@code @class} hint is embedded and cached
+ * objects can be deserialized back into their concrete types. {@link JavaTimeModule}
+ * is registered so {@code java.time} values round-trip correctly.
  *
  * TTLs:
  * A conservative 10-minute default applies to every cache. Named caches with
@@ -41,9 +45,10 @@ import java.time.Duration;
  *
  * @see com.centerport.dashboard.DashboardService
  */
+@Slf4j
 @Configuration
 @EnableCaching
-public class RedisCacheConfig {
+public class RedisCacheConfig implements CachingConfigurer {
 
     /** Cache name for aggregated dashboard statistics. */
     public static final String DASHBOARD_STATS_CACHE = "dashboardStats";
@@ -122,15 +127,18 @@ public class RedisCacheConfig {
     /**
      * Dedicated {@link ObjectMapper} for cache value serialization.
      *
-     * Unlike the web mapper, this one embeds polymorphic type metadata so that
-     * arbitrary cached objects (DTOs, collections) can be reconstructed to their
-     * concrete types on read. A restrictive {@link PolymorphicTypeValidator}
-     * limits deserialization to application and JDK types to guard against
-     * unsafe polymorphic payloads.
+     * Unlike the web mapper, this one is handed to
+     * {@link GenericJackson2JsonRedisSerializer} so that arbitrary cached objects
+     * (DTOs, collections, maps) can be reconstructed to their concrete types on
+     * read. {@link JavaTimeModule} is registered so {@code java.time} values
+     * round-trip correctly.
      *
      * @return configured mapper for cache serialization
      */
     private ObjectMapper cacheObjectMapper() {
+        // Restrict polymorphic deserialization to application and JDK value types
+        // as a guard against unsafe payloads. This validator is consulted by the
+        // default-typing resolver activated below.
         PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType("com.centerport.")
                 .allowIfSubType("java.util.")
@@ -140,8 +148,89 @@ public class RedisCacheConfig {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        mapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL,
+        mapper.setPolymorphicTypeValidator(ptv);
+
+        // Default typing MUST be activated explicitly here.
+        //
+        // GenericJackson2JsonRedisSerializer only auto-installs its own "@class"
+        // type resolver when it constructs its OWN internal ObjectMapper (its
+        // no-arg constructor). When a custom ObjectMapper is supplied to the
+        // constructor — as we do below, to register JavaTimeModule — that
+        // auto-configuration is bypassed and NO type metadata is written.
+        //
+        // Without type metadata, cached values are read back as LinkedHashMap /
+        // ArrayList instead of their concrete types, and the @Cacheable proxy
+        // throws ClassCastException on the first cache hit (e.g. DashboardStatsDto,
+        // PagedResponse, List<D>).
+        //
+        // Use DefaultTyping.EVERYTHING, NOT NON_FINAL. findByProfileId caches a
+        // top-level List, and List.of(...) / List.copyOf(...) return FINAL
+        // immutable list classes. Under NON_FINAL, Jackson skips writing type info
+        // for a final root collection (producing a bare "[ {..}, {..} ]"), but the
+        // read side deserializes into Object, expects the wrapper-array form
+        // ["java.util.ArrayList", [...]], and fails with:
+        //   "Unexpected token (START_OBJECT), expected VALUE_STRING ... type id".
+        // EVERYTHING forces type info on those final collections too, keeping the
+        // write and read formats symmetric. Natural scalar types (String, Boolean,
+        // numbers) are still excluded. The PolymorphicTypeValidator above bounds
+        // which types may be instantiated on read.
+        mapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.EVERYTHING,
                 JsonTypeInfo.As.PROPERTY);
+
         return mapper;
+    }
+
+    /**
+     * Makes the cache non-fatal and self-healing.
+     *
+     * By default Spring's {@code RedisCache} rethrows any error from a cache
+     * operation, so a single unreadable entry (e.g. one written under a previous
+     * serialization format, or a corrupt payload) turns every request that touches
+     * that key into a 500 until the entry's TTL expires.
+     *
+     * This handler downgrades cache failures to non-fatal:
+     * <ul>
+     *   <li>GET errors — evict the offending key and treat the lookup as a miss,
+     *       so the underlying method runs and repopulates the entry in the current
+     *       format.</li>
+     *   <li>PUT / EVICT / CLEAR errors — log and swallow; a caching problem must
+     *       never fail a business operation whose data change already succeeded.</li>
+     * </ul>
+     *
+     * @return a resilient {@link CacheErrorHandler}
+     */
+    @Override
+    public CacheErrorHandler errorHandler() {
+        return new CacheErrorHandler() {
+            @Override
+            public void handleCacheGetError(RuntimeException exception, Cache cache, Object key) {
+                log.warn("Cache GET failed [{}::{}] — evicting and treating as miss: {}",
+                        cache.getName(), key, exception.getMessage());
+                try {
+                    cache.evict(key);
+                } catch (RuntimeException evictError) {
+                    log.warn("Failed to evict bad cache entry [{}::{}]: {}",
+                            cache.getName(), key, evictError.getMessage());
+                }
+                // Swallow: a null return makes Spring treat this as a cache miss.
+            }
+
+            @Override
+            public void handleCachePutError(RuntimeException exception, Cache cache, Object key, Object value) {
+                log.warn("Cache PUT failed [{}::{}] — value not cached: {}",
+                        cache.getName(), key, exception.getMessage());
+            }
+
+            @Override
+            public void handleCacheEvictError(RuntimeException exception, Cache cache, Object key) {
+                log.warn("Cache EVICT failed [{}::{}]: {}",
+                        cache.getName(), key, exception.getMessage());
+            }
+
+            @Override
+            public void handleCacheClearError(RuntimeException exception, Cache cache) {
+                log.warn("Cache CLEAR failed [{}]: {}", cache.getName(), exception.getMessage());
+            }
+        };
     }
 }
