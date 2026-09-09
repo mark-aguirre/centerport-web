@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -105,6 +106,9 @@ public class FileUploadController {
     // === Private Helpers ===
 
     private static String probeContentType(Resource resource) {
+        // Prefer a filesystem probe when the resource is backed by a real file
+        // (LocalStorageService); fall back to a filename-based guess for in-memory
+        // resources (S3StorageService streams bytes, so getFile() is unavailable).
         try {
             Path path = resource.getFile().toPath();
             String probed = Files.probeContentType(path);
@@ -112,7 +116,15 @@ public class FileUploadController {
                 return probed;
             }
         } catch (IOException e) {
-            log.trace("Content type probe failed, falling back to default — resource: {}", resource.getFilename(), e);
+            log.trace("Content type probe failed, falling back to filename guess — resource: {}", resource.getFilename(), e);
+        }
+
+        String filename = resource.getFilename();
+        if (filename != null) {
+            String guessed = URLConnection.guessContentTypeFromName(filename);
+            if (guessed != null) {
+                return guessed;
+            }
         }
         return DEFAULT_CONTENT_TYPE;
     }

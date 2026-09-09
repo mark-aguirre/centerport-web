@@ -52,16 +52,18 @@ export type PsychologicalTestResult =
 /** Blood type options */
 export type BloodType = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" | "";
 
-/** PEME recommendation options */
+/**
+ * PEME recommendation options.
+ *
+ * These string literals must match the backend `RecommendationValue` enum
+ * `@JsonValue` strings exactly (case-sensitive); the API rejects any other value.
+ */
 export type RecommendationValue =
-  | "FIT"
-  | "UNFIT"
-  | "FIT TO WORK"
-  | "FIT w/ RESTRICTION"
-  | "FIT FOR EMPLOYMENT"
-  | "FIT FOR TRAINING"
-  | "FIT FOR ENROLLMENT"
-  | "FIT FOR SEA DUTY"
+  | "Fit for Employment"
+  | "Unfit for Employment"
+  | "Requires Further Evaluation"
+  | "Temporarily Unfit"
+  | "Fit with Restriction"
   | "";
 
 /** Full Landbase PEME record */

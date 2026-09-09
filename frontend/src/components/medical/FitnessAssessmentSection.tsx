@@ -7,6 +7,7 @@ import {
   MedicalPersonnelDialog,
   type MedicalPersonnel,
 } from "@/components/common/medical-personnel-dialog";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -91,6 +92,17 @@ export function FitnessAssessmentSection({
     update("medical_director", personnel.name);
   };
 
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      fitness_deck_services: "fit",
+      fitness_engine_services: "fit",
+      fitness_catering_services: "fit",
+      fitness_other_services: "fit",
+      visual_aids_required: "no",
+    });
+  };
+
   const personnelInputClasses =
     "h-8 min-w-0 flex-1 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30";
 
@@ -102,9 +114,12 @@ export function FitnessAssessmentSection({
       )}
     >
       <div className="border-b border-primary/20 px-3 py-2">
-        <h2 className="text-sm font-bold text-primary">
-          Assessments of Fitness for service at Sea.
-        </h2>
+        <div className="flex items-start justify-between gap-2">
+          <h2 className="text-sm font-bold text-primary">
+            Assessments of Fitness for service at Sea.
+          </h2>
+          <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
+        </div>
         <p className="mt-1 text-xs text-foreground/80">
           On the basis of the examinee&apos;s personal declaration, my clinical
           examination and the diagnostic test result recorded above, I declare

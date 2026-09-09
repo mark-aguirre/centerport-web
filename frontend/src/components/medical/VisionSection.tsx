@@ -1,6 +1,7 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
@@ -85,6 +86,15 @@ export function VisionSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      vision_color: "adequate",
+      vision_visual_acuity: "Adequate",
+      vision_meets_stcw: "Yes",
+    });
+  };
+
   return (
     <div
       className={cn(
@@ -92,8 +102,15 @@ export function VisionSection({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="border-b border-primary/20 bg-muted px-3 py-1.5 text-center text-sm font-bold uppercase tracking-widest text-foreground">
-        Vision
+      <div className="relative flex items-center justify-center border-b border-primary/20 bg-muted px-3 py-1.5">
+        <span className="text-sm font-bold uppercase tracking-widest text-foreground">
+          Vision
+        </span>
+        <SetNormalButton
+          onClick={handleSetNormal}
+          disabled={disabled}
+          className="absolute right-2 top-1/2 -translate-y-1/2"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[0.62fr_1.18fr_1.12fr_0.78fr_3.6fr]">

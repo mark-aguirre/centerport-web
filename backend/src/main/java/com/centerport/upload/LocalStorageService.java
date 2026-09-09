@@ -3,6 +3,7 @@ package com.centerport.upload;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -34,11 +35,18 @@ import java.util.UUID;
  * Configuration:
  * - {@code app.upload.dir} — base directory for file storage (default: {@code ./uploads})
  *
+ * Activation:
+ * This is the default storage backend. It is active when {@code app.storage.type}
+ * is {@code local} or unset. Set {@code app.storage.type=s3} to use
+ * {@link S3StorageService} instead.
+ *
  * @see StorageService
+ * @see S3StorageService
  * @see FileUploadController
  */
 @Slf4j
 @Service
+@ConditionalOnProperty(name = "app.storage.type", havingValue = "local", matchIfMissing = true)
 public class LocalStorageService implements StorageService {
 
     private static final String PATH_SEPARATOR_PATTERN = "[/\\\\]";

@@ -74,14 +74,20 @@ export function useProfileForm(): UseProfileFormResult {
   useEffect(() => {
     if (editId) {
       // Fetch specific profile by UUID
-      api.entities.SeafarerProfile.filter({ id: editId }).then((results) => {
-        if (results.length > 0) {
-          setExistingRecord(results[0]);
-          setData({ ...EMPTY_PROFILE, ...results[0] });
-          setIsExistingRecord(true);
-        }
-        setLoading(false);
-      });
+      api.entities.SeafarerProfile.filter({ id: editId })
+        .then((results) => {
+          if (results.length > 0) {
+            setExistingRecord(results[0]);
+            setData({ ...EMPTY_PROFILE, ...results[0] });
+            setIsExistingRecord(true);
+          }
+          setLoading(false);
+        })
+        .catch(() => {
+          // If the fetch fails (e.g. backend unreachable), stop loading
+          // instead of leaving the page spinning forever.
+          setLoading(false);
+        });
     } else {
       // No id param — load the most recently updated profile
       api.entities.SeafarerProfile.list("-updated_date", 1)
@@ -137,9 +143,13 @@ export function useProfileForm(): UseProfileFormResult {
 
     setSaving(true);
     try {
-      if (isExistingRecord && editId && existingRecord) {
+      // Use the loaded record's own id when available. editId only exists when
+      // the page was opened via ?id=, but a record can also be loaded by search
+      // or by the auto-load-latest path, which set existingRecord without editId.
+      const targetId = editId ?? existingRecord?.id;
+      if (isExistingRecord && targetId && existingRecord) {
         const updateData = stripProfileSystemFields(data);
-        await api.entities.SeafarerProfile.update(editId, updateData);
+        await api.entities.SeafarerProfile.update(targetId, updateData);
         setExistingRecord({ ...data });
         toast.success("Patient record updated successfully");
       } else {

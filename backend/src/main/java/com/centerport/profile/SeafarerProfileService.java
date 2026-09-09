@@ -1,6 +1,7 @@
 package com.centerport.profile;
 
 import com.centerport.common.dto.PagedResponse;
+import com.centerport.common.exception.ConflictException;
 import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
 import com.centerport.profile.event.SeafarerProfileCreatedEvent;
@@ -92,6 +93,8 @@ public class SeafarerProfileService {
      */
     @Transactional
     public SeafarerProfileDto create(SeafarerProfileDto dto) {
+        guardAgainstDuplicate(dto);
+
         SeafarerProfile entity = mapper.toEntity(dto);
         clearSystemFields(entity);
         entity.setProfileId(businessIdGenerator.generateId(BUSINESS_ID_PREFIX));
@@ -135,6 +138,36 @@ public class SeafarerProfileService {
     }
 
     // === Helpers ===
+
+    /**
+     * Rejects creation of a profile that duplicates an existing person.
+     *
+     * A duplicate is identified by the natural key last name + first name +
+     * birthdate (compared case-insensitively). Editing an existing person's
+     * details (e.g. adding a photo) must go through {@link #update(UUID, SeafarerProfileDto)}
+     * rather than creating a second profile.
+     *
+     * @param dto the incoming profile data
+     * @throws ConflictException if a profile with the same identity already exists
+     */
+    private void guardAgainstDuplicate(SeafarerProfileDto dto) {
+        repository.findByIdentity(dto.getLastName(), dto.getFirstName(), dto.getBirthdate())
+                .ifPresent(existing -> {
+                    throw new ConflictException(
+                            "A profile for %s %s (born %s) already exists (%s). "
+                                    .formatted(
+                                            nullSafe(dto.getFirstName()),
+                                            nullSafe(dto.getLastName()),
+                                            nullSafe(dto.getBirthdate()),
+                                            existing.getProfileId())
+                                    + "Open that patient and edit it instead of creating a new one.");
+                });
+    }
+
+    /** Returns the value, or an empty string when null, for message formatting. */
+    private static String nullSafe(String value) {
+        return value != null ? value : "";
+    }
 
     /**
      * Clears system-managed fields so client-supplied values are never persisted.

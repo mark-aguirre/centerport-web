@@ -9,15 +9,13 @@ import { SetNormalButton } from "@/components/common/set-normal-button";
 import type { LandbasePeme, LandbaseSectionProps } from "./types";
 import { createFieldUpdater } from "./utils";
 
+// Must match the backend `RecommendationValue` enum values exactly (case-sensitive).
 const RECOMMENDATION_OPTIONS = [
-  "FIT",
-  "UNFIT",
-  "FIT TO WORK",
-  "FIT w/ RESTRICTION",
-  "FIT FOR EMPLOYMENT",
-  "FIT FOR TRAINING",
-  "FIT FOR ENROLLMENT",
-  "FIT FOR SEA DUTY",
+  "Fit for Employment",
+  "Unfit for Employment",
+  "Requires Further Evaluation",
+  "Temporarily Unfit",
+  "Fit with Restriction",
 ];
 
 const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
@@ -43,7 +41,7 @@ export default function RecommendationSection({
   const updateField = createFieldUpdater(data, onChange);
 
   const handleSetNormal = () => {
-    onChange({ ...data, recommendation: "FIT FOR EMPLOYMENT" });
+    onChange({ ...data, recommendation: "Fit for Employment" });
   };
 
   const handleCertChange = (

@@ -317,7 +317,7 @@ class ContractVerificationTest {
             dto.setConditions(Map.of("condition1", "yes"));
             dto.setPhysicalExploration(Map.of("skin", "normal"));
             dto.setLabTests(Map.of("cbc", new LabTestResult("yes", "no", "clear")));
-            dto.setLabOtherTests(Map.of("hiv", new OtherLabTestResult(true, "yes", "no", "clean")));
+            dto.setLabOtherTests(Map.of("hiv", new OtherLabTestResult(true, "yes", "no", "clean", "2026-01-01")));
             dto.setTypeOfShip(ShipType.CONTAINER);
             dto.setTradeArea(TradeArea.WORLDWIDE);
             dto.setFitnessVisualAid(YesNo.NO);

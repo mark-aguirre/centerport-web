@@ -1,6 +1,7 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
@@ -76,6 +77,15 @@ export function FinalRecommendationSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      cert_basic_ooh: "passed",
+      cert_additional_labs: "passed",
+      cert_flagpost: "passed",
+    });
+  };
+
   return (
     <div
       className={cn(
@@ -83,16 +93,23 @@ export function FinalRecommendationSection({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[165px_minmax(260px,360px)] sm:items-center">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
-          IV. Final Recommendation:
-        </h2>
-        <FormSelect
-          label=""
-          value={data.final_recommendation}
-          onChange={(value) => update("final_recommendation", value)}
-          options={FINAL_RECOMMENDATION_OPTIONS}
+      <div className="flex flex-col gap-2 border-b border-primary/20 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-[165px_minmax(260px,360px)] sm:items-center">
+          <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
+            IV. Final Recommendation:
+          </h2>
+          <FormSelect
+            label=""
+            value={data.final_recommendation}
+            onChange={(value) => update("final_recommendation", value)}
+            options={FINAL_RECOMMENDATION_OPTIONS}
+            disabled={disabled}
+          />
+        </div>
+        <SetNormalButton
+          onClick={handleSetNormal}
           disabled={disabled}
+          className="self-start sm:self-center"
         />
       </div>
 

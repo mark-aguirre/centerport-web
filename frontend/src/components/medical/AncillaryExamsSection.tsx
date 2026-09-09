@@ -1,6 +1,7 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -125,6 +126,22 @@ export function AncillaryExamsSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      ancillary_chest_xray: "normal",
+      ancillary_ecg: "normal",
+      ancillary_cbc: "normal",
+      ancillary_urinalysis: "normal",
+      ancillary_stool_exam: "normal",
+      ancillary_hbsag: "non_reactive",
+      ancillary_hiv_aids: "non_reactive",
+      ancillary_rpr: "non_reactive",
+      ancillary_pregnancy_test: "N/A",
+      ancillary_psychological_test: "recommended",
+    });
+  };
+
   return (
     <div
       className={cn(
@@ -136,7 +153,12 @@ export function AncillaryExamsSection({
         <h2 className="shrink-0 text-sm font-bold uppercase tracking-wide text-primary">
           III. Result of Ancillary Examinations.
         </h2>
-        <p className="text-xs text-foreground/80">Check appropriate box</p>
+        <p className="flex-1 text-xs text-foreground/80">Check appropriate box</p>
+        <SetNormalButton
+          onClick={handleSetNormal}
+          disabled={disabled}
+          className="self-start sm:self-center"
+        />
       </div>
 
       <div className="flex items-center gap-2 border-b border-primary/20 px-3 py-2">

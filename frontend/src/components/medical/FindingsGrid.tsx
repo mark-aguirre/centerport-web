@@ -1,5 +1,6 @@
 "use client";
 
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { MedicalSectionProps } from "./types";
@@ -105,6 +106,31 @@ export function FindingsGrid({
     });
   };
 
+  const handleSetNormal = () => {
+    const normalFindings: Record<FindingsColumn, Record<string, boolean>> = {
+      findings_a: { ...data.findings_a },
+      findings_b: { ...data.findings_b },
+      findings_c: { ...data.findings_c },
+    };
+    const clearedRemarks: Record<
+      FindingsRemarksColumn,
+      Record<string, string>
+    > = {
+      findings_a_remarks: { ...data.findings_a_remarks },
+      findings_b_remarks: { ...data.findings_b_remarks },
+      findings_c_remarks: { ...data.findings_c_remarks },
+    };
+
+    COLUMNS.forEach(({ field, remarksField, items }) => {
+      items.forEach((item) => {
+        normalFindings[field][item.key] = true;
+        clearedRemarks[remarksField][item.key] = "";
+      });
+    });
+
+    onChange({ ...data, ...normalFindings, ...clearedRemarks });
+  };
+
   return (
     <div
       className={cn(
@@ -112,6 +138,13 @@ export function FindingsGrid({
         disabled && "pointer-events-none",
       )}
     >
+      <div className="flex flex-col gap-2 border-b border-primary/20 px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="shrink-0 text-sm font-bold uppercase tracking-wide text-primary">
+          Physical Examination Findings
+        </h2>
+        <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
+      </div>
+
       <div className="overflow-x-auto">
         <div className="grid min-w-[900px] grid-cols-3">
           {COLUMNS.map(({ label, field, remarksField, items }, columnIndex) => (

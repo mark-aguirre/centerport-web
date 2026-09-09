@@ -1,5 +1,6 @@
 "use client";
 
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
 import type { MedicalSectionProps } from "./types";
@@ -17,6 +18,14 @@ export function ConditionQuestionsSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      identification_docs_checked: "yes",
+      fit_for_lookout: "yes",
+    });
+  };
+
   return (
     <div
       className={cn(
@@ -24,6 +33,10 @@ export function ConditionQuestionsSection({
         disabled && "pointer-events-none",
       )}
     >
+      <div className="mb-2 flex justify-end">
+        <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
+      </div>
+
       <div
         className="flex flex-wrap items-center gap-4 border-b border-primary/20 pb-2"
         role="radiogroup"

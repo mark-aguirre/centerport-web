@@ -3,9 +3,9 @@ spring:
     name: centerport-backend
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/centerport}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:root}
+    url: ${DB_URL:DB_URL_NOT_CONFIGURED}
+    username: ${DB_USERNAME:DB_USERNAME_CONFIGURED}
+    password: ${DB_PASSWORD:DB_PASSWORD_CONFIGURED}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -55,3 +55,14 @@ app:
   upload:
     dir: ${UPLOAD_DIR:./uploads}
     allowed-types: image/jpeg,image/png,image/gif,image/webp,application/pdf
+  storage:
+    # Storage backend selector: "local" (filesystem) or "s3" (SeaweedFS / S3-compatible)
+    type: ${STORAGE_TYPE:STORAGE_TYPE_NOT_SET}
+    s3:
+      endpoint: ${S3_ENDPOINT:S3_ENDPOINT_NOT_SET}
+      region: ${S3_REGION:S3_REGION_NOT_SET}
+      bucket: ${S3_BUCKET:S3_BUCKET_NOT_SET}
+      access-key: ${S3_ACCESS_KEY:S3_ACCESS_KEY_NOT_SET}
+      secret-key: ${S3_SECRET_KEY:S3_SECRET_KEY_NOT_SET}
+      # Force path-style access (required by SeaweedFS / MinIO)
+      path-style-access: ${S3_PATH_STYLE_ACCESS:S3_PATH_STYLE_ACCESS_NOT_SET}

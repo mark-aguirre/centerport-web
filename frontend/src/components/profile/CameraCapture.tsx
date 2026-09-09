@@ -49,17 +49,67 @@ export default function CameraCapture({ onCapture, disabled }: CameraCaptureProp
     setError(null);
     setCaptured(null);
     setZoom(ZOOM_MIN);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError(
+        "Camera API unavailable. This usually means the page is not served over HTTPS (or localhost).",
+      );
+      return;
+    }
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
-        audio: false,
-      });
+      let stream: MediaStream;
+      try {
+        // Preferred: soft constraints for a front-facing camera at a sensible
+        // resolution. All constraints are `ideal` so a device that doesn't
+        // report a facingMode (typical desktop/laptop webcams) isn't filtered.
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "user" },
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+          },
+          audio: false,
+        });
+      } catch (constraintErr) {
+        const ce = constraintErr as DOMException;
+        // Some environments (notably Chromium incognito/private windows, or
+        // Firefox with restricted device enumeration) reject even `ideal`
+        // constraints with NotFoundError/OverconstrainedError. Retry once
+        // with the barest possible request before surfacing an error.
+        if (ce?.name === "NotFoundError" || ce?.name === "OverconstrainedError") {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: false,
+          });
+        } else {
+          throw constraintErr;
+        }
+      }
+
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
-    } catch {
-      setError("Unable to access camera. Please check permissions.");
+    } catch (err) {
+      // Surface the real reason so permission vs. hardware vs. context issues
+      // can be distinguished instead of showing one generic message.
+      const e = err as DOMException;
+      let message = "Unable to access camera. Please check permissions.";
+
+      if (e?.name === "NotAllowedError" || e?.name === "SecurityError") {
+        message =
+          "Camera permission was denied. Allow camera access for this site in your browser settings, then retry.";
+      } else if (e?.name === "NotFoundError" || e?.name === "OverconstrainedError") {
+        message =
+          "No camera device was found. If you are in a private/incognito window, the browser may be blocking camera access — try a normal window, or check that no other app is using the camera.";
+      } else if (e?.name === "NotReadableError") {
+        message =
+          "The camera is already in use by another application (e.g. Zoom, Teams, or another browser tab).";
+      }
+
+      console.error("getUserMedia failed:", e?.name, e?.message, e);
+      setError(message);
     }
   }, []);
 

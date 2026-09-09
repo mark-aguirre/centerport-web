@@ -16,6 +16,41 @@ function sanitize(payload: Partial<SeafarerProfile>): Partial<SeafarerProfile> {
   return genericSanitize(payload);
 }
 
+/** Case-insensitive equality that treats null/undefined as empty. */
+function sameText(a: string | undefined | null, b: string | undefined | null): boolean {
+  return (a ?? "").trim().toLowerCase() === (b ?? "").trim().toLowerCase();
+}
+
+/**
+ * Looks up an existing profile that matches the given person, using the same
+ * natural key the backend enforces: last name + first name + birthdate
+ * (case-insensitive). Prevents registering a duplicate profile for someone who
+ * is already on file.
+ *
+ * @param profile - the profile being saved
+ * @returns the matching profile, or `null` when none is found
+ */
+async function findExistingProfile(
+  profile: SeafarerProfile
+): Promise<SeafarerProfile | null> {
+  const keyword = `${profile.last_name} ${profile.first_name}`.trim();
+  if (!keyword) return null;
+
+  try {
+    const candidates = await api.entities.SeafarerProfile.search(keyword, 25);
+    const match = candidates.find(
+      (candidate) =>
+        sameText(candidate.last_name, profile.last_name) &&
+        sameText(candidate.first_name, profile.first_name) &&
+        sameText(candidate.birthdate, profile.birthdate)
+    );
+    return match ?? null;
+  } catch {
+    // A failed lookup must not block saving; fall back to normal create.
+    return null;
+  }
+}
+
 export interface UseVisitResult {
   // --- Search dialog ---
   searchDialogOpen: boolean;
@@ -199,15 +234,28 @@ export function useVisit(): UseVisitResult {
         setData({ ...EMPTY_PROFILE, ...updated });
         setSelectedProfile(updated);
       } else {
-        // New patient — create profile first
-        const created = await api.entities.SeafarerProfile.create(payload as SeafarerProfile);
-        if (!created.id) {
-          throw new ApiError(500, "Profile was created without an ID");
+        // New patient — but guard against creating a duplicate of someone who
+        // already exists (e.g. re-registering the same person to add a photo).
+        // The natural key is last name + first name + birthdate.
+        const existing = await findExistingProfile(data);
+
+        if (existing?.id) {
+          // Same person already on file — update instead of duplicating.
+          profileId = existing.id;
+          const updated = await api.entities.SeafarerProfile.update(profileId, payload);
+          setData({ ...EMPTY_PROFILE, ...updated });
+          setSelectedProfile(updated);
+          setIsExistingRecord(true);
+        } else {
+          const created = await api.entities.SeafarerProfile.create(payload as SeafarerProfile);
+          if (!created.id) {
+            throw new ApiError(500, "Profile was created without an ID");
+          }
+          profileId = created.id;
+          setData({ ...EMPTY_PROFILE, ...created });
+          setSelectedProfile(created);
+          setIsExistingRecord(true);
         }
-        profileId = created.id;
-        setData({ ...EMPTY_PROFILE, ...created });
-        setSelectedProfile(created);
-        setIsExistingRecord(true);
       }
 
       if (!currentVisitId) {

@@ -68,7 +68,7 @@ class PanamaCertificateControllerTest {
                 "urinalysis", new LabTestResult("", "abnormal", "trace protein")
         ));
         dto.setLabOtherTests(Map.of(
-                "hiv", new OtherLabTestResult(true, "normal", "", "non-reactive")
+                "hiv", new OtherLabTestResult(true, "normal", "", "non-reactive", "2026-01-01")
         ));
 
         return dto;

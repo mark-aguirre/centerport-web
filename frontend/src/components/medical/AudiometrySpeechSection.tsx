@@ -1,6 +1,7 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
 import type { MedicalSectionProps } from "./types";
@@ -68,6 +69,20 @@ export function AudiometrySpeechSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
+  const handleSetNormal = () => {
+    onChange({
+      ...data,
+      audio_ad_right_2: "Adequate",
+      audio_as_left_2: "Adequate",
+      audio_ad_right_1: "adequate",
+      audio_as_left_1: "adequate",
+      audio_satisfactory: "Yes",
+      audio_unaided_hearing: "Yes",
+      speech_impaired_hearing: "adequate",
+      condition_aggravated_sea: "No",
+    });
+  };
+
   return (
     <div
       className={cn(
@@ -75,6 +90,13 @@ export function AudiometrySpeechSection({
         disabled && "pointer-events-none",
       )}
     >
+      <div className="flex items-center justify-between border-b border-primary/20 px-3 py-1.5">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
+          Audiometry &amp; Speech
+        </h2>
+        <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1.05fr_0.6fr]">
         <div className="border-b border-primary/20 bg-muted px-3 py-1.5 text-center text-sm font-bold uppercase tracking-widest text-foreground lg:col-span-2 lg:border-r">
           Audiometry

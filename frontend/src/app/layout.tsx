@@ -45,7 +45,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="h-full overflow-hidden flex flex-col">
+      <body className="h-full overflow-hidden flex flex-col" suppressHydrationWarning>
         <TooltipProvider>
           <ThemeProvider>
             <LayoutProvider>{children}</LayoutProvider>

@@ -1,6 +1,7 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
+import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
@@ -49,6 +50,10 @@ export function VitalsSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
+  const handleSetNormal = () => {
+    update("pe_rhythm", "Regular");
+  };
+
   return (
     <div
       className={cn(
@@ -60,10 +65,15 @@ export function VitalsSection({
         <h2 className="shrink-0 text-sm font-bold uppercase tracking-wide text-primary">
           II. Physical Examination -
         </h2>
-        <p className="text-xs text-foreground/80">
+        <p className="flex-1 text-xs text-foreground/80">
           Enter the data called for. Check the appropriate box. Under columns A,
           B, C check YES if normal; uncheck if not normal and specify findings.
         </p>
+        <SetNormalButton
+          onClick={handleSetNormal}
+          disabled={disabled}
+          className="self-start sm:self-center"
+        />
       </div>
 
       <div className="grid grid-cols-1 bg-muted/20 lg:grid-cols-[0.9fr_1.65fr_1fr_0.82fr_1.2fr]">

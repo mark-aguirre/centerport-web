@@ -45,6 +45,7 @@ export default function PersonalInfoSection({
         <PhotoUpload
           photoUrl={data.photo_url}
           onPhotoChange={(url) => update("photo_url", url)}
+          disabled={disabled}
         />
         <div className="flex-1 space-y-1.5">
           <div className="grid grid-cols-3 gap-2">
