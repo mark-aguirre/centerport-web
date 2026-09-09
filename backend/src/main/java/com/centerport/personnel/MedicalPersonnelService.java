@@ -3,9 +3,12 @@ package com.centerport.personnel;
 import com.centerport.common.dto.PagedResponse;
 import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
+import com.centerport.config.RedisCacheConfig;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -53,6 +56,8 @@ public class MedicalPersonnelService {
      * @param pageable pagination and sorting parameters
      * @return paged response of personnel DTOs
      */
+    @Cacheable(cacheNames = RedisCacheConfig.MEDICAL_PERSONNEL_CACHE,
+            key = "'all:' + (#search == null ? '' : #search) + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PagedResponse<MedicalPersonnelDto> findAll(String search, Pageable pageable) {
         Specification<MedicalPersonnel> spec = activeSpec().and(buildSearchSpec(search));
         Page<MedicalPersonnel> page = repository.findAll(spec, pageable);
@@ -69,6 +74,8 @@ public class MedicalPersonnelService {
      * @param search optional keyword to filter by name, license, or specialization
      * @return list of matching active personnel DTOs
      */
+    @Cacheable(cacheNames = RedisCacheConfig.MEDICAL_PERSONNEL_CACHE,
+            key = "'search:' + (#search == null ? '' : #search)")
     public List<MedicalPersonnelDto> search(String search) {
         Specification<MedicalPersonnel> spec = activeSpec().and(buildSearchSpec(search));
         List<MedicalPersonnel> results = repository.findAll(spec);
@@ -84,6 +91,7 @@ public class MedicalPersonnelService {
      * @return the matching personnel DTO
      * @throws NotFoundException if no personnel exists with the given ID
      */
+    @Cacheable(cacheNames = RedisCacheConfig.MEDICAL_PERSONNEL_CACHE, key = "'id:' + #id")
     public MedicalPersonnelDto findById(UUID id) {
         MedicalPersonnel entity = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("MedicalPersonnel", id));
@@ -103,6 +111,7 @@ public class MedicalPersonnelService {
      * @return the persisted personnel with server-generated fields populated
      */
     @Transactional
+    @CacheEvict(cacheNames = RedisCacheConfig.MEDICAL_PERSONNEL_CACHE, allEntries = true)
     public MedicalPersonnelDto create(MedicalPersonnelDto dto) {
         MedicalPersonnel entity = mapper.toEntity(dto);
         clearSystemFields(entity);
@@ -129,6 +138,7 @@ public class MedicalPersonnelService {
      * @throws NotFoundException if no personnel exists with the given ID
      */
     @Transactional
+    @CacheEvict(cacheNames = RedisCacheConfig.MEDICAL_PERSONNEL_CACHE, allEntries = true)
     public MedicalPersonnelDto update(UUID id, MedicalPersonnelDto dto) {
         MedicalPersonnel existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("MedicalPersonnel", id));

@@ -70,6 +70,11 @@ public class HematologyRepeatTestService
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.HEMA_REPEAT_CACHE;
+    }
+
+    @Override
     protected List<HematologyRepeatTest> findEntitiesByReportId(UUID reportId, Sort sort) {
         return repository.findByLaboratoryReportId(reportId, sort);
     }

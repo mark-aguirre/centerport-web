@@ -94,6 +94,11 @@ public class MedicalExamService extends AbstractProfileLinkedService<MedicalExam
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.MEDICAL_EXAM_CACHE;
+    }
+
+    @Override
     protected void setBusinessId(MedicalExam entity, String businessId) {
         entity.setExamId(businessId);
     }

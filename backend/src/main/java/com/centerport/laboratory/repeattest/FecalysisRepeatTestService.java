@@ -70,6 +70,11 @@ public class FecalysisRepeatTestService
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.FECA_REPEAT_CACHE;
+    }
+
+    @Override
     protected List<FecalysisRepeatTest> findEntitiesByReportId(UUID reportId, Sort sort) {
         return repository.findByLaboratoryReportId(reportId, sort);
     }

@@ -94,6 +94,11 @@ public class PanamaCertificateService extends AbstractProfileLinkedService<Panam
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.PANAMA_CERT_CACHE;
+    }
+
+    @Override
     protected void setBusinessId(PanamaCertificate entity, String businessId) {
         entity.setPanamaId(businessId);
     }

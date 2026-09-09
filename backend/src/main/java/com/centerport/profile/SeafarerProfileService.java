@@ -7,8 +7,11 @@ import com.centerport.common.util.BusinessIdGenerator;
 import com.centerport.profile.event.SeafarerProfileCreatedEvent;
 import com.centerport.profile.event.SeafarerProfileUpdatedEvent;
 
+import com.centerport.config.RedisCacheConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -57,6 +60,8 @@ public class SeafarerProfileService {
      * @param pageable pagination and sorting parameters
      * @return paged response of profile DTOs
      */
+    @Cacheable(cacheNames = RedisCacheConfig.SEAFARER_PROFILE_CACHE,
+            key = "'all:' + (#search == null ? '' : #search) + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PagedResponse<SeafarerProfileDto> findAll(String search, Pageable pageable) {
         Specification<SeafarerProfile> spec = buildSearchSpec(search);
         Page<SeafarerProfile> page = repository.findAll(spec, pageable);
@@ -73,6 +78,7 @@ public class SeafarerProfileService {
      * @return the matching profile DTO
      * @throws NotFoundException if no profile exists with the given ID
      */
+    @Cacheable(cacheNames = RedisCacheConfig.SEAFARER_PROFILE_CACHE, key = "'id:' + #id")
     public SeafarerProfileDto findById(UUID id) {
         SeafarerProfile entity = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("SeafarerProfile", id));
@@ -92,6 +98,7 @@ public class SeafarerProfileService {
      * @return the persisted profile with server-generated fields populated
      */
     @Transactional
+    @CacheEvict(cacheNames = RedisCacheConfig.SEAFARER_PROFILE_CACHE, allEntries = true)
     public SeafarerProfileDto create(SeafarerProfileDto dto) {
         guardAgainstDuplicate(dto);
 
@@ -122,6 +129,7 @@ public class SeafarerProfileService {
      * @throws NotFoundException if no profile exists with the given ID
      */
     @Transactional
+    @CacheEvict(cacheNames = RedisCacheConfig.SEAFARER_PROFILE_CACHE, allEntries = true)
     public SeafarerProfileDto update(UUID id, SeafarerProfileDto dto) {
         SeafarerProfile existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("SeafarerProfile", id));

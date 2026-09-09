@@ -9,6 +9,8 @@ import com.centerport.profile.SeafarerProfileRepository;
 
 import jakarta.persistence.criteria.Join;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -53,7 +55,8 @@ import java.util.UUID;
  * @see SeafarerProfileRepository
  */
 @Slf4j
-public abstract class AbstractProfileLinkedService<E extends BaseEntity, D> {
+public abstract class AbstractProfileLinkedService<E extends BaseEntity, D>
+        implements com.centerport.config.CacheNamed {
 
     protected final BusinessIdGenerator businessIdGenerator;
     protected final ApplicationEventPublisher eventPublisher;
@@ -93,6 +96,16 @@ public abstract class AbstractProfileLinkedService<E extends BaseEntity, D> {
      * Used in search specification construction.
      */
     protected abstract String getBusinessIdField();
+
+    /**
+     * Returns the Redis cache name for this entity type (e.g., "labReport").
+     * Used by the caching annotations on the shared read/write methods so each
+     * concrete service namespaces its entries in a dedicated cache.
+     *
+     * @return the cache name defined in {@code RedisCacheConfig}
+     */
+    @Override
+    public abstract String getCacheName();
 
     /**
      * Converts an entity to its DTO representation.
@@ -184,6 +197,8 @@ public abstract class AbstractProfileLinkedService<E extends BaseEntity, D> {
      * @return paged response of DTOs
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheResolver = "entityCacheResolver",
+            key = "'all:' + (#search == null ? '' : #search) + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PagedResponse<D> findAll(String search, Pageable pageable) {
         Specification<E> spec = buildSearchSpec(search);
         Page<E> page = getRepository().findAll(spec, pageable);
@@ -201,6 +216,7 @@ public abstract class AbstractProfileLinkedService<E extends BaseEntity, D> {
      * @throws NotFoundException if no record exists with the given ID
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheResolver = "entityCacheResolver", key = "'id:' + #id")
     public D findById(UUID id) {
         E entity = getRepository().findById(id)
                 .orElseThrow(() -> {
@@ -218,6 +234,7 @@ public abstract class AbstractProfileLinkedService<E extends BaseEntity, D> {
      * @return list of DTOs for the given profile
      */
     @Transactional(readOnly = true)
+    @Cacheable(cacheResolver = "entityCacheResolver", key = "'profile:' + #profileId")
     public List<D> findByProfileId(UUID profileId) {
         List<E> records = findEntitiesByProfileId(profileId);
         return records.stream().map(this::toDto).toList();
@@ -237,6 +254,7 @@ public abstract class AbstractProfileLinkedService<E extends BaseEntity, D> {
      * @throws NotFoundException if the referenced seafarer profile does not exist
      */
     @Transactional
+    @CacheEvict(cacheResolver = "entityCacheResolver", allEntries = true)
     public D create(D dto) {
         SeafarerProfile profile = resolveProfile(getProfileId(dto));
 
@@ -270,6 +288,7 @@ public abstract class AbstractProfileLinkedService<E extends BaseEntity, D> {
      * @throws NotFoundException if no record exists with the given ID or profile not found
      */
     @Transactional
+    @CacheEvict(cacheResolver = "entityCacheResolver", allEntries = true)
     public D update(UUID id, D dto) {
         E existing = getRepository().findById(id)
                 .orElseThrow(() -> {

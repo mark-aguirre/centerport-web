@@ -70,6 +70,11 @@ public class ChemistryRepeatTestService
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.CHEM_REPEAT_CACHE;
+    }
+
+    @Override
     protected List<ChemistryRepeatTest> findEntitiesByReportId(UUID reportId, Sort sort) {
         return repository.findByLaboratoryReportId(reportId, sort);
     }

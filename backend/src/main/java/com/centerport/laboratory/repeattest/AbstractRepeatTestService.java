@@ -7,6 +7,8 @@ import com.centerport.laboratory.LaboratoryReport;
 import com.centerport.laboratory.LaboratoryReportRepository;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +45,8 @@ import java.util.UUID;
  */
 @Slf4j
 @Transactional(readOnly = true)
-public abstract class AbstractRepeatTestService<E extends BaseEntity, D> {
+public abstract class AbstractRepeatTestService<E extends BaseEntity, D>
+        implements com.centerport.config.CacheNamed {
 
     protected final LaboratoryReportRepository laboratoryReportRepository;
     protected final BusinessIdGenerator businessIdGenerator;
@@ -79,6 +82,15 @@ public abstract class AbstractRepeatTestService<E extends BaseEntity, D> {
      * @return human-readable entity name
      */
     protected abstract String getEntityName();
+
+    /**
+     * Returns the Redis cache name for this repeat-test type. Used by the
+     * caching annotations on the shared read/write methods.
+     *
+     * @return the cache name defined in {@code RedisCacheConfig}
+     */
+    @Override
+    public abstract String getCacheName();
 
     /**
      * Finds all entities belonging to a specific laboratory report.
@@ -141,6 +153,7 @@ public abstract class AbstractRepeatTestService<E extends BaseEntity, D> {
      * @param reportId the parent laboratory report UUID
      * @return list of repeat test DTOs
      */
+    @Cacheable(cacheResolver = "entityCacheResolver", key = "'report:' + #reportId")
     public List<D> findByReportId(UUID reportId) {
         List<E> entities = findEntitiesByReportId(reportId,
                 Sort.by(Sort.Direction.DESC, "createdDate"));
@@ -154,6 +167,7 @@ public abstract class AbstractRepeatTestService<E extends BaseEntity, D> {
      * @return the matching DTO
      * @throws NotFoundException if no record exists with the given ID
      */
+    @Cacheable(cacheResolver = "entityCacheResolver", key = "'id:' + #id")
     public D findById(UUID id) {
         E entity = getRepository().findById(id)
                 .orElseThrow(() -> {
@@ -173,6 +187,7 @@ public abstract class AbstractRepeatTestService<E extends BaseEntity, D> {
      * @throws NotFoundException if the parent report does not exist
      */
     @Transactional
+    @CacheEvict(cacheResolver = "entityCacheResolver", allEntries = true)
     public D create(UUID reportId, D dto) {
         LaboratoryReport report = laboratoryReportRepository.findById(reportId)
                 .orElseThrow(() -> {
@@ -205,6 +220,7 @@ public abstract class AbstractRepeatTestService<E extends BaseEntity, D> {
      * @throws NotFoundException if no record exists with the given ID
      */
     @Transactional
+    @CacheEvict(cacheResolver = "entityCacheResolver", allEntries = true)
     public D update(UUID id, D dto) {
         E existing = getRepository().findById(id)
                 .orElseThrow(() -> {
@@ -225,6 +241,7 @@ public abstract class AbstractRepeatTestService<E extends BaseEntity, D> {
      * @throws NotFoundException if no record exists with the given ID
      */
     @Transactional
+    @CacheEvict(cacheResolver = "entityCacheResolver", allEntries = true)
     public void delete(UUID id) {
         if (!getRepository().existsById(id)) {
             throw new NotFoundException(getEntityName(), id);

@@ -70,6 +70,11 @@ public class UrinalysisRepeatTestService
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.URIN_REPEAT_CACHE;
+    }
+
+    @Override
     protected List<UrinalysisRepeatTest> findEntitiesByReportId(UUID reportId, Sort sort) {
         return repository.findByLaboratoryReportId(reportId, sort);
     }

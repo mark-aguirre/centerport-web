@@ -89,6 +89,11 @@ public class PsychologyEvaluationService extends AbstractProfileLinkedService<Ps
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.PSYCH_EVAL_CACHE;
+    }
+
+    @Override
     protected void updateEntityFromDto(PsychologyEvaluationDto dto, PsychologyEvaluation entity) {
         mapper.updateEntity(dto, entity);
     }

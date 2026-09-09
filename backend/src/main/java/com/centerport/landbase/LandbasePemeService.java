@@ -94,6 +94,11 @@ public class LandbasePemeService extends AbstractProfileLinkedService<LandbasePe
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.LANDBASE_PEME_CACHE;
+    }
+
+    @Override
     protected void setBusinessId(LandbasePeme entity, String businessId) {
         entity.setPemeId(businessId);
     }

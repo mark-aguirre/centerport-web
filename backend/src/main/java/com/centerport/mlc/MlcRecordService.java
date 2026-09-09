@@ -94,6 +94,11 @@ public class MlcRecordService extends AbstractProfileLinkedService<MlcRecord, Ml
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.MLC_RECORD_CACHE;
+    }
+
+    @Override
     protected void setBusinessId(MlcRecord entity, String businessId) {
         entity.setMlcId(businessId);
     }

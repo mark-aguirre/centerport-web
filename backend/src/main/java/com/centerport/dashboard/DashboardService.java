@@ -4,9 +4,11 @@ import com.centerport.landbase.LandbasePemeRepository;
 import com.centerport.medical.MedicalExamRepository;
 import com.centerport.mlc.MlcRecordRepository;
 import com.centerport.panama.PanamaCertificateRepository;
+import com.centerport.config.RedisCacheConfig;
 import com.centerport.profile.SeafarerProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,8 +40,13 @@ public class DashboardService {
      * - Lab tests: Panama certificates with lab data; pending = those without fitness assessment
      * - Vessels: distinct vessel names from MLC records; "in port" = vessels with records in last 30 days
      *
+     * Results are cached in Redis under {@link RedisCacheConfig#DASHBOARD_STATS_CACHE}
+     * and refreshed per that cache's TTL, avoiding repeated multi-repository
+     * count queries on every dashboard load.
+     *
      * @return aggregated stats DTO
      */
+    @Cacheable(RedisCacheConfig.DASHBOARD_STATS_CACHE)
     public DashboardStatsDto getStats() {
         log.debug("Computing dashboard statistics");
 

@@ -3,11 +3,14 @@ package com.centerport.visit;
 import com.centerport.common.dto.PagedResponse;
 import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
+import com.centerport.config.RedisCacheConfig;
 import com.centerport.profile.SeafarerProfile;
 import com.centerport.profile.SeafarerProfileRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -49,6 +52,8 @@ public class PatientVisitService {
      * @param pageable pagination/sorting params
      * @return paged response of visit DTOs enriched with profile info
      */
+    @Cacheable(cacheNames = RedisCacheConfig.PATIENT_VISIT_CACHE,
+            key = "'date:' + #date + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort")
     public PagedResponse<PatientVisitDto> findByDate(LocalDate date, Pageable pageable) {
         Page<PatientVisit> page = repository.findByVisitDate(date, pageable);
         List<PatientVisitDto> content = enrichWithProfiles(page.getContent());
@@ -62,6 +67,7 @@ public class PatientVisitService {
      * @return the visit DTO
      * @throws NotFoundException if not found
      */
+    @Cacheable(cacheNames = RedisCacheConfig.PATIENT_VISIT_CACHE, key = "'id:' + #id")
     public PatientVisitDto findById(UUID id) {
         PatientVisit visit = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("PatientVisit", id));
@@ -83,6 +89,7 @@ public class PatientVisitService {
      * @throws NotFoundException if the referenced profile does not exist
      */
     @Transactional
+    @CacheEvict(cacheNames = RedisCacheConfig.PATIENT_VISIT_CACHE, allEntries = true)
     public PatientVisitDto create(PatientVisitDto dto) {
         // Validate profile exists
         SeafarerProfile profile = profileRepository.findById(dto.getSeafarerProfileId())
@@ -109,6 +116,7 @@ public class PatientVisitService {
      * @throws NotFoundException if the visit or linked profile does not exist
      */
     @Transactional
+    @CacheEvict(cacheNames = RedisCacheConfig.PATIENT_VISIT_CACHE, allEntries = true)
     public PatientVisitDto update(UUID id, PatientVisitUpdateDto dto) {
         PatientVisit existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("PatientVisit", id));
@@ -134,6 +142,7 @@ public class PatientVisitService {
      * @throws NotFoundException if not found
      */
     @Transactional
+    @CacheEvict(cacheNames = RedisCacheConfig.PATIENT_VISIT_CACHE, allEntries = true)
     public void delete(UUID id) {
         if (!repository.existsById(id)) {
             throw new NotFoundException("PatientVisit", id);

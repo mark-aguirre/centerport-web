@@ -85,6 +85,11 @@ public class LaboratoryReportService extends AbstractProfileLinkedService<Labora
     }
 
     @Override
+    public String getCacheName() {
+        return com.centerport.config.RedisCacheConfig.LAB_REPORT_CACHE;
+    }
+
+    @Override
     protected LaboratoryReportDto toDto(LaboratoryReport entity) {
         return mapper.toDto(entity);
     }
