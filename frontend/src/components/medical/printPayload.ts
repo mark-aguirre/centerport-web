@@ -30,6 +30,31 @@ function fullNameOf(data: MedicalExam): string {
     .trim();
 }
 
+/** A date split into its day, month, and year string parts. */
+interface DateParts {
+  day: string;
+  month: string;
+  year: string;
+}
+
+/**
+ * Splits an ISO-ish date string (`YYYY-MM-DD`) into day/month/year parts.
+ *
+ * The MER template renders dates across three separate fields rather than one
+ * combined value, so each source date is decomposed here. A missing or
+ * unparseable value yields empty strings for all three parts (never throws).
+ *
+ * @param value - A date string, ideally `YYYY-MM-DD`
+ * @returns The day, month, and year as strings (empty when unavailable)
+ */
+function splitDate(value: string | undefined): DateParts {
+  if (!value) return { day: "", month: "", year: "" };
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
+  if (!match) return { day: "", month: "", year: "" };
+  const [, year, month, day] = match;
+  return { day, month, year };
+}
+
 /**
  * Builds the PrintIO payload for the Seabase MLC medical certificate.
  *
@@ -441,15 +466,413 @@ export async function buildSeabaseDetailedPayload(
 }
 
 /**
+ * Read a past-medical-history answer from the `medical_history` map and map it
+ * to a `"yes"`/`"no"` token, as the MER template expects.
+ *
+ * A stored `"yes"` becomes `"yes"`; any other value (`"no"` or unanswered)
+ * becomes `"no"`.
+ */
+function historyYesNo(data: MedicalExam, key: string): string {
+  return lower(data.medical_history?.[key]) === "yes" ? "yes" : "no";
+}
+
+/**
+ * Read a questionnaire answer from the `questionnaire` map and map it to a
+ * `"yes"`/`"no"` token, as the MER template expects.
+ *
+ * A stored `"yes"` becomes `"yes"`; any other value (`"no"` or unanswered)
+ * becomes `"no"`.
+ */
+function questionnaireYesNo(data: MedicalExam, key: string): string {
+  return lower(data.questionnaire?.[key]) === "yes" ? "yes" : "no";
+}
+
+/** Read a questionnaire free-text detail/comment by its stored key. */
+function questionnaireDetail(data: MedicalExam, key: string): string {
+  return data.questionnaire?.[key] ?? "";
+}
+
+/**
+ * Map a physical-examination findings checkbox to a `"yes"`/`"no"` token, as the
+ * MER template expects.
+ *
+ * On the Seabase form a checked box marks a *normal* finding, so a checked box
+ * yields `"yes"` and an unchecked/absent one yields `"no"`.
+ */
+function findingYesNo(map: Record<string, boolean> | undefined, key: string): string {
+  return map?.[key] ? "yes" : "no";
+}
+
+/**
+ * Builds the PrintIO payload for the Seabase MER (Medical Examination Report).
+ *
+ * Flattens the full `MedicalExam` record into the flat template variable names
+ * expected by the PrintIO Seabase MER template. The MER is the most complete of
+ * the seabase reports and covers: personal information (with dates split into
+ * day/month/year parts), past medical history, the seafarer declaration
+ * (questionnaire), physical-examination vitals/vision/hearing, physical
+ * examination findings, ancillary/laboratory examinations, the fitness
+ * assessment, and the final certification.
+ *
+ * Mapping notes:
+ * - Dates the template renders across three fields (`*_day`, `*_month`,
+ *   `*_year`) are decomposed via {@link splitDate}. The record stores
+ *   `valid_until` for the certificate expiration.
+ * - Past-medical-history questions are read from the `medical_history` JSONB map
+ *   by their stored keys and sent as `"true"`/`"false"`.
+ * - Declaration questions are read from the `questionnaire` JSONB map and sent
+ *   as `"true"`/`"false"`; their adjacent `*_comment` fields carry the stored
+ *   "… Details" free text.
+ * - Physical-examination findings send `"true"` for a checked box (normal) and
+ *   `"false"` otherwise; adjacent `*_remarks` fields carry the free text.
+ * - The patient photo is embedded as base64 (never lowercased).
+ *
+ * Fields sent empty because the seabase model has no source for them:
+ * `seamans_book_no`, `blood_type` remarks placeholders, and the template's
+ * generic placeholder fields (`field114`, `field118`, `field119`).
+ *
+ * @param data - The current Seabase medical exam record
+ * @returns The flat PrintIO template payload
+ */
+export async function buildSeabaseMerPayload(
+  data: MedicalExam,
+): Promise<Record<string, string>> {
+  const photoBase64 = await fetchPhotoAsBase64(data.photo_url);
+  const birth = splitDate(data.date_of_birth);
+  const examDate = splitDate(data.date_of_fitness);
+  const expiry = splitDate(data.valid_until);
+
+  return {
+    // Identity / personal information
+    last_name: data.last_name ?? "",
+    first_name: data.first_name ?? "",
+    middle_name: data.middle_name ?? "",
+    age: data.age ?? "",
+    date_of_birth_day: birth.day,
+    date_of_birth_month: birth.month,
+    date_of_birth_year: birth.year,
+    place_of_birth: data.place_of_birth ?? "",
+    nationality: data.nationality ?? "",
+    gender: data.gender ?? "",
+    marital_status: data.civil_status ?? "",
+    religion: data.religion ?? "",
+    address: data.address ?? "",
+    passport_no: data.passport_no ?? "",
+    seamans_book_no: "",
+    position: data.position ?? "",
+    employer: data.employer ?? "",
+
+    // Past medical history (yes/no answers from the medical_history map)
+    head_or_neck_injury: historyYesNo(data, "Head or Neck Injury"),
+    frequent_headaches: historyYesNo(data, "Frequent Headaches"),
+    frequent_dizziness: historyYesNo(data, "Frequent Dizziness"),
+    fainting_spells_fits_seizures: historyYesNo(
+      data,
+      "Fainting Spells, Fits, Seizures or other Neurological Disorders",
+    ),
+    insomnia_or_sleep_disorders: historyYesNo(
+      data,
+      "Insomnia or sleep disorders, Manias, Phobias",
+    ),
+    depression_or_mental_disorders: historyYesNo(
+      data,
+      "Depression, other Mental Disorders",
+    ),
+    eye_problems_or_error_of_refraction: historyYesNo(
+      data,
+      "Trachoma, other eye Disorders",
+    ),
+    deafness_or_ear_disorders: historyYesNo(data, "Deafness, other Ear Disorders"),
+    nose_or_throat_disorders: historyYesNo(data, "Nose or Throat Disorders"),
+    tuberculosis: historyYesNo(data, "Tuberculosis"),
+    other_lung_disorders: historyYesNo(data, "Other Lung Disorders"),
+    high_blood_pressure: historyYesNo(data, "High Blood Pressure"),
+    heart_disease: historyYesNo(data, "Heart Disease/Heart Pain"),
+    rheumatic_fever: historyYesNo(data, "Rheumatic Fever"),
+    diabetes_mellitus: historyYesNo(data, "Diabetes Mellitus"),
+    other_endocrine_disorders: historyYesNo(
+      data,
+      "Other Endocrine Disorders (e.g. Goiter)",
+    ),
+    cancer_or_tumor: historyYesNo(data, "Cancer or Tumor"),
+    blood_disorders: historyYesNo(data, "Blood Disorders"),
+    stomach_pain_gastritis_or_ulcer: historyYesNo(
+      data,
+      "Stomach Pain, Gastritis or Ulcer",
+    ),
+    other_abdominal_disorders: historyYesNo(data, "Other Abdominal Disorders"),
+    gynecological_disorders: historyYesNo(
+      data,
+      "Gynecological Disorder (For female)",
+    ),
+    last_menstrual_period: historyYesNo(data, "Last Menstrual Period"),
+    kidney_or_bladder_disorder: historyYesNo(data, "Kidney or Bladder Disorder"),
+    back_injury_joint_pain_arthritis_rheumatism: historyYesNo(
+      data,
+      "Back Injury: Joint Pain/Arthritis/Rheumatism",
+    ),
+    genetic_hereditary_or_familial_disorders: historyYesNo(
+      data,
+      "Genetic, Hereditary or Familial Disorders",
+    ),
+    sexually_transmitted_diseases: historyYesNo(
+      data,
+      "Sexually Transmitted Diseases",
+    ),
+    tropical_diseases: historyYesNo(data, "Tropical Diseases"),
+    schistosomiasis: historyYesNo(data, "Schistosomiasis"),
+    asthma: historyYesNo(data, "Asthma"),
+    allergies: historyYesNo(data, "Allergies (Specify):"),
+    allergies_details: historyDetail(data, "Allergies (Specify) Details"),
+    operations: historyYesNo(data, "Operations (Specify)"),
+    operations_details: historyDetail(data, "Operations (Specify) Details"),
+
+    // Seafarer declaration (yes/no answers + comments from the questionnaire map)
+    signed_off_as_sick_or_repatriated: questionnaireYesNo(
+      data,
+      "Have you ever been signed off as sick or repatriated from a ship?",
+    ),
+    signed_off_as_sick_or_repatriated_comment: questionnaireDetail(
+      data,
+      "Have you ever been signed off as sick or repatriated from a ship? Details",
+    ),
+    hospitalized: questionnaireYesNo(data, "Have you ever been hospitalized?"),
+    hospitalized_comment: questionnaireDetail(
+      data,
+      "Have you ever been hospitalized? Details",
+    ),
+    declared_unfit_for_sea_duty: questionnaireYesNo(
+      data,
+      "Have you ever been declared unfit for sea duty?",
+    ),
+    declared_unfit_for_sea_duty_comment: questionnaireDetail(
+      data,
+      "Have you ever been declared unfit for sea duty? Details",
+    ),
+    medical_certificate_restricted_or_revoked: questionnaireYesNo(
+      data,
+      "Has your medical certificate ever been restricted or revoked?",
+    ),
+    medical_certificate_restricted_or_revoked_comment: questionnaireDetail(
+      data,
+      "Has your medical certificate ever been restricted or revoked? Details",
+    ),
+    aware_of_medical_problem: questionnaireYesNo(
+      data,
+      "Are you aware that you have any medical problem, disease or illness?",
+    ),
+    aware_of_medical_problem_comment: questionnaireDetail(
+      data,
+      "Are you aware that you have any medical problem, disease or illness? Details",
+    ),
+    healthy_and_fit_for_duties: questionnaireYesNo(
+      data,
+      "Do you feel healthy and fit to perform the duties of your designated position/occupation?",
+    ),
+    healthy_and_fit_for_duties_comment: questionnaireDetail(
+      data,
+      "Do you feel healthy and fit to perform the duties of your designated position/occupation? Details",
+    ),
+    allergic_to_medication: questionnaireYesNo(
+      data,
+      "Are you allergic to any medication?",
+    ),
+    allergic_to_medication_comment: "",
+    taking_prescription_medication: questionnaireYesNo(
+      data,
+      "Non-prescription or prescription medication",
+    ),
+    taking_prescription_medication_comment:
+      data.questionnaire_medications_detail ?? "",
+
+    // Physical examination — vital signs
+    height_cm: data.pe_height ?? "",
+    weight_kg: data.pe_weight ?? "",
+    bp_systolic: data.pe_bp_systolic ?? "",
+    bp_diastolic: data.pe_bp_diastolic ?? "",
+    field114: "",
+    pulse_rate: data.pe_pulse_rate ?? "",
+    rhythm: data.pe_rhythm ?? "",
+    respiration_rate: data.pe_respiration ?? "",
+    field118: "",
+    field119: "",
+    bmi: data.pe_bmi ?? "",
+
+    // Vision
+    vision_uncorrected_far_od: data.vision_uncorrected_far_od ?? "",
+    vision_corrected_far_od: data.vision_corrected_far_od ?? "",
+    vision_uncorrected_far_os: data.vision_uncorrected_far_os ?? "",
+    vision_corrected_far_os: data.vision_corrected_far_os ?? "",
+    vision_uncorrected_near_od: data.vision_uncorrected_near_od ?? "",
+    vision_corrected_near_od: data.vision_corrected_near_od ?? "",
+    vision_uncorrected_near_os: data.vision_uncorrected_near_os ?? "",
+    vision_corrected_near_os: data.vision_corrected_near_os ?? "",
+    ishihara_color_vision: data.vision_color ?? "",
+
+    // Hearing / audiometry
+    audiometry_ad_1: data.audio_ad_right_1 ?? "",
+    audiometry_as_1: data.audio_as_left_1 ?? "",
+    audiometry_ad_2: data.audio_ad_right_2 ?? "",
+    audiometry_as_2: data.audio_as_left_2 ?? "",
+    clarity_of_speech: data.speech_impaired_hearing ?? "",
+
+    photo_url: photoBase64,
+
+    // Physical examination findings — column A
+    finding_skin: findingYesNo(data.findings_a, "Skin"),
+    finding_head_neck_scalp: findingYesNo(data.findings_a, "Head, Scalp"),
+    finding_eyes_external: findingYesNo(data.findings_a, "Eyes External"),
+    finding_pupils_ophthalmoscopic: findingYesNo(data.findings_a, "Pupils"),
+    finding_ears: findingYesNo(data.findings_a, "Ears"),
+    finding_nose_sinuses: findingYesNo(data.findings_a, "Nose, Sinuses"),
+    finding_mouth_throat: findingYesNo(data.findings_a, "Mouth, Throat"),
+    finding_skin_remarks: findingRemark(data.findings_a_remarks, "Skin"),
+    finding_head_neck_scalp_remarks: findingRemark(
+      data.findings_a_remarks,
+      "Head, Scalp",
+    ),
+    finding_eyes_external_remarks: findingRemark(
+      data.findings_a_remarks,
+      "Eyes External",
+    ),
+    finding_pupils_ophthalmoscopic_remarks: findingRemark(
+      data.findings_a_remarks,
+      "Pupils",
+    ),
+    finding_ears_remarks: findingRemark(data.findings_a_remarks, "Ears"),
+    finding_nose_sinuses_remarks: findingRemark(
+      data.findings_a_remarks,
+      "Nose, Sinuses",
+    ),
+    finding_mouth_throat_remarks: findingRemark(
+      data.findings_a_remarks,
+      "Mouth, Throat",
+    ),
+
+    // Physical examination findings — column B
+    finding_neck_lymph_nodes_thyroid: findingYesNo(
+      data.findings_b,
+      "Neck, Lymph Nodes",
+    ),
+    finding_chest_breast_axilla: findingYesNo(data.findings_b, "Breast, Axilla"),
+    finding_lungs: findingYesNo(data.findings_b, "Chest and Lungs"),
+    finding_heart: findingYesNo(data.findings_b, "Heart"),
+    finding_abdomen: findingYesNo(data.findings_b, "Abdomen"),
+    finding_back: findingYesNo(data.findings_b, "Back"),
+    finding_neck_lymph_nodes_thyroid_remarks: findingRemark(
+      data.findings_b_remarks,
+      "Neck, Lymph Nodes",
+    ),
+    finding_chest_breast_axilla_remarks: findingRemark(
+      data.findings_b_remarks,
+      "Breast, Axilla",
+    ),
+    finding_lungs_remarks: findingRemark(
+      data.findings_b_remarks,
+      "Chest and Lungs",
+    ),
+    finding_heart_remarks: findingRemark(data.findings_b_remarks, "Heart"),
+    finding_abdomen_remarks: findingRemark(data.findings_b_remarks, "Abdomen"),
+    finding_back_remarks: findingRemark(data.findings_b_remarks, "Back"),
+
+    // Physical examination findings — column C
+    finding_anus_rectum: findingYesNo(data.findings_c, "Anus, Rectum"),
+    finding_genito_urinary_system: findingYesNo(
+      data.findings_c,
+      "Genito-Urinary System",
+    ),
+    finding_inguinals_genitals: findingYesNo(
+      data.findings_c,
+      "Inguinals, genitalia",
+    ),
+      finding_extremities: findingYesNo(
+      data.findings_c,
+      "Extremities",
+    ),
+    finding_reflexes: findingYesNo(data.findings_c, "Reflexes"),
+    finding_dental_teeth_gums: findingYesNo(data.findings_c, "Dental (Teeth/gums)"),
+    finding_anus_rectum_remarks: findingRemark(
+      data.findings_c_remarks,
+      "Anus, Rectum",
+    ),
+    finding_genito_urinary_system_remarks: findingRemark(
+      data.findings_c_remarks,
+      "Genito-Urinary System",
+    ),
+    finding_inguinals_genitals_remarks: findingRemark(
+      data.findings_c_remarks,
+      "Inguinals, genitalia",
+    ),
+    finding_extremities_remarks: findingRemark(
+      data.findings_c_remarks,
+      "Extremities",
+    ),
+    finding_reflexes_remarks: findingRemark(
+      data.findings_c_remarks,
+      "Reflexes",
+    ),
+    finding_dental_teeth_gums_remarks: findingRemark(
+      data.findings_c_remarks,
+      "Dental (Teeth/gums)",
+    ),
+
+    // Ancillary / laboratory examinations
+    ancillary_chest_xray: data.ancillary_chest_xray ?? "",
+    ecg_result: data.ancillary_ecg ?? "",
+    cbc_result: data.ancillary_cbc ?? "",
+    urinalysis_result: data.ancillary_urinalysis ?? "",
+    stool_exam_result: data.ancillary_stool_exam ?? "",
+    hepatitis_b_result: data.ancillary_hbsag ?? "",
+    hiv_aids_result: data.ancillary_hiv_aids ?? "",
+    rpr_tpha_result: data.ancillary_rpr ?? "",
+    psychological_test_result: data.ancillary_psychological_test ?? "",
+    additional_tests: data.ancillary_additional_tests ?? "",
+    xray_no: data.xray_no ?? "",
+    blood_type: data.ancillary_blood_type ?? "",
+
+    // Certification requirements
+    basic_doh_mandatory_exam: data.cert_basic_ooh ?? "",
+    additional_laboratory_tests: data.cert_additional_labs ?? "",
+    flag_host_requirements: data.cert_flagpost ?? "",
+    basic_doh_mandatory_exam_findings: data.cert_basic_ooh_findings ?? "",
+    additional_laboratory_tests_findings:
+      data.cert_additional_labs_findings ?? "",
+    flag_host_requirements_findings: data.cert_flagpost_findings ?? "",
+    remarks_special_needs: data.recommendation_remarks ?? "",
+
+    // Fitness assessment
+    fit_for_lookout_duty: data.fit_for_lookout ?? "",
+    fitness_deck_service: data.fitness_deck_services ?? "",
+    fitness_engine_service: data.fitness_engine_services ?? "",
+    fitness_catering_service: data.fitness_catering_services ?? "",
+    fitness_other_service: data.fitness_other_services ?? "",
+    final_recommendation: data.final_recommendation ?? "",
+    visual_aid_required: data.visual_aids_required ?? "",
+    restriction_details: data.restriction_details ?? "",
+
+    // Examination / certification dates
+    date_of_medical_examination_day: examDate.day,
+    date_of_medical_examination_month: examDate.month,
+    date_of_medical_examination_year: examDate.year,
+    medical_exam_expiration_date_day: expiry.day,
+    medical_exam_expiration_date_month: expiry.month,
+    medical_exam_expiration_date_year: expiry.year,
+    medical_exam_report_number: data.medical_certification_no ?? "",
+    authorized_physician: data.authorized_physician ?? "",
+    authorized_physician_license_number: data.license_no ?? "",
+  };
+}
+
+/**
  * Slugs of the seabase reports whose payloads are built client-side and sent to
- * PrintIO (the MLC certificate, Summary Report, and Detailed Report). The
- * remaining seabase report (mer) is rendered by the backend and is not part of
- * this union.
+ * PrintIO (the MLC certificate, Summary Report, Detailed Report, and MER). All
+ * four seabase reports are now rendered via PrintIO.
  */
 export type ReportSlug =
   | "seabase-mlc"
   | "seabase-summary"
-  | "seabase-detailed";
+  | "seabase-detailed"
+  | "seabase-mer";
 
 /**
  * Builds the PrintIO payload for the given seabase report slug.
@@ -474,5 +897,7 @@ export function buildReportPayload(
       return buildSeabaseSummaryPayload(data);
     case "seabase-detailed":
       return buildSeabaseDetailedPayload(data);
+    case "seabase-mer":
+      return buildSeabaseMerPayload(data);
   }
 }

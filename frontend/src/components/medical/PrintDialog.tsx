@@ -61,7 +61,7 @@ const REPORT_OPTIONS: readonly ReportOption[] = [
     slug: "seabase-mer",
     label: "MER Form",
     description: "Medical Examination Report",
-    engine: "backend",
+    engine: "printio",
   },
 ] as const;
 
