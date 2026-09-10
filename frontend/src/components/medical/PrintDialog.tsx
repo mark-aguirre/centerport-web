@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { requestPrint } from "@/lib/print-request";
+import { fetchPrintPdf } from "@/lib/print-request";
+import { PdfPreviewDialog } from "@/components/common/pdf-preview-dialog";
 import { buildReportPayload, type ReportSlug } from "@/components/medical/printPayload";
 import type { MedicalExam } from "@/components/medical/types";
 
@@ -93,6 +94,8 @@ interface PrintDialogProps {
  */
 export function PrintDialog({ open, onClose, examId, data }: PrintDialogProps) {
   const [generating, setGenerating] = useState<string | null>(null);
+  const [previewTitle, setPreviewTitle] = useState<string>("Print Preview");
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
 
   const generateReport = async (option: ReportOption) => {
     if (option.engine === "printio") {
@@ -102,7 +105,11 @@ export function PrintDialog({ open, onClose, examId, data }: PrintDialogProps) {
       }
       const slug = option.slug as ReportSlug;
       const payload = await buildReportPayload(slug, data);
-      await requestPrint(slug, payload);
+      // Generate the PDF and open it in a zoomable preview instead of printing
+      // immediately; the user prints from the preview dialog.
+      const blob = await fetchPrintPdf(slug, payload);
+      setPreviewTitle(option.label);
+      setPreviewBlob(blob);
       onClose();
       return;
     }
@@ -130,6 +137,7 @@ export function PrintDialog({ open, onClose, examId, data }: PrintDialogProps) {
   const hasRecord = !!examId || !!data?.last_name;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -173,5 +181,13 @@ export function PrintDialog({ open, onClose, examId, data }: PrintDialogProps) {
         )}
       </DialogContent>
     </Dialog>
+
+    <PdfPreviewDialog
+      open={previewBlob !== null}
+      onClose={() => setPreviewBlob(null)}
+      blob={previewBlob}
+      title={previewTitle}
+    />
+    </>
   );
 }

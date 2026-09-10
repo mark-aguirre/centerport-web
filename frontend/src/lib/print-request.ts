@@ -40,6 +40,36 @@ async function parsePrintError(response: Response): Promise<string> {
 }
 
 /**
+ * Posts a print payload to a Next.js print route and returns the generated PDF.
+ *
+ * Sends `payload` as JSON to `/api/print/{route}` and throws an `Error` with the
+ * server-provided message on a non-OK response. On success the caller decides
+ * what to do with the returned blob — print it immediately (see
+ * {@link requestPrint}) or show it in a preview dialog.
+ *
+ * @param route - Print route slug appended to `/api/print/` (e.g. `"mlc"`)
+ * @param payload - The flat PrintIO template payload
+ * @returns The generated PDF as a `Blob`
+ * @throws Error when the print route responds with a non-OK status
+ */
+export async function fetchPrintPdf(
+  route: string,
+  payload: Record<string, string>
+): Promise<Blob> {
+  const response = await fetch(`/api/print/${route}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(await parsePrintError(response));
+  }
+
+  return response.blob();
+}
+
+/**
  * Posts a print payload to a Next.js print route and prints the returned PDF.
  *
  * Sends `payload` as JSON to `/api/print/{route}`, throws an `Error` with the
@@ -63,16 +93,6 @@ export async function requestPrint(
   route: string,
   payload: Record<string, string>
 ): Promise<void> {
-  const response = await fetch(`/api/print/${route}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error(await parsePrintError(response));
-  }
-
-  const blob = await response.blob();
+  const blob = await fetchPrintPdf(route, payload);
   await printPdfBlob(blob);
 }
