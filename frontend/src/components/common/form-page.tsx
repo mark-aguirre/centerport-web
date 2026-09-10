@@ -84,6 +84,14 @@ export interface FormPageProps<T> {
    * When provided, overrides the default RecordSelector.
    */
   metadataSlot?: React.ReactNode;
+
+  /**
+   * Optional dropdown menu content for the toolbar Print button.
+   *
+   * When provided, the Print button becomes a dropdown trigger rendering this
+   * content (e.g. a list of report types). See {@link FormToolbarProps.printMenu}.
+   */
+  printMenu?: React.ReactNode;
 }
 
 // ---------------------------------------------------------------------------
@@ -118,6 +126,7 @@ function FormPageContent<T>({
   preSections,
   actionsPortalId = "app-header-actions",
   metadataSlot,
+  printMenu,
 }: FormPageProps<T>) {
   const {
     data,
@@ -191,6 +200,7 @@ function FormPageContent<T>({
         onEdit={canEdit ? handleEdit : undefined}
         onNew={onNew}
         onPrint={handlePrint}
+        printMenu={printMenu}
         onSearch={handleSearch}
         searchResults={searchResults}
         searchLoading={searchLoading}

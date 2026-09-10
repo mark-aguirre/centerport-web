@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback } from "react";
+import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
 import GeneralInfoSection from "@/components/panama/GeneralInfoSection";
@@ -11,7 +11,7 @@ import DiagnosticTestsSection from "@/components/panama/DiagnosticTestsSection";
 import FitnessAssessmentSection from "@/components/panama/FitnessAssessmentSection";
 import { usePanamaForm } from "@/hooks/use-panama-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
-import { PrintDialog } from "@/components/panama/PrintDialog";
+import { ReportMenu } from "@/components/panama/ReportMenu";
 import type { PanamaCertificate, PanamaSectionProps } from "@/components/panama/types";
 
 /**
@@ -31,26 +31,15 @@ const SECTIONS: SectionEntry<PanamaCertificate>[] = [
  */
 function PanamaFormContent() {
   const form = usePanamaForm();
-  const [printDialogOpen, setPrintDialogOpen] = useState(false);
-
-  const handlePrint = useCallback(() => {
-    setPrintDialogOpen(true);
-  }, []);
 
   return (
-    <>
-      <FormPage
-        form={{ ...form, handlePrint }}
-        sections={SECTIONS}
-        getBusinessId={(record) => record?.panama_id}
-        editGuard={(data) => !!data.full_name}
-      />
-      <PrintDialog
-        open={printDialogOpen}
-        onClose={() => setPrintDialogOpen(false)}
-        data={form.existingRecord ?? form.data}
-      />
-    </>
+    <FormPage
+      form={form}
+      sections={SECTIONS}
+      getBusinessId={(record) => record?.panama_id}
+      editGuard={(data) => !!data.full_name}
+      printMenu={<ReportMenu data={form.existingRecord ?? form.data} />}
+    />
   );
 }
 

@@ -5,8 +5,12 @@ import { createPortal } from "react-dom";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Save, Loader2, Pencil, Plus, Printer, X, Search } from "lucide-react";
+import { Save, Loader2, Pencil, Plus, Printer, X, Search, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const subscribeToHydration = () => () => undefined;
 const getClientSnapshot = () => true;
@@ -59,6 +63,16 @@ export interface FormToolbarProps {
   onNew?: () => void;
   onPrint?: () => void;
 
+  /**
+   * Optional dropdown menu content shown when the Print button is clicked.
+   *
+   * When provided, the Print button becomes a dropdown trigger and renders this
+   * content in a menu (e.g. a list of report types to generate). `onPrint` is
+   * ignored in that case. When omitted, the Print button behaves as a plain
+   * button that calls `onPrint`.
+   */
+  printMenu?: React.ReactNode;
+
   /** Custom label for the save button (overrides default "Save"/"Update"). */
   saveLabel?: string;
 
@@ -95,6 +109,7 @@ export function FormToolbar({
   onEdit,
   onNew,
   onPrint,
+  printMenu,
   saveLabel,
   onSearch,
   searchResults = [],
@@ -251,16 +266,31 @@ export function FormToolbar({
           New
         </Button>
       )}
-      {onPrint && (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onPrint}
-          className="cursor-pointer"
-        >
-          <Printer className="w-4 h-4 mr-1" />
-          Print
-        </Button>
+      {printMenu ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button size="sm" variant="outline" className="cursor-pointer" />
+            }
+          >
+            <Printer className="w-4 h-4 mr-1" />
+            Print Preview
+            <ChevronDown className="w-4 h-4 ml-1" />
+          </DropdownMenuTrigger>
+          {printMenu}
+        </DropdownMenu>
+      ) : (
+        onPrint && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onPrint}
+            className="cursor-pointer"
+          >
+            <Printer className="w-4 h-4 mr-1" />
+            Print
+          </Button>
+        )
       )}
     </div>
   );

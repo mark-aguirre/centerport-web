@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback } from "react";
+import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
 import PersonalInfoSection, {
@@ -10,7 +10,7 @@ import { SectionReveal } from "@/components/common/section-reveal";
 import PhysicalExaminationSection from "@/components/medical/PhysicalExaminationSection";
 import { useMedicalForm } from "@/hooks/use-medical-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
-import { PrintDialog } from "@/components/medical/PrintDialog";
+import { ReportMenu } from "@/components/medical/ReportMenu";
 import type { MedicalExam } from "@/components/medical/types";
 
 // ---------------------------------------------------------------------------
@@ -26,11 +26,6 @@ const SECTIONS: SectionEntry<MedicalExam>[] = [
  */
 function SeabaseFormContent() {
   const form = useMedicalForm();
-  const [printDialogOpen, setPrintDialogOpen] = useState(false);
-
-  const handlePrint = useCallback(() => {
-    setPrintDialogOpen(true);
-  }, []);
 
   const preSections = (
     <SectionReveal index={0}>
@@ -44,21 +39,19 @@ function SeabaseFormContent() {
   );
 
   return (
-    <>
-      <FormPage
-        form={{ ...form, handlePrint }}
-        sections={SECTIONS}
-        getBusinessId={(record) => record?.exam_id}
-        editGuard={(data) => !!data.last_name}
-        preSections={preSections}
-      />
-      <PrintDialog
-        open={printDialogOpen}
-        onClose={() => setPrintDialogOpen(false)}
-        examId={form.existingRecord?.id}
-        data={form.existingRecord ?? form.data}
-      />
-    </>
+    <FormPage
+      form={form}
+      sections={SECTIONS}
+      getBusinessId={(record) => record?.exam_id}
+      editGuard={(data) => !!data.last_name}
+      preSections={preSections}
+      printMenu={
+        <ReportMenu
+          examId={form.existingRecord?.id}
+          data={form.existingRecord ?? form.data}
+        />
+      }
+    />
   );
 }
 

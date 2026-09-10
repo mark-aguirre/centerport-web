@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState, useCallback } from "react";
+import { Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
 import PersonalInfoSection from "@/components/landbase/PersonalInfoSection";
@@ -14,7 +14,7 @@ import RecommendationSection from "@/components/landbase/RecommendationSection";
 import { useLandbaseForm } from "@/hooks/use-landbase-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
 import { PemeSelector } from "@/components/landbase/PemeSelector";
-import { PrintDialog } from "@/components/landbase/PrintDialog";
+import { ReportMenu } from "@/components/landbase/ReportMenu";
 import type { LandbasePeme, LandbaseSectionProps } from "@/components/landbase/types";
 
 /**
@@ -36,11 +36,6 @@ const SECTIONS: SectionEntry<LandbasePeme>[] = [
  */
 function LandbaseFormContent() {
   const form = useLandbaseForm();
-  const [printDialogOpen, setPrintDialogOpen] = useState(false);
-
-  const handlePrint = useCallback(() => {
-    setPrintDialogOpen(true);
-  }, []);
 
   const metadataSlot = form.profilePemes.length >= 2 ? (
     <PemeSelector
@@ -52,21 +47,19 @@ function LandbaseFormContent() {
   ) : undefined;
 
   return (
-    <>
-      <FormPage
-        form={{ ...form, handlePrint }}
-        sections={SECTIONS}
-        getBusinessId={(record) => record?.peme_id}
-        editGuard={(data) => !!data.last_name}
-        metadataSlot={metadataSlot}
-      />
-      <PrintDialog
-        open={printDialogOpen}
-        onClose={() => setPrintDialogOpen(false)}
-        pemeId={form.existingRecord?.id}
-        data={form.existingRecord ?? form.data}
-      />
-    </>
+    <FormPage
+      form={form}
+      sections={SECTIONS}
+      getBusinessId={(record) => record?.peme_id}
+      editGuard={(data) => !!data.last_name}
+      metadataSlot={metadataSlot}
+      printMenu={
+        <ReportMenu
+          pemeId={form.existingRecord?.id}
+          data={form.existingRecord ?? form.data}
+        />
+      }
+    />
   );
 }
 
