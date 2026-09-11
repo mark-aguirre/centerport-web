@@ -10,6 +10,7 @@ import PersonalityTraitsSection from "@/components/psychology/PersonalityTraitsS
 import ConclusionSection from "@/components/psychology/ConclusionSection";
 import { usePsychologyForm } from "@/hooks/use-psychology-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
+import { ReportMenu } from "@/components/psychology/ReportMenu";
 import type { PsychologyRecord, PsychologySectionProps } from "@/components/psychology/types";
 
 /**
@@ -42,6 +43,7 @@ function PsychologyFormContent() {
       sections={SECTIONS}
       getBusinessId={(record) => record?.psych_id}
       editGuard={(data) => !!data.last_name}
+      printMenu={<ReportMenu data={form.existingRecord ?? form.data} />}
     />
   );
 }

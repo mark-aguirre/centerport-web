@@ -93,7 +93,6 @@ export interface PsychologyRecord {
   trait_faces_reality: TraitRating;
   trait_confidence: TraitRating;
   trait_relaxed: TraitRating;
-
   // Objectivity
   trait_tough_mindedness: TraitRating;
   trait_adaptability: TraitRating;
