@@ -79,7 +79,7 @@ const psychologyConfig: EntityFormConfig<PsychologyRecord> = {
 
   getRecordId: (record) => record.id,
   getProfileId: (record) => record.seafarer_profile_id,
-  getBusinessId: (record) => record.psych_id,
+  getBusinessId: (record) => record.eval_id,
   getCreatedDate: (record) => record.created_date,
 
   successMessages: {

@@ -16,7 +16,7 @@ import {
 export { humanizeField } from "@/lib/form-utils";
 
 /** System-managed fields excluded from update payloads. */
-const SYSTEM_FIELDS = ["id", "psych_id", "created_date", "updated_date"] as const;
+const SYSTEM_FIELDS = ["id", "eval_id", "created_date", "updated_date"] as const;
 
 /**
  * Shape of the nested seafarer profile returned by the API.

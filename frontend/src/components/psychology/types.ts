@@ -46,7 +46,7 @@ export type TraitRating = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "";
 export interface PsychologyRecord {
   // System fields
   id?: string;
-  psych_id?: string;
+  eval_id?: string;
   created_date?: string;
   updated_date?: string;
 
@@ -127,7 +127,7 @@ export interface PsychologySectionProps {
 /** Default empty record for new evaluations */
 export const EMPTY_PSYCHOLOGY_RECORD: PsychologyRecord = {
   id: undefined,
-  psych_id: undefined,
+  eval_id: undefined,
   created_date: undefined,
   updated_date: undefined,
 

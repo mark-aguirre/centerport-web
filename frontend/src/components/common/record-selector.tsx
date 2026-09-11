@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import {
   Select,
   SelectContent,
@@ -76,12 +75,7 @@ export function RecordSelector({
             value={item.record_id}
             className="text-xs cursor-pointer hover:bg-primary/5 [&[data-selected]]:text-white [&:focus]:text-white"
           >
-            <span className="font-bold">{item.record_id}</span>
-            <span className="ml-2 opacity-75">
-              {item.created_date
-                ? format(new Date(item.created_date), "MMM d, yyyy")
-                : "—"}
-            </span>
+            <span className="font-bold">{item.record_id || "—"}</span>
           </SelectItem>
         ))}
       </SelectContent>

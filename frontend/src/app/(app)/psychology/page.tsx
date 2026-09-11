@@ -41,7 +41,7 @@ function PsychologyFormContent() {
     <FormPage
       form={form}
       sections={SECTIONS}
-      getBusinessId={(record) => record?.psych_id}
+      getBusinessId={(record) => record?.eval_id}
       editGuard={(data) => !!data.last_name}
       printMenu={<ReportMenu data={form.existingRecord ?? form.data} />}
     />
