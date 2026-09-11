@@ -5,6 +5,8 @@
  * to interact with the CenterPort backend.
  */
 
+import { format } from "date-fns";
+
 import { httpClient } from "./http-client";
 import type { LandbasePeme } from "@/components/landbase/types";
 import type { LaboratoryReport } from "@/components/laboratory/types";
@@ -184,6 +186,17 @@ export interface DashboardStats {
 // Shared Helpers — eliminates repeated sort-parsing and filter logic
 // ===================================================================
 
+/**
+ * Today's date as a `yyyy-MM-dd` string in the runtime's local timezone.
+ *
+ * Used for the "today's records" queries. Uses local time rather than
+ * `Date.toISOString()` (which is UTC) so the calendar date matches the
+ * clinic's local day even in the hours around midnight.
+ */
+function localToday(): string {
+  return format(new Date(), "yyyy-MM-dd");
+}
+
 /** Common frontend-to-backend field name mappings shared across entities. */
 const COMMON_FIELD_MAP: Record<string, string> = {
   created_date: "createdDate",
@@ -319,6 +332,14 @@ export const api = {
       return httpClient.get<DashboardStats>("/api/dashboard/stats");
     },
   },
+  /**
+   * Domain entities — records the user creates and edits through the CRUD
+   * forms. Each exposes the standard `filter`/`list`/`create`/`update`/`search`
+   * shape and is driven by the shared `useEntityForm` hook. Master/reference
+   * lookups (e.g. `MedicalPersonnel`, `Employer`) live at the top level of
+   * `api`, not here, because they are read-only pick-lists rather than
+   * form-owned entities.
+   */
   entities: {
     SeafarerProfile: {
       /**
@@ -370,7 +391,7 @@ export const api = {
        * Uses the createdDate filter on the backend with today's date.
        */
       async listToday(): Promise<SeafarerProfile[]> {
-        const today = new Date().toISOString().split("T")[0];
+        const today = localToday();
         const paged = await httpClient.get<PagedResponse<SeafarerProfile>>(
           "/api/profiles",
           {
@@ -762,7 +783,7 @@ export const api = {
        * Returns visit records enriched with patient profile display data.
        */
       async listToday(date?: string): Promise<PatientVisitRecord[]> {
-        const queryDate = date ?? new Date().toISOString().split("T")[0];
+        const queryDate = date ?? localToday();
         const paged = await httpClient.get<PagedResponse<PatientVisitRecord>>(
           "/api/visits",
           {
@@ -826,6 +847,12 @@ export const api = {
       },
     },
   },
+
+  // ===================================================================
+  // Reference resources — read-only master lists that populate pick-lists
+  // and selection dialogs. Kept at the top level (outside `entities`)
+  // because they are not form-owned CRUD entities.
+  // ===================================================================
 
   /**
    * Medical Personnel resource — master list of licensed professionals.
