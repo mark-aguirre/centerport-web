@@ -7,15 +7,21 @@
  * be imported from both payload builders and components.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "INVALID_PUBLIC_API_URL";
+/**
+ * Same-origin base for backend assets. Photos are served by the backend but
+ * fetched through the Next.js proxy route (`/api/backend/[...path]`) so the
+ * browser never talks to the backend host directly — the same rule the JSON
+ * API client follows.
+ */
+const API_BASE = "/api/backend";
 
 /**
- * Resolve a photo URL, prepending the API base when the value is a relative
+ * Resolve a photo URL, prepending the proxy base when the value is a relative
  * path. Absolute `http(s)` URLs are returned unchanged; empty/undefined values
  * yield an empty string.
  *
  * @param url - A relative or absolute photo URL, or `undefined`
- * @returns A fully-qualified URL, or `""` when there is nothing to resolve
+ * @returns A proxy-routed URL, or `""` when there is nothing to resolve
  */
 export function resolvePhotoUrl(url: string | undefined): string {
   if (!url) return "";

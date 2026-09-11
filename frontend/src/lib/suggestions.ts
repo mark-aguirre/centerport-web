@@ -176,29 +176,8 @@ export const CITIES = [
   "Cotabato City",
 ];
 
-/** Manning-agency/employer suggestions for the profile employer field. */
-export const EMPLOYERS = [
-  "Magsaysay Maritime",
-  "NYK-Fil Ship Management",
-  "Marlow Navigation",
-  "Anglo-Eastern",
-  "V.Ships",
-  "BSM (Bernhard Schulte Shipmanagement)",
-  "Döhle Seafront",
-  "OSM Maritime",
-  "Synergy Marine",
-  "Thome Ship Management",
-  "Fleet Management Limited",
-  "Wilhelmsen Ship Management",
-  "Columbia Shipmanagement",
-  "CF Sharp Crew Management",
-  "Jebsen Maritime",
-  "Pacific Basin Shipping",
-  "Eastern Pacific Shipping",
-  "Oceanic Marine Contractors",
-  "United Philippine Lines",
-  "Philippine Transmarine Carriers",
-];
+// Employer suggestions are sourced from the database via the `useEmployers`
+// hook (GET /api/employers). See frontend/src/hooks/use-employers.ts.
 
 /** Crew designation/category suggestions for the profile designation field. */
 export const DESIGNATIONS = [

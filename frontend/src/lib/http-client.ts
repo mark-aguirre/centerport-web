@@ -1,8 +1,9 @@
 /**
  * Lightweight HTTP client wrapping the Fetch API.
  *
- * All requests are directed at the backend base URL defined by
- * NEXT_PUBLIC_API_URL (defaults to INVALID_PUBLIC_API_URL for local dev).
+ * All requests are directed at the same-origin Next.js proxy route
+ * (`/api/backend/[...path]`), which forwards them to the backend server-side.
+ * The browser never calls the backend host directly.
  *
  * Features:
  * - Automatic JSON serialization/deserialization
@@ -10,7 +11,16 @@
  * - Consistent error handling with status and message
  */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "INVALID_PUBLIC_API_URL";
+/**
+ * All backend traffic is routed through the same-origin Next.js proxy Route
+ * Handler at `/api/backend/[...path]` (see src/app/api/backend/[...path]/route.ts)
+ * rather than hitting the backend directly. The proxy prepends the real backend
+ * URL server-side, so the backend host is never exposed to the browser.
+ *
+ * A backend path like `/api/employers/search` therefore becomes
+ * `/api/backend/api/employers/search`.
+ */
+const BASE_URL = "/api/backend";
 
 /** A single field-level validation violation from the backend. */
 export interface ValidationViolation {
