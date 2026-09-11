@@ -10,11 +10,11 @@ import type { SeafarerProfile } from "@/lib/api";
 import {
   CITIES,
   DESIGNATIONS,
-  EMPLOYERS,
   NATIONALITIES,
   POSITIONS,
   RELIGIONS,
 } from "@/lib/suggestions";
+import { useEmployers } from "@/hooks/use-employers";
 import {
   BriefcaseBusiness,
   ClipboardList,
@@ -63,6 +63,8 @@ export function VisitRegistrationForm({
 }: VisitRegistrationFormProps) {
   const update = (field: keyof SeafarerProfile, value: string) =>
     onChange((prev) => ({ ...prev, [field]: value }));
+
+  const employers = useEmployers();
 
   const handleBirthdateChange = (val: string) => {
     const updates: Partial<SeafarerProfile> = { birthdate: val };
@@ -128,17 +130,19 @@ export function VisitRegistrationForm({
             </>
           ) : (
             <>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="cursor-pointer"
-                onClick={onEdit}
-                disabled={!isExistingRecord}
-              >
-                <Pencil className="mr-1 h-4 w-4" />
-                Edit
-              </Button>
+              {/* Edit is only available when an active patient is selected. */}
+              {isExistingRecord && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="cursor-pointer"
+                  onClick={onEdit}
+                >
+                  <Pencil className="mr-1 h-4 w-4" />
+                  Edit
+                </Button>
+              )}
               <Button
                 type="button"
                 size="sm"
@@ -206,7 +210,7 @@ export function VisitRegistrationForm({
         <div className="grid gap-2 md:grid-cols-12">
           <FormAutocomplete label="Designation" value={data.designation} onChange={(v) => update("designation", v)} suggestions={DESIGNATIONS} disabled={!editing} className="md:col-span-3" size="sm" />
           <FormAutocomplete label="Position" value={data.position} onChange={(v) => update("position", v)} suggestions={POSITIONS} disabled={!editing} className="md:col-span-3" size="sm" />
-          <FormAutocomplete label="Employer" value={data.employer} onChange={(v) => update("employer", v)} suggestions={EMPLOYERS} disabled={!editing} className="md:col-span-6" size="sm" />
+          <FormAutocomplete label="Employer" value={data.employer} onChange={(v) => update("employer", v)} suggestions={employers} disabled={!editing} className="md:col-span-6" size="sm" />
           <FormField label="Passport No." value={data.passport_no} onChange={(v) => update("passport_no", v)} disabled={!editing} className="md:col-span-6" size="sm" />
           <FormField label="Seaman's Book No." value={data.seamans_book_no} onChange={(v) => update("seamans_book_no", v)} disabled={!editing} className="md:col-span-6" size="sm" />
         </div>

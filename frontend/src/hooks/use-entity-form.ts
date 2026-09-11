@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import type { SeafarerProfile } from "@/lib/api";
 import { ApiError } from "@/lib/http-client";
 import { humanizeField } from "@/lib/form-utils";
+import { saveDraft, loadDraft, clearDraft } from "@/lib/form-draft";
 import { useProfileSearch } from "./use-profile-search";
 import type { RecordSummary } from "@/components/common/record-selector";
 
@@ -121,6 +122,16 @@ export interface EntityFormConfig<T> {
    * Useful for date fields that depend on the current date.
    */
   getNewRecordDefaults?: () => Partial<T>;
+
+  /**
+   * Stable per-entity key used to persist an in-progress draft so unsaved
+   * work survives a page reload (e.g. "landbase", "medical").
+   *
+   * When set, the form auto-saves a draft to sessionStorage while the user
+   * is in New/Edit mode and restores it after a reload. The draft is cleared
+   * on Save and Cancel. Omit to disable draft persistence for the entity.
+   */
+  draftKey?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -218,17 +229,31 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     getBusinessId,
     getCreatedDate,
     successMessages,
+    draftKey,
   } = config;
 
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
 
-  const [data, setData] = useState<T>(emptyRecord);
+  // Restore an in-progress draft (unsaved New/Edit work) on first render so a
+  // page reload continues where the user left off. Runs once via the lazy
+  // initializer; returns null when persistence is disabled or no draft exists.
+  const restoredDraft = useState(() =>
+    draftKey ? loadDraft<T>(draftKey, editId) : null
+  )[0];
+
+  // True when initial state came from a restored draft. Used to stop the async
+  // initial load from clobbering the user's unsaved work.
+  const draftRestoredRef = useRef<boolean>(!!restoredDraft);
+
+  const [data, setData] = useState<T>(restoredDraft?.data ?? emptyRecord);
   const [originalData, setOriginalData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [isExistingRecord, setIsExistingRecord] = useState(!!editId);
+  const [editing, setEditing] = useState(restoredDraft?.editing ?? false);
+  const [isExistingRecord, setIsExistingRecord] = useState(
+    restoredDraft?.isExistingRecord ?? !!editId
+  );
   const [existingRecord, setExistingRecord] = useState<T | null>(null);
   const [saveAlert, setSaveAlert] = useState<string | null>(null);
   const [profileRecords, setProfileRecords] = useState<RecordSummary[]>([]);
@@ -285,13 +310,21 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
 
         if (results.length > 0) {
           const flattened = flattenResponse(results[0]);
-          setExistingRecord(flattened);
-          setData(flattened);
-          setIsExistingRecord(true);
 
+          // Always track the persisted record so Save knows whether to
+          // update vs create, and so the record dropdown can populate.
+          setExistingRecord(flattened);
           const profileId = getProfileId(flattened);
           if (profileId) {
             fetchProfileRecords(profileId);
+          }
+
+          // A restored draft holds the user's unsaved work and must win over
+          // the freshly fetched record. Only hydrate the form from the server
+          // when there is no draft to preserve.
+          if (!draftRestoredRef.current) {
+            setData(flattened);
+            setIsExistingRecord(true);
           }
         }
       } catch (error: unknown) {
@@ -318,12 +351,31 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
   }, [editId, entityApi, flattenResponse, getProfileId, fetchProfileRecords]);
 
   // -------------------------------------------------------------------------
+  // Draft persistence (survive page reload)
+  // -------------------------------------------------------------------------
+
+  // While the form is in edit mode, mirror the current data/mode to
+  // sessionStorage on every change so a reload can restore unsaved work.
+  // Leaving edit mode (Save/Cancel) clears the draft explicitly, so we only
+  // write here while editing to avoid persisting read-only view state.
+  useEffect(() => {
+    if (!draftKey) return;
+    if (editing) {
+      saveDraft<T>(draftKey, { data, editing, isExistingRecord, editId });
+    }
+  }, [draftKey, editing, data, isExistingRecord, editId]);
+
+  // -------------------------------------------------------------------------
   // CRUD Handlers
   // -------------------------------------------------------------------------
 
   /** Clear form, enter edit mode for a new record. */
   const handleNew = useCallback(() => {
     const defaults = config.getNewRecordDefaults?.() ?? {};
+    // Drop any restored draft: New starts a fresh, empty record. The persist
+    // effect will begin writing a new draft as the user types.
+    if (draftKey) clearDraft(draftKey);
+    draftRestoredRef.current = false;
     setData({ ...emptyRecord, ...defaults } as T);
     setOriginalData(null);
     setEditing(true);
@@ -331,7 +383,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     setExistingRecord(null);
     setProfileRecords([]);
     setNeedsPatientSelection(true);
-  }, [emptyRecord, config]);
+  }, [emptyRecord, config, draftKey]);
 
   /** Enter edit mode, snapshot current data for cancel/restore. */
   const handleEdit = useCallback(() => {
@@ -351,7 +403,10 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     setOriginalData(null);
     setEditing(false);
     setNeedsPatientSelection(false);
-  }, [isExistingRecord, originalData, existingRecord, emptyRecord]);
+    // Discarding changes also discards the persisted draft.
+    if (draftKey) clearDraft(draftKey);
+    draftRestoredRef.current = false;
+  }, [isExistingRecord, originalData, existingRecord, emptyRecord, draftKey]);
 
   /** Validate, persist via API, and return to view mode. */
   const handleSave = useCallback(async () => {
@@ -395,6 +450,10 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
       setOriginalData(null);
       setEditing(false);
 
+      // Work is now persisted server-side; the draft is no longer needed.
+      if (draftKey) clearDraft(draftKey);
+      draftRestoredRef.current = false;
+
       // Refresh the records list for this profile
       const newProfileId = getProfileId(flattened);
       if (newProfileId) {
@@ -408,7 +467,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
   }, [
     data, isExistingRecord, existingRecord, validate, getProfileId,
     getRecordId, entityApi, flattenResponse, stripSystemFields,
-    sanitizePayload, successMessages, fetchProfileRecords,
+    sanitizePayload, successMessages, fetchProfileRecords, draftKey,
   ]);
 
   /** Trigger browser print dialog. */
@@ -427,11 +486,14 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         setIsExistingRecord(true);
         setEditing(false);
         setOriginalData(null);
+        // Switching to a saved record in view mode discards any pending draft.
+        if (draftKey) clearDraft(draftKey);
+        draftRestoredRef.current = false;
       }
     } catch {
       toast.error("Failed to load the selected record");
     }
-  }, [entityApi, flattenResponse]);
+  }, [entityApi, flattenResponse, draftKey]);
 
   // -------------------------------------------------------------------------
   // Profile search result selection

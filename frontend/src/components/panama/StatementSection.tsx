@@ -4,7 +4,7 @@ import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { FormSelect } from "@/components/common/form-select";
 import { FileSignature } from "lucide-react";
-import { MONTH_OPTIONS } from "./constants";
+import { MONTH_OPTIONS, YEAR_OPTIONS } from "./constants";
 import { createFieldUpdater } from "./utils";
 import type { PanamaSectionProps } from "./types";
 
@@ -68,11 +68,11 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
             options={MONTH_OPTIONS}
             disabled={disabled}
           />
-          <FormField
+          <FormSelect
             label="Year"
             value={data.statement_year}
             onChange={(v) => update("statement_year", v)}
-            type="number"
+            options={YEAR_OPTIONS}
             disabled={disabled}
           />
           <div />
@@ -127,11 +127,11 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
             options={MONTH_OPTIONS}
             disabled={disabled}
           />
-          <FormField
+          <FormSelect
             label="Year"
             value={data.statement_practitioner_date_year}
             onChange={(v) => update("statement_practitioner_date_year", v)}
-            type="number"
+            options={YEAR_OPTIONS}
             disabled={disabled}
           />
           <div />

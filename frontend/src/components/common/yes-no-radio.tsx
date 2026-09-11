@@ -24,6 +24,8 @@
  * ```
  */
 
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
+
 export type YesNoValue = "yes" | "no" | "";
 
 interface YesNoRadioProps {
@@ -64,7 +66,7 @@ export function YesNoRadio({
       role="radiogroup"
       aria-label={ariaLabel}
     >
-      <label className="flex items-center gap-1.5 cursor-pointer">
+      <label className={RADIO_OPTION_LABEL_CLASS}>
         <input
           type="radio"
           name={name}
@@ -76,7 +78,7 @@ export function YesNoRadio({
         />
         <span className="text-xs text-foreground/80">{yesText}</span>
       </label>
-      <label className="flex items-center gap-1.5 cursor-pointer">
+      <label className={RADIO_OPTION_LABEL_CLASS}>
         <input
           type="radio"
           name={name}

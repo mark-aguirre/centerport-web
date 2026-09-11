@@ -136,12 +136,15 @@ function GridYesNoRadio({
 }) {
   return (
     <div
-      className={cn(className, disabled && "pointer-events-none")}
+      className={cn(className, "place-items-stretch", disabled && "pointer-events-none")}
       role="radiogroup"
       aria-label={ariaLabel}
     >
       {(["yes", "no"] as const).map((answer) => (
-        <label key={answer} className="cursor-pointer">
+        <label
+          key={answer}
+          className="flex h-full min-h-6 w-full cursor-pointer items-center justify-center rounded-sm transition-colors hover:bg-primary/10"
+        >
           <input
             type="radio"
             name={name}
@@ -172,7 +175,16 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
     onChange({ ...data, conditions: updatedConditions });
   };
 
-  /** Set all active declaration conditions to "no" without clearing unrelated answers. */
+  /**
+   * Set the declaration to its "normal"/healthy state.
+   *
+   * Applies "no" to every declaration condition and to each adverse
+   * yes/no question (37–41, 43, 44, and the medication question 45), and
+   * "yes" to question 42 ("Do you feel healthy and fit …") since a healthy
+   * examinee answers that affirmatively. Free-text detail fields tied to
+   * those answers are cleared. Covid-19 questions capture factual history
+   * rather than a normal/abnormal finding, so they are left untouched.
+   */
   const handleSetNormal = () => {
     const normalConditions = { ...data.conditions };
     DECLARATION_CONDITIONS.forEach((item) => {
@@ -183,6 +195,19 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
       ...data,
       conditions: normalConditions,
       conditions_details: "",
+      // Adverse additional questions → "no"
+      question_37: "no",
+      question_38: "no",
+      question_39: "no",
+      question_40: "no",
+      question_41: "no",
+      question_43: "no",
+      question_44: "no",
+      // "Do you feel healthy and fit …" → "yes" (the healthy answer)
+      question_42: "yes",
+      // Medication question → "no", clear its details
+      question_45: "no",
+      question_45_details: "",
     });
   };
 

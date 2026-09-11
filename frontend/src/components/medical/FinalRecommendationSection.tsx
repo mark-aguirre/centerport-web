@@ -4,6 +4,7 @@ import { FormSelect } from "@/components/common/form-select";
 import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
 import type { MedicalSectionProps } from "./types";
 
@@ -45,10 +46,7 @@ function CertificationResultRow({
     <div className="grid min-h-9 grid-cols-[minmax(330px,1.5fr)_minmax(150px,0.65fr)_minmax(250px,1fr)] items-center gap-3 px-2">
       <span className="text-xs text-foreground/80">{label}:</span>
       {options.map((option) => (
-        <label
-          key={option.value}
-          className="flex cursor-pointer items-center gap-1.5"
-        >
+        <label key={option.value} className={RADIO_OPTION_LABEL_CLASS}>
           <input
             type="radio"
             name={name}

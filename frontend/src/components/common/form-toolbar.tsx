@@ -242,7 +242,8 @@ export function FormToolbar({
         </>
       ) : (
         <>
-          {onEdit && (
+          {/* Edit is only available when an active record is selected. */}
+          {onEdit && isExistingRecord && (
             <Button
               size="sm"
               variant="outline"

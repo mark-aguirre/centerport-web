@@ -2,6 +2,7 @@
 
 import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import type { LandbasePeme, LandbaseSectionProps, PassStatus } from "./types";
 import { createFieldUpdater } from "./utils";
 
@@ -77,7 +78,7 @@ export default function ResultsSection({
                 <label
                   key={option.value}
                   className={cn(
-                    "flex items-center gap-1.5",
+                    RADIO_OPTION_LABEL_CLASS,
                     disabled ? "cursor-default" : "cursor-pointer",
                   )}
                 >

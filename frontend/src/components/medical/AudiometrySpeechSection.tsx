@@ -3,6 +3,7 @@
 import { FormSelect } from "@/components/common/form-select";
 import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
 import type { MedicalSectionProps } from "./types";
 
@@ -35,10 +36,7 @@ function HearingRadioGroup({
         const normalizedValue = option.toLowerCase();
 
         return (
-          <label
-            key={option}
-            className="flex cursor-pointer items-center gap-1.5"
-          >
+          <label key={option} className={RADIO_OPTION_LABEL_CLASS}>
             <input
               type="radio"
               name={name}
@@ -172,10 +170,7 @@ export function AudiometrySpeechSection({
             const normalizedValue = option.toLowerCase();
 
             return (
-              <label
-                key={option}
-                className="flex cursor-pointer items-center gap-1.5"
-              >
+              <label key={option} className={RADIO_OPTION_LABEL_CLASS}>
                 <input
                   type="radio"
                   name="speech-assessment"

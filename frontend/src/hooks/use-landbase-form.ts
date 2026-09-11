@@ -19,6 +19,7 @@ import {
 const landbaseConfig: EntityFormConfig<LandbasePeme> = {
   entityApi: api.entities.LandbasePeme,
   emptyRecord: EMPTY_PEME,
+  draftKey: "landbase",
 
   flattenResponse: (raw) => flattenProfileIntoRecord(raw as RawPemeResponse),
   stripSystemFields,

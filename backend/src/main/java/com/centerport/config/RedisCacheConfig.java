@@ -62,6 +62,7 @@ public class RedisCacheConfig implements CachingConfigurer {
     public static final String PSYCH_EVAL_CACHE = "psychEval";
     public static final String SEAFARER_PROFILE_CACHE = "seafarerProfile";
     public static final String MEDICAL_PERSONNEL_CACHE = "medicalPersonnel";
+    public static final String EMPLOYER_CACHE = "employer";
     public static final String PATIENT_VISIT_CACHE = "patientVisit";
 
     // ----- Repeat-test module caches -----
@@ -78,7 +79,7 @@ public class RedisCacheConfig implements CachingConfigurer {
     private static final String[] DOMAIN_CACHES = {
             LAB_REPORT_CACHE, MEDICAL_EXAM_CACHE, LANDBASE_PEME_CACHE,
             MLC_RECORD_CACHE, PANAMA_CERT_CACHE, PSYCH_EVAL_CACHE,
-            SEAFARER_PROFILE_CACHE, MEDICAL_PERSONNEL_CACHE, PATIENT_VISIT_CACHE,
+            SEAFARER_PROFILE_CACHE, MEDICAL_PERSONNEL_CACHE, EMPLOYER_CACHE, PATIENT_VISIT_CACHE,
             HEMA_REPEAT_CACHE, CHEM_REPEAT_CACHE, URIN_REPEAT_CACHE, FECA_REPEAT_CACHE
     };
 

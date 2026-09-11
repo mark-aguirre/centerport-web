@@ -1,5 +1,7 @@
 "use client";
 
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
+
 /**
  * Reusable Yes/No radio row for medical condition checklists.
  *
@@ -38,7 +40,7 @@ export function YesNoRadioRow({ condition, name, value, onChange }: YesNoRadioRo
       </span>
       <div className="flex items-center gap-3 shrink-0" role="radiogroup" aria-label={condition}>
         {YES_NO_OPTIONS.map((opt) => (
-          <label key={opt.value} className="flex items-center gap-1.5 cursor-pointer">
+          <label key={opt.value} className={RADIO_OPTION_LABEL_CLASS}>
             <input
               type="radio"
               name={name}

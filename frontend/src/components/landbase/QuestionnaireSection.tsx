@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import type { LandbasePeme, LandbaseSectionProps, YesNo } from "./types";
 import { createFieldUpdater } from "./utils";
 
@@ -96,7 +97,8 @@ function YesNoControl({
         <label
           key={option}
           className={cn(
-            "flex items-center justify-center",
+            RADIO_OPTION_LABEL_CLASS,
+            "justify-center",
             disabled ? "pointer-events-none" : "cursor-pointer",
           )}
         >

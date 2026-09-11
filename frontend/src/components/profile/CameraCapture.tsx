@@ -11,7 +11,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Camera, RotateCcw, Check, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Camera, RotateCcw, Check, X, ZoomIn, ZoomOut, RefreshCw } from "lucide-react";
 
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 3;
@@ -97,6 +97,17 @@ export default function CameraCapture({ onCapture, disabled }: CameraCaptureProp
       const e = err as DOMException;
       let message = "Unable to access camera. Please check permissions.";
 
+      // These are expected, user-recoverable conditions (no hardware, denied
+      // permission, device busy) rather than bugs. Track them so we can log
+      // at `warn` level and avoid tripping Next.js's dev error overlay.
+      const expectedNames = [
+        "NotAllowedError",
+        "SecurityError",
+        "NotFoundError",
+        "OverconstrainedError",
+        "NotReadableError",
+      ];
+
       if (e?.name === "NotAllowedError" || e?.name === "SecurityError") {
         message =
           "Camera permission was denied. Allow camera access for this site in your browser settings, then retry.";
@@ -108,7 +119,14 @@ export default function CameraCapture({ onCapture, disabled }: CameraCaptureProp
           "The camera is already in use by another application (e.g. Zoom, Teams, or another browser tab).";
       }
 
-      console.error("getUserMedia failed:", e?.name, e?.message, e);
+      // Expected conditions are logged as warnings so they don't surface as a
+      // console error in the Next.js dev overlay; only genuinely unexpected
+      // failures are logged at error level.
+      if (expectedNames.includes(e?.name)) {
+        console.warn("getUserMedia unavailable:", e?.name, e?.message);
+      } else {
+        console.error("getUserMedia failed:", e?.name, e?.message, e);
+      }
       setError(message);
     }
   }, []);
@@ -159,6 +177,16 @@ export default function CameraCapture({ onCapture, disabled }: CameraCaptureProp
     const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
     setCaptured(dataUrl);
   }, [zoom]);
+
+  /**
+   * Re-attempt camera access after an error. Tears down any partial stream
+   * first so a fresh getUserMedia request is made (e.g. after the user plugs
+   * in a camera, closes a conflicting app, or grants permission).
+   */
+  const handleRetry = useCallback(() => {
+    stopCamera();
+    void startCamera();
+  }, [startCamera, stopCamera]);
 
   /** Reset the captured image and show live feed again. */
   const handleRetake = useCallback(() => {
@@ -316,12 +344,18 @@ export default function CameraCapture({ onCapture, disabled }: CameraCaptureProp
               </>
             )}
             {error && (
-              <DialogClose
-                render={<Button type="button" variant="outline" size="sm" />}
-              >
-                <X className="w-4 h-4 mr-1" />
-                Close
-              </DialogClose>
+              <>
+                <Button type="button" size="sm" onClick={handleRetry}>
+                  <RefreshCw className="w-4 h-4 mr-1" />
+                  Retry
+                </Button>
+                <DialogClose
+                  render={<Button type="button" variant="outline" size="sm" />}
+                >
+                  <X className="w-4 h-4 mr-1" />
+                  Close
+                </DialogClose>
+              </>
             )}
           </DialogFooter>
         </DialogContent>

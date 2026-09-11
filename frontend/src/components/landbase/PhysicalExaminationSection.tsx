@@ -4,6 +4,7 @@ import { FormSelect } from "@/components/common/form-select";
 import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import type {
   LandbasePeme,
   LandbaseSectionProps,
@@ -61,7 +62,7 @@ function ChoiceGroup({
         <label
           key={option.value}
           className={cn(
-            "flex items-center gap-1.5",
+            RADIO_OPTION_LABEL_CLASS,
             disabled ? "pointer-events-none" : "cursor-pointer",
           )}
         >

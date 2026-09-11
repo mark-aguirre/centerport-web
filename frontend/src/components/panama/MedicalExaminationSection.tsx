@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CELL_INPUT_CLASS } from "./constants";
+import { CELL_INPUT_CLASS, RADIO_OPTION_LABEL_CLASS } from "./constants";
 import { createFieldUpdater } from "./utils";
 import type { PanamaSectionProps, PanamaCertificate, PhysicalExplorationValue } from "./types";
 
@@ -76,8 +76,8 @@ function NRARadio({
   disabled?: boolean;
 }) {
   return (
-    <div className={cn("flex items-center gap-3 shrink-0", disabled && "pointer-events-none")} role="radiogroup" aria-label={ariaLabel}>
-      <label className="flex items-center gap-1.5 cursor-pointer">
+    <div className={cn("flex items-center gap-2 shrink-0", disabled && "pointer-events-none")} role="radiogroup" aria-label={ariaLabel}>
+      <label className={RADIO_OPTION_LABEL_CLASS}>
         <input
           type="radio"
           name={name}
@@ -89,7 +89,7 @@ function NRARadio({
         />
         <span className="text-xs text-foreground/80">N</span>
       </label>
-      <label className="flex items-center gap-1.5 cursor-pointer">
+      <label className={RADIO_OPTION_LABEL_CLASS}>
         <input
           type="radio"
           name={name}
@@ -122,9 +122,21 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
     onChange({ ...data, physical_exploration: updated });
   };
 
-  /** Set all physical exploration items to "N" (Normal) and color vision to "Normal". */
+  /**
+   * Apply normal findings across every applicable control in the section.
+   *
+   * - Sight: color vision → "Normal" and both visual-field entries → "Normal"
+   *   (their column header is literally "Normal").
+   * - Physical exploration: every body-system row → "N" (Normal).
+   *
+   * Freeform clinical measurements (height, weight, vitals) and visual-acuity
+   * readings have no objective default, so they are left for the examiner to
+   * record. The physical-exploration comment field is cleared.
+   */
   const handleSetNormal = () => {
-    const normalExploration: Record<string, PhysicalExplorationValue> = {};
+    const normalExploration: Record<string, PhysicalExplorationValue> = {
+      ...data.physical_exploration,
+    };
     [...EXPLORATION_COL_1, ...EXPLORATION_COL_2].forEach((item) => {
       normalExploration[item.key] = "N";
     });
@@ -134,6 +146,8 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
       physical_exploration: normalExploration,
       physical_exploration_comments: "",
       sight_color_vision: "Normal",
+      sight_fields_right: "Normal",
+      sight_fields_left: "Normal",
     });
   };
 
@@ -399,7 +413,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
             </Label>
             <div className={cn("flex items-center gap-4 h-8", disabled && "pointer-events-none")} role="radiogroup" aria-label="Color vision">
               {["Not tested", "Normal", "Doubtful", "Defective"].map((opt) => (
-                <label key={opt} className="flex items-center gap-1.5 cursor-pointer">
+                <label key={opt} className={RADIO_OPTION_LABEL_CLASS}>
                   <input
                     type="radio"
                     name="panama_color_vision"

@@ -2,6 +2,7 @@
 
 import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
 import type { MedicalSectionProps } from "./types";
 
@@ -52,10 +53,7 @@ export function ConditionQuestionsSection({
               ["yes", "Yes"],
               ["no", "No"],
             ].map(([value, label]) => (
-              <label
-                key={value}
-                className="flex cursor-pointer items-center gap-1.5"
-              >
+              <label key={value} className={RADIO_OPTION_LABEL_CLASS}>
                 <input
                   type="radio"
                   name="id-documents-checked"
@@ -84,10 +82,7 @@ export function ConditionQuestionsSection({
               ["yes", "Yes"],
               ["no", "No"],
             ].map(([value, label]) => (
-              <label
-                key={value}
-                className="flex cursor-pointer items-center gap-1.5"
-              >
+              <label key={value} className={RADIO_OPTION_LABEL_CLASS}>
                 <input
                   type="radio"
                   name="fit-for-lookout"

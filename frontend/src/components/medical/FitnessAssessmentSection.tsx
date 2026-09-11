@@ -11,6 +11,7 @@ import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
 import type { MedicalSectionProps } from "./types";
 
@@ -43,10 +44,7 @@ function FitnessChoice({
           ["fit", "FIT"],
           ["unfit", "UNFIT"],
         ].map(([optionValue, optionLabel]) => (
-          <label
-            key={optionValue}
-            className="flex cursor-pointer items-center gap-1.5"
-          >
+          <label key={optionValue} className={RADIO_OPTION_LABEL_CLASS}>
             <input
               type="radio"
               name={name}
@@ -196,10 +194,7 @@ export function FitnessAssessmentSection({
           ["yes", "YES"],
           ["no", "NO"],
         ].map(([value, label]) => (
-          <label
-            key={value}
-            className="flex cursor-pointer items-center gap-1.5"
-          >
+          <label key={value} className={RADIO_OPTION_LABEL_CLASS}>
             <input
               type="radio"
               name="visual-aids-required"

@@ -5,6 +5,7 @@ import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
 import type { MedicalSectionProps } from "./types";
 
@@ -56,10 +57,7 @@ function ResultRow({
         aria-label={`${label} result`}
       >
         {options.map((option) => (
-          <label
-            key={option.value}
-            className="flex cursor-pointer items-center gap-1.5"
-          >
+          <label key={option.value} className={RADIO_OPTION_LABEL_CLASS}>
             <input
               type="radio"
               name={name}
@@ -291,10 +289,7 @@ export function AncillaryExamsSection({
           ["not_recommended", "Not Recommended"],
           ["not_done", "Not Done"],
         ].map(([value, label]) => (
-          <label
-            key={value}
-            className="flex cursor-pointer items-center gap-1.5"
-          >
+          <label key={value} className={RADIO_OPTION_LABEL_CLASS}>
             <input
               type="radio"
               name="ancillary-psychological-test"

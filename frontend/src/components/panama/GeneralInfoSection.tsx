@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { Info } from "lucide-react";
+import { RADIO_OPTION_LABEL_CLASS } from "./constants";
 import type {
   PanamaCertificate,
   PanamaSectionProps,
@@ -294,7 +295,7 @@ export default function GeneralInfoSection({
               {VESSEL_TYPE_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className="flex items-center gap-1.5 cursor-pointer"
+                  className={RADIO_OPTION_LABEL_CLASS}
                 >
                   <input
                     type="radio"
@@ -337,7 +338,7 @@ export default function GeneralInfoSection({
               {SAILING_AREA_OPTIONS.map((option) => (
                 <label
                   key={option.value}
-                  className="flex items-center gap-1.5 cursor-pointer"
+                  className={RADIO_OPTION_LABEL_CLASS}
                 >
                   <input
                     type="radio"

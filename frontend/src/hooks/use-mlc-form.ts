@@ -19,6 +19,7 @@ import {
 const mlcConfig: EntityFormConfig<MlcRecord> = {
   entityApi: api.entities.MlcRecord,
   emptyRecord: EMPTY_MLC,
+  draftKey: "mlc",
 
   flattenResponse: (raw) => flattenProfileIntoRecord(raw as RawMlcResponse),
   stripSystemFields,

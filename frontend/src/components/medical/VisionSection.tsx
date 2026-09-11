@@ -4,6 +4,7 @@ import { FormSelect } from "@/components/common/form-select";
 import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
 import type { MedicalSectionProps } from "./types";
 
@@ -58,7 +59,7 @@ function VisionChoice({
   onChange,
 }: VisionChoiceProps) {
   return (
-    <label className="flex cursor-pointer items-center gap-1.5">
+    <label className={RADIO_OPTION_LABEL_CLASS}>
       <input
         type="radio"
         name={name}

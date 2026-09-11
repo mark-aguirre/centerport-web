@@ -36,6 +36,7 @@ function getPersonnelDefaults(record: PsychologyRecord): PsychologyPersonnelDefa
 const psychologyConfig: EntityFormConfig<PsychologyRecord> = {
   entityApi: api.entities.PsychologyEvaluation,
   emptyRecord: EMPTY_PSYCHOLOGY_RECORD,
+  draftKey: "psychology",
 
   flattenResponse: (raw) => flattenProfileIntoRecord(raw as RawPsychologyResponse),
   stripSystemFields,

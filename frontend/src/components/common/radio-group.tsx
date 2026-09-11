@@ -1,5 +1,6 @@
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 
 /** A single option in the radio group */
 export interface RadioOption {
@@ -64,7 +65,7 @@ export default function RadioGroup({
         {options.map((opt) => (
           <label
             key={opt.value}
-            className="flex items-center gap-1.5 cursor-pointer"
+            className={RADIO_OPTION_LABEL_CLASS}
           >
             <input
               type="radio"

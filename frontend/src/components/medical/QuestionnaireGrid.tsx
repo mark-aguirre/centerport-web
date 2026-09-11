@@ -4,6 +4,7 @@ import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import type { MedicalSectionProps } from "./types";
 
 interface QuestionnaireItem {
@@ -89,7 +90,7 @@ function QuestionnaireRow({
       ].map(([optionValue, optionLabel]) => (
         <label
           key={optionValue}
-          className="flex cursor-pointer justify-center"
+          className={cn(RADIO_OPTION_LABEL_CLASS, "justify-center")}
         >
           <input
             type="radio"
@@ -247,7 +248,7 @@ export function QuestionnaireGrid({
             ].map(([optionValue, optionLabel]) => (
               <label
                 key={optionValue}
-                className="flex cursor-pointer justify-center"
+                className={cn(RADIO_OPTION_LABEL_CLASS, "justify-center")}
               >
                 <input
                   type="radio"

@@ -297,6 +297,21 @@ export interface MedicalPersonnelRecord {
   updated_date?: string;
 }
 
+/**
+ * Employer / manning-agency reference record.
+ *
+ * Master list used to populate the employer selection field on profile and
+ * visit registration forms.
+ */
+export interface EmployerRecord {
+  id: string;
+  employer_id?: string;
+  name: string;
+  active?: boolean;
+  created_date?: string;
+  updated_date?: string;
+}
+
 export const api = {
   dashboard: {
     /** Fetch aggregated dashboard statistics. */
@@ -825,6 +840,32 @@ export const api = {
         "/api/medical-personnel/search",
         params
       );
+    },
+  },
+
+  /**
+   * Employer resource — master list of employers / manning-agencies.
+   * Used to populate the employer selection field on profile and visit forms.
+   */
+  Employer: {
+    /** Search active employers by keyword (name). Returns full records. */
+    async search(keyword?: string): Promise<EmployerRecord[]> {
+      const params: Record<string, string | number | undefined> = {};
+      if (keyword) params.keyword = keyword;
+      return httpClient.get<EmployerRecord[]>("/api/employers/search", params);
+    },
+
+    /**
+     * Returns the names of all active employers, sorted alphabetically.
+     * Convenience helper for autocomplete suggestion lists.
+     */
+    async listNames(): Promise<string[]> {
+      const records = await httpClient.get<EmployerRecord[]>(
+        "/api/employers/search"
+      );
+      return records
+        .map((r) => r.name)
+        .sort((a, b) => a.localeCompare(b));
     },
   },
 };

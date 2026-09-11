@@ -18,6 +18,7 @@ import {
 const panamaConfig: EntityFormConfig<PanamaCertificate> = {
   entityApi: api.entities.PanamaCertificate,
   emptyRecord: EMPTY_CERTIFICATE,
+  draftKey: "panama",
 
   flattenResponse: (raw) => flattenProfileIntoRecord(raw as RawPanamaResponse),
   stripSystemFields,

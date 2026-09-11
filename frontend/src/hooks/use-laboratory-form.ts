@@ -18,6 +18,7 @@ import {
 const laboratoryConfig: EntityFormConfig<LaboratoryReport> = {
   entityApi: api.entities.LaboratoryReport,
   emptyRecord: EMPTY_REPORT,
+  draftKey: "laboratory",
 
   flattenResponse: (raw) => flattenProfileIntoRecord(raw as RawLabReportResponse),
   stripSystemFields,

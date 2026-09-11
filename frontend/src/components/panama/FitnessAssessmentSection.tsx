@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ShieldCheck, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MONTH_OPTIONS } from "./constants";
+import { MONTH_OPTIONS, YEAR_OPTIONS } from "./constants";
 import { createFieldUpdater } from "./utils";
 import type { PanamaSectionProps } from "./types";
 
@@ -90,7 +90,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
           <tbody>
             <tr>
               <td colSpan={2} className="border border-primary/30 p-2">
-                <label className={cn("flex cursor-pointer items-center gap-2", disabled && "pointer-events-none")}>
+                <label className={cn("-m-2 flex cursor-pointer items-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <input
                     type="radio"
                     name="panama_fitness_lookout"
@@ -104,7 +104,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
                 </label>
               </td>
               <td colSpan={3} className="border border-primary/30 p-2">
-                <label className={cn("flex cursor-pointer items-center gap-2", disabled && "pointer-events-none")}>
+                <label className={cn("-m-2 flex cursor-pointer items-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <input
                     type="radio"
                     name="panama_fitness_lookout"
@@ -139,7 +139,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
                 <th className="border border-primary/30 p-1.5 text-left text-xs font-semibold text-foreground/80">{row.label}</th>
                 {row.fields.map((field, index) => (
                   <td key={field} className="border border-primary/30 p-1.5 text-center">
-                    <label className={cn("flex cursor-pointer items-center justify-center", disabled && "pointer-events-none")}>
+                    <label className={cn("-m-1.5 flex cursor-pointer items-center justify-center rounded-sm p-1.5 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                       <input
                         type="checkbox"
                         checked={data[field]}
@@ -155,7 +155,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
             ))}
             <tr>
               <td className="border border-primary/30 p-2">
-                <label className={cn("flex cursor-pointer items-center justify-between gap-2", disabled && "pointer-events-none")}>
+                <label className={cn("-m-2 flex cursor-pointer items-center justify-between gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-xs text-foreground/80">Without restrictions</span>
                   <input
                     type="radio"
@@ -169,7 +169,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
                 </label>
               </td>
               <td className="border border-primary/30 p-2">
-                <label className={cn("flex cursor-pointer items-center justify-between gap-2", disabled && "pointer-events-none")}>
+                <label className={cn("-m-2 flex cursor-pointer items-center justify-between gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-xs text-foreground/80">With restrictions</span>
                   <input
                     type="radio"
@@ -184,7 +184,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
               </td>
               <th className="border border-primary/30 p-2 text-left text-xs font-normal text-foreground/80">Visual aid required</th>
               <td className="border border-primary/30 p-2">
-                <label className={cn("flex cursor-pointer items-center justify-center gap-2", disabled && "pointer-events-none")}>
+                <label className={cn("-m-2 flex cursor-pointer items-center justify-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-xs text-foreground/80">Yes</span>
                   <input
                     type="radio"
@@ -198,7 +198,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
                 </label>
               </td>
               <td className="border border-primary/30 p-2">
-                <label className={cn("flex cursor-pointer items-center justify-center gap-2", disabled && "pointer-events-none")}>
+                <label className={cn("-m-2 flex cursor-pointer items-center justify-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-xs text-foreground/80">No</span>
                   <input
                     type="radio"
@@ -254,7 +254,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
                 <FormSelect label="Month" value={data.cert_issued_month} onChange={(v) => update("cert_issued_month", v)} options={MONTH_OPTIONS} disabled={disabled} />
               </td>
               <td className="border border-primary/30 p-1.5">
-                <FormField label="Year" value={data.cert_issued_year} onChange={(v) => update("cert_issued_year", v)} type="number" disabled={disabled} />
+                <FormSelect label="Year" value={data.cert_issued_year} onChange={(v) => update("cert_issued_year", v)} options={YEAR_OPTIONS} disabled={disabled} />
               </td>
             </tr>
             <tr>
@@ -268,7 +268,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
                 <FormSelect label="Month" value={data.cert_expiry_month} onChange={(v) => update("cert_expiry_month", v)} options={MONTH_OPTIONS} disabled={disabled} />
               </td>
               <td className="border border-primary/30 p-1.5">
-                <FormField label="Year" value={data.cert_expiry_year} onChange={(v) => update("cert_expiry_year", v)} type="number" disabled={disabled} />
+                <FormSelect label="Year" value={data.cert_expiry_year} onChange={(v) => update("cert_expiry_year", v)} options={YEAR_OPTIONS} disabled={disabled} />
               </td>
             </tr>
             <tr>

@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { Stethoscope } from "lucide-react";
 import type { LandbaseSectionProps, MedicalConditionValue } from "./types";
 import { createFieldUpdater } from "./utils";
@@ -139,7 +140,7 @@ function HistoryRow({
             <label
               key={optionValue}
               className={cn(
-                "flex items-center gap-1.5",
+                RADIO_OPTION_LABEL_CLASS,
                 disabled ? "pointer-events-none" : "cursor-pointer",
               )}
             >

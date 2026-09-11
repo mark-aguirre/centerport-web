@@ -4,6 +4,7 @@ import { FormField } from "@/components/common/form-field";
 import { SectionHeader } from "@/components/common/section-header";
 import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
+import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { ClipboardCheck } from "lucide-react";
 
 import type { MlcRecord, MlcSectionProps, VisualAid, YesNo } from "./types";
@@ -59,7 +60,7 @@ function YesNoOptions({
       aria-label={ariaLabel}
     >
       {(["yes", "no"] as const).map((option) => (
-        <label key={option} className="flex cursor-pointer items-center gap-1.5">
+        <label key={option} className={RADIO_OPTION_LABEL_CLASS}>
           <input
             type="radio"
             name={name}

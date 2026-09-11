@@ -4,7 +4,8 @@ import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { FormAutocomplete } from "@/components/common/form-autocomplete";
 import { Anchor } from "lucide-react";
-import { POSITIONS, COUNTRIES, EMPLOYERS, DESIGNATIONS } from "@/lib/suggestions";
+import { POSITIONS, COUNTRIES, DESIGNATIONS } from "@/lib/suggestions";
+import { useEmployers } from "@/hooks/use-employers";
 import { createFieldUpdater } from "./utils";
 import type { ProfileSectionProps } from "./types";
 
@@ -20,6 +21,7 @@ export default function EmploymentSection({
   disabled,
 }: ProfileSectionProps) {
   const update = createFieldUpdater(data, onChange);
+  const employers = useEmployers();
 
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
@@ -30,7 +32,7 @@ export default function EmploymentSection({
             label="Employer"
             value={data.employer}
             onChange={(v) => update("employer", v)}
-            suggestions={EMPLOYERS}
+            suggestions={employers}
             disabled={disabled}
             size="sm"
           />

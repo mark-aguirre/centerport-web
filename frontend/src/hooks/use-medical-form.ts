@@ -287,6 +287,7 @@ function sanitizePayload(record: Partial<MedicalExam>): Partial<MedicalExam> {
 const medicalConfig: EntityFormConfig<MedicalExam> = {
   entityApi: api.entities.MedicalExam,
   emptyRecord: EMPTY_EXAM,
+  draftKey: "medical",
   flattenResponse,
   stripSystemFields,
   sanitizePayload,
