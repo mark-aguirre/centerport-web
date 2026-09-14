@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navigation } from "@/config/navigation";
+import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -25,6 +26,8 @@ import { Separator } from "@/components/ui/separator";
  */
 export function MobileNav() {
   const pathname = usePathname();
+  const { canRoute } = useAuth();
+  const visibleNavigation = navigation.filter((item) => canRoute(item.href));
 
   return (
     <Sheet>
@@ -50,7 +53,7 @@ export function MobileNav() {
         </SheetHeader>
         <ScrollArea className="flex-1 px-3 py-4">
           <nav className="flex flex-col gap-1">
-            {navigation.map((item) => {
+            {visibleNavigation.map((item) => {
               const isActive =
                 pathname === item.href ||
                 pathname.startsWith(item.href + "/");

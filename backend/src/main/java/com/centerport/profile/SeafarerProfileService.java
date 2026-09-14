@@ -191,8 +191,15 @@ public class SeafarerProfileService {
     /**
      * Builds a JPA Specification for searching profiles by keyword.
      *
-     * Matches the search term (case-insensitive) against lastName, firstName, or profileId.
-     * Returns an unrestricted spec when the search term is null or blank.
+     * The keyword is split into individual tokens on whitespace and commas, so a
+     * combined query such as {@code "REYES, RICHARD"} or {@code "RICHARD REYES"}
+     * matches a profile whose last name is {@code REYES} and first name is
+     * {@code RICHARD}. Each token must match (case-insensitive partial match)
+     * against at least one of lastName, firstName, or profileId; all tokens must
+     * match for a profile to be included (AND across tokens, OR across fields).
+     *
+     * Returns an unrestricted spec when the search term is null, blank, or
+     * yields no usable tokens.
      *
      * @param search the keyword to match
      * @return a Specification for filtering
@@ -201,11 +208,27 @@ public class SeafarerProfileService {
         if (search == null || search.isBlank()) {
             return Specification.where(null);
         }
-        String pattern = "%" + search.trim().toLowerCase() + "%";
-        return (root, query, cb) -> cb.or(
-                cb.like(cb.lower(root.get("lastName")), pattern),
-                cb.like(cb.lower(root.get("firstName")), pattern),
-                cb.like(cb.lower(root.get("profileId")), pattern)
-        );
+
+        List<String> tokens = java.util.Arrays.stream(search.trim().toLowerCase().split("[\\s,]+"))
+                .filter(token -> !token.isBlank())
+                .toList();
+
+        if (tokens.isEmpty()) {
+            return Specification.where(null);
+        }
+
+        return (root, query, cb) -> {
+            var predicates = tokens.stream()
+                    .map(token -> {
+                        String pattern = "%" + token + "%";
+                        return cb.or(
+                                cb.like(cb.lower(root.get("lastName")), pattern),
+                                cb.like(cb.lower(root.get("firstName")), pattern),
+                                cb.like(cb.lower(root.get("profileId")), pattern)
+                        );
+                    })
+                    .toArray(jakarta.persistence.criteria.Predicate[]::new);
+            return cb.and(predicates);
+        };
     }
 }

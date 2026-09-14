@@ -53,8 +53,60 @@ spring:
       time-to-live: 600000
       cache-null-values: false
 
+  # ---------------------------------------------------------------------------
+  # Security — Keycloak OAuth2 Client (backend-driven login + server session)
+  # ---------------------------------------------------------------------------
+  # The backend acts as an OAuth2 / OIDC *Client*. It runs the Authorization
+  # Code flow with Keycloak itself: it redirects the browser to Keycloak,
+  # performs the server-side code->token exchange (using the confidential
+  # client secret), and then keeps the user authenticated via a standard HTTP
+  # session cookie (JSESSIONID). Tokens never reach the browser.
+  #
+  # `issuer-uri` under the provider lets Spring auto-discover the authorization,
+  # token, JWKS, userinfo, and end-session endpoints from
+  #   {issuer-uri}/.well-known/openid-configuration
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: ${KEYCLOAK_ISSUER_URI:KEYCLOAK_ISSUER_URI_NOT_SET}
+            # Use preferred_username as the principal name.
+            user-name-attribute: preferred_username
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: ${KEYCLOAK_CLIENT_ID:KEYCLOAK_CLIENT_ID_NOT_SET}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET:CLIENT_SECRET_NOT_SET}
+            authorization-grant-type: authorization_code
+            scope:
+              - openid
+              - profile
+              - email
+            # Where Keycloak sends the browser back after login.
+            #
+            # The browser only ever knows the frontend origin and reaches the
+            # backend through the Next.js same-origin proxy (/api/backend/...).
+            # So the OAuth callback must come back through the proxy, which
+            # forwards it to the backend's /login/oauth2/code/keycloak endpoint.
+            # This exact URL must be registered as a Valid Redirect URI on the
+            # Keycloak client. See keycloak-security.md.
+            redirect-uri: ${OAUTH_REDIRECT_URI:http://localhost:3000/api/backend/login/oauth2/code/keycloak}
+
 server:
   port: ${SERVER_PORT:8080}
+  servlet:
+    session:
+      # Idle (inactivity) timeout for the server-side session. After this
+      # period with no requests, the session is invalidated and the JSESSIONID
+      # becomes unusable — the next API call gets a 401 and the SPA sends the
+      # user back to Keycloak login. Accepts a duration (e.g. 30m, 1h, 45s).
+      timeout: ${SESSION_TIMEOUT:30m}
+      cookie:
+        http-only: true
+        same-site: lax
+        # Set to true when the backend is served over HTTPS in production.
+        secure: ${SESSION_COOKIE_SECURE:false}
 
 springdoc:
   api-docs:
@@ -67,6 +119,9 @@ springdoc:
   default-consumes-media-type: application/json
 
 app:
+  # Frontend (Next.js) base URL. Used as the post-login / post-logout redirect
+  # target and as the default allowed CORS origin.
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:3000}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   upload:

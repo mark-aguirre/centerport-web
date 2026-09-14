@@ -7,6 +7,10 @@ import { api, type SeafarerProfile, EMPTY_PROFILE, PROFILE_SYSTEM_FIELDS } from 
 import { ApiError } from "@/lib/http-client";
 import { useProfileSearch } from "./use-profile-search";
 import { stripSystemFields as genericStrip } from "@/lib/form-utils";
+import { saveLastRecordId, loadLastRecordId, clearLastRecordId } from "@/lib/last-state";
+
+/** Stable per-page key for last-viewed-record persistence. */
+const PROFILE_PAGE_KEY = "profile";
 
 /** Strips system-managed fields from a profile for update operations. */
 function stripProfileSystemFields(profile: SeafarerProfile): Partial<SeafarerProfile> {
@@ -72,15 +76,19 @@ export function useProfileForm(): UseProfileFormResult {
 
   // Load existing record by id, or fetch latest profile when no id is specified
   useEffect(() => {
+    const applyLoaded = (profile: SeafarerProfile) => {
+      setExistingRecord(profile);
+      setData({ ...EMPTY_PROFILE, ...profile });
+      setIsExistingRecord(true);
+      // Remember this profile as the page's last-viewed state.
+      saveLastRecordId(PROFILE_PAGE_KEY, profile.id);
+    };
+
     if (editId) {
       // Fetch specific profile by UUID
       api.entities.SeafarerProfile.filter({ id: editId })
         .then((results) => {
-          if (results.length > 0) {
-            setExistingRecord(results[0]);
-            setData({ ...EMPTY_PROFILE, ...results[0] });
-            setIsExistingRecord(true);
-          }
+          if (results.length > 0) applyLoaded(results[0]);
           setLoading(false);
         })
         .catch(() => {
@@ -89,14 +97,18 @@ export function useProfileForm(): UseProfileFormResult {
           setLoading(false);
         });
     } else {
-      // No id param — load the most recently updated profile
-      api.entities.SeafarerProfile.list("-updated_date", 1)
+      // No id param — restore the profile the user was last viewing ("save
+      // last state"), falling back to the most recently updated profile.
+      const lastId = loadLastRecordId(PROFILE_PAGE_KEY);
+      const initial = lastId
+        ? api.entities.SeafarerProfile.filter({ id: lastId }).then((r) =>
+            r.length > 0 ? r : api.entities.SeafarerProfile.list("-updated_date", 1)
+          )
+        : api.entities.SeafarerProfile.list("-updated_date", 1);
+
+      initial
         .then((results) => {
-          if (results.length > 0) {
-            setExistingRecord(results[0]);
-            setData({ ...EMPTY_PROFILE, ...results[0] });
-            setIsExistingRecord(true);
-          }
+          if (results.length > 0) applyLoaded(results[0]);
           setLoading(false);
         })
         .catch(() => {
@@ -113,6 +125,8 @@ export function useProfileForm(): UseProfileFormResult {
     setEditing(true);
     setIsExistingRecord(false);
     setExistingRecord(null);
+    // A brand-new unsaved record has no persisted id to restore later.
+    clearLastRecordId(PROFILE_PAGE_KEY);
     // Focus first field after render
     setTimeout(() => firstFieldRef.current?.focus(), 0);
   }, []);
@@ -151,13 +165,18 @@ export function useProfileForm(): UseProfileFormResult {
         const updateData = stripProfileSystemFields(data);
         await api.entities.SeafarerProfile.update(targetId, updateData);
         setExistingRecord({ ...data });
+        // Remember the just-saved record as the page's last-viewed state.
+        saveLastRecordId(PROFILE_PAGE_KEY, targetId);
         toast.success("Patient record updated successfully");
       } else {
         const profileId = await generateProfileId();
         const created = { ...data, profile_id: profileId };
-        await api.entities.SeafarerProfile.create(created);
-        setExistingRecord(created);
+        const persisted = await api.entities.SeafarerProfile.create(created);
+        setExistingRecord(persisted);
+        setData({ ...EMPTY_PROFILE, ...persisted });
         setIsExistingRecord(true);
+        // Remember the newly created record as the page's last-viewed state.
+        saveLastRecordId(PROFILE_PAGE_KEY, persisted.id);
         toast.success("Patient record created successfully");
       }
       setOriginalData(null);
@@ -194,6 +213,8 @@ export function useProfileForm(): UseProfileFormResult {
       setEditing(false);
     }
     setOriginalData(null);
+    // Remember the selected profile as the page's last-viewed state.
+    saveLastRecordId(PROFILE_PAGE_KEY, profile.id);
     clearSearch();
   }, [editing, clearSearch]);
 

@@ -22,6 +22,29 @@
  */
 const BASE_URL = "/api/backend";
 
+/**
+ * Handles an expired / missing backend session (HTTP 401).
+ *
+ * The backend session (JSESSIONID) has an idle timeout, so a session that was
+ * valid at page load can expire while the app is open. When any backend call
+ * comes back 401, we send the user back to Keycloak login via a full-page
+ * navigation instead of letting the 401 surface as a scattered error.
+ *
+ * The redirect is guarded so a burst of concurrent 401s (e.g. several requests
+ * in flight when the session lapses) triggers exactly one navigation. Callers
+ * still receive the thrown `ApiError` so in-flight work stops cleanly.
+ */
+let redirectingToLogin = false;
+
+function handleUnauthorized(): void {
+  // Only meaningful in the browser; guard for any server-side invocation.
+  if (typeof window === "undefined") return;
+  if (redirectingToLogin) return;
+  redirectingToLogin = true;
+  // Lazy import avoids pulling browser-navigation code into non-browser paths.
+  void import("@/lib/auth").then(({ startLogin }) => startLogin());
+}
+
 /** A single field-level validation violation from the backend. */
 export interface ValidationViolation {
   field: string;
@@ -142,6 +165,7 @@ async function request<T>(
   });
 
   if (!response.ok) {
+    if (response.status === 401) handleUnauthorized();
     const { message, violations } = await parseErrorResponse(
       response,
       `Request failed with status ${response.status}`
@@ -169,6 +193,7 @@ async function uploadFile(
   });
 
   if (!response.ok) {
+    if (response.status === 401) handleUnauthorized();
     const { message } = await parseErrorResponse(response, "File upload failed");
     throw new ApiError(response.status, message);
   }
@@ -189,6 +214,7 @@ async function downloadPdf(path: string, filename?: string): Promise<void> {
   });
 
   if (!response.ok) {
+    if (response.status === 401) handleUnauthorized();
     const { message } = await parseErrorResponse(
       response,
       "Failed to generate report"

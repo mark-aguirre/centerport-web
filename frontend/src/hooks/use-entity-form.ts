@@ -7,6 +7,7 @@ import type { SeafarerProfile } from "@/lib/api";
 import { ApiError } from "@/lib/http-client";
 import { humanizeField } from "@/lib/form-utils";
 import { saveDraft, loadDraft, clearDraft } from "@/lib/form-draft";
+import { saveLastRecordId, loadLastRecordId, clearLastRecordId } from "@/lib/last-state";
 import { useProfileSearch } from "./use-profile-search";
 import type { RecordSummary } from "@/components/common/record-selector";
 
@@ -303,7 +304,15 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         if (editId) {
           results = await entityApi.filter({ id: editId });
         } else {
-          results = await entityApi.list("-updated_date", 1);
+          // No id in the URL: restore the record the user was last viewing on
+          // this page ("save last state"). Fall back to the globally most
+          // recent record when there is no saved last-state or it no longer
+          // resolves to an existing record.
+          const lastId = draftKey ? loadLastRecordId(draftKey) : null;
+          results = lastId ? await entityApi.filter({ id: lastId }) : [];
+          if (results.length === 0) {
+            results = await entityApi.list("-updated_date", 1);
+          }
         }
 
         if (cancelled) return;
@@ -325,6 +334,8 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
           if (!draftRestoredRef.current) {
             setData(flattened);
             setIsExistingRecord(true);
+            // Remember this record as the page's last-viewed state.
+            if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
           }
         }
       } catch (error: unknown) {
@@ -348,7 +359,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     return () => {
       cancelled = true;
     };
-  }, [editId, entityApi, flattenResponse, getProfileId, fetchProfileRecords]);
+  }, [editId, entityApi, flattenResponse, getProfileId, getRecordId, fetchProfileRecords, draftKey]);
 
   // -------------------------------------------------------------------------
   // Draft persistence (survive page reload)
@@ -376,6 +387,8 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     // effect will begin writing a new draft as the user types.
     if (draftKey) clearDraft(draftKey);
     draftRestoredRef.current = false;
+    // A brand-new unsaved record has no persisted id to restore later.
+    if (draftKey) clearLastRecordId(draftKey);
     setData({ ...emptyRecord, ...defaults } as T);
     setOriginalData(null);
     setEditing(true);
@@ -453,6 +466,8 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
       // Work is now persisted server-side; the draft is no longer needed.
       if (draftKey) clearDraft(draftKey);
       draftRestoredRef.current = false;
+      // Remember the just-saved record as the page's last-viewed state.
+      if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
 
       // Refresh the records list for this profile
       const newProfileId = getProfileId(flattened);
@@ -489,11 +504,13 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         // Switching to a saved record in view mode discards any pending draft.
         if (draftKey) clearDraft(draftKey);
         draftRestoredRef.current = false;
+        // Remember the switched-to record as the page's last-viewed state.
+        if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
       }
     } catch {
       toast.error("Failed to load the selected record");
     }
-  }, [entityApi, flattenResponse, draftKey]);
+  }, [entityApi, flattenResponse, getRecordId, draftKey]);
 
   // -------------------------------------------------------------------------
   // Profile search result selection
@@ -539,6 +556,8 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
               setIsExistingRecord(true);
               setEditing(false);
               setOriginalData(null);
+              // Remember the resolved record as the page's last-viewed state.
+              if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
             } else {
               applyPersonalOnly();
             }
@@ -553,7 +572,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
       clearSearch();
     },
     [editing, clearSearch, fetchProfileRecords, entityApi, emptyRecord,
-     buildPersonalData, matchRecordToProfile, flattenResponse]
+     buildPersonalData, matchRecordToProfile, flattenResponse, getRecordId, draftKey]
   );
 
   // -------------------------------------------------------------------------

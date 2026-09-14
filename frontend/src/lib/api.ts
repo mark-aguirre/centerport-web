@@ -325,7 +325,25 @@ export interface EmployerRecord {
   updated_date?: string;
 }
 
+/**
+ * The authenticated user's identity and roles, derived from the Keycloak
+ * access token by the backend `GET /api/me` endpoint.
+ */
+export interface CurrentUser {
+  username: string | null;
+  email: string | null;
+  full_name: string | null;
+  subject: string | null;
+  roles: string[];
+}
+
 export const api = {
+  auth: {
+    /** Fetch the current authenticated user and their realm roles. */
+    async me(): Promise<CurrentUser> {
+      return httpClient.get<CurrentUser>("/api/me");
+    },
+  },
   dashboard: {
     /** Fetch aggregated dashboard statistics. */
     async getStats(): Promise<DashboardStats> {

@@ -33,7 +33,42 @@ const STRIPPED_RESPONSE_HEADERS = new Set([
   "content-length",
   "transfer-encoding",
   "connection",
+  // Set-Cookie is handled separately (see relaySetCookies) so multiple cookies
+  // and the Path/Domain rewrite are preserved correctly.
+  "set-cookie",
 ]);
+
+/** The proxy mount point. Backend session cookies are re-scoped to this path. */
+const PROXY_BASE_PATH = "/api/backend";
+
+/**
+ * Relays `Set-Cookie` headers from the backend to the browser.
+ *
+ * The backend (Spring Boot) issues its session cookie (e.g. `JSESSIONID`) and
+ * OAuth2 flow cookies with `Path=/` for its own domain. Because the browser
+ * only ever talks to this same-origin proxy, we:
+ *   - re-scope each cookie's `Path` to the proxy mount (`/api/backend`), so the
+ *     browser sends it back on every backend call and OAuth redirect, and
+ *   - strip any `Domain` attribute so the cookie binds to the current origin.
+ *
+ * Uses `getSetCookie()` so multiple `Set-Cookie` headers are preserved
+ * individually (a plain `Headers` iteration collapses them into one string).
+ */
+function relaySetCookies(upstream: Response, responseHeaders: Headers): void {
+  const cookies =
+    typeof upstream.headers.getSetCookie === "function"
+      ? upstream.headers.getSetCookie()
+      : [];
+
+  for (const cookie of cookies) {
+    const rewritten = cookie
+      // Drop Domain so the cookie is bound to the frontend origin.
+      .replace(/;\s*Domain=[^;]*/i, "")
+      // Re-scope Path to the proxy mount point.
+      .replace(/;\s*Path=[^;]*/i, `; Path=${PROXY_BASE_PATH}`);
+    responseHeaders.append("set-cookie", rewritten);
+  }
+}
 
 /**
  * Forwards an incoming request to the backend and relays the response.
@@ -49,6 +84,10 @@ async function proxy(
   const targetUrl = `${BACKEND_URL}/${path.join("/")}${search}`;
 
   // Copy request headers, dropping host-specific / hop-by-hop ones.
+  //
+  // Authentication is session-cookie based (the Spring Boot backend runs the
+  // Keycloak login and issues a session cookie). The cookie is forwarded here
+  // like any other request header, so no bearer-token handling is needed.
   const headers = new Headers();
   request.headers.forEach((value, key) => {
     if (!STRIPPED_REQUEST_HEADERS.has(key.toLowerCase())) {
@@ -81,6 +120,9 @@ async function proxy(
       responseHeaders.set(key, value);
     }
   });
+
+  // Relay session / OAuth cookies (re-scoped to the proxy path).
+  relaySetCookies(upstream, responseHeaders);
 
   const bodyBuffer = await upstream.arrayBuffer();
   return new NextResponse(bodyBuffer, {

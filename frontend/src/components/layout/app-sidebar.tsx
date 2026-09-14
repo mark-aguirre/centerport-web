@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navigation } from "@/config/navigation";
+import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -29,6 +30,10 @@ interface AppSidebarProps {
  */
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const pathname = usePathname();
+  const { canRoute } = useAuth();
+
+  // Only show nav entries the user's roles permit (mirrors backend rules).
+  const visibleNavigation = navigation.filter((item) => canRoute(item.href));
 
   return (
     <aside
@@ -55,7 +60,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-5">
         <nav className="flex flex-col gap-1.5">
-          {navigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
 

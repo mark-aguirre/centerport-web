@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -44,6 +45,9 @@ import java.util.UUID;
 @RequestMapping("/api/laboratory-reports")
 @RequiredArgsConstructor
 @Tag(name = "Laboratory Reports", description = "CRUD operations for laboratory reports")
+// Method-level guard, in addition to the URL rule in SecurityConfig. Only the
+// Laboratory staff and administrators may touch laboratory reports.
+@PreAuthorize("hasAnyRole('ADMIN','LABORATORY')")
 public class LaboratoryReportController {
 
     private final LaboratoryReportService service;
