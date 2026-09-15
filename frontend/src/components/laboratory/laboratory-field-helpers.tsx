@@ -269,3 +269,64 @@ export function LabFieldWithUnit({
     </div>
   );
 }
+
+export interface LabSelectWithUnitProps {
+  /** Right-aligned field label. */
+  label: string;
+  /** Current selected value. */
+  value: string;
+  /** Called when the selected value changes. */
+  onChange: (value: string) => void;
+  /** Available options; an empty string renders as `Select...`. */
+  options: string[];
+  /** Unit suffix displayed after the select. */
+  unit: string;
+  /** Makes the control non-interactive. */
+  disabled?: boolean;
+}
+
+/**
+ * Renders a right-aligned laboratory label, fixed result select, and unit.
+ *
+ * Layout mirrors {@link LabFieldWithUnit} so grouped result rows stay aligned
+ * whether a value is free-text or picked from a constrained list.
+ */
+export function LabSelectWithUnit({
+  label,
+  value,
+  onChange,
+  options,
+  unit,
+  disabled,
+}: LabSelectWithUnitProps) {
+  const fieldId = useId();
+
+  return (
+    <div className={fieldRowClassName}>
+      <label
+        htmlFor={fieldId}
+        className={cn(fieldLabelClassName, "min-w-0 flex-1 text-right")}
+      >
+        {label}:
+      </label>
+      <select
+        id={fieldId}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        disabled={disabled}
+        className={cn(
+          fieldControlClassName,
+          "w-32 flex-none cursor-pointer disabled:cursor-not-allowed",
+          disabled && "bg-muted/30 opacity-70"
+        )}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option || "Select..."}
+          </option>
+        ))}
+      </select>
+      <span className={cn(unitClassName, "w-8")}>{unit}</span>
+    </div>
+  );
+}

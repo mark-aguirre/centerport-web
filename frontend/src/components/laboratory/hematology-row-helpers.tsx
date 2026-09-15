@@ -100,6 +100,72 @@ export function HemaRow({
   );
 }
 
+export interface HemaSelectRowProps {
+  /** Row label, for example `BLOOD TYPE:`. */
+  label: string;
+  /** Current selected value. */
+  value: string;
+  /** Called when the selected value changes. */
+  onValueChange: (value: string) => void;
+  /** Available options; an empty string renders as `Select...`. */
+  options: string[];
+  /** Unit shown beside the result. */
+  unit: string;
+  /** Persisted reference range or a unit-only fallback. */
+  normalRange?: string;
+  /** Makes the control non-interactive. */
+  disabled?: boolean;
+  /** Controls standard page or compact dialog spacing. */
+  layout?: HematologyRowLayout;
+}
+
+/**
+ * Renders one complete-blood-count row whose result is chosen from a
+ * constrained list, aligned with the {@link HemaRow} unit and reference
+ * columns.
+ */
+export function HemaSelectRow({
+  label,
+  value,
+  onValueChange,
+  options,
+  unit,
+  normalRange,
+  disabled,
+  layout = "standard",
+}: HemaSelectRowProps) {
+  const inputId = useId();
+
+  return (
+    <div className={cn("grid min-w-0 items-center", HEMA_GRID[layout])}>
+      <label htmlFor={inputId} className={rowLabelClassName}>
+        {label}
+      </label>
+      <select
+        id={inputId}
+        value={value ?? ""}
+        onChange={(event) => onValueChange(event.target.value)}
+        disabled={disabled}
+        className={cn(
+          inputClassName,
+          "cursor-pointer disabled:cursor-not-allowed",
+          disabled && "bg-muted/30 opacity-70"
+        )}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option || "Select..."}
+          </option>
+        ))}
+      </select>
+      <span className={supportingTextClassName}>{unit}</span>
+      <span className={cn(supportingTextClassName, "min-w-0 break-words")}>
+        {normalRange ?? ""}
+      </span>
+    </div>
+  );
+}
+
 /**
  * Renders the reference-value heading aligned with the CBC reference column.
  */

@@ -63,6 +63,7 @@ const CONSISTENCY_OPTIONS = [
 const QUANTITY_OPTIONS = ["", "None", "None Found"];
 const OVA_PARASITE_OPTIONS = ["", "NOPS", "None Found"];
 const AMOEBA_OPTIONS = ["", "None", "None Found"];
+const OCCULT_BLOOD_OPTIONS = ["", "Negative", "Positive", "Trace"];
 
 /**
  * Renders Result Date and the complete Fecalysis form using the parent layout.
@@ -166,12 +167,12 @@ export function FecalysisFormFields({
             unit="/LPF"
             disabled={disabled}
           />
-          <InlineFieldWithUnit
+          <InlineSelect
             label="Occult Blood Test"
             labelWidth="w-36"
             value={data.fecal_occult_blood}
             onChange={(value) => onFieldChange("fecal_occult_blood", value)}
-            unit=""
+            options={OCCULT_BLOOD_OPTIONS}
             disabled={disabled}
           />
         </div>

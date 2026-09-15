@@ -41,6 +41,7 @@ const laboratoryConfig: EntityFormConfig<LaboratoryReport> = {
     gender: profile.gender ?? "",
     employer: profile.employer ?? "",
     position: profile.position ?? "",
+    address: profile.address ?? "",
   }),
 
   matchRecordToProfile: (record, profile) => {

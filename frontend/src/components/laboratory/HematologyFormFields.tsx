@@ -11,8 +11,21 @@ import {
   DiffRow,
   HemaNormalValuesHeader,
   HemaRow,
+  HemaSelectRow,
 } from "./hematology-row-helpers";
 import type { HematologyRepeatTest } from "./repeat-hematology-types";
+
+const BLOOD_TYPE_OPTIONS = [
+  "",
+  "A+",
+  "A-",
+  "B+",
+  "B-",
+  "AB+",
+  "AB-",
+  "O+",
+  "O-",
+];
 
 export type HematologyFieldName =
   | "hemoglobin"
@@ -183,10 +196,11 @@ export function HematologyFormFields({
             )}
             disabled={disabled}
           />
-          <HemaRow
+          <HemaSelectRow
             label="Blood Type:"
             value={data.blood_type}
             onValueChange={(value) => onFieldChange("blood_type", value)}
+            options={BLOOD_TYPE_OPTIONS}
             unit=""
             disabled={disabled}
           />

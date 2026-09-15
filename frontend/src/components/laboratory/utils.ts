@@ -31,6 +31,7 @@ interface NestedSeafarerProfile {
   gender?: string;
   employer?: string;
   position?: string;
+  address?: string;
 }
 
 /**
@@ -72,6 +73,7 @@ export function flattenProfileIntoRecord(record: RawLabReportResponse): Laborato
         gender: profile.gender ?? "",
         employer: profile.employer ?? "",
         position: profile.position ?? "",
+        address: profile.address ?? "",
       }
     : {};
 

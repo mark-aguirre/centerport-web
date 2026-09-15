@@ -7,6 +7,7 @@ import { FormPage, type SectionEntry } from "@/components/common/form-page";
 import { useLaboratoryForm } from "@/hooks/use-laboratory-form";
 import type { LaboratoryReport } from "@/components/laboratory/types";
 
+import { ReportMenu } from "@/components/laboratory/ReportMenu";
 import PatientInformationSection from "@/components/laboratory/PatientInformationSection";
 import HematologySection from "@/components/laboratory/HematologySection";
 import ClinicalChemistrySection from "@/components/laboratory/ClinicalChemistrySection";
@@ -46,6 +47,7 @@ function LaboratoryFormContent() {
       sections={SECTIONS}
       getBusinessId={(record) => record?.report_id}
       editGuard={(data) => !!data.last_name}
+      printMenu={<ReportMenu data={form.existingRecord ?? form.data} />}
     />
   );
 }

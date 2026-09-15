@@ -25,6 +25,7 @@ export interface LaboratoryReport {
   gender: string;
   employer: string;
   position: string;
+  address: string;
 
   // Report Header
   result_date: string;
@@ -239,6 +240,7 @@ export const EMPTY_REPORT: LaboratoryReport = {
   gender: "",
   employer: "",
   position: "",
+  address: "",
 
   // Report Header
   result_date: "",

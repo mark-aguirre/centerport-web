@@ -10,6 +10,7 @@ import {
   InlineField,
   InlineSelect,
   LabFieldWithUnit,
+  LabSelectWithUnit,
 } from "./laboratory-field-helpers";
 import type { UrinalysisRepeatTest } from "./repeat-urinalysis-types";
 
@@ -77,6 +78,30 @@ const TRANSPARENCY_OPTIONS = [
   "Turbid",
 ];
 const CHEMICAL_OPTIONS = ["", "Negative", "Trace", "+1", "+2", "+3", "+4"];
+// Semi-quantitative grades used for microscopic cells, crystals, and casts.
+const MICROSCOPIC_OPTIONS = [
+  "",
+  "None",
+  "Rare",
+  "Few",
+  "Occasional",
+  "Moderate",
+  "Many",
+  "Loaded",
+];
+// Discrete dipstick pH values (0.5 steps across the reportable range).
+const PH_OPTIONS = [
+  "",
+  "5.0",
+  "5.5",
+  "6.0",
+  "6.5",
+  "7.0",
+  "7.5",
+  "8.0",
+  "8.5",
+  "9.0",
+];
 
 function UrinalysisGroup({
   title,
@@ -185,10 +210,11 @@ export function UrinalysisFormFields({
                   options={CHEMICAL_OPTIONS}
                   disabled={disabled}
                 />
-                <InlineField
+                <InlineSelect
                   label="pH"
                   value={data.urine_ph}
                   onChange={(value) => onFieldChange("urine_ph", value)}
+                  options={PH_OPTIONS}
                   disabled={disabled}
                 />
                 <InlineSelect
@@ -258,40 +284,44 @@ export function UrinalysisFormFields({
                 onChange={(value) => onFieldChange("urine_wbc", value)}
                 disabled={disabled}
               />
-              <LabFieldWithUnit
+              <LabSelectWithUnit
                 label="Amorphous Urates"
                 unit="/LPF"
                 value={data.urine_amorphous_urates}
                 onChange={(value) =>
                   onFieldChange("urine_amorphous_urates", value)
                 }
+                options={MICROSCOPIC_OPTIONS}
                 disabled={disabled}
               />
-              <LabFieldWithUnit
+              <LabSelectWithUnit
                 label="Amorphous Phosphate"
                 unit="/LPF"
                 value={data.urine_amorphous_phosphate}
                 onChange={(value) =>
                   onFieldChange("urine_amorphous_phosphate", value)
                 }
+                options={MICROSCOPIC_OPTIONS}
                 disabled={disabled}
               />
-              <LabFieldWithUnit
+              <LabSelectWithUnit
                 label="Epithelial Cells"
                 unit="/LPF"
                 value={data.urine_epithelial_cells}
                 onChange={(value) =>
                   onFieldChange("urine_epithelial_cells", value)
                 }
+                options={MICROSCOPIC_OPTIONS}
                 disabled={disabled}
               />
-              <LabFieldWithUnit
+              <LabSelectWithUnit
                 label="Mucus Threads"
                 unit="/LPF"
                 value={data.urine_mucus_threads}
                 onChange={(value) =>
                   onFieldChange("urine_mucus_threads", value)
                 }
+                options={MICROSCOPIC_OPTIONS}
                 disabled={disabled}
               />
               <LabFieldWithUnit
@@ -308,20 +338,22 @@ export function UrinalysisFormFields({
 
           <UrinalysisGroup title="Crystals">
             <div className="space-y-2">
-              <LabFieldWithUnit
+              <LabSelectWithUnit
                 label="Uric Acid"
                 unit="/LPF"
                 value={data.urine_uric_acid}
                 onChange={(value) => onFieldChange("urine_uric_acid", value)}
+                options={MICROSCOPIC_OPTIONS}
                 disabled={disabled}
               />
-              <LabFieldWithUnit
+              <LabSelectWithUnit
                 label="Calcium Oxalate"
                 unit="/LPF"
                 value={data.urine_calcium_oxalate}
                 onChange={(value) =>
                   onFieldChange("urine_calcium_oxalate", value)
                 }
+                options={MICROSCOPIC_OPTIONS}
                 disabled={disabled}
               />
               <LabFieldWithUnit
@@ -338,22 +370,24 @@ export function UrinalysisFormFields({
 
           <UrinalysisGroup title="Cast">
             <div className="space-y-2">
-              <LabFieldWithUnit
+              <LabSelectWithUnit
                 label="Fine Granular"
                 unit="/LPF"
                 value={data.urine_fine_granular}
                 onChange={(value) =>
                   onFieldChange("urine_fine_granular", value)
                 }
+                options={MICROSCOPIC_OPTIONS}
                 disabled={disabled}
               />
-              <LabFieldWithUnit
+              <LabSelectWithUnit
                 label="Coarse Granular"
                 unit="/LPF"
                 value={data.urine_coarse_granular}
                 onChange={(value) =>
                   onFieldChange("urine_coarse_granular", value)
                 }
+                options={MICROSCOPIC_OPTIONS}
                 disabled={disabled}
               />
               <LabFieldWithUnit
