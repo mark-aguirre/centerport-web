@@ -458,3 +458,63 @@ export function buildUrinalysisPayload(data: LaboratoryReport): Record<string, s
     pathologist_license_no: data.pathologist_license_no ?? "",
   };
 }
+
+/**
+ * Builds the PrintIO payload for the Laboratory Fecalysis report template.
+ *
+ * This is a fecalysis-only report: the stool macroscopic/microscopic panel
+ * (color, consistency, RBC, WBC, mucus, ova/parasite, amoeba, occult blood,
+ * others) plus the patient header and signatories. Hematology, clinical
+ * chemistry, and urinalysis are intentionally omitted.
+ *
+ * Every value is coerced to a string, with `undefined`/`null` collapsed to an
+ * empty string. Payload keys mirror the PrintIO Fecalysis template field names
+ * exactly — note the template uses `patient_fullname` (no underscore between
+ * "full" and "name") and `lab_no` (not `laboratory_no`, as the other lab
+ * templates use).
+ *
+ * The `address` is sourced from the linked seafarer profile, which the form
+ * hook flattens onto the record's `address` field.
+ *
+ * NOTE: the template's `fecal_mucus` field has no corresponding field on
+ * `LaboratoryReport`, so it is sent as an empty string.
+ *
+ * @param data - The current Laboratory Report record
+ * @returns The flat PrintIO Fecalysis template payload
+ */
+export function buildFecalysisPayload(data: LaboratoryReport): Record<string, string> {
+  const fullName = [data.first_name, data.middle_name, data.last_name]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return {
+    // Patient header
+    patient_fullname: fullName,
+    address: data.address ?? "",
+    age: data.age ?? "",
+    gender: data.gender ?? "",
+    position: data.position ?? "",
+    employer: data.employer ?? "",
+    fecalysis_result_date: data.fecalysis_result_date ?? "",
+
+    // Fecalysis panel
+    fecal_color: data.fecal_color ?? "",
+    fecal_consistency: data.fecal_consistency ?? "",
+    fecal_rbc: data.fecal_rbc ?? "",
+    fecal_wbc: data.fecal_wbc ?? "",
+    // Not captured by the form model — sent empty.
+    fecal_mucus: "",
+    fecal_ova_parasite: data.fecal_ova_parasite ?? "",
+    fecal_amoeba: data.fecal_amoeba ?? "",
+    fecal_occult_blood: data.fecal_occult_blood ?? "",
+    fecal_others: data.fecal_others ?? "",
+
+    // Signatories
+    med_tech: data.med_tech ?? "",
+    pathologist: data.pathologist ?? "",
+    med_tech_license_no: data.med_tech_license_no ?? "",
+    pathologist_license_no: data.pathologist_license_no ?? "",
+    lab_no: data.laboratory_no ?? "",
+  };
+}

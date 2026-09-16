@@ -11,6 +11,7 @@ import {
   buildHematologyPayload,
   buildChemistryPayload,
   buildUrinalysisPayload,
+  buildFecalysisPayload,
 } from "@/components/laboratory/printPayload";
 import type { LaboratoryReport } from "@/components/laboratory/types";
 
@@ -40,6 +41,11 @@ const REPORT_OPTIONS: readonly ReportMenuOption[] = [
     slug: "laboratory-urinalysis",
     label: "Urinalysis Report",
     description: "Urinalysis macroscopic, chemical, microscopic, and cast results",
+  },
+  {
+    slug: "laboratory-fecalysis",
+    label: "Fecalysis Report",
+    description: "Fecalysis macroscopic and microscopic stool examination results",
   },
 ] as const;
 
@@ -75,6 +81,9 @@ export function ReportMenu({ data }: ReportMenuProps) {
     }
     if (slug === "laboratory-urinalysis") {
       return fetchPrintPdf("laboratory-urinalysis", buildUrinalysisPayload(data));
+    }
+    if (slug === "laboratory-fecalysis") {
+      return fetchPrintPdf("laboratory-fecalysis", buildFecalysisPayload(data));
     }
     return fetchPrintPdf("laboratory", buildLaboratoryPayload(data));
   };
