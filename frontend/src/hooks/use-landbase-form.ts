@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
+import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
 import { EMPTY_PEME, type LandbasePeme } from "@/components/landbase/types";
 import type { PemeSummary } from "@/components/landbase/PemeSelector";
 import {
@@ -143,15 +144,29 @@ export function useLandbaseForm(): UseLandbaseFormResult {
     getPersonnelDefaults(EMPTY_PEME)
   );
 
+  // Assigned Super Admin defaults for the Landbase module (Authorized Physician
+  // + Medical Director). These take precedence over carry-forward.
+  const { entriesRef } = useModuleDefaults("LANDBASE");
+
   const config = useMemo<EntityFormConfig<LandbasePeme>>(
     () => ({
       ...landbaseConfig,
-      getNewRecordDefaults: () => ({
-        ...landbaseConfig.getNewRecordDefaults!(),
-        ...personnelDefaultsRef.current,
-      }),
+      getNewRecordDefaults: () => {
+        const assigned = mapEntriesToFields<LandbasePeme>(entriesRef.current, {
+          AUTHORIZED_PHYSICIAN: {
+            name: "authorized_physician",
+            licenseNo: "medical_certification_no",
+          },
+          MEDICAL_DIRECTOR: { name: "medical_director" },
+        });
+        return {
+          ...landbaseConfig.getNewRecordDefaults!(),
+          ...personnelDefaultsRef.current,
+          ...assigned,
+        };
+      },
     }),
-    []
+    [entriesRef]
   );
 
   const form = useEntityForm(config);

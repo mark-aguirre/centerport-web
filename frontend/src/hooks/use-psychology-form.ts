@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
+import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
 import { EMPTY_PSYCHOLOGY_RECORD, type PsychologyRecord } from "@/components/psychology/types";
 import {
   flattenProfileIntoRecord,
@@ -103,12 +104,31 @@ export function usePsychologyForm(): UseEntityFormResult<PsychologyRecord> {
     getPersonnelDefaults(EMPTY_PSYCHOLOGY_RECORD)
   );
 
+  // Assigned Super Admin defaults for the Psychology module (Psychometrician +
+  // Psychologist). These take precedence over carry-forward.
+  const { entriesRef } = useModuleDefaults("PSYCHOLOGY");
+
   const config = useMemo<EntityFormConfig<PsychologyRecord>>(
     () => ({
       ...psychologyConfig,
-      getNewRecordDefaults: () => personnelDefaultsRef.current,
+      getNewRecordDefaults: () => {
+        const assigned = mapEntriesToFields<PsychologyRecord>(
+          entriesRef.current,
+          {
+            PSYCHOMETRICIAN: {
+              name: "psychometrician",
+              licenseNo: "psychometrician_license_no",
+            },
+            PSYCHOLOGIST: {
+              name: "psychologist",
+              licenseNo: "psychologist_license_no",
+            },
+          }
+        );
+        return { ...personnelDefaultsRef.current, ...assigned };
+      },
     }),
-    []
+    [entriesRef]
   );
 
   const form = useEntityForm(config);

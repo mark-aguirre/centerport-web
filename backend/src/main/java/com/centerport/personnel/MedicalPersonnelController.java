@@ -46,19 +46,24 @@ public class MedicalPersonnelController {
      * @return paged list of personnel
      */
     @GetMapping
-    @Operation(summary = "List all medical personnel with pagination and optional search",
-               description = "Returns paginated active medical personnel. Optionally filter by name, license number, or specialization. Default sort: name ASC.")
+    @Operation(summary = "List medical personnel for administration (paginated, filterable)",
+               description = "Returns paginated personnel including inactive ones. Optionally filter by "
+                       + "search keyword, active status, and role. ADMIN only. Default sort: name ASC.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Personnel retrieved")
     })
     public ResponseEntity<ApiResponse<PagedResponse<MedicalPersonnelDto>>> list(
             @Parameter(description = "Search keyword — matches name, license number, or specialization (case-insensitive)")
             @RequestParam(required = false) String search,
+            @Parameter(description = "Filter by active status. Omit to include both active and inactive.")
+            @RequestParam(required = false) Boolean active,
+            @Parameter(description = "Filter by role (e.g. MED_TECH, PATHOLOGIST). Omit for all roles.")
+            @RequestParam(required = false) PersonnelRole role,
             @ParameterObject
             @PageableDefault(size = 50, sort = "name", direction = Sort.Direction.ASC)
             Pageable pageable) {
 
-        PagedResponse<MedicalPersonnelDto> page = service.findAll(search, pageable);
+        PagedResponse<MedicalPersonnelDto> page = service.findAllForAdmin(search, active, role, pageable);
         return ResponseEntity.ok(ApiResponse.success(page));
     }
 
@@ -148,5 +153,59 @@ public class MedicalPersonnelController {
 
         MedicalPersonnelDto updated = service.update(id, dto);
         return ResponseEntity.ok(ApiResponse.success(updated, "Medical personnel updated successfully"));
+    }
+
+    /**
+     * Deactivates (soft-deletes) a personnel record so it is excluded from
+     * future selection while historical report signatures are preserved.
+     *
+     * @param id the personnel UUID
+     * @return the updated (inactive) personnel DTO
+     */
+    @PostMapping("/{id}/deactivate")
+    @Operation(summary = "Deactivate a medical personnel record (soft delete)")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Personnel deactivated"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Personnel not found")
+    })
+    public ResponseEntity<ApiResponse<MedicalPersonnelDto>> deactivate(@PathVariable UUID id) {
+        MedicalPersonnelDto updated = service.deactivate(id);
+        return ResponseEntity.ok(ApiResponse.success(updated, "Medical personnel deactivated"));
+    }
+
+    /**
+     * Reactivates a previously deactivated personnel record.
+     *
+     * @param id the personnel UUID
+     * @return the updated (active) personnel DTO
+     */
+    @PostMapping("/{id}/reactivate")
+    @Operation(summary = "Reactivate a medical personnel record")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Personnel reactivated"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Personnel not found")
+    })
+    public ResponseEntity<ApiResponse<MedicalPersonnelDto>> reactivate(@PathVariable UUID id) {
+        MedicalPersonnelDto updated = service.reactivate(id);
+        return ResponseEntity.ok(ApiResponse.success(updated, "Medical personnel reactivated"));
+    }
+
+    /**
+     * Hard-deletes a personnel record. Rejected with 409 when the record is
+     * referenced by any existing report/certificate — deactivate instead.
+     *
+     * @param id the personnel UUID
+     * @return 204 No Content on success
+     */
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Delete a medical personnel record (blocked if referenced)")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "Personnel deleted"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Personnel not found"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Personnel referenced by existing reports")
+    })
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        service.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

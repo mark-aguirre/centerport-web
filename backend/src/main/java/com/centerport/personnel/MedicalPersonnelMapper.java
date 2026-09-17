@@ -44,5 +44,7 @@ public interface MedicalPersonnelMapper {
     @Mapping(target = "personnelId", ignore = true)
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "updatedDate", ignore = true)
+    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedBy", ignore = true)
     void updateEntity(MedicalPersonnelDto dto, @MappingTarget MedicalPersonnel entity);
 }

@@ -40,6 +40,20 @@ public class MedicalPersonnelDto {
     private String licenseNo;
 
     private String specialization;
+
+    /** Structured role/category (e.g. MED_TECH, PATHOLOGIST). */
+    private PersonnelRole role;
+
     private String title;
+
+    /** URL of the uploaded signature image, if any. */
+    private String signatureUrl;
+
     private Boolean active;
+
+    /** Audit: who created the record (output-only, server-managed). */
+    private String createdBy;
+
+    /** Audit: who last updated the record (output-only, server-managed). */
+    private String updatedBy;
 }

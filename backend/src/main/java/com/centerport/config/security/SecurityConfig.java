@@ -123,7 +123,22 @@ public class SecurityConfig {
                                 Roles.ADMIN, Roles.ACCOUNTING)
                         .requestMatchers("/api/employers/**").hasAnyRole(
                                 Roles.ADMIN, Roles.INFORMATION, Roles.RELEASING)
-                        .requestMatchers("/api/medical-personnel/**").authenticated()
+
+                        // --- Medical Personnel: search + individual lookups open to
+                        //     all authenticated users (used by signatory pickers);
+                        //     management operations (list, create, update, delete,
+                        //     deactivate, reactivate) restricted to ADMIN. ---
+                        .requestMatchers(HttpMethod.GET, "/api/medical-personnel/search").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/medical-personnel/{id}").authenticated()
+                        .requestMatchers("/api/medical-personnel/**").hasRole(Roles.ADMIN)
+
+                        // --- Personnel Assignments: the /defaults endpoint is
+                        //     consumed by report forms to pre-fill signatory fields
+                        //     and is readable by any authenticated user; all other
+                        //     assignment operations are ADMIN-only. ---
+                        .requestMatchers(HttpMethod.GET, "/api/personnel-assignments/defaults/**").authenticated()
+                        .requestMatchers("/api/personnel-assignments/**").hasRole(Roles.ADMIN)
+
                         .requestMatchers("/api/files/**").authenticated()
 
                         .anyRequest().authenticated())

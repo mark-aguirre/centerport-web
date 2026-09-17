@@ -8,6 +8,7 @@ import {
   Building2,
   CalendarCheck,
   Brain,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -81,5 +82,12 @@ export const navigation: NavigationItem[] = [
     subtitle: "Seafarer Psychological Fitness Assessment",
     href: "/psychology",
     icon: Brain,
+  },
+  {
+    title: "Medical Personnel",
+    shortTitle: "Personnel",
+    subtitle: "Super Admin — signatories, roles, and module assignments",
+    href: "/medical-personnel",
+    icon: Users,
   },
 ];

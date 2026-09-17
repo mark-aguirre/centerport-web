@@ -304,10 +304,103 @@ export interface MedicalPersonnelRecord {
   name: string;
   license_no: string;
   specialization?: string;
+  /** Structured role/category (drives module assignment eligibility). */
+  role?: PersonnelRoleCode | null;
   title?: string;
+  /** URL of the uploaded signature image, if any. */
+  signature_url?: string | null;
   active?: boolean;
+  /** Audit: who created / last updated the record (output-only). */
+  created_by?: string;
+  updated_by?: string;
   created_date?: string;
   updated_date?: string;
+}
+
+/**
+ * Structured personnel role codes. Mirror the backend {@code PersonnelRole}
+ * enum; the value is the stable upper-snake code sent over the wire.
+ */
+export type PersonnelRoleCode =
+  | "MED_TECH"
+  | "PATHOLOGIST"
+  | "AUTHORIZED_PHYSICIAN"
+  | "MEDICAL_DIRECTOR"
+  | "PSYCHOMETRICIAN"
+  | "PSYCHOLOGIST";
+
+/** Module/facility codes. Mirror the backend {@code PersonnelModule} enum. */
+export type PersonnelModuleCode =
+  | "LABORATORY"
+  | "SEABASE"
+  | "MLC"
+  | "LANDBASE"
+  | "PSYCHOLOGY";
+
+/**
+ * A configured default-signatory assignment (module + role -> personnel).
+ * Output includes the resolved personnel snapshot for display.
+ */
+export interface PersonnelAssignmentRecord {
+  id?: string;
+  module: PersonnelModuleCode;
+  role: PersonnelRoleCode;
+  personnel_id: string;
+  personnel_business_id?: string;
+  personnel_name?: string;
+  personnel_license_no?: string;
+  personnel_title?: string;
+  signature_url?: string | null;
+  personnel_active?: boolean;
+  created_by?: string;
+  updated_by?: string;
+  created_date?: string;
+  updated_date?: string;
+}
+
+/** One resolved default signatory for a module/role. */
+export interface ModuleDefaultEntry {
+  role: PersonnelRoleCode;
+  personnel_name: string;
+  personnel_license_no: string;
+  personnel_title?: string | null;
+  signature_url?: string | null;
+}
+
+/** Resolved active default signatories for a module (report-form pre-fill). */
+export interface ModuleDefaults {
+  module: PersonnelModuleCode;
+  entries: ModuleDefaultEntry[];
+}
+
+/** A single assignment-change audit row. */
+export interface PersonnelAssignmentAuditRecord {
+  id: string;
+  module: PersonnelModuleCode;
+  role: PersonnelRoleCode;
+  action: "CREATED" | "UPDATED";
+  previous_personnel_id?: string | null;
+  previous_personnel_name?: string | null;
+  new_personnel_id: string;
+  new_personnel_name: string;
+  changed_by: string;
+  changed_at: string;
+}
+
+/**
+ * Paginated result shape as returned by the backend list endpoints, exposed for
+ * admin screens that need pagination metadata (not just the content array).
+ */
+export interface Paged<T> {
+  content: T[];
+  page: number;
+  size: number;
+  total_elements: number;
+  total_pages: number;
+  first: boolean;
+  last: boolean;
+  has_next: boolean;
+  has_previous: boolean;
 }
 
 /**
@@ -884,6 +977,142 @@ export const api = {
       return httpClient.get<MedicalPersonnelRecord[]>(
         "/api/medical-personnel/search",
         params
+      );
+    },
+
+    /**
+     * Admin list of personnel (includes inactive), paginated with optional
+     * search / active / role filters and a sort string.
+     *
+     * @param opts.search  keyword match (name, license, specialization)
+     * @param opts.active  filter by active status (omit for all)
+     * @param opts.role    filter by role code (omit for all)
+     * @param opts.page    zero-based page index (default 0)
+     * @param opts.size    page size (default 50)
+     * @param opts.sort    backend sort string (e.g. "name,asc" or "updatedDate,desc")
+     */
+    async listAdmin(opts: {
+      search?: string;
+      active?: boolean;
+      role?: PersonnelRoleCode;
+      page?: number;
+      size?: number;
+      sort?: string;
+    }): Promise<Paged<MedicalPersonnelRecord>> {
+      const params: Record<string, string | number | undefined> = {
+        page: opts.page ?? 0,
+        size: opts.size ?? 50,
+        sort: opts.sort ?? "name,asc",
+      };
+      if (opts.search) params.search = opts.search;
+      if (opts.active !== undefined) params.active = String(opts.active);
+      if (opts.role) params.role = opts.role;
+      return httpClient.get<Paged<MedicalPersonnelRecord>>(
+        "/api/medical-personnel",
+        params
+      );
+    },
+
+    /** Create a new personnel record. */
+    async create(
+      data: Partial<MedicalPersonnelRecord>
+    ): Promise<MedicalPersonnelRecord> {
+      return httpClient.post<MedicalPersonnelRecord>(
+        "/api/medical-personnel",
+        data
+      );
+    },
+
+    /** Update an existing personnel record by UUID. */
+    async update(
+      id: string,
+      data: Partial<MedicalPersonnelRecord>
+    ): Promise<MedicalPersonnelRecord> {
+      return httpClient.put<MedicalPersonnelRecord>(
+        `/api/medical-personnel/${id}`,
+        data
+      );
+    },
+
+    /** Deactivate (soft-delete) a personnel record. */
+    async deactivate(id: string): Promise<MedicalPersonnelRecord> {
+      return httpClient.post<MedicalPersonnelRecord>(
+        `/api/medical-personnel/${id}/deactivate`,
+        {}
+      );
+    },
+
+    /** Reactivate a previously deactivated personnel record. */
+    async reactivate(id: string): Promise<MedicalPersonnelRecord> {
+      return httpClient.post<MedicalPersonnelRecord>(
+        `/api/medical-personnel/${id}/reactivate`,
+        {}
+      );
+    },
+
+    /** Hard-delete a personnel record (409 if referenced by existing reports). */
+    async remove(id: string): Promise<void> {
+      return httpClient.delete<void>(`/api/medical-personnel/${id}`);
+    },
+  },
+
+  /**
+   * Personnel Assignments — the module/role -> personnel mapping that drives
+   * default signatories on report forms. Management operations are ADMIN-only;
+   * `defaults` is readable by any authenticated user and consumed by the report
+   * form hooks.
+   */
+  PersonnelAssignment: {
+    /** List every configured assignment. */
+    async list(): Promise<PersonnelAssignmentRecord[]> {
+      return httpClient.get<PersonnelAssignmentRecord[]>(
+        "/api/personnel-assignments"
+      );
+    },
+
+    /** List assignments configured for a single module. */
+    async listByModule(
+      module: PersonnelModuleCode
+    ): Promise<PersonnelAssignmentRecord[]> {
+      return httpClient.get<PersonnelAssignmentRecord[]>(
+        `/api/personnel-assignments/module/${module}`
+      );
+    },
+
+    /** Create or repoint (upsert) the assignment for a module/role pair. */
+    async assign(
+      data: Pick<PersonnelAssignmentRecord, "module" | "role" | "personnel_id">
+    ): Promise<PersonnelAssignmentRecord> {
+      return httpClient.put<PersonnelAssignmentRecord>(
+        "/api/personnel-assignments",
+        data
+      );
+    },
+
+    /** Remove an assignment so the module/role reverts to no default. */
+    async remove(id: string): Promise<void> {
+      return httpClient.delete<void>(`/api/personnel-assignments/${id}`);
+    },
+
+    /**
+     * Resolve the active default signatories for a module. Used by report form
+     * hooks to pre-fill signatory fields on new records.
+     */
+    async defaults(module: PersonnelModuleCode): Promise<ModuleDefaults> {
+      return httpClient.get<ModuleDefaults>(
+        `/api/personnel-assignments/defaults/${module}`
+      );
+    },
+
+    /** Paginated assignment-change history for a module (most recent first). */
+    async audit(
+      module: PersonnelModuleCode,
+      page = 0,
+      size = 20
+    ): Promise<Paged<PersonnelAssignmentAuditRecord>> {
+      return httpClient.get<Paged<PersonnelAssignmentAuditRecord>>(
+        `/api/personnel-assignments/audit/${module}`,
+        { page, size }
       );
     },
   },

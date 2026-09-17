@@ -33,6 +33,9 @@ const ROUTE_ROLES: Record<string, Role[]> = {
   "/landbase": ["RELEASING"],
   "/psychology": ["PSYCHOLOGY"],
   "/accounting": ["ACCOUNTING"],
+  // Super Admin only: an empty required-role list means no non-ADMIN role
+  // grants access, so only the ADMIN short-circuit in canAccessRoute passes.
+  "/medical-personnel": [],
 };
 
 /** True if any of the user's roles grant access to the given route href. */

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
+import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
 import { EMPTY_REPORT, type LaboratoryReport } from "@/components/laboratory/types";
 import {
   flattenProfileIntoRecord,
@@ -104,12 +105,29 @@ export function useLaboratoryForm(): UseEntityFormResult<LaboratoryReport> {
     getPersonnelDefaults(EMPTY_REPORT)
   );
 
+  // Assigned Super Admin defaults for the Laboratory module (Med Tech +
+  // Pathologist). These take precedence over carry-forward so a new report
+  // always reflects the current assignments.
+  const { entriesRef } = useModuleDefaults("LABORATORY");
+
   const config = useMemo<EntityFormConfig<LaboratoryReport>>(
     () => ({
       ...laboratoryConfig,
-      getNewRecordDefaults: () => personnelDefaultsRef.current,
+      getNewRecordDefaults: () => {
+        const assigned = mapEntriesToFields<LaboratoryReport>(
+          entriesRef.current,
+          {
+            MED_TECH: { name: "med_tech", licenseNo: "med_tech_license_no" },
+            PATHOLOGIST: {
+              name: "pathologist",
+              licenseNo: "pathologist_license_no",
+            },
+          }
+        );
+        return { ...personnelDefaultsRef.current, ...assigned };
+      },
     }),
-    []
+    [entriesRef]
   );
 
   const form = useEntityForm(config);

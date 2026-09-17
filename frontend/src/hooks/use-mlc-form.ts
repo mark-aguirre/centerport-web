@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
+import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
 import { EMPTY_MLC, type MlcRecord } from "@/components/mlc/types";
 import type { RecordSummary } from "@/components/common/record-selector";
 import {
@@ -114,12 +115,25 @@ export function useMlcForm(): UseMlcFormResult {
     getPersonnelDefaults(EMPTY_MLC)
   );
 
+  // Assigned Super Admin defaults for the MLC module (Authorized Physician +
+  // Medical Director). These take precedence over carry-forward.
+  const { entriesRef } = useModuleDefaults("MLC");
+
   const config = useMemo<EntityFormConfig<MlcRecord>>(
     () => ({
       ...mlcConfig,
-      getNewRecordDefaults: () => personnelDefaultsRef.current,
+      getNewRecordDefaults: () => {
+        const assigned = mapEntriesToFields<MlcRecord>(entriesRef.current, {
+          AUTHORIZED_PHYSICIAN: {
+            name: "examining_physician",
+            licenseNo: "medical_certification_no",
+          },
+          MEDICAL_DIRECTOR: { name: "medical_director" },
+        });
+        return { ...personnelDefaultsRef.current, ...assigned };
+      },
     }),
-    []
+    [entriesRef]
   );
 
   const form = useEntityForm(config);

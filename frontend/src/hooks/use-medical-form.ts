@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
+import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
 import type { MedicalExam } from "@/components/medical/types";
 import type { PanamaCertificate } from "@/components/panama/types";
 import type { RecordSummary } from "@/components/common/record-selector";
@@ -422,15 +423,29 @@ export function useMedicalForm(): UseMedicalFormResult {
     getPersonnelDefaults(EMPTY_EXAM)
   );
 
+  // Assigned Super Admin defaults for the Seabase module (Authorized Physician
+  // + Medical Director). These take precedence over carry-forward.
+  const { entriesRef } = useModuleDefaults("SEABASE");
+
   const config = useMemo<EntityFormConfig<MedicalExam>>(
     () => ({
       ...medicalConfig,
-      getNewRecordDefaults: () => ({
-        ...medicalConfig.getNewRecordDefaults!(),
-        ...personnelDefaultsRef.current,
-      }),
+      getNewRecordDefaults: () => {
+        const assigned = mapEntriesToFields<MedicalExam>(entriesRef.current, {
+          AUTHORIZED_PHYSICIAN: {
+            name: "authorized_physician",
+            licenseNo: "medical_certification_no",
+          },
+          MEDICAL_DIRECTOR: { name: "medical_director" },
+        });
+        return {
+          ...medicalConfig.getNewRecordDefaults!(),
+          ...personnelDefaultsRef.current,
+          ...assigned,
+        };
+      },
     }),
-    []
+    [entriesRef]
   );
 
   const form = useEntityForm(config);
