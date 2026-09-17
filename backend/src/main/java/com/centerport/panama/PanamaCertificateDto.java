@@ -145,8 +145,10 @@ public class PanamaCertificateDto {
     private String sightAidedDistantBinocular;
     private String sightAidedShortRight;
     private String sightAidedShortLeft;
-    private String sightFieldsRight;
-    private String sightFieldsLeft;
+    private String sightFieldsRightNormal;
+    private String sightFieldsRightDefective;
+    private String sightFieldsLeftNormal;
+    private String sightFieldsLeftDefective;
     private String sightColorVision;
     private String sightColorMethod;
 

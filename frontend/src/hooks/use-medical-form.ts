@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import type { MedicalExam } from "@/components/medical/types";
+import type { PanamaCertificate } from "@/components/panama/types";
 import type { RecordSummary } from "@/components/common/record-selector";
 import { coerceNulls } from "@/lib/form-utils";
+import {
+  applyMedicalVitalsToPanama,
+  hasMedicalVitalsChanges,
+} from "@/lib/panama-seabase-sync";
 
 // ---------------------------------------------------------------------------
 // Empty record constant
@@ -378,14 +384,38 @@ export interface UseMedicalFormResult extends UseEntityFormResult<MedicalExam> {
   profileRecords: RecordSummary[];
   /** Switch to a different record by its UUID. */
   handleSelectRecord: (id: string) => void;
+
+  // --- Panama synchronization ---
+  /** True while the "update Panama too?" confirmation dialog is open. */
+  panamaConfirmOpen: boolean;
+  /** Message shown in the Panama confirmation dialog. */
+  panamaConfirmMessage: string;
+  /** True while the cross-system save (Medical + Panama) is in flight. */
+  panamaSyncing: boolean;
+  /** User chose to also update the Panama certificate. */
+  confirmPanamaSync: () => void;
+  /** User chose to update the medical record only. */
+  declinePanamaSync: () => void;
 }
 
 /**
- * Manages Medical Examination form state with full CRUD button behavior.
+ * Confirmation copy shown when a Seabase (medical) Physical Examination edit
+ * affects data that is synchronized with the Panama Clinical Data section.
+ */
+export const PANAMA_SYNC_PROMPT =
+  "This change affects data synchronized with Panama. Would you like to update the corresponding Panama record as well?";
+
+/**
+ * Manages Medical Examination form state with full CRUD button behavior plus
+ * synchronization of the Physical Examination vitals into the Panama Clinical
+ * Data section.
  *
- * Delegates to the generic `useEntityForm` with medical-specific config.
+ * On save, if the edit changed any vitals field that maps to the Panama
+ * certificate and a Panama certificate exists for the seafarer, the user is
+ * prompted to also update Panama. "Yes" writes both; "No" writes the medical
+ * record only.
  *
- * @returns Object with form state, action handlers, and ref for first-field focus
+ * @returns Object with form state, action handlers, and Panama sync controls
  */
 export function useMedicalForm(): UseMedicalFormResult {
   const personnelDefaultsRef = useRef<MedicalPersonnelDefaults>(
@@ -404,6 +434,18 @@ export function useMedicalForm(): UseMedicalFormResult {
   );
 
   const form = useEntityForm(config);
+  const { data, existingRecord } = form;
+
+  // Latest Panama certificate for the current seafarer, if any.
+  const panamaRef = useRef<PanamaCertificate | null>(null);
+  // Baseline medical snapshot used to detect vitals changes on save.
+  const baselineRef = useRef<MedicalExam>(data);
+  // Track which profile we've already fetched the Panama record for.
+  const syncedProfileRef = useRef<string | undefined>(undefined);
+
+  const [panamaConfirmOpen, setPanamaConfirmOpen] = useState(false);
+  const [panamaSyncing, setPanamaSyncing] = useState(false);
+  const pendingResolveRef = useRef<((updatePanama: boolean) => void) | null>(null);
 
   useEffect(() => {
     if (form.existingRecord) {
@@ -411,5 +453,114 @@ export function useMedicalForm(): UseMedicalFormResult {
     }
   }, [form.existingRecord]);
 
-  return form;
+  // Keep the baseline in step with the persisted record after a save or record
+  // switch so subsequent edits diff correctly.
+  useEffect(() => {
+    if (existingRecord) {
+      baselineRef.current = existingRecord;
+    }
+  }, [existingRecord]);
+
+  // Fetch the latest Panama certificate for the loaded seafarer (once per
+  // profile) so the reverse sync knows whether a Panama record exists.
+  useEffect(() => {
+    const profileId = data.seafarer_profile_id;
+    if (!profileId) {
+      panamaRef.current = null;
+      syncedProfileRef.current = undefined;
+      return;
+    }
+    if (syncedProfileRef.current === profileId) return;
+    syncedProfileRef.current = profileId;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const records = await api.entities.PanamaCertificate.listByProfile(profileId);
+        if (cancelled) return;
+        panamaRef.current = records.length > 0 ? records[0] : null;
+      } catch (error: unknown) {
+        if (cancelled) return;
+        console.warn(
+          "Failed to look up the linked Panama certificate:",
+          error instanceof Error ? error.message : error
+        );
+        panamaRef.current = null;
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [data.seafarer_profile_id]);
+
+  /** Persist the Panama certificate with the synced Clinical Data vitals. */
+  const writePanama = useCallback(async () => {
+    const panama = panamaRef.current;
+    if (!panama?.id) return;
+    try {
+      const payload: Partial<PanamaCertificate> = {
+        ...applyMedicalVitalsToPanama(data),
+        seafarer_profile_id: panama.seafarer_profile_id ?? data.seafarer_profile_id,
+      };
+      const updated = await api.entities.PanamaCertificate.update(panama.id, payload);
+      panamaRef.current = updated;
+      toast.success("Panama record updated successfully");
+    } catch (error: unknown) {
+      toast.error("Medical exam saved, but updating the Panama record failed");
+      console.warn(
+        "Failed to update the Panama certificate:",
+        error instanceof Error ? error.message : error
+      );
+    }
+  }, [data]);
+
+  const handleSave = useCallback(async () => {
+    const panama = panamaRef.current;
+    const affectsPanama =
+      !!panama?.id && hasMedicalVitalsChanges(baselineRef.current, data);
+
+    // No linked Panama record or no mapped vitals changed: save medical only.
+    if (!affectsPanama) {
+      await form.handleSave();
+      baselineRef.current = data;
+      return;
+    }
+
+    const decision = await new Promise<boolean>((resolve) => {
+      pendingResolveRef.current = resolve;
+      setPanamaConfirmOpen(true);
+    });
+
+    setPanamaSyncing(true);
+    try {
+      await form.handleSave();
+      if (decision) {
+        await writePanama();
+      }
+      baselineRef.current = data;
+    } finally {
+      setPanamaSyncing(false);
+      setPanamaConfirmOpen(false);
+      pendingResolveRef.current = null;
+    }
+  }, [data, form, writePanama]);
+
+  const confirmPanamaSync = useCallback(() => {
+    pendingResolveRef.current?.(true);
+  }, []);
+
+  const declinePanamaSync = useCallback(() => {
+    pendingResolveRef.current?.(false);
+  }, []);
+
+  return {
+    ...form,
+    handleSave,
+    panamaConfirmOpen,
+    panamaConfirmMessage: PANAMA_SYNC_PROMPT,
+    panamaSyncing,
+    confirmPanamaSync,
+    declinePanamaSync,
+  };
 }

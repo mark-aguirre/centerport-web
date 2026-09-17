@@ -11,6 +11,7 @@ import DiagnosticTestsSection from "@/components/panama/DiagnosticTestsSection";
 import FitnessAssessmentSection from "@/components/panama/FitnessAssessmentSection";
 import { usePanamaForm } from "@/hooks/use-panama-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { ReportMenu } from "@/components/panama/ReportMenu";
 import type { PanamaCertificate, PanamaSectionProps } from "@/components/panama/types";
 
@@ -33,13 +34,26 @@ function PanamaFormContent() {
   const form = usePanamaForm();
 
   return (
-    <FormPage
-      form={form}
-      sections={SECTIONS}
-      getBusinessId={(record) => record?.panama_id}
-      editGuard={(data) => !!data.full_name}
-      printMenu={<ReportMenu data={form.existingRecord ?? form.data} />}
-    />
+    <>
+      <FormPage
+        form={form}
+        sections={SECTIONS}
+        getBusinessId={(record) => record?.panama_id}
+        editGuard={(data) => !!data.full_name}
+        printMenu={<ReportMenu data={form.existingRecord ?? form.data} />}
+      />
+
+      <ConfirmDialog
+        open={form.seabaseConfirmOpen}
+        title="Update Seabase record?"
+        message={form.seabaseConfirmMessage}
+        confirmLabel="Yes, update both"
+        cancelLabel="No, Panama only"
+        busy={form.seabaseSyncing}
+        onConfirm={form.confirmSeabaseSync}
+        onCancel={form.declineSeabaseSync}
+      />
+    </>
   );
 }
 

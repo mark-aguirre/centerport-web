@@ -146,8 +146,10 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
       physical_exploration: normalExploration,
       physical_exploration_comments: "",
       sight_color_vision: "Normal",
-      sight_fields_right: "Normal",
-      sight_fields_left: "Normal",
+      sight_fields_right_normal: "Normal",
+      sight_fields_right_defective: "",
+      sight_fields_left_normal: "Normal",
+      sight_fields_left_defective: "",
     });
   };
 
@@ -255,31 +257,23 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
           />
         </div>
 
+        {/* Visual Acuity + Visual Fields (side by side) */}
+        <div className="flex flex-col lg:flex-row gap-4 mb-3 items-start">
         {/* Visual Acuity Table */}
-        <div className="overflow-x-auto mb-3">
-          <table className="w-full border-collapse text-xs">
+        <div className="min-w-0 max-w-full">
+        <Label className="block text-[11px] font-semibold text-primary/60 uppercase tracking-wider mb-1">
+          Visual acuity
+        </Label>
+        <div className="overflow-x-auto">
+          <table className="border-collapse text-xs">
             <thead>
               <tr>
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-left" rowSpan={3} />
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] font-bold text-primary uppercase tracking-wider" colSpan={5}>
-                  Visual acuity
-                </th>
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] font-bold text-primary uppercase tracking-wider" colSpan={2}>
-                  Visual fields
-                </th>
-              </tr>
-              <tr>
+                <th className="border border-primary/20 bg-primary/5 p-1.5 text-left" rowSpan={2} />
                 <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] font-bold text-primary/70" colSpan={3}>
                   Unaided
                 </th>
                 <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] font-bold text-primary/70" colSpan={2}>
                   Aided
-                </th>
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] text-primary/70" rowSpan={2}>
-                  Normal
-                </th>
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] text-primary/70" rowSpan={2}>
-                  Defective
                 </th>
               </tr>
               <tr>
@@ -298,7 +292,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_distant_right}
                     onChange={(e) => update("sight_unaided_distant_right", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
                     aria-label="Distant - Unaided Right Eye"
                     readOnly={disabled}
                   />
@@ -307,7 +301,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_distant_left}
                     onChange={(e) => update("sight_unaided_distant_left", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
                     aria-label="Distant - Unaided Left Eye"
                     readOnly={disabled}
                   />
@@ -316,7 +310,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_distant_binocular}
                     onChange={(e) => update("sight_unaided_distant_binocular", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
                     aria-label="Distant - Unaided Binocular"
                     readOnly={disabled}
                   />
@@ -325,7 +319,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_aided_distant_right}
                     onChange={(e) => update("sight_aided_distant_right", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
                     aria-label="Distant - Aided Right Eye"
                     readOnly={disabled}
                   />
@@ -334,18 +328,8 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_aided_distant_left}
                     onChange={(e) => update("sight_aided_distant_left", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
                     aria-label="Distant - Aided Left Eye"
-                    readOnly={disabled}
-                  />
-                </td>
-                <td className="border border-primary/20 p-1 text-center text-xs text-foreground/70">Right Eye</td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_fields_right}
-                    onChange={(e) => update("sight_fields_right", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
-                    aria-label="Visual Fields - Right Eye"
                     readOnly={disabled}
                   />
                 </td>
@@ -357,7 +341,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_short_right}
                     onChange={(e) => update("sight_unaided_short_right", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
                     aria-label="Short distance - Unaided Right Eye"
                     readOnly={disabled}
                   />
@@ -366,7 +350,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_unaided_short_left}
                     onChange={(e) => update("sight_unaided_short_left", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
                     aria-label="Short distance - Unaided Left Eye"
                     readOnly={disabled}
                   />
@@ -376,7 +360,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_aided_short_right}
                     onChange={(e) => update("sight_aided_short_right", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
                     aria-label="Short distance - Aided Right Eye"
                     readOnly={disabled}
                   />
@@ -385,18 +369,8 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
                   <Input
                     value={data.sight_aided_short_left}
                     onChange={(e) => update("sight_aided_short_left", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
                     aria-label="Short distance - Aided Left Eye"
-                    readOnly={disabled}
-                  />
-                </td>
-                <td className="border border-primary/20 p-1 text-center text-xs text-foreground/70">Left Eye</td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_fields_left}
-                    onChange={(e) => update("sight_fields_left", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
-                    aria-label="Visual Fields - Left Eye"
                     readOnly={disabled}
                   />
                 </td>
@@ -404,10 +378,74 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
             </tbody>
           </table>
         </div>
+        </div>
+
+        {/* Visual Fields Table */}
+        <div className="shrink-0">
+          <Label className="block text-[11px] font-semibold text-primary/60 uppercase tracking-wider mb-1 invisible lg:visible">
+            &nbsp;
+          </Label>
+          <table className="border-collapse text-xs">
+            <thead>
+              <tr>
+                <th className="border border-primary/20 bg-primary/5 p-1.5" />
+                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] font-bold text-primary uppercase tracking-wider" colSpan={2}>
+                  Visual fields
+                </th>
+              </tr>
+              <tr>
+                <th className="border border-primary/20 bg-primary/5 p-1.5" />
+                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">Normal</th>
+                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">Defective</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(
+                [
+                  {
+                    label: "Right eye",
+                    normalKey: "sight_fields_right_normal" as const,
+                    defectiveKey: "sight_fields_right_defective" as const,
+                  },
+                  {
+                    label: "Left eye",
+                    normalKey: "sight_fields_left_normal" as const,
+                    defectiveKey: "sight_fields_left_defective" as const,
+                  },
+                ]
+              ).map(({ label, normalKey, defectiveKey }) => (
+                <tr key={label}>
+                  <td className="border border-primary/20 p-1.5 text-xs font-semibold text-foreground/80 whitespace-nowrap">
+                    {label}
+                  </td>
+                  <td className="border border-primary/20 p-1">
+                    <Input
+                      value={data[normalKey]}
+                      onChange={(e) => update(normalKey, e.target.value)}
+                      className={cn(CELL_INPUT_CLASS, "w-40", disabled && "pointer-events-none")}
+                      aria-label={`${label} visual field - Normal`}
+                      readOnly={disabled}
+                    />
+                  </td>
+                  <td className="border border-primary/20 p-1">
+                    <Input
+                      value={data[defectiveKey]}
+                      onChange={(e) => update(defectiveKey, e.target.value)}
+                      className={cn(CELL_INPUT_CLASS, "w-40", disabled && "pointer-events-none")}
+                      aria-label={`${label} visual field - Defective`}
+                      readOnly={disabled}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        </div>
 
         {/* Color Vision */}
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-0.5">
+        <div className="space-y-2">
+          <div className="space-y-0.5 rounded-md border border-primary/20 bg-primary/5 p-3">
             <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
               Color vision
             </Label>

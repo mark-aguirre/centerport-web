@@ -252,8 +252,10 @@ export function buildPanamaPayload(data: PanamaCertificate): Record<string, stri
     sight_unaided_short_left: data.sight_unaided_short_left ?? "",
     sight_aided_short_right: data.sight_aided_short_right ?? "",
     sight_aided_short_left: data.sight_aided_short_left ?? "",
-    sight_fields_right: data.sight_fields_right ?? "",
-    sight_fields_left: data.sight_fields_left ?? "",
+    sight_fields_right_normal: data.sight_fields_right_normal ?? "",
+    sight_fields_right_defective: data.sight_fields_right_defective ?? "",
+    sight_fields_left_normal: data.sight_fields_left_normal ?? "",
+    sight_fields_left_defective: data.sight_fields_left_defective ?? "",
     sight_color_vision: data.sight_color_vision ?? "",
     sight_color_method: data.sight_color_method ?? "",
 

@@ -118,8 +118,10 @@ export interface PanamaCertificate {
   sight_aided_short_right: string;
   sight_aided_short_left: string;
   // Visual fields
-  sight_fields_right: string;
-  sight_fields_left: string;
+  sight_fields_right_normal: string;
+  sight_fields_right_defective: string;
+  sight_fields_left_normal: string;
+  sight_fields_left_defective: string;
   // Color vision
   sight_color_vision: string;
   sight_color_method: string;
@@ -313,8 +315,10 @@ export const EMPTY_CERTIFICATE: PanamaCertificate = {
   sight_aided_distant_binocular: "",
   sight_aided_short_right: "",
   sight_aided_short_left: "",
-  sight_fields_right: "",
-  sight_fields_left: "",
+  sight_fields_right_normal: "",
+  sight_fields_right_defective: "",
+  sight_fields_left_normal: "",
+  sight_fields_left_defective: "",
   sight_color_vision: "",
   sight_color_method: "",
 

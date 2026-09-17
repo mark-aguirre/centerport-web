@@ -10,6 +10,7 @@ import { SectionReveal } from "@/components/common/section-reveal";
 import PhysicalExaminationSection from "@/components/medical/PhysicalExaminationSection";
 import { useMedicalForm } from "@/hooks/use-medical-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { ReportMenu } from "@/components/medical/ReportMenu";
 import type { MedicalExam } from "@/components/medical/types";
 
@@ -39,19 +40,32 @@ function SeabaseFormContent() {
   );
 
   return (
-    <FormPage
-      form={form}
-      sections={SECTIONS}
-      getBusinessId={(record) => record?.exam_id}
-      editGuard={(data) => !!data.last_name}
-      preSections={preSections}
-      printMenu={
-        <ReportMenu
-          examId={form.existingRecord?.id}
-          data={form.existingRecord ?? form.data}
-        />
-      }
-    />
+    <>
+      <FormPage
+        form={form}
+        sections={SECTIONS}
+        getBusinessId={(record) => record?.exam_id}
+        editGuard={(data) => !!data.last_name}
+        preSections={preSections}
+        printMenu={
+          <ReportMenu
+            examId={form.existingRecord?.id}
+            data={form.existingRecord ?? form.data}
+          />
+        }
+      />
+
+      <ConfirmDialog
+        open={form.panamaConfirmOpen}
+        title="Update Panama record?"
+        message={form.panamaConfirmMessage}
+        confirmLabel="Yes, update both"
+        cancelLabel="No, Seabase only"
+        busy={form.panamaSyncing}
+        onConfirm={form.confirmPanamaSync}
+        onCancel={form.declinePanamaSync}
+      />
+    </>
   );
 }
 

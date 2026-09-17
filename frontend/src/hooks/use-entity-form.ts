@@ -309,7 +309,22 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
           // recent record when there is no saved last-state or it no longer
           // resolves to an existing record.
           const lastId = draftKey ? loadLastRecordId(draftKey) : null;
-          results = lastId ? await entityApi.filter({ id: lastId }) : [];
+          results = [];
+          if (lastId) {
+            try {
+              results = await entityApi.filter({ id: lastId });
+            } catch (error: unknown) {
+              // The saved id no longer resolves (record deleted, or the
+              // by-id fetch failed). Drop the stale pointer and fall through
+              // to the most-recent-record fallback below instead of leaving
+              // the form blank.
+              if (draftKey) clearLastRecordId(draftKey);
+              console.warn(
+                `Saved last-state record could not be loaded for "${draftKey}", falling back to most recent:`,
+                error instanceof Error ? error.message : error
+              );
+            }
+          }
           if (results.length === 0) {
             results = await entityApi.list("-updated_date", 1);
           }

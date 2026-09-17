@@ -147,8 +147,10 @@
                 "sight_aided_distant_binocular": null,
                 "sight_aided_short_right": "9Sight",
                 "sight_aided_short_left": "10Sight",
-                "sight_fields_right": "6Sight",
-                "sight_fields_left": "11Sight",
+                "sight_fields_right_normal": "6Sight",
+                "sight_fields_right_defective": null,
+                "sight_fields_left_normal": "11Sight",
+                "sight_fields_left_defective": null,
                 "sight_color_vision": "Normal",
                 "sight_color_method": "12Sight",
                 "physical_exploration": {

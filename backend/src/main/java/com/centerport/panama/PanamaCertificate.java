@@ -279,11 +279,17 @@ public class PanamaCertificate extends BaseEntity {
     @Column(name = "sight_aided_short_left")
     private String sightAidedShortLeft;
 
-    @Column(name = "sight_fields_right")
-    private String sightFieldsRight;
+    @Column(name = "sight_fields_right_normal")
+    private String sightFieldsRightNormal;
 
-    @Column(name = "sight_fields_left")
-    private String sightFieldsLeft;
+    @Column(name = "sight_fields_right_defective")
+    private String sightFieldsRightDefective;
+
+    @Column(name = "sight_fields_left_normal")
+    private String sightFieldsLeftNormal;
+
+    @Column(name = "sight_fields_left_defective")
+    private String sightFieldsLeftDefective;
 
     @Column(name = "sight_color_vision")
     private String sightColorVision;
