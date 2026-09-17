@@ -59,6 +59,16 @@ try:
 except ImportError:  # pragma: no cover
     boto3 = None
 
+# Load connection settings from a local .env file (next to this script) into the
+# process environment *before* the config block below reads them via os.getenv.
+# Real shell/OS environment variables still take precedence over the .env file.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+except ImportError:  # pragma: no cover
+    pass
+
 
 # --------------------------------------------------------------------------- #
 # Configuration (mirrors backend/.env)

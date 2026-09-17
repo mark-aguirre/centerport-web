@@ -44,21 +44,31 @@ try:
 except ImportError:  # pragma: no cover
     psycopg2 = None
 
+# Load connection settings from a local .env file (next to this script) into the
+# process environment *before* the config block below reads them via os.getenv.
+# Real shell/OS environment variables still take precedence over the .env file.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
+except ImportError:  # pragma: no cover
+    pass
+
 
 # --------------------------------------------------------------------------- #
 # Configuration
 # --------------------------------------------------------------------------- #
 SOURCE = {
-    "server": os.getenv("MSSQL_SERVER", r"DESKTOP-KIIKPT8\SQLEXPRESS"),
+    "server": os.getenv("MSSQL_SERVER", r"100.106.221.83\SQLEXPRESS"),
     "database": os.getenv("MSSQL_DATABASE", "Centerport_Medical"),
     "trusted": os.getenv("MSSQL_TRUSTED", "yes"),   # Windows auth by default
-    "user": os.getenv("MSSQL_USER", ""),
-    "password": os.getenv("MSSQL_PASSWORD", ""),
+    "user": os.getenv("MSSQL_USER", "sa"),
+    "password": os.getenv("MSSQL_PASSWORD", "sasa"),
 }
 
 TARGET = {
-    "host": os.getenv("PG_HOST", "localhost"),
-    "port": int(os.getenv("PG_PORT", "5434")),
+    "host": os.getenv("PG_HOST", "192.168.100.46"),
+    "port": int(os.getenv("PG_PORT", "5432")),
     "dbname": os.getenv("PG_DB", "centerport"),
     "user": os.getenv("PG_USER", "postgres"),
     "password": os.getenv("PG_PASSWORD", "postgres"),
@@ -339,12 +349,20 @@ def connect_source():
         )
     log.info("Connecting to MSSQL via driver '%s'", driver)
     conn = pyodbc.connect(conn_str)
-    # The source DB collation is SQL_Latin1_General_CP1_CI_AS (Windows-1252),
-    # so legacy VARCHAR/CHAR data is stored as cp1252, not UTF-8. Decode it as
-    # cp1252 so accented names (e.g. PEÑA -> byte 0xD1) survive intact; values
-    # are then re-encoded to UTF-8 when written to PostgreSQL. This is
+    # The source DB collation is SQL_Latin1_General_CP1_CI_AS. Legacy VARCHAR/CHAR
+    # data is stored as a single-byte Windows encoding, not UTF-8, so we decode it
+    # ourselves and re-encode to UTF-8 when writing to PostgreSQL. This is
     # deterministic across client machines (unlike the driver's locale default).
-    conn.setdecoding(pyodbc.SQL_CHAR, encoding="cp1252")
+    #
+    # We decode as latin-1 rather than cp1252: some legacy rows contain stray
+    # bytes that are undefined in strict cp1252 (e.g. 0x90), and pyodbc's
+    # setdecoding calls bytes.decode() in strict mode with no way to pass
+    # errors="replace" on this version, so a single bad byte would abort the
+    # entire read with a UnicodeDecodeError. latin-1 maps all 256 byte values
+    # 1:1 and never raises, so accented names (e.g. PEÑA, byte 0xD1) still survive
+    # intact. The only bytes affected are the cp1252 0x80-0x9F "smart" range,
+    # which is rare in name/address data and partly undefined here anyway.
+    conn.setdecoding(pyodbc.SQL_CHAR, encoding="latin-1")
     return conn
 
 
