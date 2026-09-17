@@ -61,8 +61,8 @@ export function useRepeatUrinalysisForm({
 
   const basePath = `/api/laboratory-reports/${laboratoryReportId}/urinalysis-repeat-tests`;
 
-  const fetchPreviousExams = useCallback(async () => {
-    if (!laboratoryReportId) return;
+  const fetchPreviousExams = useCallback(async (): Promise<UrinalysisRepeatTestSummary[]> => {
+    if (!laboratoryReportId) return [];
     setLoadingExams(true);
     try {
       const results = await httpClient.get<UrinalysisRepeatTest[]>(basePath);
@@ -74,9 +74,11 @@ export function useRepeatUrinalysisForm({
           result_date: r.result_date ?? "",
         }));
       setPreviousExams(summaries);
+      return summaries;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
       console.error("Failed to fetch urinalysis repeat tests:", message);
+      return [];
     } finally {
       setLoadingExams(false);
     }
@@ -100,12 +102,19 @@ export function useRepeatUrinalysisForm({
     const justOpened = open && !prevOpenRef.current;
     prevOpenRef.current = open;
     if (justOpened && laboratoryReportId) {
+      // Reset to an empty form, then fetch the previous exams and auto-load the
+      // most recent one (the list is sorted newest-first by the backend). When
+      // no previous exams exist, the empty form is left in place for a new entry.
       setData({ ...EMPTY_URINALYSIS_REPEAT });
       setSelectedId(null);
       setEditing(false);
-      fetchPreviousExams();
+      void fetchPreviousExams().then((summaries) => {
+        if (summaries.length > 0) {
+          loadRepeatTest(summaries[0].id);
+        }
+      });
     }
-  }, [open, laboratoryReportId, fetchPreviousExams]);
+  }, [open, laboratoryReportId, fetchPreviousExams, loadRepeatTest]);
 
   const handleNew = () => {
     setData({ ...EMPTY_URINALYSIS_REPEAT });

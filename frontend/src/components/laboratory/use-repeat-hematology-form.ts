@@ -124,8 +124,8 @@ export function useRepeatHematologyForm({
   // Data fetching
   // -------------------------------------------------------------------------
 
-  const fetchPreviousExams = useCallback(async () => {
-    if (!laboratoryReportId) return;
+  const fetchPreviousExams = useCallback(async (): Promise<RepeatTestSummary[]> => {
+    if (!laboratoryReportId) return [];
     setLoadingExams(true);
     try {
       const results = await httpClient.get<HematologyRepeatTest[]>(basePath);
@@ -137,9 +137,11 @@ export function useRepeatHematologyForm({
           result_date: r.result_date ?? "",
         }));
       setPreviousExams(summaries);
+      return summaries;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
       console.error("Failed to fetch repeat tests:", message);
+      return [];
     } finally {
       setLoadingExams(false);
     }
@@ -167,16 +169,20 @@ export function useRepeatHematologyForm({
     prevOpenRef.current = open;
 
     if (justOpened && laboratoryReportId) {
-      // Reset is batched with the async fetch that follows
-      const reset = () => {
-        setData({ ...EMPTY_HEMATOLOGY_REPEAT });
-        setSelectedId(null);
-        setEditing(false);
-      };
-      reset();
-      fetchPreviousExams();
+      // Reset to an empty form, then fetch the previous exams and auto-load the
+      // most recent one (the list is sorted newest-first by the backend). When
+      // no previous exams exist, the empty form is left in place for a new entry.
+      setData({ ...EMPTY_HEMATOLOGY_REPEAT });
+      setSelectedId(null);
+      setEditing(false);
+
+      void fetchPreviousExams().then((summaries) => {
+        if (summaries.length > 0) {
+          loadRepeatTest(summaries[0].id);
+        }
+      });
     }
-  }, [open, laboratoryReportId, fetchPreviousExams]);
+  }, [open, laboratoryReportId, fetchPreviousExams, loadRepeatTest]);
 
   // -------------------------------------------------------------------------
   // CRUD handlers

@@ -98,18 +98,19 @@ export function useRepeatFecalysisForm({
 
   const basePath = `/api/laboratory-reports/${laboratoryReportId}/fecalysis-repeat-tests`;
 
-  const fetchPreviousExams = useCallback(async () => {
-    if (!laboratoryReportId) return;
+  const fetchPreviousExams = useCallback(async (): Promise<FecalysisRepeatTestSummary[]> => {
+    if (!laboratoryReportId) return [];
     setLoadingExams(true);
     try {
       const results = await httpClient.get<FecalysisRepeatTest[]>(basePath);
-      setPreviousExams(
-        results
-          .filter((r): r is FecalysisRepeatTest & { id: string } => Boolean(r.id))
-          .map((r) => ({ id: r.id, result_id: r.result_id ?? "", result_date: r.result_date ?? "" }))
-      );
+      const summaries: FecalysisRepeatTestSummary[] = results
+        .filter((r): r is FecalysisRepeatTest & { id: string } => Boolean(r.id))
+        .map((r) => ({ id: r.id, result_id: r.result_id ?? "", result_date: r.result_date ?? "" }));
+      setPreviousExams(summaries);
+      return summaries;
     } catch (error: unknown) {
       console.error("Failed to fetch fecalysis repeat tests:", error instanceof Error ? error.message : "Unknown error");
+      return [];
     } finally {
       setLoadingExams(false);
     }
@@ -132,12 +133,19 @@ export function useRepeatFecalysisForm({
     const justOpened = open && !prevOpenRef.current;
     prevOpenRef.current = open;
     if (justOpened && laboratoryReportId) {
+      // Reset to an empty form, then fetch the previous exams and auto-load the
+      // most recent one (the list is sorted newest-first by the backend). When
+      // no previous exams exist, the empty form is left in place for a new entry.
       setData({ ...EMPTY_FECALYSIS_REPEAT });
       setSelectedId(null);
       setEditing(false);
-      fetchPreviousExams();
+      void fetchPreviousExams().then((summaries) => {
+        if (summaries.length > 0) {
+          loadRepeatTest(summaries[0].id);
+        }
+      });
     }
-  }, [open, laboratoryReportId, fetchPreviousExams]);
+  }, [open, laboratoryReportId, fetchPreviousExams, loadRepeatTest]);
 
   const handleNew = () => { setData({ ...EMPTY_FECALYSIS_REPEAT }); setSelectedId(null); setEditing(true); };
   const handleEdit = () => { if (selectedId) setEditing(true); };

@@ -11,12 +11,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { MedicalPersonnelDialog } from "@/components/common/medical-personnel-dialog";
+import { PdfPreviewDialog } from "@/components/common/pdf-preview-dialog";
+import { fetchPrintPdf } from "@/lib/print-request";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, Printer } from "lucide-react";
+import { toast } from "sonner";
 import { ChemistryFormFields } from "./ChemistryFormFields";
 import { useRepeatChemistryForm } from "./use-repeat-chemistry-form";
+import {
+  buildChemistryRepeatPayload,
+  type LaboratoryPrintHeader,
+} from "./printPayload";
 
 interface RepeatChemistryDialogProps {
   /** Controls dialog visibility. */
@@ -25,6 +33,8 @@ interface RepeatChemistryDialogProps {
   onOpenChange: (open: boolean) => void;
   /** Parent laboratory report UUID. */
   laboratoryReportId: string | undefined;
+  /** Patient header from the parent report, used to build the print payload. */
+  header: LaboratoryPrintHeader;
 }
 
 interface SerologySelectProps {
@@ -77,6 +87,7 @@ export function RepeatChemistryDialog({
   open,
   onOpenChange,
   laboratoryReportId,
+  header,
 }: RepeatChemistryDialogProps) {
   const {
     data,
@@ -94,6 +105,26 @@ export function RepeatChemistryDialog({
     handleRefresh,
     personnel,
   } = useRepeatChemistryForm({ open, laboratoryReportId });
+
+  const [printing, setPrinting] = useState(false);
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+
+  const handlePrint = async () => {
+    setPrinting(true);
+    try {
+      const blob = await fetchPrintPdf(
+        "laboratory-chemistry",
+        buildChemistryRepeatPayload(data, header),
+      );
+      setPreviewBlob(blob);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to generate report";
+      toast.error(message);
+    } finally {
+      setPrinting(false);
+    }
+  };
 
   const inputClassName = cn(
     "h-7 rounded border border-primary/20 bg-white px-2 text-xs transition-colors focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30",
@@ -182,7 +213,18 @@ export function RepeatChemistryDialog({
                   Edit
                 </Button>
               )}
-              <Button variant="outline" size="sm" disabled>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrint}
+                disabled={!selectedId || editing || printing}
+                className="cursor-pointer"
+              >
+                {printing ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Printer aria-hidden="true" />
+                )}
                 Print
               </Button>
               <Button
@@ -397,6 +439,13 @@ export function RepeatChemistryDialog({
             ? "Select Medical Technologist"
             : "Select Pathologist"
         }
+      />
+
+      <PdfPreviewDialog
+        open={previewBlob !== null}
+        onClose={() => setPreviewBlob(null)}
+        blob={previewBlob}
+        title="Chemistry Repeat Report"
       />
     </>
   );

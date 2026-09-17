@@ -120,8 +120,8 @@ export function useRepeatChemistryForm({
   // Data fetching
   // -------------------------------------------------------------------------
 
-  const fetchPreviousExams = useCallback(async () => {
-    if (!laboratoryReportId) return;
+  const fetchPreviousExams = useCallback(async (): Promise<ChemistryRepeatTestSummary[]> => {
+    if (!laboratoryReportId) return [];
     setLoadingExams(true);
     try {
       const results = await httpClient.get<ChemistryRepeatTest[]>(basePath);
@@ -133,9 +133,11 @@ export function useRepeatChemistryForm({
           result_date: r.result_date ?? "",
         }));
       setPreviousExams(summaries);
+      return summaries;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "Unknown error";
       console.error("Failed to fetch chemistry repeat tests:", message);
+      return [];
     } finally {
       setLoadingExams(false);
     }
@@ -161,15 +163,20 @@ export function useRepeatChemistryForm({
     prevOpenRef.current = open;
 
     if (justOpened && laboratoryReportId) {
-      const reset = () => {
-        setData({ ...EMPTY_CHEMISTRY_REPEAT });
-        setSelectedId(null);
-        setEditing(false);
-      };
-      reset();
-      fetchPreviousExams();
+      // Reset to an empty form, then fetch the previous exams and auto-load the
+      // most recent one (the list is sorted newest-first by the backend). When
+      // no previous exams exist, the empty form is left in place for a new entry.
+      setData({ ...EMPTY_CHEMISTRY_REPEAT });
+      setSelectedId(null);
+      setEditing(false);
+
+      void fetchPreviousExams().then((summaries) => {
+        if (summaries.length > 0) {
+          loadRepeatTest(summaries[0].id);
+        }
+      });
     }
-  }, [open, laboratoryReportId, fetchPreviousExams]);
+  }, [open, laboratoryReportId, fetchPreviousExams, loadRepeatTest]);
 
   // -------------------------------------------------------------------------
   // CRUD handlers
