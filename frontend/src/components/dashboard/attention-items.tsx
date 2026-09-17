@@ -1,6 +1,9 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { UserCheck } from "lucide-react";
+import { Loader2, UserCheck } from "lucide-react";
 import { getTodaysVisits } from "@/lib/dashboard-data";
 import type { PatientVisitRecord } from "@/lib/api";
 
@@ -75,18 +78,44 @@ function AttentionItemsView({ visits }: { visits: PatientVisitRecord[] }) {
 /**
  * Recently added patient visit records.
  *
- * Server Component: fetches today's visits on the server during render and
- * shows the most recent ones, giving an at-a-glance view of who has been
- * encoded. Rendered inside a `<Suspense>` boundary on the dashboard, so the
- * spinner fallback lives with the boundary rather than in component state.
- * On fetch failure the empty state is shown.
+ * Client Component: fetches today's visits from the browser through the
+ * same-origin proxy (`/api/backend/...`), so the backend session cookie is
+ * attached automatically — the same path the working `/visit` page uses. This
+ * deliberately avoids fetching during server render, where the backend session
+ * cookie (scoped to `/api/backend`) is not sent with the page request and the
+ * call would 401, leaving this list permanently empty.
  */
-export async function AttentionItems() {
-  let visits: PatientVisitRecord[] = [];
-  try {
-    visits = (await getTodaysVisits()).slice(0, 6);
-  } catch {
-    visits = [];
+export function AttentionItems() {
+  const [visits, setVisits] = useState<PatientVisitRecord[] | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getTodaysVisits()
+      .then((data) => {
+        if (active) setVisits(data.slice(0, 6));
+      })
+      .catch((err) => {
+        console.error("[dashboard] getTodaysVisits failed:", err);
+        if (active) setVisits([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  if (visits === null) {
+    return (
+      <section>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Recent Visits
+          </h2>
+        </div>
+        <div className="flex items-center justify-center py-10 rounded-md border bg-card">
+          <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        </div>
+      </section>
+    );
   }
 
   return <AttentionItemsView visits={visits} />;

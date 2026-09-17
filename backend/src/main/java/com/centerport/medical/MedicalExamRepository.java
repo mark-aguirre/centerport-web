@@ -1,5 +1,6 @@
 package com.centerport.medical;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -39,4 +40,18 @@ public interface MedicalExamRepository extends JpaRepository<MedicalExam, UUID>,
      */
     @Query("SELECT COUNT(e) FROM MedicalExam e WHERE e.createdDate >= :since")
     long countCreatedSince(@Param("since") LocalDateTime since);
+
+    /**
+     * Finds the most recently created medical exams with their seafarer profile
+     * eagerly fetched, for the dashboard activity feed.
+     *
+     * The {@code JOIN FETCH} avoids a lazy-load per row when building activity
+     * descriptions. Ordering and the result limit are supplied by the caller via
+     * {@code pageable} (e.g. {@code PageRequest.of(0, n, Sort.by(DESC, "createdDate"))}).
+     *
+     * @param pageable paging/sort (typically page 0 with the desired limit)
+     * @return recent exams with profile loaded
+     */
+    @Query("SELECT e FROM MedicalExam e JOIN FETCH e.seafarerProfile")
+    List<MedicalExam> findRecentWithProfile(Pageable pageable);
 }

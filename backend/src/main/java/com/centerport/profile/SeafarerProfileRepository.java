@@ -1,10 +1,12 @@
 package com.centerport.profile;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,4 +42,14 @@ public interface SeafarerProfileRepository extends JpaRepository<SeafarerProfile
             @Param("lastName") String lastName,
             @Param("firstName") String firstName,
             @Param("birthdate") String birthdate);
+
+    /**
+     * Finds the most recently created/updated profiles for the dashboard
+     * activity feed. Ordering and result limit are supplied by the caller via
+     * {@code pageable} (e.g. {@code PageRequest.of(0, n, Sort.by(DESC, "createdDate"))}).
+     *
+     * @param pageable paging/sort (typically page 0 with the desired limit)
+     * @return the requested page of profiles as a list
+     */
+    List<SeafarerProfile> findBy(Pageable pageable);
 }

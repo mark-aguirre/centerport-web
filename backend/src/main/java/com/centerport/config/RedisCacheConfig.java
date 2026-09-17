@@ -41,6 +41,7 @@ import java.time.Duration;
  * Cache names:
  * <ul>
  *   <li>{@code dashboardStats} — aggregated dashboard counts, refreshed every 5 minutes</li>
+ *   <li>{@code dashboardActivity} — recent-activity feed, refreshed every 5 minutes</li>
  * </ul>
  *
  * @see com.centerport.dashboard.DashboardService
@@ -52,6 +53,9 @@ public class RedisCacheConfig implements CachingConfigurer {
 
     /** Cache name for aggregated dashboard statistics. */
     public static final String DASHBOARD_STATS_CACHE = "dashboardStats";
+
+    /** Cache name for the dashboard recent-activity feed. */
+    public static final String DASHBOARD_ACTIVITY_CACHE = "dashboardActivity";
 
     // ----- Profile-linked module caches (single item keyed by UUID) -----
     public static final String LAB_REPORT_CACHE = "labReport";
@@ -85,6 +89,7 @@ public class RedisCacheConfig implements CachingConfigurer {
 
     private static final Duration DEFAULT_TTL = Duration.ofMinutes(10);
     private static final Duration DASHBOARD_STATS_TTL = Duration.ofMinutes(5);
+    private static final Duration DASHBOARD_ACTIVITY_TTL = Duration.ofMinutes(5);
     private static final Duration DOMAIN_TTL = Duration.ofMinutes(15);
 
     /**
@@ -118,6 +123,8 @@ public class RedisCacheConfig implements CachingConfigurer {
         return builder -> {
             builder.withCacheConfiguration(DASHBOARD_STATS_CACHE,
                     cacheConfiguration().entryTtl(DASHBOARD_STATS_TTL));
+            builder.withCacheConfiguration(DASHBOARD_ACTIVITY_CACHE,
+                    cacheConfiguration().entryTtl(DASHBOARD_ACTIVITY_TTL));
             for (String cache : DOMAIN_CACHES) {
                 builder.withCacheConfiguration(cache,
                         cacheConfiguration().entryTtl(DOMAIN_TTL));

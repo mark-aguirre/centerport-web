@@ -1,5 +1,6 @@
 package com.centerport.landbase;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -49,4 +50,14 @@ public interface LandbasePemeRepository extends JpaRepository<LandbasePeme, UUID
      */
     @Query("SELECT COUNT(p) FROM LandbasePeme p WHERE p.createdDate >= :since")
     long countCreatedSince(@Param("since") LocalDateTime since);
+
+    /**
+     * Finds the most recently created landbase PEMEs with their seafarer profile
+     * eagerly fetched, for the dashboard activity feed.
+     *
+     * @param pageable paging/sort (typically page 0 with the desired limit)
+     * @return recent PEMEs with profile loaded
+     */
+    @Query("SELECT p FROM LandbasePeme p JOIN FETCH p.seafarerProfile")
+    List<LandbasePeme> findRecentWithProfile(Pageable pageable);
 }

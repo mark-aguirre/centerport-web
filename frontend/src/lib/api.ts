@@ -182,6 +182,21 @@ export interface DashboardStats {
   vessels_in_port: number;
 }
 
+/**
+ * A single dashboard "Recent Activity" item from the backend.
+ *
+ * Aggregated across heterogeneous domain records (visits, medical exams,
+ * PEMEs, certificates, MLC records, profiles). `type` is a stable machine key
+ * the UI maps to an icon; `timestamp` is an ISO-8601 datetime string.
+ */
+export interface ActivityItem {
+  type: string;
+  title: string;
+  description: string;
+  business_id: string | null;
+  timestamp: string;
+}
+
 // ===================================================================
 // Shared Helpers — eliminates repeated sort-parsing and filter logic
 // ===================================================================
@@ -441,6 +456,11 @@ export const api = {
     /** Fetch aggregated dashboard statistics. */
     async getStats(): Promise<DashboardStats> {
       return httpClient.get<DashboardStats>("/api/dashboard/stats");
+    },
+
+    /** Fetch the recent-activity feed (newest first). */
+    async getActivity(): Promise<ActivityItem[]> {
+      return httpClient.get<ActivityItem[]>("/api/dashboard/activity");
     },
   },
   /**

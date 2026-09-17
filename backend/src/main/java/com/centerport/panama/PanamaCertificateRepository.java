@@ -1,5 +1,6 @@
 package com.centerport.panama;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -48,4 +49,14 @@ public interface PanamaCertificateRepository extends JpaRepository<PanamaCertifi
      */
     @Query("SELECT COUNT(p) FROM PanamaCertificate p WHERE p.labTests IS NOT NULL AND p.createdDate >= :since AND p.fitnessLookout IS NULL")
     long countPendingLabTests(@Param("since") LocalDateTime since);
+
+    /**
+     * Finds the most recently created Panama certificates with their seafarer
+     * profile eagerly fetched, for the dashboard activity feed.
+     *
+     * @param pageable paging/sort (typically page 0 with the desired limit)
+     * @return recent certificates with profile loaded
+     */
+    @Query("SELECT p FROM PanamaCertificate p JOIN FETCH p.seafarerProfile")
+    List<PanamaCertificate> findRecentWithProfile(Pageable pageable);
 }

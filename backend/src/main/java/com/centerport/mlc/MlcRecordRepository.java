@@ -1,5 +1,6 @@
 package com.centerport.mlc;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -49,4 +50,14 @@ public interface MlcRecordRepository extends JpaRepository<MlcRecord, UUID>,
      */
     @Query("SELECT COUNT(DISTINCT m.vesselName) FROM MlcRecord m WHERE m.vesselName IS NOT NULL AND m.createdDate >= :since")
     long countDistinctVesselsCreatedSince(@Param("since") LocalDateTime since);
+
+    /**
+     * Finds the most recently created MLC records with their seafarer profile
+     * eagerly fetched, for the dashboard activity feed.
+     *
+     * @param pageable paging/sort (typically page 0 with the desired limit)
+     * @return recent MLC records with profile loaded
+     */
+    @Query("SELECT m FROM MlcRecord m JOIN FETCH m.seafarerProfile")
+    List<MlcRecord> findRecentWithProfile(Pageable pageable);
 }

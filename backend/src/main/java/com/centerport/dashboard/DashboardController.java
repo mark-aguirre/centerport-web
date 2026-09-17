@@ -10,11 +10,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * REST controller exposing aggregated dashboard statistics.
  *
- * Single endpoint at {@code GET /api/dashboard/stats} returns
- * operational counts for the main dashboard display.
+ * Exposes {@code GET /api/dashboard/stats} for operational counts and
+ * {@code GET /api/dashboard/activity} for the recent-activity feed on the
+ * main dashboard display.
  */
 @RestController
 @RequestMapping("/api/dashboard")
@@ -38,5 +41,25 @@ public class DashboardController {
     public ResponseEntity<ApiResponse<DashboardStatsDto>> getStats() {
         DashboardStatsDto stats = service.getStats();
         return ResponseEntity.ok(ApiResponse.success(stats));
+    }
+
+    /**
+     * Returns the recent-activity feed for the operational dashboard.
+     *
+     * Aggregates the newest records across patient visits, medical exams,
+     * landbase PEMEs, Panama certificates, MLC records, and seafarer profiles,
+     * newest first.
+     *
+     * @return the recent activity items
+     */
+    @GetMapping("/activity")
+    @Operation(summary = "Get dashboard recent activity",
+               description = "Returns the most recent records across visits, medical exams, landbase PEMEs, Panama certificates, MLC records, and profiles, newest first.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Activity retrieved")
+    })
+    public ResponseEntity<ApiResponse<List<ActivityItemDto>>> getActivity() {
+        List<ActivityItemDto> activity = service.getRecentActivity();
+        return ResponseEntity.ok(ApiResponse.success(activity));
     }
 }

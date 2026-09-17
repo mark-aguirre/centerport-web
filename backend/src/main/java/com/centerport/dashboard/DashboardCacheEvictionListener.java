@@ -42,10 +42,21 @@ public class DashboardCacheEvictionListener {
      */
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onDomainEvent(DomainEvent event) {
-        var cache = cacheManager.getCache(RedisCacheConfig.DASHBOARD_STATS_CACHE);
+        evict(RedisCacheConfig.DASHBOARD_STATS_CACHE, event);
+        evict(RedisCacheConfig.DASHBOARD_ACTIVITY_CACHE, event);
+    }
+
+    /**
+     * Clears a single named cache, tolerating a missing cache.
+     *
+     * @param cacheName the cache to clear
+     * @param event     the committed event (for logging context)
+     */
+    private void evict(String cacheName, DomainEvent event) {
+        var cache = cacheManager.getCache(cacheName);
         if (cache != null) {
             cache.clear();
-            log.debug("Evicted dashboardStats cache after {}", event.getEventType());
+            log.debug("Evicted {} cache after {}", cacheName, event.getEventType());
         }
     }
 }

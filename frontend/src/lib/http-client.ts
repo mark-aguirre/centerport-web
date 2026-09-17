@@ -22,6 +22,43 @@
  */
 const BASE_URL = "/api/backend";
 
+/** True when this module is executing on the server (no browser `window`). */
+const IS_SERVER = typeof window === "undefined";
+
+/**
+ * Resolves the request URL and headers for the current runtime.
+ *
+ * In the browser, requests go through the same-origin proxy at `/api/backend`
+ * using a relative URL — the browser resolves it against the current origin and
+ * automatically attaches the session cookie.
+ *
+ * On the server (Server Components / Route Handlers), a relative URL has no
+ * origin to resolve against and `fetch` would throw, and the browser's session
+ * cookie is not attached automatically. So we bypass the proxy hop and call the
+ * backend directly via the server-only `BACKEND_API_URL`, forwarding the
+ * incoming request's cookies so the backend session is preserved. The backend
+ * path is used as-is (the `/api/backend` proxy prefix is a browser-only mount).
+ */
+async function resolveTarget(
+  path: string
+): Promise<{ url: string; headers: Record<string, string> }> {
+  if (!IS_SERVER) {
+    return { url: `${BASE_URL}${path}`, headers: {} };
+  }
+
+  const backendUrl = process.env.BACKEND_API_URL ?? "INVALID_BACKEND_API_URL";
+
+  // Forward the incoming request's cookies so the backend session is preserved
+  // during server-side rendering. `next/headers` is imported lazily so this
+  // server-only dependency never enters a client bundle.
+  const { cookies } = await import("next/headers");
+  const cookieHeader = (await cookies()).toString();
+  const headers: Record<string, string> = {};
+  if (cookieHeader) headers.cookie = cookieHeader;
+
+  return { url: `${backendUrl}${path}`, headers };
+}
+
 /**
  * Handles an expired / missing backend session (HTTP 401).
  *
@@ -140,7 +177,8 @@ async function request<T>(
   const { body, params, headers: customHeaders, ...rest } = options;
 
   // Build URL with query params
-  let url = `${BASE_URL}${path}`;
+  const target = await resolveTarget(path);
+  let url = target.url;
   if (params) {
     const searchParams = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
@@ -155,6 +193,7 @@ async function request<T>(
   const headers: HeadersInit = {
     "Content-Type": "application/json",
     Accept: "application/json",
+    ...target.headers,
     ...customHeaders,
   };
 
@@ -182,7 +221,7 @@ async function uploadFile(
   path: string,
   file: File
 ): Promise<{ file_url: string }> {
-  const url = `${BASE_URL}${path}`;
+  const { url } = await resolveTarget(path);
   const formData = new FormData();
   formData.append("file", file);
 
@@ -206,7 +245,7 @@ async function uploadFile(
  * Falls back to triggering a file download if the browser blocks the popup.
  */
 async function downloadPdf(path: string, filename?: string): Promise<void> {
-  const url = `${BASE_URL}${path}`;
+  const { url } = await resolveTarget(path);
 
   const response = await fetch(url, {
     method: "GET",
