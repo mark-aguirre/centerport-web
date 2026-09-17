@@ -28,6 +28,7 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
         title="III Statement"
         icon={FileSignature}
         subtitle="Certification and authorization"
+        banner
       />
 
       {/* Intro text */}

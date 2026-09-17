@@ -56,6 +56,7 @@ export default function ClinicalChemistrySection({
       <SectionHeader
         title="Clinical Chemistry and Serology/Immunology"
         icon={FlaskConical}
+        banner
         action={
           <div className="flex items-center gap-2">
             <Button

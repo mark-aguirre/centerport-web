@@ -77,6 +77,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
         icon={ShieldCheck}
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         titleStyle={{ textTransform: "none" }}
+        banner
       />
 
       {/* Assessment declaration and fitness table */}

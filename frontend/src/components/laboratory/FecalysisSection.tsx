@@ -56,6 +56,7 @@ export default function FecalysisSection({
       <SectionHeader
         title="Fecalysis"
         icon={Microscope}
+        banner
         action={
           <div className="flex items-center gap-2">
             <Button

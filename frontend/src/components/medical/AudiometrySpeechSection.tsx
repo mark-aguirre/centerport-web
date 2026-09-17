@@ -88,7 +88,7 @@ export function AudiometrySpeechSection({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="flex items-center justify-between border-b border-primary/20 px-3 py-1.5">
+      <div className="flex items-center justify-between border-b border-primary/20 bg-primary/12 px-3 py-1.5">
         <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
           Audiometry &amp; Speech
         </h2>

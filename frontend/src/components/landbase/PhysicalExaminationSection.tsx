@@ -349,7 +349,7 @@ export default function PhysicalExaminationSection({
   return (
     <section className="overflow-x-auto rounded-lg border border-primary/20 bg-card shadow-sm">
       <div className="min-w-[1000px]">
-        <div className="flex items-center gap-2 border-b border-primary/20 px-2 py-1.5">
+        <div className="flex items-center gap-2 border-b border-primary/20 bg-primary/12 px-2 py-1.5">
           <h2 className="shrink-0 text-sm font-bold uppercase tracking-wide text-primary">
             II. Physical Examination -
           </h2>

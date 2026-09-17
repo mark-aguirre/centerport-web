@@ -63,7 +63,7 @@ export default function RecommendationSection({
 
   return (
     <div className="overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm">
-      <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[190px_minmax(0,1fr)_auto] sm:items-center">
+      <div className="grid grid-cols-1 gap-2 border-b border-primary/20 bg-primary/12 px-3 py-2 sm:grid-cols-[190px_minmax(0,1fr)_auto] sm:items-center">
         <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
           V. Recommendation:
         </h2>

@@ -147,7 +147,7 @@ export function AncillaryExamsSection({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="flex flex-col gap-1 border-b border-primary/20 px-3 py-2 sm:flex-row sm:items-baseline">
+      <div className="flex flex-col gap-1 border-b border-primary/20 bg-primary/12 px-3 py-2 sm:flex-row sm:items-baseline">
         <h2 className="shrink-0 text-sm font-bold uppercase tracking-wide text-primary">
           III. Result of Ancillary Examinations.
         </h2>

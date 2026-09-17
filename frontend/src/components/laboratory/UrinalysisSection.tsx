@@ -56,6 +56,7 @@ export default function UrinalysisSection({
       <SectionHeader
         title="Urinalysis"
         icon={Beaker}
+        banner
         action={
           <div className="flex items-center gap-2">
             <Button

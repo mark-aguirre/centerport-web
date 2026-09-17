@@ -130,7 +130,9 @@ export default function PersonalityTraitsSection({
       <SectionHeader
         title="II. Personality Traits and Characteristics"
         icon={Users}
-        className="mb-2 pb-1.5"
+        banner
+        bannerInset="p-3"
+        className="mb-2"
         action={<SetNormalButton onClick={handleSetNormal} readOnly={disabled} />}
       />
 

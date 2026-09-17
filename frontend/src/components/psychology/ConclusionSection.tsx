@@ -39,7 +39,7 @@ export default function ConclusionSection({
 
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
-      <SectionHeader title="III. Conclusion / Remarks" icon={FileCheck} />
+      <SectionHeader title="III. Conclusion / Remarks" icon={FileCheck} banner />
 
       {/* Conclusion radio options */}
       <div

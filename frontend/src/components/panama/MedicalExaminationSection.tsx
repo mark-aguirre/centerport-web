@@ -160,6 +160,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
         icon={Stethoscope}
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         titleStyle={{ textTransform: "none" }}
+        banner
       />
 
       {/* ===== i. Clinical Data ===== */}

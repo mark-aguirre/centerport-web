@@ -254,7 +254,7 @@ export default function PastMedicalHistorySection({
           action={
             <SetNormalButton onClick={handleSetNormal} readOnly={disabled} />
           }
-          className="mb-0 px-2 py-1.5"
+          className="mb-0 bg-primary/12 px-2 py-1.5"
         />
 
         <div className="grid min-w-[960px] grid-cols-3">

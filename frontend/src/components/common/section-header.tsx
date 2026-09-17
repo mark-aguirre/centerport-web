@@ -17,7 +17,28 @@ interface SectionHeaderProps {
   subtitle?: string;
   /** Optional action slot rendered on the right side of the header (e.g. "Set Normal" button) */
   action?: React.ReactNode;
+  /**
+   * Render the header as a tinted, two-tone banner band that spans the full
+   * width of the parent card (instead of the default underline-only style).
+   *
+   * The band uses a subtle `bg-primary/12` fill with a solid-primary icon chip,
+   * keeping the app's two-tone palette. It bleeds to the card edges using
+   * negative margins, so it must match the parent card's padding — pass that
+   * padding via `bannerInset` (defaults to `"p-4"`).
+   */
+  banner?: boolean;
+  /**
+   * Padding of the parent card, used to size the banner's edge bleed so the
+   * band aligns with the card corners. Only applies when `banner` is set.
+   */
+  bannerInset?: "p-3" | "p-4";
 }
+
+/** Negative-margin bleed + top-radius per supported card padding. */
+const bannerInsetStyles: Record<NonNullable<SectionHeaderProps["bannerInset"]>, string> = {
+  "p-3": "-mx-3 -mt-3 px-3 py-2 rounded-t-lg",
+  "p-4": "-mx-4 -mt-4 px-4 py-2.5 rounded-t-xl",
+};
 
 /**
  * Section divider with icon and title for form cards.
@@ -44,15 +65,34 @@ export function SectionHeader({
   titleStyle,
   subtitle,
   action,
+  banner,
+  bannerInset = "p-4",
 }: SectionHeaderProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 mb-3 pb-2 border-b border-primary/20",
+        "flex items-center gap-2",
+        banner
+          ? cn(
+              "mb-3 bg-primary/12 border-b border-primary/20",
+              bannerInsetStyles[bannerInset]
+            )
+          : "mb-3 pb-2 border-b border-primary/20",
         className
       )}
     >
-      {Icon && <Icon className="w-4 h-4 text-primary" />}
+      {Icon && (
+        <span
+          className={cn(
+            "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
+            banner
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "bg-primary/10 text-primary ring-1 ring-primary/15"
+          )}
+        >
+          <Icon className="w-3.5 h-3.5" />
+        </span>
+      )}
       <div className="flex items-baseline gap-2 flex-1">
         <h2 className={cn("text-xs font-bold text-primary uppercase tracking-widest", titleClassName)} style={titleStyle}>
           {title}

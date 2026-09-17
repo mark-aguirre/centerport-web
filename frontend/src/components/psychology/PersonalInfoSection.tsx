@@ -57,7 +57,7 @@ function ReadOnlyField({
 export default function PsychologyPersonalInfoSection({ data }: PsychologySectionProps) {
   return (
     <section className="overflow-hidden rounded-lg border border-primary/20 bg-card p-3 shadow-sm">
-      <SectionHeader title="Patient Information" className="mb-2 pb-1.5" />
+      <SectionHeader title="Patient Information" banner bannerInset="p-3" className="mb-2" />
 
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-2 gap-y-2 md:grid-cols-[auto_minmax(0,1fr)_auto_minmax(0,1fr)] xl:grid-cols-[auto_minmax(16rem,3.8fr)_auto_minmax(6.5rem,1.35fr)_auto_minmax(3.5rem,0.7fr)_auto_minmax(6rem,1.25fr)]">
         <ReadOnlyField label="Name" value={formatFullName(data)} />

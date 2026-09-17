@@ -95,9 +95,9 @@ export function FinalRecommendationSection({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="flex flex-col gap-2 border-b border-primary/20 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="grid flex-1 grid-cols-1 gap-2 sm:grid-cols-[165px_minmax(260px,360px)] sm:items-center">
-          <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
+      <div className="flex flex-col gap-2 border-b border-primary/20 bg-primary/12 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <h2 className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-primary">
             IV. Final Recommendation:
           </h2>
           <FormSelect
@@ -106,6 +106,7 @@ export function FinalRecommendationSection({
             onChange={(value) => update("final_recommendation", value)}
             options={FINAL_RECOMMENDATION_OPTIONS}
             disabled={disabled}
+            className="w-full sm:w-[260px]"
           />
         </div>
         <SetNormalButton

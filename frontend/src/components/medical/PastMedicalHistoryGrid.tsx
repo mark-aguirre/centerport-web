@@ -233,7 +233,7 @@ export function PastMedicalHistoryGrid({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="flex flex-col gap-2 border-b border-primary/20 px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 border-b border-primary/20 bg-primary/12 px-2 py-1.5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline">
           <h2 className="shrink-0 text-sm font-bold uppercase tracking-wide text-primary">
             I. Past Medical History.

@@ -304,6 +304,7 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
         subtitle="Have you ever had any of the following conditions?"
         className="mb-6"
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+        banner
       />
 
       {/* Declaration conditions — 1–21 left, 22–41 right */}

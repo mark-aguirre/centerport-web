@@ -103,8 +103,8 @@ export function VisionSection({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="relative flex items-center justify-center border-b border-primary/20 bg-muted px-3 py-1.5">
-        <span className="text-sm font-bold uppercase tracking-widest text-foreground">
+      <div className="relative flex items-center justify-center border-b border-primary/20 bg-primary/12 px-3 py-1.5">
+        <span className="text-sm font-bold uppercase tracking-widest text-primary">
           Vision
         </span>
         <SetNormalButton

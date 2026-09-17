@@ -22,8 +22,8 @@ export default function EducationSection({
   const update = createFieldUpdater(data, onChange);
 
   return (
-    <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
-      <SectionHeader title="Educational History" icon={GraduationCap} />
+    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
+      <SectionHeader title="Educational History" icon={GraduationCap} banner />
       <div className="grid grid-cols-2 gap-2">
         <FormField
           label="Elementary"

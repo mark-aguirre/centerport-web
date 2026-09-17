@@ -131,6 +131,7 @@ export default function DeclarationSection({
         title="Declaration of the Authorized Physician"
         icon={ClipboardCheck}
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+        banner
       />
 
       <div className="space-y-3">

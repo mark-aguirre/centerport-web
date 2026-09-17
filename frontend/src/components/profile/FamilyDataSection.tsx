@@ -20,8 +20,8 @@ export default function FamilyDataSection({
   const update = createFieldUpdater(data, onChange);
 
   return (
-    <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
-      <SectionHeader title="Family Data" icon={Users} />
+    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
+      <SectionHeader title="Family Data" icon={Users} banner />
       <div className="space-y-2">
         <div className="grid grid-cols-4 gap-2">
           <FormField

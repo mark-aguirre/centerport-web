@@ -188,7 +188,7 @@ export default function QuestionnaireSection({
   return (
     <section className="overflow-x-auto rounded-lg border border-primary/20 bg-card shadow-sm">
       <div className="min-w-[960px]">
-        <div className="grid grid-cols-[24px_minmax(0,1fr)_72px_minmax(260px,0.9fr)] items-center gap-2 border-b border-primary/20 px-2 py-1.5">
+        <div className="grid grid-cols-[24px_minmax(0,1fr)_72px_minmax(260px,0.9fr)] items-center gap-2 border-b border-primary/20 bg-primary/12 px-2 py-1.5">
           <h2 className="col-span-2 text-sm font-bold text-primary">
             Please select on the appropriate box.
           </h2>

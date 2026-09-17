@@ -33,7 +33,7 @@ export default function IntellectualLevelSection({
 
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
-      <SectionHeader title="I. Intellectual Level" icon={BrainCircuit} />
+      <SectionHeader title="I. Intellectual Level" icon={BrainCircuit} banner />
       <RadioGroup
         name="intellectual_level"
         value={data.intellectual_level}

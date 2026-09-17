@@ -164,7 +164,13 @@ export function PersonalInfoSection<T extends object = Record<string, string>>({
   return (
     <div className="overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm">
       <div className="px-3 pt-3">
-        <SectionHeader title="Personal Information" icon={User} subtitle={subtitle} />
+        <SectionHeader
+          title="Personal Information"
+          icon={User}
+          subtitle={subtitle}
+          banner
+          bannerInset="p-3"
+        />
       </div>
 
       <div className="px-3 pb-3">

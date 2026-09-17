@@ -68,6 +68,7 @@ export default function FinalRecommendationSection({
         title="Final Recommendation"
         icon={Award}
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
+        banner
       />
       <div className="space-y-2">
         {/* Row 1: Fitness Determination */}

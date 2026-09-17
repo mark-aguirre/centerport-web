@@ -137,7 +137,7 @@ export function FitnessAssessmentSection({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="border-b border-primary/20 px-3 py-2">
+      <div className="border-b border-primary/20 bg-primary/12 px-3 py-2">
         <div className="flex items-start justify-between gap-2">
           <h2 className="text-sm font-bold text-primary">
             Assessments of Fitness for service at Sea.
@@ -149,8 +149,10 @@ export function FitnessAssessmentSection({
           examination and the diagnostic test result recorded above, I declare
           the examinee medically:
         </p>
+      </div>
 
-        <div className="mt-3 grid grid-cols-1 gap-x-12 gap-y-3 px-3 md:grid-cols-2">
+      <div className="border-b border-primary/20 px-3 py-3">
+        <div className="grid grid-cols-1 gap-x-12 gap-y-3 px-3 md:grid-cols-2">
           <FitnessChoice
             label="Deck Services"
             name="fitness-deck-services"

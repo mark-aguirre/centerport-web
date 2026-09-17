@@ -25,10 +25,11 @@ export default function WorkExperienceSection({
   const update = createFieldUpdater(data, onChange);
 
   return (
-    <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
+    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
       <SectionHeader
         title="Previous Work Experience (Last Vessel Only)"
         icon={Briefcase}
+        banner
       />
       <div className="space-y-2">
         <div className="grid grid-cols-5 gap-2">
@@ -83,7 +84,7 @@ export default function WorkExperienceSection({
           />
         </div>
         <div className="space-y-0.5">
-          <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
+          <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
             Remarks
           </Label>
           <Textarea

@@ -89,6 +89,7 @@ export default function GeneralInfoSection({
         title="I. General Information"
         icon={Info}
         subtitle="Seafarer identity and assignment details"
+        banner
       />
 
       <div className="divide-y divide-primary/10">

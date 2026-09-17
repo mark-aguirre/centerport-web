@@ -39,8 +39,8 @@ export default function PersonalInfoSection({
   };
 
   return (
-    <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
-      <SectionHeader title="Personal Information" icon={User} />
+    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
+      <SectionHeader title="Personal Information" icon={User} banner />
       <div className="flex gap-4">
         <PhotoUpload
           photoUrl={data.photo_url}

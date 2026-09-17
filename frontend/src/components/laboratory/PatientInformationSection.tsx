@@ -57,7 +57,7 @@ export default function PatientInformationSection({
 
   return (
     <div className="bg-card rounded-lg p-3 shadow-sm border border-primary/10">
-      <SectionHeader title="Patient Information" icon={User} />
+      <SectionHeader title="Patient Information" icon={User} banner bannerInset="p-3" />
 
       {/* Patient Demographics — inline label + input, grid-aligned rows */}
       <div className="grid grid-cols-[auto_1fr_auto_1fr_auto_auto_auto_auto] gap-x-2 gap-y-2 mb-4 items-center">

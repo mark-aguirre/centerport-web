@@ -159,6 +159,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
         subtitle="at medical discretion"
         action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         titleStyle={{ textTransform: "none" }}
+        banner
       />
 
       {/* Laboratory Test heading */}

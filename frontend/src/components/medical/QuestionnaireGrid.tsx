@@ -167,7 +167,7 @@ export function QuestionnaireGrid({
     >
       <div className="overflow-x-auto">
         <div className="min-w-[900px]">
-          <div className="grid grid-cols-[minmax(0,1fr)_56px_56px_minmax(280px,0.78fr)] items-center gap-1 border-b border-primary/20 px-1.5 py-1.5">
+          <div className="grid grid-cols-[minmax(0,1fr)_56px_56px_minmax(280px,0.78fr)] items-center gap-1 border-b border-primary/20 bg-primary/12 px-1.5 py-1.5">
             <span className="text-xs font-bold text-foreground/90">
               Please select on the appropriate box.
             </span>

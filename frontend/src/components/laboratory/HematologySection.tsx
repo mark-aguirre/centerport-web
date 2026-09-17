@@ -56,6 +56,7 @@ export default function HematologySection({
       <SectionHeader
         title="Laboratory Report (Hematology)"
         icon={Droplets}
+        banner
         action={
           <div className="flex items-center gap-2">
             <Button

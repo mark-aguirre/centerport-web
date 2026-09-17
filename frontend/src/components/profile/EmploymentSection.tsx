@@ -24,8 +24,8 @@ export default function EmploymentSection({
   const employers = useEmployers();
 
   return (
-    <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
-      <SectionHeader title="Employment Details" icon={Anchor} />
+    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
+      <SectionHeader title="Employment Details" icon={Anchor} banner />
       <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2">
           <FormAutocomplete
