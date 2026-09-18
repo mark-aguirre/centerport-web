@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { api } from "@/lib/api";
@@ -36,6 +36,11 @@ export interface UseTransactionFormResult {
   defaultProfessionalFee: number;
   setDefaultProfessionalFee: (value: number) => void;
 
+  /** The full product catalog for the POS card grid. */
+  catalog: Product[];
+  /** True while the catalog is loading. */
+  catalogLoading: boolean;
+
   /** Append a product to the transaction items (inherits current defaults). */
   addProduct: (product: Product) => void;
   /** Replace an item (from the edit dialog). */
@@ -70,6 +75,32 @@ export function useTransactionForm(): UseTransactionFormResult {
   const [transaction, setTransaction] = useState<Transaction>(EMPTY_TRANSACTION);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [settling, setSettling] = useState(false);
+  const [catalog, setCatalog] = useState<Product[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+
+  // Load the product catalog once for the POS card grid. An empty keyword
+  // returns all active products from the backend search endpoint.
+  useEffect(() => {
+    let cancelled = false;
+    setCatalogLoading(true);
+    api.entities.Product.search("", 200)
+      .then((products) => {
+        if (!cancelled) setCatalog(products);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          toast.error(
+            err instanceof ApiError ? err.message : "Failed to load products"
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setCatalogLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const selectCustomer = useCallback((next: Customer) => {
     setCustomer(next);
@@ -179,6 +210,8 @@ export function useTransactionForm(): UseTransactionFormResult {
   return {
     transaction,
     customer,
+    catalog,
+    catalogLoading,
     selectCustomer,
     defaultBillingType: transaction.default_billing_type,
     setDefaultBillingType,

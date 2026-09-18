@@ -59,6 +59,56 @@ export interface Product {
 }
 
 /**
+ * Product catalog category used by the POS card grid's category rail.
+ *
+ * The backend catalog has no dedicated category column yet, so categories are
+ * derived client-side from the product name/description via
+ * {@link classifyProduct}. `ALL` is a virtual bucket used only by the filter UI.
+ */
+export type ProductCategory = "MEDICAL" | "LABS" | "X-RAY" | "OTHER";
+
+/** Category filter values for the POS rail (includes the virtual "ALL"). */
+export const PRODUCT_CATEGORY_FILTERS = [
+  "ALL",
+  "MEDICAL",
+  "LABS",
+  "X-RAY",
+  "OTHER",
+] as const;
+
+export type ProductCategoryFilter = (typeof PRODUCT_CATEGORY_FILTERS)[number];
+
+/**
+ * Derives a display category for a product from its name/description.
+ *
+ * This is a heuristic classifier used purely for the POS category rail while
+ * the catalog lacks a first-class category column. Matching is case-insensitive
+ * and falls back to `OTHER` when nothing matches.
+ */
+export function classifyProduct(product: Pick<Product, "name" | "description">): ProductCategory {
+  const haystack = `${product.name} ${product.description ?? ""}`.toLowerCase();
+
+  if (/(x-?ray|radiograph|chest\s*pa|imaging|ultrasound|ecg|ekg)/.test(haystack)) {
+    return "X-RAY";
+  }
+  if (
+    /(lab|laborator|blood|urin|stool|fecal|serolog|cbc|drug\s*test|hepatitis|hiv|panel|specimen)/.test(
+      haystack
+    )
+  ) {
+    return "LABS";
+  }
+  if (
+    /(medical|physical|exam|peme|certificate|consult|vaccin|immuniz|dental|vision|hearing|fit\s*to\s*work)/.test(
+      haystack
+    )
+  ) {
+    return "MEDICAL";
+  }
+  return "OTHER";
+}
+
+/**
  * A single line in a transaction. Stores *snapshots* of the product's price and
  * description at the time it was added, so historical transactions stay accurate
  * even if the product master later changes. See `ToDo/Transaction.md` §14–§15.

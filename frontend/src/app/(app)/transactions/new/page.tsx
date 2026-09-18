@@ -1,58 +1,34 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import {
-  CheckCircle2,
-  PackagePlus,
-  Pencil,
-  Receipt,
-  Trash2,
-  User,
-  X,
-} from "lucide-react";
+import { useMemo, useState } from "react";
+import { Search, UserPlus } from "lucide-react";
 
 import { PageContainer } from "@/components/common/page-container";
-import { PageTitle } from "@/components/common/page-title";
-import { SectionHeader } from "@/components/common/section-header";
-import { FormSelect } from "@/components/common/form-select";
-import { FormField } from "@/components/common/form-field";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { EmptyStateCard } from "@/components/common/empty-state-card";
+import { Input } from "@/components/ui/input";
 import { SearchSelect } from "@/components/transaction/SearchSelect";
-import { TransactionItemDialog } from "@/components/transaction/TransactionItemDialog";
 import { SettleDialog } from "@/components/transaction/SettleDialog";
+import { PosCategoryRail } from "@/components/transaction/pos/PosCategoryRail";
+import { PosProductGrid } from "@/components/transaction/pos/PosProductGrid";
+import { PosCartPanel } from "@/components/transaction/pos/PosCartPanel";
 import { useTransactionForm } from "@/hooks/use-transaction-form";
 import { api } from "@/lib/api";
-import { formatPeso, parsePeso } from "@/lib/format";
 import {
-  BILLING_TYPES,
-  itemDisplayDescription,
-  type BillingType,
+  classifyProduct,
+  PRODUCT_CATEGORY_FILTERS,
   type Customer,
-  type Product,
-  type TransactionItem,
+  type ProductCategoryFilter,
 } from "@/components/transaction/types";
 
-const headerClass =
-  "text-[11px] font-bold text-primary/70 uppercase tracking-wider";
-
 /**
- * New Transaction page — the POS-style transaction workspace.
+ * New Transaction — counter POS workspace.
  *
- * Select a customer, add products as item snapshots, tune per-item details,
- * review totals, and settle. Cancel discards the in-progress draft. The page is
- * a Client Component; it does not read `useSearchParams`, so no Suspense
- * boundary is required.
+ * A point-of-sale layout: a searchable, category-filtered product card grid on
+ * the left and a persistent cart/order panel on the right. Pick a client, tap
+ * products to add them as line items, tune the billing type and professional
+ * fee, then settle. The page is a Client Component and does not read
+ * `useSearchParams`, so no Suspense boundary is required.
  */
 export default function NewTransactionPage() {
   const router = useRouter();
@@ -60,11 +36,9 @@ export default function NewTransactionPage() {
   const {
     transaction,
     customer,
+    catalog,
+    catalogLoading,
     selectCustomer,
-    defaultBillingType,
-    setDefaultBillingType,
-    defaultProfessionalFee,
-    setDefaultProfessionalFee,
     addProduct,
     updateItem,
     removeItem,
@@ -72,13 +46,42 @@ export default function NewTransactionPage() {
     canSettle,
     settling,
     settle,
+    reset,
   } = form;
 
-  const [editingItem, setEditingItem] = useState<TransactionItem | null>(null);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState<ProductCategoryFilter>("ALL");
   const [settleOpen, setSettleOpen] = useState(false);
-  const [cancelOpen, setCancelOpen] = useState(false);
+  const [voidOpen, setVoidOpen] = useState(false);
 
   const hasCustomer = !!transaction.customer_id;
+
+  // Per-category product counts drive which rail buttons are shown.
+  const counts = useMemo(() => {
+    const base = Object.fromEntries(
+      PRODUCT_CATEGORY_FILTERS.map((c) => [c, 0])
+    ) as Record<ProductCategoryFilter, number>;
+    base.ALL = catalog.length;
+    for (const product of catalog) {
+      base[classifyProduct(product)] += 1;
+    }
+    return base;
+  }, [catalog]);
+
+  // Products filtered by the active category and the search box.
+  const filteredProducts = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+    return catalog.filter((product) => {
+      const inCategory = category === "ALL" || classifyProduct(product) === category;
+      if (!inCategory) return false;
+      if (!keyword) return true;
+      return (
+        product.name.toLowerCase().includes(keyword) ||
+        (product.description ?? "").toLowerCase().includes(keyword) ||
+        (product.product_id ?? "").toLowerCase().includes(keyword)
+      );
+    });
+  }, [catalog, category, search]);
 
   const handleConfirmSettle = async () => {
     const settled = await settle();
@@ -88,206 +91,62 @@ export default function NewTransactionPage() {
     }
   };
 
+  const handleVoid = () => {
+    if (transaction.items.length === 0 && !hasCustomer) {
+      router.push("/transactions");
+      return;
+    }
+    setVoidOpen(true);
+  };
+
   return (
-    <PageContainer className="max-w-5xl">
-      <div className="flex items-start justify-between gap-4">
-        <PageTitle
-          title="New Transaction"
-          description="Build a point-of-sale transaction, then settle it."
+    <PageContainer className="max-w-none">
+      <div className="grid h-[calc(100vh-8rem)] grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
+        {/* Left: search + category rail + product grid */}
+        <div className="flex min-h-0 flex-col gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search services or codes..."
+              aria-label="Search products"
+              className="h-11 w-full pl-10 text-sm"
+            />
+          </div>
+
+          <div className="flex min-h-0 flex-1 gap-4">
+            <PosCategoryRail active={category} onChange={setCategory} counts={counts} />
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              {!hasCustomer ? (
+                <CustomerPrompt onSelect={selectCustomer} />
+              ) : (
+                <PosProductGrid
+                  products={filteredProducts}
+                  loading={catalogLoading}
+                  disabled={!hasCustomer}
+                  onAdd={addProduct}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: cart / order summary */}
+        <PosCartPanel
+          customer={customer}
+          items={transaction.items}
+          onUpdateItem={updateItem}
+          onRemoveItem={removeItem}
+          onEditCustomer={reset}
+          totals={totals}
+          canSettle={canSettle}
+          settling={settling}
+          onVoid={handleVoid}
+          onSettle={() => setSettleOpen(true)}
         />
       </div>
-
-      <div className="space-y-3">
-        {/* Customer */}
-        <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10 space-y-3">
-          <SectionHeader title="Customer" icon={User} />
-          {!customer ? (
-            <SearchSelect<Customer>
-              onSearch={(kw) => api.entities.Customer.search(kw)}
-              onSelect={selectCustomer}
-              renderPrimary={(c) => c.name}
-              renderSecondary={(c) =>
-                [c.application_no, c.agency].filter(Boolean).join(" · ")
-              }
-              placeholder="Search customer by name, application no, or agency..."
-              ariaLabel="Search customer"
-            />
-          ) : (
-            <div className="grid grid-cols-3 gap-3">
-              <DetailField label="Customer" value={customer.name} />
-              <DetailField label="Application No" value={customer.application_no ?? "—"} />
-              <DetailField label="Agency" value={customer.agency ?? "—"} />
-            </div>
-          )}
-        </div>
-
-        {/* Add product */}
-        <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10 space-y-3">
-          <SectionHeader title="Add Product / Service" icon={PackagePlus} />
-          <SearchSelect<Product>
-            onSearch={(kw) => api.entities.Product.search(kw)}
-            onSelect={addProduct}
-            renderPrimary={(p) => p.name}
-            renderSecondary={(p) => `${p.description} · ${formatPeso(p.price)}`}
-            placeholder={
-              hasCustomer
-                ? "Search product or service to add..."
-                : "Select a customer first"
-            }
-            disabled={!hasCustomer}
-            clearOnSelect
-            ariaLabel="Search product"
-          />
-        </div>
-
-        {/* Transaction items */}
-        <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10 space-y-3">
-          <SectionHeader title="Transaction Items" icon={Receipt} />
-          {transaction.items.length === 0 ? (
-            <EmptyStateCard message="No items yet. Add a product to begin." />
-          ) : (
-            <div className="rounded-lg border border-primary/10 overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted/30">
-                    <TableHead className={`${headerClass} w-10`}>#</TableHead>
-                    <TableHead className={headerClass}>Description</TableHead>
-                    <TableHead className={`${headerClass} text-right`}>Price</TableHead>
-                    <TableHead className={`${headerClass} text-right`}>Prof. Fee</TableHead>
-                    <TableHead className={headerClass}>Billing Type</TableHead>
-                    <TableHead className={headerClass}>Personal</TableHead>
-                    <TableHead className={`${headerClass} text-right`}>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transaction.items.map((item, idx) => (
-                    <TableRow key={item.key}>
-                      <TableCell className="text-xs text-muted-foreground">{idx + 1}</TableCell>
-                      <TableCell className="text-xs text-foreground/90">
-                        {itemDisplayDescription(
-                          item.description_snapshot,
-                          item.personal_account
-                        )}
-                      </TableCell>
-                      <TableCell className="text-xs text-foreground/80 text-right tabular-nums">
-                        {formatPeso(item.price_snapshot)}
-                      </TableCell>
-                      <TableCell className="text-xs text-foreground/80 text-right tabular-nums">
-                        {formatPeso(item.professional_fee)}
-                      </TableCell>
-                      <TableCell className="text-xs text-foreground/80">
-                        {item.billing_type}
-                      </TableCell>
-                      <TableCell className="text-xs text-foreground/80">
-                        {item.personal_account ? "Yes" : "No"}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="cursor-pointer"
-                            aria-label={`Edit ${item.description_snapshot}`}
-                            onClick={() => setEditingItem(item)}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            className="cursor-pointer text-destructive hover:text-destructive"
-                            aria-label={`Remove ${item.description_snapshot}`}
-                            onClick={() => removeItem(item.key)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </div>
-
-        {/* Defaults */}
-        <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10 space-y-3">
-          <SectionHeader title="Transaction Defaults" icon={Receipt} subtitle="New items inherit these" />
-          <div className="grid grid-cols-2 gap-3">
-            <FormSelect
-              label="Billing Type"
-              value={defaultBillingType}
-              onChange={(v) => setDefaultBillingType(v as BillingType)}
-              options={BILLING_TYPES}
-              size="md"
-            />
-            <FormField
-              label="Professional Fee (₱)"
-              type="number"
-              value={defaultProfessionalFee}
-              onChange={(v) => setDefaultProfessionalFee(parsePeso(v))}
-              size="md"
-            />
-          </div>
-        </div>
-
-        {/* Totals + actions */}
-        <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-1 text-xs sm:min-w-[220px]">
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Items</span>
-                <span className="tabular-nums text-foreground/90">
-                  {formatPeso(totals.itemsTotal)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground/70">Professional Fees</span>
-                <span className="tabular-nums text-foreground/90">
-                  {formatPeso(totals.feesTotal)}
-                </span>
-              </div>
-              <div className="flex justify-between border-t border-primary/10 pt-1 font-semibold">
-                <span className="text-primary">TOTAL</span>
-                <span className="tabular-nums text-primary">
-                  {formatPeso(totals.total)}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="cursor-pointer"
-                onClick={() => setCancelOpen(true)}
-              >
-                <X className="w-4 h-4 mr-1" />
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                className="cursor-pointer"
-                disabled={!canSettle}
-                onClick={() => setSettleOpen(true)}
-              >
-                <CheckCircle2 className="w-4 h-4 mr-1" />
-                Settle
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <TransactionItemDialog
-        open={!!editingItem}
-        onOpenChange={(open) => {
-          if (!open) setEditingItem(null);
-        }}
-        item={editingItem}
-        onSave={updateItem}
-        onRemove={removeItem}
-      />
 
       <SettleDialog
         open={settleOpen}
@@ -299,31 +158,53 @@ export default function NewTransactionPage() {
       />
 
       <ConfirmDialog
-        open={cancelOpen}
-        title="Cancel transaction?"
-        message="All currently selected items will be removed."
-        confirmLabel="Cancel Transaction"
-        cancelLabel="Continue Editing"
+        open={voidOpen}
+        title="Void transaction?"
+        message="All selected items and the current client will be cleared."
+        confirmLabel="Void Transaction"
+        cancelLabel="Keep Editing"
         confirmVariant="destructive"
         icon={null}
         onConfirm={() => {
-          setCancelOpen(false);
+          setVoidOpen(false);
           router.push("/transactions");
         }}
-        onCancel={() => setCancelOpen(false)}
+        onCancel={() => setVoidOpen(false)}
       />
     </PageContainer>
   );
 }
 
-/** Read-only labeled detail used in the customer summary. */
-function DetailField({ label, value }: { label: string; value: string }) {
+/**
+ * Full-height prompt shown in the product area until a client is chosen.
+ *
+ * Selecting a client is the prerequisite for adding products, so the workspace
+ * leads with the client search rather than the catalog.
+ */
+function CustomerPrompt({ onSelect }: { onSelect: (customer: Customer) => void }) {
   return (
-    <div className="space-y-0.5">
-      <p className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
-        {label}
-      </p>
-      <p className="text-xs text-foreground/90">{value}</p>
+    <div className="flex h-full flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-primary/20 px-6 py-16 text-center">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <UserPlus className="h-6 w-6" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-foreground">Select a client to begin</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Search by name, application number, or agency.
+        </p>
+      </div>
+      <div className="w-full max-w-md">
+        <SearchSelect<Customer>
+          onSearch={(kw) => api.entities.Customer.search(kw)}
+          onSelect={onSelect}
+          renderPrimary={(c) => c.name}
+          renderSecondary={(c) =>
+            [c.application_no, c.agency].filter(Boolean).join(" · ")
+          }
+          placeholder="Search client..."
+          ariaLabel="Search client"
+        />
+      </div>
     </div>
   );
 }
