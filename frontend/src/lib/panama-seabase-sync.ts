@@ -127,6 +127,96 @@ const SCALAR_FIELDS: ScalarFieldMap[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Medical conditions mapping (Seabase Past Medical History <-> Panama
+// Examinee's Personal Declaration)
+// ---------------------------------------------------------------------------
+
+/**
+ * A correspondence between one Seabase "Past Medical History" condition and
+ * the Panama "Examinee's Personal Declaration" condition(s) it maps to.
+ *
+ * The Seabase key is the human-readable label used as a key in the medical
+ * record's `medical_history` map (see
+ * `components/medical/PastMedicalHistoryGrid.tsx`). The Panama keys are the
+ * semantic `storageKey` values written into `conditions` (see
+ * `components/panama/PersonalDeclarationSection.tsx`).
+ *
+ * Both sides use the same lowercase `"yes"` / `"no"` vocabulary, so no value
+ * transform is needed. When `panamaKeys` holds more than one entry the Seabase
+ * condition is a broader grouping that Panama splits apart:
+ *   - Import (Medical -> Panama): the single Seabase value fans out to every
+ *     Panama split key.
+ *   - Export (Panama -> Medical): the Seabase value is `"yes"` when ANY split
+ *     key is `"yes"`, `"no"` when all splits are `"no"`, and "" otherwise.
+ *
+ * Seabase conditions with no Panama equivalent (Cancer or Tumor, Rheumatic
+ * Fever, Last Menstrual Period, Gynecological Disorder) are intentionally
+ * absent — mapping them would either lose meaning or write into an unrelated
+ * Panama field.
+ */
+interface ConditionFieldMap {
+  /** Key in the Seabase `medical_history` map (its display label). */
+  medicalKey: string;
+  /** One or more Panama `conditions` storage keys this maps to. */
+  panamaKeys: string[];
+}
+
+const CONDITION_FIELDS: ConditionFieldMap[] = [
+  { medicalKey: "High Blood Pressure", panamaKeys: ["high_blood_pressure"] },
+  { medicalKey: "Trachoma, other eye Disorders", panamaKeys: ["eye_vision_problem"] },
+  { medicalKey: "Deafness, other Ear Disorders", panamaKeys: ["ear_problem"] },
+  // Seabase groups nose + throat; Panama keeps them separate.
+  { medicalKey: "Nose or Throat Disorders", panamaKeys: ["nose_problem", "throat_problem"] },
+  { medicalKey: "Asthma", panamaKeys: ["asthma_bronchitis"] },
+  { medicalKey: "Blood Disorders", panamaKeys: ["blood_disorders"] },
+  { medicalKey: "Diabetes Mellitus", panamaKeys: ["diabetes"] },
+  { medicalKey: "Other Endocrine Disorders (e.g. Goiter)", panamaKeys: ["thyroid_problems"] },
+  // Seabase splits stomach vs other abdominal; both map to Panama's digestive.
+  { medicalKey: "Stomach Pain, Gastritis or Ulcer", panamaKeys: ["digestive_disorders"] },
+  { medicalKey: "Other Abdominal Disorders", panamaKeys: ["digestive_disorders"] },
+  { medicalKey: "Kidney or Bladder Disorder", panamaKeys: ["kidney_problems"] },
+  { medicalKey: "Allergies (Specify):", panamaKeys: ["allergies"] },
+  { medicalKey: "Fainting Spells, Fits, Seizures or other Neurological Disorders", panamaKeys: ["epilepsy_seizures"] },
+  { medicalKey: "Insomnia or sleep disorders, Manias, Phobias", panamaKeys: ["sleep_problem"] },
+  // Partial match: genetic/hereditary disorders <-> sickle-cell disease.
+  { medicalKey: "Genetic, Hereditary or Familial Disorders", panamaKeys: ["sickle_cell_disease"] },
+  { medicalKey: "Sexually Transmitted Diseases", panamaKeys: ["genital_disorders"] },
+  { medicalKey: "Operations (Specify)", panamaKeys: ["surgeries"] },
+  // Several Seabase infectious/tropical conditions collapse into Panama's
+  // single "Infectious diseases" item.
+  { medicalKey: "Tuberculosis", panamaKeys: ["infectious_diseases"] },
+  { medicalKey: "Tropical Diseases", panamaKeys: ["infectious_diseases"] },
+  { medicalKey: "Schistosomiasis", panamaKeys: ["infectious_diseases"] },
+  { medicalKey: "Frequent Dizziness", panamaKeys: ["dizziness_fainting"] },
+  // Seabase groups depression + other mental disorders; Panama splits into
+  // psychiatric problems and depression.
+  { medicalKey: "Depression, other Mental Disorders", panamaKeys: ["psychiatric_problems", "depression"] },
+  { medicalKey: "Frequent Headaches", panamaKeys: ["severe_headaches"] },
+  { medicalKey: "Heart Disease/Heart Pain", panamaKeys: ["heart_vascular_disease"] },
+  // Seabase groups back + joint; Panama keeps them separate.
+  { medicalKey: "Back Injury: Joint Pain/Arthritis/Rheumatism", panamaKeys: ["back_problem", "joint_problem"] },
+  // Closest available match: head/neck injury -> fractures/dislocation.
+  { medicalKey: "Head or Neck Injury", panamaKeys: ["fractures_dislocation"] },
+];
+
+/** Normalise a stored condition answer to `"yes"`, `"no"`, or "". */
+function normalizeYesNo(value: unknown): "yes" | "no" | "" {
+  const v = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return v === "yes" || v === "no" ? v : "";
+}
+
+/**
+ * Combine several Panama split answers into a single Seabase answer.
+ * `"yes"` if any split is yes; `"no"` if all present splits are no; "" when no
+ * split has a recorded answer.
+ */
+function combinePanamaConditions(values: Array<"yes" | "no" | "">): "yes" | "no" | "" {
+  if (values.some((v) => v === "yes")) return "yes";
+  if (values.some((v) => v === "no")) return "no";
+  return "";
+}
+
+// ---------------------------------------------------------------------------
 // Fitness assessment mapping
 // ---------------------------------------------------------------------------
 
@@ -320,6 +410,23 @@ export function applyMedicalToPanama(
     (next.physician_name as unknown) = physicianName;
   }
 
+  // Medical conditions: fan a recorded Seabase answer out to its Panama
+  // declaration key(s). An unrecorded Seabase answer leaves Panama as-is.
+  const history = medical.medical_history ?? {};
+  const conditions = { ...next.conditions };
+  let conditionsChanged = false;
+  for (const { medicalKey, panamaKeys } of CONDITION_FIELDS) {
+    const answer = normalizeYesNo(history[medicalKey]);
+    if (!answer) continue;
+    for (const key of panamaKeys) {
+      conditions[key] = answer;
+      conditionsChanged = true;
+    }
+  }
+  if (conditionsChanged) {
+    next.conditions = conditions;
+  }
+
   return next;
 }
 
@@ -395,6 +502,17 @@ export function getChangedSyncFields(
     if (bDate !== aDate) changed.push(String(dayField));
   }
 
+  // Medical conditions: compare the value each Seabase condition would receive
+  // (the combined answer across its Panama split keys) so one-to-many groups
+  // don't report a spurious change.
+  const beforeConditions = before.conditions ?? {};
+  const afterConditions = after.conditions ?? {};
+  for (const { medicalKey, panamaKeys } of CONDITION_FIELDS) {
+    const bValue = combinePanamaConditions(panamaKeys.map((k) => normalizeYesNo(beforeConditions[k])));
+    const aValue = combinePanamaConditions(panamaKeys.map((k) => normalizeYesNo(afterConditions[k])));
+    if (bValue !== aValue) changed.push(`condition:${medicalKey}`);
+  }
+
   return changed;
 }
 
@@ -438,7 +556,40 @@ export function applyPanamaToMedical(panama: PanamaCertificate): Partial<Medical
     );
   }
 
+  // Medical conditions: collapse Panama's declaration answers back into the
+  // Seabase `medical_history` map. Only conditions with a recorded Panama
+  // answer are written, so Seabase conditions Panama doesn't cover (Cancer,
+  // Rheumatic Fever, etc.) are left untouched when the caller merges this map
+  // onto the existing history.
+  const historyPatch = buildMedicalHistoryPatch(panama);
+  if (Object.keys(historyPatch).length > 0) {
+    payload.medical_history = historyPatch;
+  }
+
   return payload;
+}
+
+/**
+ * Build the `medical_history` patch carrying Panama declaration answers back
+ * to Seabase. Returns only the entries with a recorded Panama answer; callers
+ * merge this onto the existing `medical_history` so unmapped Seabase
+ * conditions are preserved.
+ *
+ * @param panama the Panama record whose declaration answers should propagate
+ * @returns a partial `medical_history` map (Seabase key -> "yes"/"no")
+ */
+export function buildMedicalHistoryPatch(
+  panama: PanamaCertificate
+): Record<string, string> {
+  const conditions = panama.conditions ?? {};
+  const patch: Record<string, string> = {};
+  for (const { medicalKey, panamaKeys } of CONDITION_FIELDS) {
+    const combined = combinePanamaConditions(
+      panamaKeys.map((k) => normalizeYesNo(conditions[k]))
+    );
+    if (combined) patch[medicalKey] = combined;
+  }
+  return patch;
 }
 
 // ---------------------------------------------------------------------------

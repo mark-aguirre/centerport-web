@@ -243,8 +243,15 @@ export function usePanamaForm(): UsePanamaFormResult {
     const medical = medicalRef.current;
     if (!medical?.id) return;
     try {
+      const synced = applyPanamaToMedical(data);
+      // Merge the condition patch onto the existing history so Seabase
+      // conditions Panama doesn't cover are preserved rather than dropped.
+      const mergedHistory = synced.medical_history
+        ? { ...(medical.medical_history ?? {}), ...synced.medical_history }
+        : medical.medical_history;
       const payload: Partial<MedicalExam> = {
-        ...applyPanamaToMedical(data),
+        ...synced,
+        medical_history: mergedHistory,
         seafarer_profile_id: medical.seafarer_profile_id ?? data.seafarer_profile_id,
       };
       const updated = await api.entities.MedicalExam.update(medical.id, payload);
