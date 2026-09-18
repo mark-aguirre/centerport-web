@@ -251,9 +251,38 @@ export function usePanamaForm(): UsePanamaFormResult {
       const mergedHistory = synced.medical_history
         ? { ...(medical.medical_history ?? {}), ...synced.medical_history }
         : medical.medical_history;
+      // Merge the additional-questions patch onto the existing questionnaire
+      // map so Seabase question details/comments (and the unmapped food-allergy
+      // question) are preserved rather than dropped.
+      const mergedQuestionnaire = synced.questionnaire
+        ? { ...(medical.questionnaire ?? {}), ...synced.questionnaire }
+        : medical.questionnaire;
+      // Merge each physical-examination findings/remarks column onto the
+      // existing map so Seabase body systems Panama doesn't cover (and prior
+      // remarks) are preserved rather than dropped.
+      const mergeFindings = <T>(
+        key:
+          | "findings_a"
+          | "findings_b"
+          | "findings_c"
+          | "findings_a_remarks"
+          | "findings_b_remarks"
+          | "findings_c_remarks"
+      ): Record<string, T> | undefined => {
+        const patch = synced[key] as Record<string, T> | undefined;
+        if (!patch) return medical[key] as Record<string, T> | undefined;
+        return { ...((medical[key] as Record<string, T>) ?? {}), ...patch };
+      };
       const payload: Partial<MedicalExam> = {
         ...synced,
         medical_history: mergedHistory,
+        questionnaire: mergedQuestionnaire,
+        findings_a: mergeFindings<boolean>("findings_a"),
+        findings_b: mergeFindings<boolean>("findings_b"),
+        findings_c: mergeFindings<boolean>("findings_c"),
+        findings_a_remarks: mergeFindings<string>("findings_a_remarks"),
+        findings_b_remarks: mergeFindings<string>("findings_b_remarks"),
+        findings_c_remarks: mergeFindings<string>("findings_c_remarks"),
         seafarer_profile_id: medical.seafarer_profile_id ?? data.seafarer_profile_id,
       };
       const updated = await api.entities.MedicalExam.update(medical.id, payload);

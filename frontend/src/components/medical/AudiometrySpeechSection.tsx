@@ -109,20 +109,26 @@ export function AudiometrySpeechSection({
           </p>
           <div className="grid grid-cols-[minmax(110px,0.75fr)_minmax(250px,1.25fr)] gap-4">
             <div className="space-y-2">
-              <FormSelect
-                label="AD"
-                value={data.audio_ad_right_2}
-                onChange={(value) => update("audio_ad_right_2", value)}
-                options={HEARING_OPTIONS}
-                disabled={disabled}
-              />
-              <FormSelect
-                label="AS"
-                value={data.audio_as_left_2}
-                onChange={(value) => update("audio_as_left_2", value)}
-                options={HEARING_OPTIONS}
-                disabled={disabled}
-              />
+              <div className="grid grid-cols-[24px_1fr] items-center gap-2">
+                <span className="text-[11px] font-bold uppercase text-primary/70">AD:</span>
+                <FormSelect
+                  label=""
+                  value={data.audio_ad_right_2}
+                  onChange={(value) => update("audio_ad_right_2", value)}
+                  options={HEARING_OPTIONS}
+                  disabled={disabled}
+                />
+              </div>
+              <div className="grid grid-cols-[24px_1fr] items-center gap-2">
+                <span className="text-[11px] font-bold uppercase text-primary/70">AS:</span>
+                <FormSelect
+                  label=""
+                  value={data.audio_as_left_2}
+                  onChange={(value) => update("audio_as_left_2", value)}
+                  options={HEARING_OPTIONS}
+                  disabled={disabled}
+                />
+              </div>
             </div>
             <div className="flex flex-col justify-center gap-3">
               <HearingRadioGroup
@@ -145,20 +151,32 @@ export function AudiometrySpeechSection({
           <p className="text-[11px] font-bold uppercase tracking-wide text-primary/70">
             Meets Standards in STCW Code, Section A-I/9:
           </p>
-          <FormSelect
-            label="Satisfactory Hearing"
-            value={data.audio_satisfactory}
-            onChange={(value) => update("audio_satisfactory", value)}
-            options={YES_NO_OPTIONS}
-            disabled={disabled}
-          />
-          <FormSelect
-            label="Unaided Hearing Satisfactory"
-            value={data.audio_unaided_hearing}
-            onChange={(value) => update("audio_unaided_hearing", value)}
-            options={YES_NO_OPTIONS}
-            disabled={disabled}
-          />
+          <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-primary/60">
+              Satisfactory Hearing
+            </span>
+            <FormSelect
+              label=""
+              value={data.audio_satisfactory}
+              onChange={(value) => update("audio_satisfactory", value)}
+              options={YES_NO_OPTIONS}
+              disabled={disabled}
+              className="w-28"
+            />
+          </div>
+          <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-primary/60">
+              Unaided Hearing Satisfactory
+            </span>
+            <FormSelect
+              label=""
+              value={data.audio_unaided_hearing}
+              onChange={(value) => update("audio_unaided_hearing", value)}
+              options={YES_NO_OPTIONS}
+              disabled={disabled}
+              className="w-28"
+            />
+          </div>
         </div>
 
         <div

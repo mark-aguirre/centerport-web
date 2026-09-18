@@ -38,8 +38,14 @@
  *     the reverse vitals-only flow used by the Seabase page.
  */
 
-import type { PanamaCertificate } from "@/components/panama/types";
+import type {
+  PanamaCertificate,
+  PhysicalExplorationValue,
+} from "@/components/panama/types";
 import type { MedicalExam } from "@/components/medical/types";
+
+/** Local alias for the Panama physical-exploration value ("N" | "A" | ""). */
+type PanamaExplorationValue = PhysicalExplorationValue;
 
 // ---------------------------------------------------------------------------
 // Scalar field mappings (a Panama field <-> a Medical field, string valued)
@@ -213,6 +219,252 @@ function normalizeYesNo(value: unknown): "yes" | "no" | "" {
 function combinePanamaConditions(values: Array<"yes" | "no" | "">): "yes" | "no" | "" {
   if (values.some((v) => v === "yes")) return "yes";
   if (values.some((v) => v === "no")) return "no";
+  return "";
+}
+
+// ---------------------------------------------------------------------------
+// Additional-questions mapping (Seabase questionnaire <-> Panama question_NN)
+// ---------------------------------------------------------------------------
+
+/**
+ * The Seabase (Medical) `questionnaire` map keys questions by their full
+ * display text; Panama stores the same medical-history questions as discrete
+ * `question_37`..`question_45` enum fields. This table pairs the two so a
+ * yes/no answer recorded on either form carries over to the other.
+ *
+ * Wording differs slightly between the forms (e.g. Seabase "signed off as sick
+ * or repatriated from a ship" vs Panama "signed off due to illness or
+ * repatriated"); the pairing is by meaning, matching the equivalence the
+ * business defined:
+ *
+ *   Seabase 1  <-> Panama 37   signed off / repatriated
+ *   Seabase 2  <-> Panama 38   hospitalized
+ *   Seabase 3  <-> Panama 39   declared unfit for sea duty
+ *   Seabase 4  <-> Panama 40   medical certificate restricted or revoked
+ *   Seabase 5  <-> Panama 41   aware of a medical problem / disease (closest)
+ *   Seabase 6  <-> Panama 42   feel healthy and fit for duties
+ *   Seabase 7  <-> Panama 43   allergic to medication
+ *   Seabase 8  <-> Panama 45   taking prescription / non-prescription meds
+ *
+ * Panama 44 ("allergic to any food or supplement alternative?") has no Seabase
+ * equivalent and is intentionally left out — like the unmapped Seabase
+ * conditions above, it is never touched by the sync.
+ */
+interface QuestionFieldMap {
+  /** Seabase question number (for detail labels and audit context). */
+  seabaseNum: number;
+  /** Key in the Seabase `questionnaire` map (its display label). */
+  medicalKey: string;
+  /**
+   * Key in the Seabase `questionnaire` map holding the free-text detail for
+   * this question (the "<question> Details" entry), when one exists.
+   */
+  detailKey?: string;
+  /** The Panama certificate field that stores the same question. */
+  panamaKey: keyof PanamaCertificate;
+  /**
+   * Partial mappings (per the mapping spec, Seabase Q5 -> Panama Q41): the two
+   * questions are not identical, so only a Seabase `"yes"` is carried over
+   * (and flagged for review via the appended detail). A Seabase `"no"` must
+   * NOT set the Panama answer to `"no"` — it is left for manual confirmation.
+   */
+  partial?: boolean;
+}
+
+const QUESTION_FIELDS: QuestionFieldMap[] = [
+  {
+    seabaseNum: 1,
+    medicalKey: "Have you ever been signed off as sick or repatriated from a ship?",
+    detailKey: "Have you ever been signed off as sick or repatriated from a ship? Details",
+    panamaKey: "question_37",
+  },
+  {
+    seabaseNum: 2,
+    medicalKey: "Have you ever been hospitalized?",
+    detailKey: "Have you ever been hospitalized? Details",
+    panamaKey: "question_38",
+  },
+  {
+    seabaseNum: 3,
+    medicalKey: "Have you ever been declared unfit for sea duty?",
+    detailKey: "Have you ever been declared unfit for sea duty? Details",
+    panamaKey: "question_39",
+  },
+  {
+    seabaseNum: 4,
+    medicalKey: "Has your medical certificate ever been restricted or revoked?",
+    detailKey: "Has your medical certificate ever been restricted or revoked? Details",
+    panamaKey: "question_40",
+  },
+  {
+    // Partial: Seabase "aware of a medical problem" is broader than Panama's
+    // "disease or ailment not asked about". Only a Yes carries over.
+    seabaseNum: 5,
+    medicalKey: "Are you aware that you have any medical problem, disease or illness?",
+    detailKey: "Are you aware that you have any medical problem, disease or illness? Details",
+    panamaKey: "question_41",
+    partial: true,
+  },
+  {
+    seabaseNum: 6,
+    medicalKey: "Do you feel healthy and fit to perform the duties of your designated position/occupation?",
+    detailKey: "Do you feel healthy and fit to perform the duties of your designated position/occupation? Details",
+    panamaKey: "question_42",
+  },
+  {
+    // Seabase Q7 has no per-question detail box in the questionnaire grid.
+    seabaseNum: 7,
+    medicalKey: "Are you allergic to any medication?",
+    panamaKey: "question_43",
+  },
+  {
+    // Seabase stores the medication question under a dedicated constant key
+    // (MEDICATION_QUESTION_KEY in medical/QuestionnaireGrid.tsx); its list of
+    // medications lives in the separate `questionnaire_medications_detail`
+    // field, mapped to Panama `question_45_details` below.
+    seabaseNum: 8,
+    medicalKey: "Non-prescription or prescription medication",
+    panamaKey: "question_45",
+  },
+];
+
+/** Panama field carrying the "list your medications" free text (Seabase Q8). */
+const PANAMA_MEDICATION_DETAIL_FIELD: keyof PanamaCertificate = "question_45_details";
+/** Panama field carrying the additional-questions comments block. */
+const PANAMA_DECLARATION_COMMENTS_FIELD: keyof PanamaCertificate = "declaration_comments";
+
+/**
+ * Append `addition` to an existing free-text `base` without overwriting it, per
+ * the merge rules (never silently replace existing Panama comments/details).
+ * Returns the merged string; skips the append when it is already present.
+ */
+function appendText(base: string, addition: string): string {
+  const existing = (base ?? "").trim();
+  const extra = (addition ?? "").trim();
+  if (!extra) return existing;
+  if (!existing) return extra;
+  if (existing.includes(extra)) return existing;
+  return `${existing}\n${extra}`;
+}
+
+/**
+ * Build the labelled free-text block carrying Seabase's per-question details
+ * (Q1–Q6) into a Panama details/comments field. Each non-empty Seabase detail
+ * is emitted with its Seabase question number and label so nothing is merged
+ * without attribution (mapping spec §2.2).
+ */
+function buildQuestionDetailBlock(questionnaire: Record<string, string>): string {
+  const lines: string[] = [];
+  for (const { seabaseNum, medicalKey, detailKey } of QUESTION_FIELDS) {
+    if (!detailKey) continue;
+    const detail = (questionnaire[detailKey] ?? "").trim();
+    if (detail) {
+      lines.push(`Seabase Q${seabaseNum} (${medicalKey}): ${detail}`);
+    }
+  }
+  return lines.join("\n");
+}
+
+// ---------------------------------------------------------------------------
+// Physical-examination mapping (Seabase Findings <-> Panama Physical
+// Exploration)
+// ---------------------------------------------------------------------------
+
+/**
+ * A correspondence between one Seabase "Physical Examination Findings" body
+ * system and the Panama "Physical Exploration" row(s) it maps to.
+ *
+ * Storage & value models differ, so the mapping is transformed rather than
+ * copied:
+ *   - Seabase stores each body system in a per-column boolean map
+ *     (`findings_a` / `findings_b` / `findings_c`), where a CHECKED box means
+ *     a NORMAL finding. Abnormal detail lives in the parallel
+ *     `findings_*_remarks` free-text map (there is no first-class "abnormal"
+ *     flag on the checkbox itself).
+ *   - Panama stores each row in the `physical_exploration` map with an explicit
+ *     `"N"` (Normal) / `"A"` (Abnormal) / "" (unset) value.
+ *
+ * Value translation (see {@link seabaseFindingToPanama} /
+ * {@link combinePanamaExploration}):
+ *   - Import (Medical -> Panama): checked -> "N"; unchecked WITH a remark ->
+ *     "A"; unchecked with no remark -> unrecorded (skipped). Treating a bare
+ *     unchecked box as "A" would fabricate an abnormal finding for rows the
+ *     examiner never touched, so it is deliberately skipped (mapping spec
+ *     safety rule: missing data is not a negative/normal result).
+ *   - Export (Panama -> Medical): "N" -> checked (true); "A" -> unchecked
+ *     (false); "" -> unrecorded (skipped). Any abnormal note the examiner typed
+ *     on the Panama comments is not split back per-row, so existing Seabase
+ *     remarks are preserved.
+ *
+ * When `panamaKeys` holds more than one entry the Seabase finding is a broader
+ * grouping Panama splits apart (Mouth+Throat, Lungs+Chest):
+ *   - Import: the single Seabase value fans out to every Panama row.
+ *   - Export: the rows collapse back — "A" if ANY split is abnormal, "N" if all
+ *     present splits are normal, unrecorded otherwise.
+ */
+type FindingsColumn = "findings_a" | "findings_b" | "findings_c";
+
+interface PhysicalExamFieldMap {
+  /** Which Seabase findings column the source lives in. */
+  medicalColumn: FindingsColumn;
+  /** Key in that findings column's map (its display label). */
+  medicalKey: string;
+  /** One or more Panama `physical_exploration` keys this maps to. */
+  panamaKeys: string[];
+}
+
+const PHYSICAL_EXAM_FIELDS: PhysicalExamFieldMap[] = [
+  { medicalColumn: "findings_a", medicalKey: "Head, Scalp", panamaKeys: ["head"] },
+  // Seabase groups mouth + throat; Panama keeps them separate.
+  { medicalColumn: "findings_a", medicalKey: "Mouth, Throat", panamaKeys: ["mouth", "throat"] },
+  { medicalColumn: "findings_a", medicalKey: "Nose, Sinuses", panamaKeys: ["nose"] },
+  { medicalColumn: "findings_c", medicalKey: "Dental (Teeth/gums)", panamaKeys: ["dental_exam"] },
+  { medicalColumn: "findings_a", medicalKey: "Ears", panamaKeys: ["ears_general"] },
+  { medicalColumn: "findings_a", medicalKey: "Eyes External", panamaKeys: ["eyes"] },
+  { medicalColumn: "findings_a", medicalKey: "Pupils", panamaKeys: ["pupils"] },
+  // Seabase groups chest + lungs; Panama keeps them separate.
+  { medicalColumn: "findings_b", medicalKey: "Chest and Lungs", panamaKeys: ["lungs", "chest"] },
+  { medicalColumn: "findings_b", medicalKey: "Breast, Axilla", panamaKeys: ["breast_examination"] },
+  { medicalColumn: "findings_b", medicalKey: "Heart", panamaKeys: ["heart"] },
+  { medicalColumn: "findings_a", medicalKey: "Skin", panamaKeys: ["skin"] },
+  { medicalColumn: "findings_b", medicalKey: "Abdomen", panamaKeys: ["abdomen_and_viscera"] },
+  { medicalColumn: "findings_c", medicalKey: "Anus, Rectum", panamaKeys: ["anus_not_rectal_exam"] },
+  { medicalColumn: "findings_c", medicalKey: "Genito-Urinary System", panamaKeys: ["gu_system"] },
+  { medicalColumn: "findings_c", medicalKey: "Extremities", panamaKeys: ["upper_and_lower"] },
+  { medicalColumn: "findings_b", medicalKey: "Back", panamaKeys: ["spine_cervical_thoracic_lumbar"] },
+  { medicalColumn: "findings_c", medicalKey: "Reflexes", panamaKeys: ["neurologic_full_brief"] },
+];
+
+/**
+ * Translate a Seabase finding (checkbox + remark) into a Panama exploration
+ * value. `"N"` when the box is checked (normal); `"A"` when unchecked but a
+ * remark records an abnormal finding; "" (skip) when unchecked with no remark,
+ * since that is an unrecorded row rather than a confirmed abnormal result.
+ */
+function seabaseFindingToPanama(
+  checked: unknown,
+  remark: unknown
+): PanamaExplorationValue {
+  if (checked === true) return "N";
+  const hasRemark = typeof remark === "string" && remark.trim() !== "";
+  return hasRemark ? "A" : "";
+}
+
+/** Normalise a stored Panama exploration answer to `"N"`, `"A"`, or "". */
+function normalizeExploration(value: unknown): PanamaExplorationValue {
+  return value === "N" || value === "A" ? value : "";
+}
+
+/**
+ * Combine several Panama split exploration answers into a single Seabase
+ * finding. `"A"` if any split is abnormal; `"N"` if all present splits are
+ * normal; "" when no split has a recorded answer.
+ */
+function combinePanamaExploration(
+  values: PanamaExplorationValue[]
+): PanamaExplorationValue {
+  if (values.some((v) => v === "A")) return "A";
+  if (values.some((v) => v === "N")) return "N";
   return "";
 }
 
@@ -427,6 +679,62 @@ export function applyMedicalToPanama(
     next.conditions = conditions;
   }
 
+  // Additional questions: copy a recorded Seabase answer into its Panama
+  // question field. An unrecorded Seabase answer leaves Panama as-is. Partial
+  // mappings (Q5 -> Q41) only carry a "yes" over; a Seabase "no" is left for
+  // manual confirmation rather than assumed to exclude the broader Panama
+  // question.
+  const questionnaire = medical.questionnaire ?? {};
+  for (const { medicalKey, panamaKey, partial } of QUESTION_FIELDS) {
+    const answer = normalizeYesNo(questionnaire[medicalKey]);
+    if (!answer) continue;
+    if (partial && answer !== "yes") continue;
+    (next[panamaKey] as unknown) = answer;
+  }
+
+  // Medication list (Seabase Q8 detail) -> Panama "list your medications".
+  const medicationDetail = String(medical.questionnaire_medications_detail ?? "").trim();
+  if (medicationDetail) {
+    (next[PANAMA_MEDICATION_DETAIL_FIELD] as unknown) = appendText(
+      String(next[PANAMA_MEDICATION_DETAIL_FIELD] ?? ""),
+      medicationDetail
+    );
+  }
+
+  // Per-question details (Q1–Q6) + questionnaire comments -> Panama's
+  // additional-questions comments, labelled and appended (never overwritten).
+  const detailBlock = buildQuestionDetailBlock(questionnaire);
+  const seabaseComments = String(medical.questionnaire_comments ?? "").trim();
+  let mergedComments = String(next[PANAMA_DECLARATION_COMMENTS_FIELD] ?? "");
+  if (detailBlock) mergedComments = appendText(mergedComments, detailBlock);
+  if (seabaseComments) {
+    mergedComments = appendText(mergedComments, `Seabase comments: ${seabaseComments}`);
+  }
+  if (mergedComments.trim() !== String(next[PANAMA_DECLARATION_COMMENTS_FIELD] ?? "").trim()) {
+    (next[PANAMA_DECLARATION_COMMENTS_FIELD] as unknown) = mergedComments;
+  }
+
+  // Physical exploration: translate each recorded Seabase finding into its
+  // Panama row(s). Unrecorded findings (unchecked with no remark) are skipped
+  // so Panama rows the examiner never touched are left as-is.
+  const exploration = { ...next.physical_exploration };
+  let explorationChanged = false;
+  for (const { medicalColumn, medicalKey, panamaKeys } of PHYSICAL_EXAM_FIELDS) {
+    const checked = medical[medicalColumn]?.[medicalKey];
+    const remark = medical[`${medicalColumn}_remarks` as keyof MedicalExam] as
+      | Record<string, string>
+      | undefined;
+    const value = seabaseFindingToPanama(checked, remark?.[medicalKey]);
+    if (!value) continue;
+    for (const key of panamaKeys) {
+      exploration[key] = value;
+      explorationChanged = true;
+    }
+  }
+  if (explorationChanged) {
+    next.physical_exploration = exploration;
+  }
+
   return next;
 }
 
@@ -513,6 +821,35 @@ export function getChangedSyncFields(
     if (bValue !== aValue) changed.push(`condition:${medicalKey}`);
   }
 
+  // Additional questions (question_37..45): report only edits that actually
+  // propagate. For partial mappings (Q41), compare the value that would carry
+  // back ("yes" only) so a "no" edit doesn't raise a false prompt.
+  for (const { medicalKey, panamaKey, partial } of QUESTION_FIELDS) {
+    const project = (v: unknown) => {
+      const a = normalizeYesNo(v);
+      return partial && a !== "yes" ? "" : a;
+    };
+    if (project(before[panamaKey]) !== project(after[panamaKey])) {
+      changed.push(`question:${medicalKey}`);
+    }
+  }
+
+  // Medication list detail (Q45 -> Seabase questionnaire_medications_detail).
+  if (normalize(before[PANAMA_MEDICATION_DETAIL_FIELD]) !== normalize(after[PANAMA_MEDICATION_DETAIL_FIELD])) {
+    changed.push("question:medication_detail");
+  }
+
+  // Physical exploration: compare the combined value each Seabase finding would
+  // receive so one-to-many groups (Mouth/Throat, Lungs/Chest) don't report a
+  // spurious change.
+  const beforeExploration = before.physical_exploration ?? {};
+  const afterExploration = after.physical_exploration ?? {};
+  for (const { medicalKey, panamaKeys } of PHYSICAL_EXAM_FIELDS) {
+    const bValue = combinePanamaExploration(panamaKeys.map((k) => normalizeExploration(beforeExploration[k])));
+    const aValue = combinePanamaExploration(panamaKeys.map((k) => normalizeExploration(afterExploration[k])));
+    if (bValue !== aValue) changed.push(`physical_exam:${medicalKey}`);
+  }
+
   return changed;
 }
 
@@ -566,6 +903,29 @@ export function applyPanamaToMedical(panama: PanamaCertificate): Partial<Medical
     payload.medical_history = historyPatch;
   }
 
+  // Additional questions: collapse Panama's question_NN answers back into the
+  // Seabase `questionnaire` map. Only answered questions are written, so the
+  // caller can merge this onto the existing map without dropping details or
+  // the unmapped food-allergy question.
+  const questionnairePatch = buildQuestionnairePatch(panama);
+  if (Object.keys(questionnairePatch).length > 0) {
+    payload.questionnaire = questionnairePatch;
+  }
+
+  // Medication list (Panama Q45 detail) -> Seabase "list your medications".
+  const medicationDetail = String(panama[PANAMA_MEDICATION_DETAIL_FIELD] ?? "").trim();
+  if (medicationDetail) {
+    payload.questionnaire_medications_detail = medicationDetail;
+  }
+
+  // Physical exploration -> Seabase findings checkboxes + remarks. Only mapped
+  // body systems with a recorded Panama value are written; the caller merges
+  // each column onto the existing findings map so unmapped rows are preserved.
+  const findingsPatch = buildFindingsPatch(panama);
+  for (const key of Object.keys(findingsPatch) as (keyof FindingsPatch)[]) {
+    (payload[key] as unknown) = findingsPatch[key];
+  }
+
   return payload;
 }
 
@@ -589,6 +949,96 @@ export function buildMedicalHistoryPatch(
     );
     if (combined) patch[medicalKey] = combined;
   }
+  return patch;
+}
+
+/**
+ * Build the `questionnaire` patch carrying Panama's additional-question
+ * answers back to Seabase. Returns only the questions with a recorded Panama
+ * answer; callers merge this onto the existing `questionnaire` map so unmapped
+ * Seabase questionnaire entries (details, comments) are preserved.
+ *
+ * @param panama the Panama record whose additional-question answers propagate
+ * @returns a partial `questionnaire` map (Seabase key -> "yes"/"no")
+ */
+export function buildQuestionnairePatch(
+  panama: PanamaCertificate
+): Record<string, string> {
+  const patch: Record<string, string> = {};
+  for (const { medicalKey, panamaKey, partial } of QUESTION_FIELDS) {
+    const answer = normalizeYesNo(panama[panamaKey]);
+    if (!answer) continue;
+    // Partial mappings (Q41 -> Q5): only a Panama "yes" carries back; a Panama
+    // "no" must not narrow the broader Seabase question.
+    if (partial && answer !== "yes") continue;
+    patch[medicalKey] = answer;
+  }
+  return patch;
+}
+
+/** Per-column patch of Seabase findings (checkbox) + remarks. */
+interface FindingsPatch {
+  findings_a: Record<string, boolean>;
+  findings_b: Record<string, boolean>;
+  findings_c: Record<string, boolean>;
+  findings_a_remarks: Record<string, string>;
+  findings_b_remarks: Record<string, string>;
+  findings_c_remarks: Record<string, string>;
+}
+
+/** Note stamped on a findings remark when Panama recorded an abnormal result. */
+const PANAMA_ABNORMAL_REMARK = "Abnormal (imported from Panama)";
+
+/**
+ * Build the Seabase findings patch carrying Panama's physical-exploration
+ * answers back. For each mapped body system with a recorded Panama value:
+ *   - `"N"` -> checkbox `true` (normal).
+ *   - `"A"` -> checkbox `false` (not normal) plus a remark flag, so the
+ *     abnormal finding is not silently lost (Seabase has no first-class
+ *     abnormal flag on the checkbox).
+ * One-to-many groups (Mouth/Throat, Lungs/Chest) collapse via
+ * {@link combinePanamaExploration}. Only recorded values are written, so
+ * unmapped Seabase findings are preserved when the caller merges the patch.
+ *
+ * @param panama the Panama record whose exploration answers should propagate
+ * @returns a partial per-column findings + remarks patch (may be empty)
+ */
+export function buildFindingsPatch(panama: PanamaCertificate): Partial<FindingsPatch> {
+  const exploration = panama.physical_exploration ?? {};
+  const checks: Record<FindingsColumn, Record<string, boolean>> = {
+    findings_a: {},
+    findings_b: {},
+    findings_c: {},
+  };
+  const remarks: Record<FindingsColumn, Record<string, string>> = {
+    findings_a: {},
+    findings_b: {},
+    findings_c: {},
+  };
+  let changed = false;
+
+  for (const { medicalColumn, medicalKey, panamaKeys } of PHYSICAL_EXAM_FIELDS) {
+    const combined = combinePanamaExploration(
+      panamaKeys.map((k) => normalizeExploration(exploration[k]))
+    );
+    if (!combined) continue;
+    checks[medicalColumn][medicalKey] = combined === "N";
+    if (combined === "A") {
+      remarks[medicalColumn][medicalKey] = PANAMA_ABNORMAL_REMARK;
+    }
+    changed = true;
+  }
+
+  if (!changed) return {};
+
+  const patch: Partial<FindingsPatch> = {};
+  (["findings_a", "findings_b", "findings_c"] as const).forEach((col) => {
+    if (Object.keys(checks[col]).length > 0) patch[col] = checks[col];
+    const remarkCol = `${col}_remarks` as keyof FindingsPatch;
+    if (Object.keys(remarks[col]).length > 0) {
+      (patch[remarkCol] as Record<string, string>) = remarks[col];
+    }
+  });
   return patch;
 }
 
