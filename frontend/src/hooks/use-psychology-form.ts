@@ -87,6 +87,8 @@ const psychologyConfig: EntityFormConfig<PsychologyRecord> = {
     create: "Psychology evaluation created successfully",
     update: "Psychology evaluation updated successfully",
   },
+
+  recordLabel: "psychology evaluation",
 };
 
 // ---------------------------------------------------------------------------

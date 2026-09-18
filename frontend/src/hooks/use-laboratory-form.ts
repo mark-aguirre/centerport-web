@@ -70,6 +70,8 @@ const laboratoryConfig: EntityFormConfig<LaboratoryReport> = {
     create: "Laboratory report created successfully",
     update: "Laboratory report updated successfully",
   },
+
+  recordLabel: "laboratory report",
 };
 
 // ---------------------------------------------------------------------------

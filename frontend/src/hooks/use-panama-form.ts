@@ -104,6 +104,8 @@ const panamaConfig: EntityFormConfig<PanamaCertificate> = {
     create: "Panama certificate created successfully",
     update: "Panama certificate updated successfully",
   },
+
+  recordLabel: "Panama certificate",
 };
 
 /**

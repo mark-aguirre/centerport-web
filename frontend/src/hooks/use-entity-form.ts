@@ -111,6 +111,13 @@ export interface EntityFormConfig<T> {
   };
 
   /**
+   * Human-readable name for this record type (e.g. "Seabase PEME",
+   * "MLC certificate", "Panama certificate"). Used to prompt the user when a
+   * selected seafarer has no record of this type yet. Defaults to "record".
+   */
+  recordLabel?: string;
+
+  /**
    * Name of the field used to guard the Edit button.
    * Edit is only enabled when this field is truthy.
    * Defaults to checking `last_name` via getEditGuardValue.
@@ -224,12 +231,12 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     sanitizePayload,
     validate,
     buildPersonalData,
-    matchRecordToProfile,
     getRecordId,
     getProfileId,
     getBusinessId,
     getCreatedDate,
     successMessages,
+    recordLabel = "record",
     draftKey,
   } = config;
 
@@ -540,10 +547,12 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
    */
   const handleSelectResult = useCallback(
     (profile: SeafarerProfile) => {
-      setNeedsPatientSelection(false);
       const personalData = buildPersonalData(profile);
 
+      // Fill only the personal/patient info fields (used while the user is
+      // actively building a new record and attaching a seafarer to it).
       const applyPersonalOnly = () => {
+        setNeedsPatientSelection(false);
         if (editing) {
           setData((prev) => ({ ...prev, ...personalData }));
         } else {
@@ -553,41 +562,74 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         }
       };
 
-      // Fetch all records for this profile (for the dropdown)
-      if (profile.id) {
-        fetchProfileRecords(profile.id);
+      // When the seafarer has no record of this type, just notify the user.
+      // Don't populate the patient/personal info and don't touch the current
+      // page state — leave the interface exactly as it is.
+      const handleNoRecord = () => {
+        const name = [profile.first_name, profile.last_name]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        toast.info(
+          name
+            ? `No ${recordLabel} found for ${name}`
+            : `No ${recordLabel} found for this seafarer`,
+          { description: `Click New to create a ${recordLabel} for this seafarer.` }
+        );
+      };
+
+      // Fetch all records for this profile and use the authoritative by-profile
+      // result to decide whether a record of this type exists. Keying on the
+      // profile UUID avoids the false matches a fuzzy name search can produce.
+      if (!profile.id) {
+        // No profile id: while editing keep the personal data the user needs;
+        // otherwise treat as "no record".
+        if (editing) applyPersonalOnly();
+        else handleNoRecord();
+        clearSearch();
+        return;
       }
 
-      const searchName = (profile.last_name ?? "").trim();
-      if (searchName) {
-        entityApi.search(searchName, 10)
-          .then((results) => {
-            const match = results.find((r) => matchRecordToProfile(r, profile));
+      entityApi.listByProfile(profile.id)
+        .then((records) => {
+          const summaries: RecordSummary[] = records.map((r) => ({
+            id: getRecordId(r) ?? "",
+            record_id: getBusinessId(r) ?? "",
+            created_date: getCreatedDate(r) ?? "",
+          }));
 
-            if (match && !editing) {
-              const flattened = flattenResponse(match);
-              setData(flattened);
-              setExistingRecord(flattened);
-              setIsExistingRecord(true);
-              setEditing(false);
-              setOriginalData(null);
-              // Remember the resolved record as the page's last-viewed state.
-              if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
-            } else {
-              applyPersonalOnly();
-            }
-          })
-          .catch(() => {
+          if (records.length > 0 && !editing) {
+            // Load the most recent record (backend returns newest first).
+            setProfileRecords(summaries);
+            const flattened = flattenResponse(records[0]);
+            setData(flattened);
+            setExistingRecord(flattened);
+            setIsExistingRecord(true);
+            setNeedsPatientSelection(false);
+            setEditing(false);
+            setOriginalData(null);
+            if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
+          } else if (editing) {
+            // Building a new record: keep the dropdown and fill personal info.
+            setProfileRecords(summaries);
             applyPersonalOnly();
-          });
-      } else {
-        applyPersonalOnly();
-      }
+          } else {
+            // Viewing and no record exists: prompt and keep the form empty.
+            handleNoRecord();
+          }
+        })
+        .catch(() => {
+          // The record lookup failed (network/server). Fall back to a fresh
+          // form but don't claim "no record exists" — that may be untrue.
+          setProfileRecords([]);
+          applyPersonalOnly();
+        });
 
       clearSearch();
     },
-    [editing, clearSearch, fetchProfileRecords, entityApi, emptyRecord,
-     buildPersonalData, matchRecordToProfile, flattenResponse, getRecordId, draftKey]
+    [editing, clearSearch, entityApi, emptyRecord, buildPersonalData,
+     flattenResponse, getRecordId, getBusinessId, getCreatedDate,
+     recordLabel, draftKey]
   );
 
   // -------------------------------------------------------------------------

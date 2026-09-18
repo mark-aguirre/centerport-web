@@ -344,6 +344,8 @@ const medicalConfig: EntityFormConfig<MedicalExam> = {
     update: "Medical exam updated successfully",
   },
 
+  recordLabel: "medical exam",
+
   getNewRecordDefaults: () => {
     const today = new Date();
     const todayStr = today.toISOString().slice(0, 10);

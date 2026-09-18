@@ -80,6 +80,8 @@ const landbaseConfig: EntityFormConfig<LandbasePeme> = {
     update: "PEME record updated successfully",
   },
 
+  recordLabel: "Landbase PEME",
+
   getNewRecordDefaults: () => {
     const today = new Date();
     const todayStr = today.toISOString().slice(0, 10);

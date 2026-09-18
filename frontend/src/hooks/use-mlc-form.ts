@@ -72,6 +72,8 @@ const mlcConfig: EntityFormConfig<MlcRecord> = {
     create: "MLC record created successfully",
     update: "MLC record updated successfully",
   },
+
+  recordLabel: "MLC record",
 };
 
 // ---------------------------------------------------------------------------
