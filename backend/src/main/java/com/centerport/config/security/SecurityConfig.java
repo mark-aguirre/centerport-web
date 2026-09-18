@@ -124,6 +124,20 @@ public class SecurityConfig {
                         .requestMatchers("/api/employers/**").hasAnyRole(
                                 Roles.ADMIN, Roles.INFORMATION, Roles.RELEASING)
 
+                        // --- Billing domain: items, transactions, receivables,
+                        //     and the transaction workspace's customer/product
+                        //     lookups. Restricted to ADMIN and ACCOUNTING. ---
+                        .requestMatchers("/api/items/**").hasAnyRole(
+                                Roles.ADMIN, Roles.ACCOUNTING)
+                        .requestMatchers("/api/products/**").hasAnyRole(
+                                Roles.ADMIN, Roles.ACCOUNTING)
+                        .requestMatchers("/api/customers/**").hasAnyRole(
+                                Roles.ADMIN, Roles.ACCOUNTING)
+                        .requestMatchers("/api/transactions/**").hasAnyRole(
+                                Roles.ADMIN, Roles.ACCOUNTING)
+                        .requestMatchers("/api/receivables/**").hasAnyRole(
+                                Roles.ADMIN, Roles.ACCOUNTING)
+
                         // --- Medical Personnel: search + individual lookups open to
                         //     all authenticated users (used by signatory pickers);
                         //     management operations (list, create, update, delete,

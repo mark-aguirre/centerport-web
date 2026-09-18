@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navigation } from "@/config/navigation";
+import { navigation, groupNavigation } from "@/config/navigation";
 import { useAuth } from "@/components/auth-provider";
 import { cn } from "@/lib/utils";
 import {
@@ -28,6 +28,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const { canRoute } = useAuth();
   const visibleNavigation = navigation.filter((item) => canRoute(item.href));
+  const navigationGroups = groupNavigation(visibleNavigation);
 
   return (
     <Sheet>
@@ -52,29 +53,42 @@ export function MobileNav() {
           </div>
         </SheetHeader>
         <ScrollArea className="flex-1 px-3 py-4">
-          <nav className="flex flex-col gap-1">
-            {visibleNavigation.map((item) => {
-              const isActive =
-                pathname === item.href ||
-                pathname.startsWith(item.href + "/");
-              const Icon = item.icon;
+          <nav className="flex flex-col gap-4">
+            {navigationGroups.map((group, groupIndex) => (
+              <div
+                key={group.label ?? `group-${groupIndex}`}
+                className="flex flex-col gap-1"
+              >
+                {group.label && (
+                  <span className="px-3 pb-0.5 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+                    {group.label}
+                  </span>
+                )}
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                  )}
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  <span>{item.shortTitle ?? item.title}</span>
-                </Link>
-              );
-            })}
+                {group.items.map((item) => {
+                  const isActive =
+                    pathname === item.href ||
+                    pathname.startsWith(item.href + "/");
+                  const Icon = item.icon;
+
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      )}
+                    >
+                      <Icon className="h-5 w-5 shrink-0" />
+                      <span>{item.shortTitle ?? item.title}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
         </ScrollArea>
         <Separator />

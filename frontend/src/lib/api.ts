@@ -14,6 +14,20 @@ import type { MedicalExam } from "@/components/medical/types";
 import type { MlcRecord } from "@/components/mlc/types";
 import type { PanamaCertificate } from "@/components/panama/types";
 import type { PsychologyRecord } from "@/components/psychology/types";
+import type { Item } from "@/components/listing/types";
+import type {
+  Customer,
+  Product,
+  Transaction,
+  TransactionPayload,
+  TransactionSummary,
+} from "@/components/transaction/types";
+import type {
+  PaymentTypeOption,
+  ReceivableAccount,
+  ReceivableReport,
+  ReceivableReportFilters,
+} from "@/components/receivable/types";
 
 /** System-managed fields excluded from profile create/update payloads. */
 export const PROFILE_SYSTEM_FIELDS = [
@@ -965,6 +979,158 @@ export const api = {
         await httpClient.delete(`/api/visits/${id}`);
       },
     },
+
+    /**
+     * Item resource — billable services, examinations, and packages managed
+     * through the Item Listing page. A standard CRUD entity.
+     */
+    Item: {
+      /**
+       * Filter items. When `id` is provided, fetches a single item by UUID.
+       * Otherwise returns all items (first page, up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<Item[]> {
+        return fetchFiltered<Item>("/api/items", filters);
+      },
+
+      /**
+       * List items with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-created_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<Item[]> {
+        return fetchPagedList<Item>("/api/items", orderBy, limit, {
+          item_id: "itemId",
+        });
+      },
+
+      /** Create a new item. Returns the persisted record with server-generated fields. */
+      async create(data: Partial<Item>): Promise<Item> {
+        return httpClient.post<Item>("/api/items", data);
+      },
+
+      /** Update an existing item by UUID. Returns the updated record. */
+      async update(id: string, data: Partial<Item>): Promise<Item> {
+        return httpClient.put<Item>(`/api/items/${id}`, data);
+      },
+
+      /** Delete an item by UUID. */
+      async remove(id: string): Promise<void> {
+        return httpClient.delete<void>(`/api/items/${id}`);
+      },
+
+      /**
+       * Search items by keyword (matches name, description, or item ID).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       * @returns matching items sorted by most recently updated first
+       */
+      async search(keyword: string, limit: number = 10): Promise<Item[]> {
+        return fetchSearchResults<Item>("/api/items", keyword, limit);
+      },
+    },
+
+    /**
+     * Transaction resource — POS-style sale/charge transactions. Beyond the
+     * usual CRUD it exposes lifecycle actions (`settle`, `void`). Amount totals
+     * are recalculated server-side; the frontend only computes for display.
+     */
+    Transaction: {
+      /**
+       * List transactions for the history page with optional filters.
+       *
+       * @param opts.search  keyword (transaction #, customer)
+       * @param opts.status  DRAFT | SETTLED | VOIDED (omit or "All" for all)
+       * @param opts.from    inclusive start date (`yyyy-MM-dd`)
+       * @param opts.to      inclusive end date (`yyyy-MM-dd`)
+       * @param opts.page    zero-based page index (default 0)
+       * @param opts.size    page size (default 50)
+       */
+      async list(opts: {
+        search?: string;
+        status?: string;
+        from?: string;
+        to?: string;
+        page?: number;
+        size?: number;
+      } = {}): Promise<Paged<TransactionSummary>> {
+        const params: Record<string, string | number | undefined> = {
+          page: opts.page ?? 0,
+          size: opts.size ?? 50,
+          sort: "createdDate,desc",
+        };
+        if (opts.search) params.search = opts.search;
+        if (opts.status && opts.status !== "All") params.status = opts.status;
+        if (opts.from) params.from = opts.from;
+        if (opts.to) params.to = opts.to;
+        return httpClient.get<Paged<TransactionSummary>>("/api/transactions", params);
+      },
+
+      /** Fetch a single transaction (with its items) by UUID. */
+      async getById(id: string): Promise<Transaction> {
+        return httpClient.get<Transaction>(`/api/transactions/${id}`);
+      },
+
+      /**
+       * Settle a new transaction: creates it and moves it to SETTLED in one
+       * step. The backend recalculates and validates the total before settling.
+       */
+      async settle(payload: TransactionPayload): Promise<Transaction> {
+        return httpClient.post<Transaction>("/api/transactions/settle", payload);
+      },
+
+      /**
+       * Void a settled transaction. A settled transaction is never physically
+       * deleted; this records the void reason and audit fields.
+       *
+       * @param id      the transaction UUID
+       * @param reason  the reason for voiding (audit trail)
+       */
+      async void(id: string, reason: string): Promise<Transaction> {
+        return httpClient.post<Transaction>(`/api/transactions/${id}/void`, { reason });
+      },
+    },
+
+    /**
+     * Customer lookup — read-only pick-list for the transaction workspace's
+     * customer selector.
+     */
+    Customer: {
+      /**
+       * Search customers by keyword (name, application number, agency).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       */
+      async search(keyword: string, limit: number = 10): Promise<Customer[]> {
+        return httpClient.get<Customer[]>("/api/customers/search", {
+          keyword,
+          limit,
+        });
+      },
+    },
+
+    /**
+     * Product lookup — read-only pick-list of sellable items for the
+     * transaction workspace's product selector. Backed by the same items as the
+     * Item Listing page but exposed as product defaults.
+     */
+    Product: {
+      /**
+       * Search products by keyword (name, description).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       */
+      async search(keyword: string, limit: number = 10): Promise<Product[]> {
+        return httpClient.get<Product[]>("/api/products/search", {
+          keyword,
+          limit,
+        });
+      },
+    },
   },
   integrations: {
     Core: {
@@ -1160,6 +1326,40 @@ export const api = {
       return records
         .map((r) => r.name)
         .sort((a, b) => a.localeCompare(b));
+    },
+  },
+
+  /**
+   * Receivables reporting resource — read-only report generation and its
+   * supporting lookups (accounts, payment types). This reports over settled
+   * transactions and surfaces amounts owed; it does not own transaction state.
+   */
+  Receivables: {
+    /** List selectable company accounts for the report's account filter. */
+    async listAccounts(): Promise<ReceivableAccount[]> {
+      return httpClient.get<ReceivableAccount[]>("/api/receivables/accounts");
+    },
+
+    /** List configured payment-type options for the report's payment filter. */
+    async listPaymentTypes(): Promise<PaymentTypeOption[]> {
+      return httpClient.get<PaymentTypeOption[]>("/api/receivables/payment-types");
+    },
+
+    /**
+     * Generate the receivable report for the given filters.
+     *
+     * @param filters  account, payment type, package classification, date range
+     * @returns the report rows plus total count and total amount
+     */
+    async generate(filters: ReceivableReportFilters): Promise<ReceivableReport> {
+      const params: Record<string, string | number | undefined> = {
+        account_id: filters.account_id,
+        package_filter: filters.package_filter,
+        from: filters.from_date,
+        to: filters.to_date,
+      };
+      if (filters.payment_type) params.payment_type = filters.payment_type;
+      return httpClient.get<ReceivableReport>("/api/receivables/report", params);
     },
   },
 };
