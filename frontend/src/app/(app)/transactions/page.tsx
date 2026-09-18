@@ -77,7 +77,12 @@ export default function TransactionHistoryPage() {
           description="Point-of-sale transactions — history and status."
         />
         <div className="pt-1">
-          <Button size="sm" className="cursor-pointer" render={<Link href="/transactions/new" />}>
+          <Button
+            size="sm"
+            className="cursor-pointer"
+            nativeButton={false}
+            render={<Link href="/transactions/new" />}
+          >
             <Plus className="w-4 h-4 mr-1" />
             New Transaction
           </Button>
