@@ -95,7 +95,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   return (
     <aside
       className={cn(
-        "flex flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300",
+        "flex h-full flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300",
         collapsed ? "w-16" : "w-64"
       )}
     >
@@ -115,7 +115,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
       </div>
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 px-3 py-5">
+      <ScrollArea className="min-h-0 flex-1 px-3 py-5 [&_[data-slot=scroll-area-scrollbar]]:hidden">
         <nav className="flex flex-col gap-4">
           {navigationGroups.map((group, groupIndex) => {
             // Labeled groups become collapsible sections (expanded sidebar only).

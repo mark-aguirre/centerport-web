@@ -44,7 +44,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex">
+      <div className="hidden h-full md:flex">
         <AppSidebar collapsed={collapsed} onToggle={toggleSidebar} />
       </div>
 
