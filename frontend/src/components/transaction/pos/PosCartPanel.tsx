@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, ChevronDown, Loader2, Trash2, User } from "lucide-react";
+import { ArrowRight, ChevronDown, Loader2, Minus, Plus, Trash2, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/common/form-select";
+import { SearchSelect } from "@/components/transaction/SearchSelect";
+import { api, type EmployerRecord } from "@/lib/api";
 import { formatPeso, parsePeso } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -26,6 +28,10 @@ interface PosCartPanelProps {
   onRemoveItem: (key: string) => void;
   /** Clear the customer selection to pick a different one. */
   onEditCustomer: () => void;
+  /** Currently billed agency (defaults to the customer's, can be overridden). */
+  agency: string | null;
+  /** Change the billed agency for this draft. */
+  onChangeAgency: (agency: string | null) => void;
   /** Computed totals. */
   totals: { itemsTotal: number; feesTotal: number; total: number };
   /** Whether the transaction can be settled. */
@@ -56,6 +62,8 @@ export function PosCartPanel({
   onUpdateItem,
   onRemoveItem,
   onEditCustomer,
+  agency,
+  onChangeAgency,
   totals,
   canSettle,
   settling,
@@ -64,9 +72,11 @@ export function PosCartPanel({
 }: PosCartPanelProps) {
   // Which line item is currently expanded for editing (client key).
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
+  // Toggles the inline agency search/select in the client details block.
+  const [editingAgency, setEditingAgency] = useState(false);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-primary/15 bg-card shadow-sm">
+    <div className="flex h-full flex-col overflow-hidden border-l border-primary/15 bg-card">
       {/* Client details */}
       <div className="border-b border-primary/10 bg-primary/[0.04] px-4 py-3">
         <div className="flex items-start justify-between">
@@ -77,7 +87,7 @@ export function PosCartPanel({
               onClick={onEditCustomer}
               className="cursor-pointer text-[11px] font-semibold text-primary hover:underline"
             >
-              Change
+              Edit
             </button>
           )}
         </div>
@@ -90,8 +100,32 @@ export function PosCartPanel({
               {customer.application_no || "—"}
             </p>
             <div className="mt-2 rounded-md border border-primary/15 bg-card px-3 py-2">
-              <p className={detailLabel}>Agency</p>
-              <p className="text-xs text-foreground/90">{customer.agency || "—"}</p>
+              <div className="flex items-center justify-between">
+                <p className={detailLabel}>Agency</p>
+                <button
+                  type="button"
+                  onClick={() => setEditingAgency((prev) => !prev)}
+                  className="cursor-pointer text-[11px] font-semibold text-primary hover:underline"
+                >
+                  {editingAgency ? "Cancel" : "Change"}
+                </button>
+              </div>
+              {editingAgency ? (
+                <div className="mt-1">
+                  <SearchSelect<EmployerRecord>
+                    onSearch={(kw) => api.Employer.search(kw)}
+                    onSelect={(employer) => {
+                      onChangeAgency(employer.name);
+                      setEditingAgency(false);
+                    }}
+                    renderPrimary={(e) => e.name}
+                    placeholder="Search agency..."
+                    ariaLabel="Search agency"
+                  />
+                </div>
+              ) : (
+                <p className="text-xs text-foreground/90">{agency || "—"}</p>
+              )}
             </div>
           </div>
         ) : (
@@ -131,7 +165,7 @@ export function PosCartPanel({
                         )}
                       </p>
                       <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                        Qty: 1 · {item.billing_type}
+                        {formatPeso(item.price_snapshot)} · {item.billing_type}
                         {item.professional_fee > 0 &&
                           ` · PF ${formatPeso(item.professional_fee)}`}
                         <ChevronDown
@@ -144,7 +178,7 @@ export function PosCartPanel({
                     </button>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold tabular-nums text-foreground">
-                        {formatPeso(item.price_snapshot)}
+                        {formatPeso(item.price_snapshot * item.quantity)}
                       </span>
                       <button
                         type="button"
@@ -155,6 +189,35 @@ export function PosCartPanel({
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
+                  </div>
+
+                  {/* Quantity stepper */}
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        item.quantity <= 1
+                          ? onRemoveItem(item.key)
+                          : onUpdateItem(item.key, { quantity: item.quantity - 1 })
+                      }
+                      aria-label={`Decrease quantity of ${item.description_snapshot}`}
+                      className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-primary/20 text-foreground/70 transition-colors hover:bg-primary/10 hover:text-foreground"
+                    >
+                      <Minus className="h-3.5 w-3.5" />
+                    </button>
+                    <span className="min-w-6 text-center text-sm font-semibold tabular-nums text-foreground">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onUpdateItem(item.key, { quantity: item.quantity + 1 })
+                      }
+                      aria-label={`Increase quantity of ${item.description_snapshot}`}
+                      className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-primary/20 text-foreground/70 transition-colors hover:bg-primary/10 hover:text-foreground"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </button>
                   </div>
 
                   {/* Per-item editor */}
@@ -220,14 +283,14 @@ export function PosCartPanel({
       <div className="grid grid-cols-2 gap-2 border-t border-primary/10 px-4 py-3">
         <Button
           variant="outline"
-          className="cursor-pointer"
+          className="h-12 cursor-pointer"
           onClick={onVoid}
           disabled={settling}
         >
           Void
         </Button>
         <Button
-          className="cursor-pointer"
+          className="h-12 cursor-pointer bg-emerald-500 text-white hover:bg-emerald-600"
           onClick={onSettle}
           disabled={!canSettle || settling}
         >

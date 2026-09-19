@@ -122,7 +122,14 @@ export interface TransactionItem {
   product_id: string;
   /** Description snapshot (may include the "- Personal Account" suffix). */
   description_snapshot: string;
-  /** Price snapshot in pesos at time of add. */
+  /**
+   * Number of units for this line. Adding the same product again increments
+   * this instead of creating a new line. Quantity is a client-side display
+   * concept: the settle payload still sends one entry per unit, so the backend
+   * contract is unchanged.
+   */
+  quantity: number;
+  /** Unit price snapshot in pesos at time of add. */
   price_snapshot: number;
   /** Professional fee assigned to this item (defaults from the product/transaction). */
   professional_fee: number;
@@ -144,6 +151,13 @@ export interface Transaction {
   customer_id: string;
   /** Denormalized customer name for list display. */
   customer_name?: string;
+  /**
+   * Agency this draft is billed to. Defaults to the selected customer's agency
+   * but can be overridden via the agency search/select in the cart. This is a
+   * client-side draft field — the settle payload has no agency, so the backend
+   * derives it from the customer; the override is for on-screen display only.
+   */
+  billed_agency?: string | null;
   status: TransactionStatus;
   /** Transaction default billing type (new items inherit it). */
   default_billing_type: BillingType;
@@ -212,8 +226,14 @@ export function computeTransactionTotals(items: TransactionItem[]): {
   feesTotal: number;
   total: number;
 } {
-  const itemsTotal = items.reduce((sum, i) => sum + (i.price_snapshot || 0), 0);
-  const feesTotal = items.reduce((sum, i) => sum + (i.professional_fee || 0), 0);
+  const itemsTotal = items.reduce(
+    (sum, i) => sum + (i.price_snapshot || 0) * (i.quantity || 1),
+    0
+  );
+  const feesTotal = items.reduce(
+    (sum, i) => sum + (i.professional_fee || 0) * (i.quantity || 1),
+    0
+  );
   return { itemsTotal, feesTotal, total: itemsTotal + feesTotal };
 }
 

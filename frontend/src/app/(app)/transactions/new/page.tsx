@@ -4,11 +4,11 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Search, UserPlus } from "lucide-react";
 
-import { PageContainer } from "@/components/common/page-container";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { SearchSelect } from "@/components/transaction/SearchSelect";
 import { SettleDialog } from "@/components/transaction/SettleDialog";
+import { PosHeader } from "@/components/transaction/pos/PosHeader";
 import { PosCategoryRail } from "@/components/transaction/pos/PosCategoryRail";
 import { PosProductGrid } from "@/components/transaction/pos/PosProductGrid";
 import { PosCartPanel } from "@/components/transaction/pos/PosCartPanel";
@@ -39,6 +39,7 @@ export default function NewTransactionPage() {
     catalog,
     catalogLoading,
     selectCustomer,
+    setAgency,
     addProduct,
     updateItem,
     removeItem,
@@ -100,27 +101,50 @@ export default function NewTransactionPage() {
   };
 
   return (
-    <PageContainer className="max-w-none">
-      <div className="grid h-[calc(100vh-8rem)] grid-cols-1 gap-4 lg:grid-cols-[1fr_360px]">
-        {/* Left: search + category rail + product grid */}
-        <div className="flex min-h-0 flex-col gap-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search services or codes..."
-              aria-label="Search products"
-              className="h-11 w-full pl-10 text-sm"
-            />
-          </div>
+    <div className="flex h-full flex-col">
+      <PosHeader />
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        {/* Full-height category rail, flush to the left edge */}
+        <PosCategoryRail active={category} onChange={setCategory} counts={counts} />
 
-          <div className="flex min-h-0 flex-1 gap-4">
-            <PosCategoryRail active={category} onChange={setCategory} counts={counts} />
-            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+        {/* Content: product workspace (left) + cart panel (right).
+            The cart panel is full-height and flush to the right edge, so the
+            padding lives on the product column rather than the outer grid. */}
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[1fr_360px]">
+          {/* Left: search + product grid.
+              The big top field is contextual: it searches clients until one is
+              chosen, then switches to searching services / codes. */}
+          <div className="flex min-h-0 flex-col gap-4 p-4">
+            {!hasCustomer ? (
+              <SearchSelect<Customer>
+                onSearch={(kw) => api.entities.Customer.search(kw)}
+                onSelect={selectCustomer}
+                renderPrimary={(c) => c.name}
+                renderSecondary={(c) =>
+                  [c.application_no, c.agency].filter(Boolean).join(" · ")
+                }
+                placeholder="Search client by name, application no, or agency..."
+                ariaLabel="Search client"
+                inputClassName="h-11 pl-10 text-sm"
+                autoFocus
+              />
+            ) : (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search services or codes..."
+                  aria-label="Search products"
+                  className="h-11 w-full pl-10 text-sm"
+                />
+              </div>
+            )}
+
+            <div className="min-h-0 flex-1 overflow-y-auto">
               {!hasCustomer ? (
-                <CustomerPrompt onSelect={selectCustomer} />
+                <ClientPromptHint />
               ) : (
                 <PosProductGrid
                   products={filteredProducts}
@@ -131,21 +155,23 @@ export default function NewTransactionPage() {
               )}
             </div>
           </div>
-        </div>
 
-        {/* Right: cart / order summary */}
-        <PosCartPanel
-          customer={customer}
-          items={transaction.items}
-          onUpdateItem={updateItem}
-          onRemoveItem={removeItem}
-          onEditCustomer={reset}
-          totals={totals}
-          canSettle={canSettle}
-          settling={settling}
-          onVoid={handleVoid}
-          onSettle={() => setSettleOpen(true)}
-        />
+          {/* Right: cart / order summary */}
+          <PosCartPanel
+            customer={customer}
+            items={transaction.items}
+            onUpdateItem={updateItem}
+            onRemoveItem={removeItem}
+            onEditCustomer={reset}
+            agency={transaction.billed_agency ?? customer?.agency ?? null}
+            onChangeAgency={setAgency}
+            totals={totals}
+            canSettle={canSettle}
+            settling={settling}
+            onVoid={handleVoid}
+            onSettle={() => setSettleOpen(true)}
+          />
+        </div>
       </div>
 
       <SettleDialog
@@ -171,17 +197,18 @@ export default function NewTransactionPage() {
         }}
         onCancel={() => setVoidOpen(false)}
       />
-    </PageContainer>
+    </div>
   );
 }
 
 /**
- * Full-height prompt shown in the product area until a client is chosen.
+ * Full-height hint shown in the product area until a client is chosen.
  *
- * Selecting a client is the prerequisite for adding products, so the workspace
- * leads with the client search rather than the catalog.
+ * Selecting a client is the prerequisite for adding products. The client search
+ * lives in the contextual field at the top of the workspace, so this panel just
+ * points the user there rather than duplicating the search control.
  */
-function CustomerPrompt({ onSelect }: { onSelect: (customer: Customer) => void }) {
+function ClientPromptHint() {
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-primary/20 px-6 py-16 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -190,20 +217,9 @@ function CustomerPrompt({ onSelect }: { onSelect: (customer: Customer) => void }
       <div>
         <p className="text-sm font-semibold text-foreground">Select a client to begin</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Search by name, application number, or agency.
+          Use the search field above to find a client by name, application
+          number, or agency.
         </p>
-      </div>
-      <div className="w-full max-w-md">
-        <SearchSelect<Customer>
-          onSearch={(kw) => api.entities.Customer.search(kw)}
-          onSelect={onSelect}
-          renderPrimary={(c) => c.name}
-          renderSecondary={(c) =>
-            [c.application_no, c.agency].filter(Boolean).join(" · ")
-          }
-          placeholder="Search client..."
-          ariaLabel="Search client"
-        />
       </div>
     </div>
   );

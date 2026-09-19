@@ -24,9 +24,10 @@ interface PosProductGridProps {
  * Product card grid for the POS workspace.
  *
  * Renders sellable products as cards — category tag, name, price, and an add
- * button — matching the counter POS design. The grid is the primary way to add
- * items to the current transaction. When no customer is selected the cards are
- * dimmed and non-interactive.
+ * button — matching the counter POS design. Only the "+" button adds the item
+ * to the transaction (clicking elsewhere on the card does nothing); the button
+ * enlarges on card hover to signal the action. When no customer is selected the
+ * cards are dimmed and the add button is disabled.
  */
 export function PosProductGrid({
   products,
@@ -55,17 +56,11 @@ export function PosProductGrid({
       {products.map((product) => {
         const category = classifyProduct(product);
         return (
-          <button
+          <div
             key={product.id}
-            type="button"
-            disabled={disabled}
-            onClick={() => onAdd(product)}
-            aria-label={`Add ${product.name}`}
             className={cn(
               "group flex flex-col rounded-lg border border-primary/15 bg-card p-4 text-left shadow-sm transition-colors",
-              disabled
-                ? "cursor-not-allowed opacity-50"
-                : "cursor-pointer hover:border-primary/40 hover:shadow-md"
+              disabled ? "opacity-50" : "hover:border-primary/40 hover:shadow-md"
             )}
           >
             <span className="text-[11px] font-bold uppercase tracking-wider text-primary/70">
@@ -78,18 +73,22 @@ export function PosProductGrid({
               <span className="text-base font-bold tabular-nums text-foreground">
                 {formatPeso(product.price)}
               </span>
-              <span
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => onAdd(product)}
+                aria-label={`Add ${product.name}`}
                 className={cn(
-                  "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                  "flex h-9 w-9 items-center justify-center rounded-md transition-transform duration-200 ease-out",
                   disabled
-                    ? "bg-muted text-muted-foreground"
-                    : "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
+                    ? "cursor-not-allowed bg-muted text-muted-foreground"
+                    : "cursor-pointer bg-primary text-primary-foreground shadow-sm group-hover:scale-110"
                 )}
               >
                 <Plus className="h-4 w-4" />
-              </span>
+              </button>
             </div>
-          </button>
+          </div>
         );
       })}
     </div>

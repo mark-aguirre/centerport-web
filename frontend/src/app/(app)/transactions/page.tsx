@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
-import { Ban, Loader2, Plus, Receipt } from "lucide-react";
+import { Ban, Loader2, Plus } from "lucide-react";
 
 import { PageContainer } from "@/components/common/page-container";
 import { PageTitle } from "@/components/common/page-title";
-import { SectionHeader } from "@/components/common/section-header";
 import { SearchBar } from "@/components/common/search-bar";
 import { FormSelect } from "@/components/common/form-select";
 import { FormField } from "@/components/common/form-field";
 import { EmptyStateCard } from "@/components/common/empty-state-card";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -90,11 +90,12 @@ export default function TransactionHistoryPage() {
       </div>
 
       <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10 space-y-3">
-        <SectionHeader title="Transactions" icon={Receipt} />
-
         {/* Filters */}
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
-          <div className="sm:col-span-2">
+        <div className="grid grid-cols-1 items-end gap-2 sm:grid-cols-4">
+          <div className="space-y-0.5 sm:col-span-2 [&_.mb-4]:mb-0">
+            <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
+              Search
+            </Label>
             <SearchBar
               value={filters.search}
               onChange={(v) => setFilter("search", v)}

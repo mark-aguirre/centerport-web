@@ -28,12 +28,12 @@ interface PosCategoryRailProps {
 }
 
 /**
- * Vertical category rail for the POS product grid.
+ * Full-height vertical category rail for the POS workspace.
  *
- * Mirrors the left-hand icon rail in the counter POS design: a stacked column
- * of category buttons (All, Medical, Labs, X-Ray, Other) that filter the
- * product card grid. Categories with no products are hidden to keep the rail
- * tidy (except "ALL", which is always shown).
+ * A dark navy column pinned to the left edge (below the POS header), holding a
+ * stacked set of category buttons (All, Medical, Labs, X-Ray, Other) that
+ * filter the product card grid. Categories with no products are hidden to keep
+ * the rail tidy (except "ALL", which is always shown).
  */
 export function PosCategoryRail({ active, onChange, counts }: PosCategoryRailProps) {
   const visible = PRODUCT_CATEGORY_FILTERS.filter(
@@ -42,7 +42,7 @@ export function PosCategoryRail({ active, onChange, counts }: PosCategoryRailPro
 
   return (
     <div
-      className="flex flex-row gap-2 overflow-x-auto sm:flex-col sm:overflow-visible"
+      className="flex h-full w-20 shrink-0 flex-col items-center gap-2 overflow-y-auto bg-[#0d2b45] p-2"
       role="tablist"
       aria-label="Product categories"
     >
@@ -57,11 +57,10 @@ export function PosCategoryRail({ active, onChange, counts }: PosCategoryRailPro
             aria-selected={isActive}
             onClick={() => onChange(category)}
             className={cn(
-              "flex min-w-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg px-2 py-3 transition-colors",
-              "border",
+              "flex w-full cursor-pointer flex-col items-center justify-center gap-1 rounded-lg px-1 py-3 transition-colors",
               isActive
-                ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                : "border-primary/15 bg-card text-foreground/70 hover:border-primary/40 hover:bg-primary/5"
+                ? "bg-emerald-500 text-white shadow-sm"
+                : "text-white/60 hover:bg-white/10 hover:text-white"
             )}
           >
             <Icon className="h-5 w-5" />

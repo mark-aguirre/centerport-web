@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import { AppSidebar } from "./app-sidebar";
 import { AppHeader } from "./app-header";
 import { useLayout } from "@/components/layout-provider";
@@ -20,7 +21,14 @@ interface AppLayoutProps {
  */
 export function AppLayout({ children }: AppLayoutProps) {
   const { fullWidth } = useLayout();
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+
+  // Immersive routes (e.g. the POS "new transaction" workspace) hide the
+  // sidebar and use the full content width. This is derived from the route, so
+  // the sidebar reappears automatically once the user navigates away.
+  const immersive = pathname === "/transactions/new";
+  const expanded = immersive || fullWidth;
 
   // On mobile/tablet, collapse by default
   useEffect(() => {
@@ -43,20 +51,29 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {/* Desktop Sidebar */}
-      <div className="hidden h-full md:flex">
-        <AppSidebar collapsed={collapsed} onToggle={toggleSidebar} />
-      </div>
+      {/* Desktop Sidebar — hidden on immersive routes */}
+      {!immersive && (
+        <div className="hidden h-full md:flex">
+          <AppSidebar collapsed={collapsed} onToggle={toggleSidebar} />
+        </div>
+      )}
 
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <AppHeader
-          onToggleSidebar={toggleSidebar}
-          sidebarCollapsed={collapsed}
-        />
+        {/* Immersive routes render their own header (e.g. the POS bar). */}
+        {!immersive && (
+          <AppHeader
+            onToggleSidebar={toggleSidebar}
+            sidebarCollapsed={collapsed}
+          />
+        )}
         <main
           className="flex-1 overflow-auto bg-background"
-          style={{ paddingLeft: fullWidth ? "1rem" : "8%", paddingRight: fullWidth ? "1rem" : "8%" }}
+          style={
+            immersive
+              ? undefined
+              : { paddingLeft: expanded ? "1rem" : "8%", paddingRight: expanded ? "1rem" : "8%" }
+          }
           suppressHydrationWarning
         >
           {children}

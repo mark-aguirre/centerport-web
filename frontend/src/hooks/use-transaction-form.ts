@@ -21,6 +21,63 @@ function makeItemKey(): string {
   return `item-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+/** localStorage key for the persisted POS draft (last state). */
+const DRAFT_STORAGE_KEY = "centerport-pos-draft";
+
+/** Shape of the persisted draft. */
+interface PersistedDraft {
+  transaction: Transaction;
+  customer: Customer | null;
+}
+
+/**
+ * Reads the persisted POS draft from localStorage.
+ *
+ * Returns `null` on the server, when nothing is stored, or when the stored JSON
+ * is malformed — callers then fall back to an empty draft.
+ */
+function loadDraft(): PersistedDraft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(DRAFT_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedDraft;
+    if (!parsed || typeof parsed !== "object" || !parsed.transaction) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+/** Persists the current POS draft, or clears it when empty. */
+function saveDraft(draft: PersistedDraft): void {
+  if (typeof window === "undefined") return;
+  const empty =
+    !draft.customer &&
+    !draft.transaction.customer_id &&
+    draft.transaction.items.length === 0;
+  try {
+    if (empty) {
+      window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+    } else {
+      window.localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    }
+  } catch {
+    // Storage may be unavailable (private mode / quota) — persistence is a
+    // best-effort convenience, so failures are intentionally swallowed.
+  }
+}
+
+/** Removes any persisted POS draft. */
+function clearDraft(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(DRAFT_STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}
+
 /** Return shape of {@link useTransactionForm}. */
 export interface UseTransactionFormResult {
   /** The in-progress (draft) transaction. */
@@ -29,6 +86,8 @@ export interface UseTransactionFormResult {
   customer: Customer | null;
   /** Select / change the customer (blocked once items exist? no — before settle only). */
   selectCustomer: (customer: Customer) => void;
+  /** Override the billed agency for this draft (defaults to the customer's). */
+  setAgency: (agency: string | null) => void;
   /** Transaction default billing type. */
   defaultBillingType: BillingType;
   setDefaultBillingType: (value: BillingType) => void;
@@ -77,6 +136,27 @@ export function useTransactionForm(): UseTransactionFormResult {
   const [settling, setSettling] = useState(false);
   const [catalog, setCatalog] = useState<Product[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
+  // Gate persistence until after the initial restore, so the empty starting
+  // state doesn't overwrite a saved draft before we've had a chance to load it.
+  const [restored, setRestored] = useState(false);
+
+  // Restore the last in-progress draft (client + cart) after mount. Doing this
+  // in an effect (rather than lazy state init) keeps the server-rendered HTML
+  // and the first client render identical, avoiding a hydration mismatch.
+  useEffect(() => {
+    const draft = loadDraft();
+    if (draft) {
+      setTransaction(draft.transaction);
+      setCustomer(draft.customer);
+    }
+    setRestored(true);
+  }, []);
+
+  // Persist the draft whenever it changes, once the initial restore has run.
+  useEffect(() => {
+    if (!restored) return;
+    saveDraft({ transaction, customer });
+  }, [restored, transaction, customer]);
 
   // Load the product catalog once for the POS card grid. An empty keyword
   // returns all active products from the backend search endpoint.
@@ -108,7 +188,14 @@ export function useTransactionForm(): UseTransactionFormResult {
       ...prev,
       customer_id: next.id,
       customer_name: next.name,
+      // Default the billed agency to the customer's agency; the operator can
+      // change it via the agency search/select.
+      billed_agency: next.agency ?? null,
     }));
+  }, []);
+
+  const setAgency = useCallback((agency: string | null) => {
+    setTransaction((prev) => ({ ...prev, billed_agency: agency }));
   }, []);
 
   const setDefaultBillingType = useCallback((value: BillingType) => {
@@ -121,15 +208,39 @@ export function useTransactionForm(): UseTransactionFormResult {
 
   const addProduct = useCallback((product: Product) => {
     setTransaction((prev) => {
+      // Prefer the product's own professional fee; fall back to the
+      // transaction default when the product has none.
+      const professionalFee =
+        product.professional_fee || prev.default_professional_fee;
+      const billingType = prev.default_billing_type;
+
+      // Adding the same product with the same billing/fee just bumps the
+      // quantity of the existing line rather than creating a duplicate row.
+      const existing = prev.items.find(
+        (i) =>
+          i.product_id === product.id &&
+          i.billing_type === billingType &&
+          i.professional_fee === professionalFee &&
+          !i.personal_account
+      );
+
+      if (existing) {
+        return {
+          ...prev,
+          items: prev.items.map((i) =>
+            i.key === existing.key ? { ...i, quantity: i.quantity + 1 } : i
+          ),
+        };
+      }
+
       const newItem: TransactionItem = {
         key: makeItemKey(),
         product_id: product.id,
         description_snapshot: product.description || product.name,
+        quantity: 1,
         price_snapshot: product.price ?? 0,
-        // Prefer the product's own professional fee; fall back to the
-        // transaction default when the product has none.
-        professional_fee: product.professional_fee || prev.default_professional_fee,
-        billing_type: prev.default_billing_type,
+        professional_fee: professionalFee,
+        billing_type: billingType,
         personal_account: false,
       };
       return { ...prev, items: [...prev.items, newItem] };
@@ -178,19 +289,25 @@ export function useTransactionForm(): UseTransactionFormResult {
         customer_id: transaction.customer_id,
         default_billing_type: transaction.default_billing_type,
         default_professional_fee: transaction.default_professional_fee,
-        items: transaction.items.map((i) => ({
-          product_id: i.product_id,
-          description_snapshot: i.description_snapshot,
-          price_snapshot: i.price_snapshot,
-          professional_fee: i.professional_fee,
-          billing_type: i.billing_type,
-          personal_account: i.personal_account,
-        })),
+        // Quantity is a display concept only; expand each line into N
+        // individual item entries so the backend contract stays unchanged.
+        items: transaction.items.flatMap((i) =>
+          Array.from({ length: Math.max(1, i.quantity) }, () => ({
+            product_id: i.product_id,
+            description_snapshot: i.description_snapshot,
+            price_snapshot: i.price_snapshot,
+            professional_fee: i.professional_fee,
+            billing_type: i.billing_type,
+            personal_account: i.personal_account,
+          }))
+        ),
       };
       const settled = await api.entities.Transaction.settle(payload);
       toast.success(
         `Transaction ${settled.transaction_id ?? ""} settled`.trim()
       );
+      // The draft is done — drop the persisted last state.
+      clearDraft();
       return settled;
     } catch (err) {
       toast.error(
@@ -205,6 +322,7 @@ export function useTransactionForm(): UseTransactionFormResult {
   const reset = useCallback(() => {
     setTransaction(EMPTY_TRANSACTION);
     setCustomer(null);
+    clearDraft();
   }, []);
 
   return {
@@ -213,6 +331,7 @@ export function useTransactionForm(): UseTransactionFormResult {
     catalog,
     catalogLoading,
     selectCustomer,
+    setAgency,
     defaultBillingType: transaction.default_billing_type,
     setDefaultBillingType,
     defaultProfessionalFee: transaction.default_professional_fee,

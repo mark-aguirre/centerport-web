@@ -28,6 +28,10 @@ interface SearchSelectProps<T extends Option> {
   clearOnSelect?: boolean;
   /** ARIA label for the search input. */
   ariaLabel?: string;
+  /** Extra classes for the input (e.g. to render a larger field). */
+  inputClassName?: string;
+  /** Focus the input on mount. */
+  autoFocus?: boolean;
 }
 
 /**
@@ -47,12 +51,81 @@ export function SearchSelect<T extends Option>({
   disabled = false,
   clearOnSelect = false,
   ariaLabel,
+  inputClassName,
+  autoFocus = false,
 }: SearchSelectProps<T>) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<T[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const listRef = useRef<HTMLUListElement | null>(null);
+
+  // Keep the latest onSearch in a ref so the debounced effect doesn't restart
+  // (and cancel its in-flight request) every time the parent re-renders with a
+  // new inline onSearch function. Without this, rapid parent re-renders can
+  // leave the search stuck in a perpetual loading state with no results.
+  const onSearchRef = useRef(onSearch);
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
+
+  /** The search input element (queried from the container). */
+  const getInput = () =>
+    containerRef.current?.querySelector<HTMLInputElement>('input[data-slot="input"]');
+
+  /** All focusable option buttons currently rendered in the list. */
+  const getOptionButtons = () =>
+    Array.from(
+      listRef.current?.querySelectorAll<HTMLButtonElement>("button[data-option]") ?? []
+    );
+
+  /** Move focus to the option at `index`, clamped to the list bounds. */
+  const focusOption = (index: number) => {
+    const buttons = getOptionButtons();
+    if (buttons.length === 0) return;
+    const clamped = Math.max(0, Math.min(index, buttons.length - 1));
+    buttons[clamped]?.focus();
+  };
+
+  // ArrowDown from the input opens the list (if needed) and focuses the first
+  // result, following the standard combobox keyboard pattern.
+  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "ArrowDown") {
+      if (results.length === 0) return;
+      e.preventDefault();
+      setOpen(true);
+      // Defer so the list is mounted before we move focus into it.
+      requestAnimationFrame(() => focusOption(0));
+    } else if (e.key === "Escape") {
+      setOpen(false);
+    }
+  };
+
+  const focusInput = () => getInput()?.focus();
+
+  // ArrowUp/ArrowDown move between options; ArrowUp from the top (or Escape)
+  // returns focus to the input.
+  const handleOptionKeyDown = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    index: number,
+  ) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      focusOption(index + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (index === 0) {
+        focusInput();
+      } else {
+        focusOption(index - 1);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+      focusInput();
+    }
+  };
 
   // Debounced search whenever the query changes. All state updates are made
   // inside the deferred timeout callback (not synchronously in the effect body)
@@ -76,12 +149,12 @@ export function SearchSelect<T extends Option>({
 
     const handle = window.setTimeout(async () => {
       setLoading(true);
+      // Open immediately so the loading / "No results" state is visible while
+      // the request is in flight.
+      setOpen(true);
       try {
-        const found = await onSearch(keyword);
-        if (!cancelled) {
-          setResults(found);
-          setOpen(true);
-        }
+        const found = await onSearchRef.current(keyword);
+        if (!cancelled) setResults(found);
       } catch {
         if (!cancelled) setResults([]);
       } finally {
@@ -92,7 +165,7 @@ export function SearchSelect<T extends Option>({
       cancelled = true;
       window.clearTimeout(handle);
     };
-  }, [query, onSearch]);
+  }, [query]);
 
   // Close the dropdown when clicking outside.
   useEffect(() => {
@@ -125,10 +198,12 @@ export function SearchSelect<T extends Option>({
           onFocus={() => {
             if (results.length > 0) setOpen(true);
           }}
+          onKeyDown={handleInputKeyDown}
           placeholder={placeholder}
           disabled={disabled}
+          autoFocus={autoFocus}
           aria-label={ariaLabel ?? placeholder}
-          className="w-full pl-9 h-8 text-xs"
+          className={cn("w-full pl-9 h-8 text-xs", inputClassName)}
         />
         {loading && (
           <Loader2 className="absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
@@ -145,16 +220,20 @@ export function SearchSelect<T extends Option>({
               {loading ? "Searching..." : "No results"}
             </p>
           ) : (
-            <ul className="max-h-64 overflow-auto py-1">
-              {results.map((item) => (
+            <ul ref={listRef} className="max-h-64 overflow-auto py-1">
+              {results.map((item, index) => (
                 <li key={item.id}>
                   <button
                     type="button"
+                    data-option
+                    role="option"
+                    aria-selected={false}
                     className={cn(
                       "flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left cursor-pointer",
                       "hover:bg-primary/5 focus:bg-primary/5 focus:outline-none"
                     )}
                     onClick={() => handleSelect(item)}
+                    onKeyDown={(e) => handleOptionKeyDown(e, index)}
                   >
                     <span className="text-xs font-medium text-foreground/90">
                       {renderPrimary(item)}
