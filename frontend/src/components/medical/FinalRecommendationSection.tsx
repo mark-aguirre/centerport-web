@@ -82,6 +82,7 @@ export function FinalRecommendationSection({
   const handleSetNormal = () => {
     onChange({
       ...data,
+      final_recommendation: "FIT FOR SEA DUTY",
       cert_basic_ooh: "passed",
       cert_additional_labs: "passed",
       cert_flagpost: "passed",
