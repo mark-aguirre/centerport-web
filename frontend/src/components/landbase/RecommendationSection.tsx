@@ -40,8 +40,35 @@ export default function RecommendationSection({
 }: LandbaseSectionProps) {
   const updateField = createFieldUpdater(data, onChange);
 
+  /**
+   * Set the section to its "normal" defaults:
+   * - Recommendation: "Fit for Employment"
+   * - Date of Initial PEME and Date of Fitness: today
+   * - Valid Until: two years after Date of Fitness (keeps validity in sync)
+   *
+   * Dates are stored as ISO (`yyyy-mm-dd`) — the native `type="date"` input
+   * renders them in the MM/DD/YYYY format shown on the field labels.
+   */
   const handleSetNormal = () => {
-    onChange({ ...data, recommendation: "Fit for Employment" });
+    const today = new Date();
+    const toIso = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
+      return `${y}-${m}-${day}`;
+    };
+
+    const todayIso = toIso(today);
+    const validUntil = new Date(today);
+    validUntil.setFullYear(validUntil.getFullYear() + 2);
+
+    onChange({
+      ...data,
+      recommendation: "Fit for Employment",
+      date_initial_peme: todayIso,
+      date_of_fitness: todayIso,
+      valid_until: toIso(validUntil),
+    });
   };
 
   const handleCertChange = (
