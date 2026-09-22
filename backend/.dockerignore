@@ -1,0 +1,12 @@
+target/
+logs/
+uploads/
+.idea/
+.git/
+*.log
+*.log.responses
+test-results-*.log*
+migration/
+ToDo/
+documentation/
+.env

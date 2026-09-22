@@ -1,0 +1,55 @@
+# CenterPort production stack for 192.168.100.50
+#
+# Port mapping (host -> container):
+#   backend  8081 -> 8080   (host 8080 is taken by Keycloak)
+#   frontend 3000 -> 3000
+#
+# External services already running on the LAN (NOT started here):
+#   Postgres   192.168.100.46:5432
+#   Keycloak   192.168.100.50:8080
+#   Redis      192.168.100.50:6379
+#   SeaweedFS  192.168.100.50:8333
+#   PrintIO    192.168.100.50:3003
+#
+# Env values live in backend/.env.prod and frontend/.env.prod (see deploy script).
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: centerport-backend:latest
+    container_name: centerport-backend
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.prod
+    ports:
+      - "8081:8080"
+    networks:
+      - centerport
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: centerport-frontend:latest
+    container_name: centerport-frontend
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env.prod
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - centerport
+
+networks:
+  centerport:
+    driver: bridge

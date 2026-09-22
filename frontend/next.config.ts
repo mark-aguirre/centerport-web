@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  // Emit a self-contained production build at .next/standalone (server.js +
+  // only the traced node_modules). This is what the Docker runtime stage runs.
+  output: "standalone",
+
   // Gzip-compress rendered HTML and static assets served by the Next.js server.
   compress: true,
 
