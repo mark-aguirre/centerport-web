@@ -3,19 +3,21 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth-provider";
+import { landingRoute } from "@/lib/roles";
 
 /**
  * Role-based landing redirect.
  *
  * After login the app sends every user to `/dashboard` (see `app/page.tsx`).
- * Some roles have no dashboard access and should instead land on their primary
- * workspace. Currently this applies to ACCOUNTING users, who are redirected to
- * the sales/POS screen (`/sale`).
+ * Some roles cannot access the dashboard — the backend restricts
+ * `/api/dashboard/**`, so those users only get 403s there. They are redirected
+ * to their primary workspace instead (currently ACCOUNTING → `/sale`, via
+ * {@link landingRoute}). ADMIN keeps the dashboard because ADMIN can access
+ * every route.
  *
  * The redirect only fires on the dashboard landing route so it never fights
- * with intentional in-app navigation (an ACCOUNTING user can still open other
- * pages they have access to). ADMIN keeps the dashboard because ADMIN can
- * access every route.
+ * with intentional in-app navigation (a redirected user can still open other
+ * pages they have access to).
  */
 export function LandingRedirect() {
   const { user, roles } = useAuth();
@@ -23,14 +25,12 @@ export function LandingRedirect() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (!user || pathname !== "/dashboard") {
       return;
     }
-    const isAdmin = roles.includes("ADMIN");
-    const isAccounting = roles.includes("ACCOUNTING");
-
-    if (!isAdmin && isAccounting && pathname === "/dashboard") {
-      router.replace("/sale");
+    const target = landingRoute(roles);
+    if (target !== "/dashboard") {
+      router.replace(target);
     }
   }, [user, roles, pathname, router]);
 

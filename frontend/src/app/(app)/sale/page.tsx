@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Search, UserPlus } from "lucide-react";
 
@@ -34,7 +33,6 @@ import { Button } from "@/components/ui/button";
  * `useSearchParams`, so no Suspense boundary is required.
  */
 export default function NewTransactionPage() {
-  const router = useRouter();
   const form = useTransactionForm();
   const {
     transaction,
@@ -88,7 +86,10 @@ export default function NewTransactionPage() {
     const settled = await settle();
     if (settled) {
       setSettleOpen(false);
-      router.push("/transactions");
+      // Clear the workspace and surface the settled sale in the embedded
+      // transaction history view (there is no standalone /transactions page).
+      reset();
+      setView("transactions");
     }
   };
 
@@ -104,11 +105,13 @@ export default function NewTransactionPage() {
     <div className="flex h-full flex-col">
       <PosHeader />
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        {/* Full-height category rail, flush to the left edge */}
+        {/* Full-height category rail, flush to the left edge. It expands to
+            show labels while the operator is choosing a client, then collapses
+            to icons once a client is selected to free space for the workspace. */}
         <PosCategoryRail
           view={view}
           onSelectView={setView}
-          onClose={() => router.push("/transactions")}
+          collapsed={view === "pos" ? hasCustomer : true}
         />
 
         {view !== "pos" ? (

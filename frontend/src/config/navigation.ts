@@ -9,9 +9,6 @@ import {
   CalendarCheck,
   Brain,
   Users,
-  Receipt,
-  Package,
-  FileText,
   type LucideIcon,
 } from "lucide-react";
 
@@ -166,29 +163,6 @@ export const navigation: NavigationItem[] = [
     href: "/psychology",
     icon: Brain,
     group: "Medical Examination",
-  },
-  {
-    title: "Transaction",
-    subtitle: "Point-of-Sale — build, settle, and void transactions",
-    href: "/transactions",
-    icon: Receipt,
-    group: "Accounting",
-  },
-  {
-    title: "Receivable Report",
-    shortTitle: "Receivable",
-    subtitle: "Amounts owed by account, payment type, and date range",
-    href: "/receivable/report",
-    icon: FileText,
-    group: "Accounting",
-  },
-  {
-    title: "Item Listing",
-    shortTitle: "Items",
-    subtitle: "Manage services, examinations, packages, and prices",
-    href: "/listing",
-    icon: Package,
-    group: "Accounting",
   },
   {
     title: "Medical Personnel",

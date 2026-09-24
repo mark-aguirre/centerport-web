@@ -1,4 +1,5 @@
 import { PageContainer } from "@/components/common/page-container";
+import { DashboardGate } from "@/components/dashboard/dashboard-gate";
 import { StatsStripClient } from "@/components/dashboard/stats-strip-client";
 import { AttentionItems } from "@/components/dashboard/attention-items";
 import { QuickActions } from "@/components/dashboard/quick-actions";
@@ -16,23 +17,25 @@ import { RecentActivity } from "@/components/dashboard/recent-activity";
  */
 export default function DashboardPage() {
   return (
-    <PageContainer>
-      {/* Status strip — fetches its own data client-side */}
-      <StatsStripClient className="mb-8 pb-4 border-b" />
+    <DashboardGate>
+      <PageContainer>
+        {/* Status strip — fetches its own data client-side */}
+        <StatsStripClient className="mb-8 pb-4 border-b" />
 
-      {/* Main content: attention + actions */}
-      <div className="grid gap-8 lg:grid-cols-5">
-        {/* Left: what needs doing */}
-        <div className="lg:col-span-3 space-y-8">
-          <AttentionItems />
-          <RecentActivity />
-        </div>
+        {/* Main content: attention + actions */}
+        <div className="grid gap-8 lg:grid-cols-5">
+          {/* Left: what needs doing */}
+          <div className="lg:col-span-3 space-y-8">
+            <AttentionItems />
+            <RecentActivity />
+          </div>
 
-        {/* Right: navigation shortcuts */}
-        <div className="lg:col-span-2">
-          <QuickActions />
+          {/* Right: navigation shortcuts */}
+          <div className="lg:col-span-2">
+            <QuickActions />
+          </div>
         </div>
-      </div>
-    </PageContainer>
+      </PageContainer>
+    </DashboardGate>
   );
 }

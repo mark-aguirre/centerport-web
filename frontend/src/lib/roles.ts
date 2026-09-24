@@ -32,16 +32,10 @@ const ROUTE_ROLES: Record<string, Role[]> = {
   "/panama": ["RELEASING"],
   "/landbase": ["RELEASING"],
   "/psychology": ["PSYCHOLOGY"],
-  // Accounting module routes. These map to the billing endpoints
-  // (/api/transactions, /api/receivables, /api/items, /api/customers,
-  // /api/products) which the backend restricts to ADMIN + ACCOUNTING.
-  // They must be listed explicitly: the navigation hrefs are /transactions,
-  // /receivable/report and /listing (not /accounting), so without these
-  // entries canAccessRoute treats them as unlisted, shows them to every
-  // authenticated user, and the backend then rejects the API call with 403.
-  "/transactions": ["ACCOUNTING"],
-  "/receivable": ["ACCOUNTING"],
-  "/listing": ["ACCOUNTING"],
+  // Accounting now lives entirely in the /sale POS workspace (billing endpoints
+  // /api/receivables, /api/items, /api/customers, /api/products are restricted
+  // to ADMIN + ACCOUNTING by the backend). There are no standalone accounting
+  // routes to gate here anymore.
   // Super Admin only: an empty required-role list means no non-ADMIN role
   // grants access, so only the ADMIN short-circuit in canAccessRoute passes.
   "/medical-personnel": [],
@@ -62,6 +56,28 @@ export function canAccessRoute(href: string, roles: readonly string[]): boolean 
     return true;
   }
   return ROUTE_ROLES[key].some((role) => roles.includes(role));
+}
+
+/**
+ * The route a user should land on after login.
+ *
+ * Everyone is sent to `/dashboard` by default (see `app/page.tsx`), but some
+ * roles cannot access it — the backend restricts `/api/dashboard/**` to
+ * ADMIN, INFORMATION, PSYCHOLOGY, LABORATORY and RELEASING, so a dashboard
+ * landing for anyone else (currently ACCOUNTING) only produces 403s. Those
+ * users are routed to their primary workspace instead.
+ *
+ * ADMIN always keeps the dashboard because ADMIN can access every route. The
+ * check is expressed in terms of `canAccessRoute` so it stays in lockstep with
+ * the module access map above.
+ */
+export function landingRoute(roles: readonly string[]): string {
+  if (canAccessRoute("/dashboard", roles)) {
+    return "/dashboard";
+  }
+  // ACCOUNTING (and any future non-dashboard role) starts in the POS/sale
+  // workspace, which is open to any authenticated user.
+  return "/sale";
 }
 
 /** True if the user holds at least one of the required roles (ADMIN always passes). */

@@ -54,9 +54,6 @@ const TOOLBAR_HIDDEN = new Set<string>(["/medical-personnel"]);
 const ACTION_BAR_HIDDEN_PREFIXES = [
   "/dashboard",
   "/visit",
-  "/transactions",
-  "/receivable",
-  "/listing",
 ];
 
 const TOOLBAR_LABELS: Record<string, string> = {
@@ -65,8 +62,6 @@ const TOOLBAR_LABELS: Record<string, string> = {
   "/panama": "Panama",
   "/landbase": "Land-Base",
   "/psychology": "Psychology",
-  "/receivable/report": "Receivable",
-  "/listing": "Item Listing",
   "/medical-personnel": "Personnel",
 };
 
@@ -80,9 +75,6 @@ const ICON_COLORS: Record<string, string> = {
   "/panama": "text-emerald-600",
   "/landbase": "text-orange-500",
   "/psychology": "text-fuchsia-500",
-  "/transactions": "text-green-600",
-  "/receivable/report": "text-cyan-600",
-  "/listing": "text-violet-500",
   "/medical-personnel": "text-red-500",
 };
 

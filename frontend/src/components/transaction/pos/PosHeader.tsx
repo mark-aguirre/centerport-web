@@ -1,8 +1,18 @@
 "use client";
 
-import { HeartPulse, ReceiptText } from "lucide-react";
+import { HeartPulse, LogOut, ReceiptText } from "lucide-react";
 
 import { useAuth } from "@/components/auth-provider";
+import { startLogout } from "@/lib/auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 /**
  * Dark navy header bar for the counter POS workspace.
@@ -40,17 +50,68 @@ export function PosHeader() {
         </h1>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="text-right leading-tight">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/50">
-            Operator
-          </p>
-          <p className="text-sm font-semibold">{operatorName}</p>
-        </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-sm font-semibold text-white">
-          {initials || "OP"}
-        </div>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <button
+              type="button"
+              className="flex items-center gap-3 rounded-lg px-1 py-1 text-left outline-none transition-colors hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-white/50 cursor-pointer"
+              aria-label="Open operator menu"
+            >
+              <div className="text-right leading-tight">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-white/50">
+                  Operator
+                </p>
+                <p className="text-sm font-semibold">{operatorName}</p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-sm font-semibold text-white">
+                {initials || "OP"}
+              </div>
+            </button>
+          }
+        />
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium text-foreground">
+                {operatorName}
+              </span>
+              {user?.email && (
+                <span className="text-xs font-normal text-muted-foreground">
+                  {user.email}
+                </span>
+              )}
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
+
+          {user && user.roles.length > 0 && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-xs text-muted-foreground">
+                  Roles
+                </DropdownMenuLabel>
+                <div className="flex flex-wrap gap-1 px-1.5 pb-1.5">
+                  {user.roles.map((role) => (
+                    <span
+                      key={role}
+                      className="rounded bg-accent px-1.5 py-0.5 text-[10px] font-medium text-accent-foreground"
+                    >
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              </DropdownMenuGroup>
+            </>
+          )}
+
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" onClick={() => startLogout()}>
+            <LogOut />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }
