@@ -450,6 +450,7 @@ def run(args) -> int:
 
         if args.execute:
             _do_writes(tgt_cur, inserts, updates)
+            _resync_cmsi_seq(tgt_cur)
             tgt_conn.commit()
             log.info("COMMITTED %d inserts, %d updates", len(inserts), len(updates))
         else:
@@ -464,6 +465,36 @@ def run(args) -> int:
     finally:
         src_conn.close()
         tgt_conn.close()
+
+
+def _resync_cmsi_seq(cur) -> None:
+    """Advance cmsi_seq past the highest existing CMSI profile_id.
+
+    Migrated rows carry explicit profile_id values (CMSI + digits) from the
+    source system. Without this step the application's BusinessIdGenerator
+    would keep drawing low sequence values that collide with migrated rows,
+    raising a duplicate-key error on the next profile created in the app.
+    setval(..., n, true) makes the next nextval() return n + 1.
+    """
+    cur.execute(
+        """
+        SELECT setval(
+            'cmsi_seq',
+            GREATEST(
+                COALESCE(
+                    (SELECT MAX(CAST(SUBSTRING(profile_id FROM 5) AS BIGINT))
+                     FROM public.seafarer_profiles
+                     WHERE profile_id ~ '^CMSI[0-9]+$'),
+                    0
+                ),
+                (SELECT last_value FROM cmsi_seq)
+            ),
+            true
+        )
+        """
+    )
+    new_val = cur.fetchone()[0]
+    log.info("Resynced cmsi_seq -> last_value %s (next id CMSI%08d)", new_val, new_val + 1)
 
 
 def _do_writes(cur, inserts: list[dict], updates: list[dict]) -> None:

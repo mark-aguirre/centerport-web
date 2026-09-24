@@ -50,7 +50,7 @@ const TOOLBAR_HIDDEN = new Set<string>(["/medical-personnel"]);
  * These pages are not FormToolbar-based CRUD forms (Dashboard, Visit, and the
  * accounting screens use their own layouts and never portal actions into the
  * strip), so the action bar would otherwise render as an empty band. A prefix
- * match hides it for nested routes too (e.g. /transactions/new). */
+ * match hides it for nested routes too (e.g. /receivable/report). */
 const ACTION_BAR_HIDDEN_PREFIXES = [
   "/dashboard",
   "/visit",
@@ -312,7 +312,7 @@ export function TopNav() {
             id="app-header-actions"
             role="toolbar"
             aria-label="Page actions"
-            className="flex items-center gap-2"
+            className="flex w-full items-center gap-2"
           />
         </div>
       )}

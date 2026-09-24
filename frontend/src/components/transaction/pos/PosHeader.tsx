@@ -9,7 +9,7 @@ import { useAuth } from "@/components/auth-provider";
  *
  * Mirrors the immersive POS design: a square brand tile and workspace title on
  * the left, and the signed-in operator (name + initials avatar) on the right.
- * Rendered only inside the `/transactions/new` page, so it does not affect the
+ * Rendered only inside the `/sale` page, so it does not affect the
  * shared app header used elsewhere.
  */
 export function PosHeader() {

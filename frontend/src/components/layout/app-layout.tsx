@@ -28,7 +28,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Immersive routes (e.g. the POS "new transaction" workspace) hide the
   // sidebar and use the full content width. This is derived from the route, so
   // the sidebar reappears automatically once the user navigates away.
-  const immersive = pathname === "/transactions/new";
+  const immersive = pathname === "/sale";
   const expanded = immersive || fullWidth;
 
   // On mobile/tablet, collapse by default

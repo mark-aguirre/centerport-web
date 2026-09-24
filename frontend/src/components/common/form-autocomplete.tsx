@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,12 @@ interface FormAutocompleteProps {
   size?: FormAutocompleteSize;
   /** Maximum number of suggestions to display (default: 8) */
   maxSuggestions?: number;
+  /**
+   * Extra classes applied to each suggestion option (the `<li>`). Use to
+   * override the default `text-xs` sizing — e.g. `text-sm` for a larger,
+   * easier-to-read list.
+   */
+  optionClassName?: string;
 }
 
 const sizeStyles: Record<FormAutocompleteSize, string> = {
@@ -68,11 +75,24 @@ export function FormAutocomplete({
   disabled,
   size = "md",
   maxSuggestions = 8,
+  optionClassName,
 }: FormAutocompleteProps) {
   const [open, setOpen] = React.useState(false);
   const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const inputWrapRef = React.useRef<HTMLDivElement>(null);
   const listRef = React.useRef<HTMLUListElement>(null);
+
+  // Fixed-position coordinates for the portaled dropdown. Rendering the list in
+  // a portal (instead of an absolutely-positioned child) lets it escape any
+  // ancestor with `overflow-hidden` — e.g. the Add Out-Patient dialog — so the
+  // suggestions are never clipped by the container edge.
+  const [dropdownPos, setDropdownPos] = React.useState<{
+    left: number;
+    top: number;
+    width: number;
+    placement: "bottom" | "top";
+  } | null>(null);
 
   const inputValue = value ?? "";
 
@@ -156,6 +176,45 @@ export function FormAutocomplete({
 
   const showDropdown = open && filtered.length > 0 && !disabled;
 
+  // Measure the input and compute the dropdown position. The list is capped at
+  // ~12rem (max-h-48); when there isn't enough room below the field (e.g. the
+  // last row of a dialog), flip it above the input so it stays on screen.
+  const DROPDOWN_MAX_HEIGHT = 192; // px, matches max-h-48
+  const GAP = 4; // px, matches mt-1
+
+  const updatePosition = React.useCallback(() => {
+    const el = inputWrapRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const placeAbove =
+      spaceBelow < DROPDOWN_MAX_HEIGHT + GAP && spaceAbove > spaceBelow;
+
+    setDropdownPos({
+      left: rect.left,
+      width: rect.width,
+      top: placeAbove ? rect.top - GAP : rect.bottom + GAP,
+      placement: placeAbove ? "top" : "bottom",
+    });
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (!showDropdown) return;
+
+    // Measure on the next frame so the input has laid out, then keep the
+    // dropdown anchored while the user scrolls or resizes. `capture` catches
+    // scrolls on any ancestor (dialog body, page), not just window.
+    const raf = requestAnimationFrame(updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [showDropdown, filtered.length, updatePosition]);
+
   return (
     <div
       ref={containerRef}
@@ -166,53 +225,70 @@ export function FormAutocomplete({
         {label}
         {required && <span className="text-destructive ml-0.5">*</span>}
       </Label>
-      <Input
-        value={inputValue}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={sizeStyles[size]}
-        role="combobox"
-        aria-expanded={showDropdown}
-        aria-autocomplete="list"
-        aria-controls={showDropdown ? `${label}-listbox` : undefined}
-        aria-activedescendant={
-          highlightedIndex >= 0 ? `${label}-option-${highlightedIndex}` : undefined
-        }
-        autoComplete="off"
-      />
-      {showDropdown && (
-        <ul
-          ref={listRef}
-          id={`${label}-listbox`}
-          role="listbox"
-          className="absolute z-50 top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-md border border-primary/20 bg-popover shadow-lg"
-        >
-          {filtered.map((item, index) => (
-            <li
-              key={item}
-              id={`${label}-option-${index}`}
-              role="option"
-              aria-selected={highlightedIndex === index}
-              className={cn(
-                "px-2 py-1.5 text-xs cursor-pointer select-none transition-colors",
-                highlightedIndex === index
-                  ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted/50"
-              )}
-              onMouseDown={(e) => {
-                e.preventDefault(); // Prevent blur before select
-                handleSelect(item);
-              }}
-              onMouseEnter={() => setHighlightedIndex(index)}
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
+      <div ref={inputWrapRef}>
+        <Input
+          value={inputValue}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={sizeStyles[size]}
+          role="combobox"
+          aria-expanded={showDropdown}
+          aria-autocomplete="list"
+          aria-controls={showDropdown ? `${label}-listbox` : undefined}
+          aria-activedescendant={
+            highlightedIndex >= 0 ? `${label}-option-${highlightedIndex}` : undefined
+          }
+          autoComplete="off"
+        />
+      </div>
+      {showDropdown &&
+        dropdownPos &&
+        createPortal(
+          <ul
+            ref={listRef}
+            id={`${label}-listbox`}
+            role="listbox"
+            style={{
+              position: "fixed",
+              left: dropdownPos.left,
+              width: dropdownPos.width,
+              maxHeight: DROPDOWN_MAX_HEIGHT,
+              ...(dropdownPos.placement === "bottom"
+                ? { top: dropdownPos.top }
+                : { top: dropdownPos.top, transform: "translateY(-100%)" }),
+            }}
+            className="z-[100] overflow-y-auto rounded-md border border-primary/20 bg-popover shadow-lg"
+            // Prevent the input's blur from firing before a click is handled.
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            {filtered.map((item, index) => (
+              <li
+                key={item}
+                id={`${label}-option-${index}`}
+                role="option"
+                aria-selected={highlightedIndex === index}
+                className={cn(
+                  "px-2 py-1.5 text-xs cursor-pointer select-none transition-colors",
+                  highlightedIndex === index
+                    ? "bg-primary/10 text-primary"
+                    : "hover:bg-muted/50",
+                  optionClassName
+                )}
+                onMouseDown={(e) => {
+                  e.preventDefault(); // Prevent blur before select
+                  handleSelect(item);
+                }}
+                onMouseEnter={() => setHighlightedIndex(index)}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
     </div>
   );
 }

@@ -8,18 +8,21 @@ import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { SearchSelect } from "@/components/transaction/SearchSelect";
 import { SettleDialog } from "@/components/transaction/SettleDialog";
+import { AddOutPatientDialog } from "@/components/transaction/AddOutPatientDialog";
 import { PosHeader } from "@/components/transaction/pos/PosHeader";
 import { PosCategoryRail } from "@/components/transaction/pos/PosCategoryRail";
 import { PosProductGrid } from "@/components/transaction/pos/PosProductGrid";
 import { PosCartPanel } from "@/components/transaction/pos/PosCartPanel";
+import { TransactionHistoryView } from "@/components/transaction/TransactionHistoryView";
+import { ReceivableReportView } from "@/components/receivable/ReceivableReportView";
+import { ItemListingView } from "@/components/listing/ItemListingView";
+import { PageTitle } from "@/components/common/page-title";
+import type { PosView } from "@/components/transaction/pos/PosCategoryRail";
 import { useTransactionForm } from "@/hooks/use-transaction-form";
+import { useAddOutPatient } from "@/hooks/use-add-out-patient";
 import { api } from "@/lib/api";
-import {
-  classifyProduct,
-  PRODUCT_CATEGORY_FILTERS,
-  type Customer,
-  type ProductCategoryFilter,
-} from "@/components/transaction/types";
+import { type Customer } from "@/components/transaction/types";
+import { Button } from "@/components/ui/button";
 
 /**
  * New Transaction — counter POS workspace.
@@ -51,38 +54,35 @@ export default function NewTransactionPage() {
   } = form;
 
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<ProductCategoryFilter>("ALL");
   const [settleOpen, setSettleOpen] = useState(false);
   const [voidOpen, setVoidOpen] = useState(false);
+  // Active content view: the POS product workspace, or one of the embedded
+  // views (transaction history, receivable report, item listing).
+  const [view, setView] = useState<PosView>("pos");
 
   const hasCustomer = !!transaction.customer_id;
 
-  // Per-category product counts drive which rail buttons are shown.
-  const counts = useMemo(() => {
-    const base = Object.fromEntries(
-      PRODUCT_CATEGORY_FILTERS.map((c) => [c, 0])
-    ) as Record<ProductCategoryFilter, number>;
-    base.ALL = catalog.length;
-    for (const product of catalog) {
-      base[classifyProduct(product)] += 1;
-    }
-    return base;
-  }, [catalog]);
+  // Walk-in / out-patient registration. On success the created client is
+  // selected into the sale, which advances the workspace to product entry.
+  const outPatient = useAddOutPatient({ onCreated: selectCustomer });
 
-  // Products filtered by the active category and the search box.
+  // Products filtered by the search box (matched on name, description, or code)
+  // and sorted alphabetically by name for a predictable card order.
   const filteredProducts = useMemo(() => {
     const keyword = search.trim().toLowerCase();
-    return catalog.filter((product) => {
-      const inCategory = category === "ALL" || classifyProduct(product) === category;
-      if (!inCategory) return false;
-      if (!keyword) return true;
-      return (
-        product.name.toLowerCase().includes(keyword) ||
-        (product.description ?? "").toLowerCase().includes(keyword) ||
-        (product.product_id ?? "").toLowerCase().includes(keyword)
-      );
-    });
-  }, [catalog, category, search]);
+    const matched = keyword
+      ? catalog.filter(
+          (product) =>
+            product.name.toLowerCase().includes(keyword) ||
+            (product.description ?? "").toLowerCase().includes(keyword) ||
+            (product.product_id ?? "").toLowerCase().includes(keyword)
+        )
+      : catalog;
+    // Copy before sorting so the source catalog array is never mutated.
+    return [...matched].sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+    );
+  }, [catalog, search]);
 
   const handleConfirmSettle = async () => {
     const settled = await settle();
@@ -93,8 +93,8 @@ export default function NewTransactionPage() {
   };
 
   const handleVoid = () => {
+    // Nothing to clear — the workspace is already an empty draft.
     if (transaction.items.length === 0 && !hasCustomer) {
-      router.push("/transactions");
       return;
     }
     setVoidOpen(true);
@@ -105,29 +105,88 @@ export default function NewTransactionPage() {
       <PosHeader />
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Full-height category rail, flush to the left edge */}
-        <PosCategoryRail active={category} onChange={setCategory} counts={counts} />
+        <PosCategoryRail
+          view={view}
+          onSelectView={setView}
+          onClose={() => router.push("/transactions")}
+        />
 
-        {/* Content: product workspace (left) + cart panel (right).
+        {view !== "pos" ? (
+          /* Embedded views (history, receivable, item listing), opened from the
+             rail. Each gets a titled header and scrolls independently. */
+          <div className="min-h-0 flex-1 overflow-y-auto bg-muted/20 p-4">
+            <div className="mx-auto max-w-7xl">
+              {view === "transactions" && (
+                <>
+                  <PageTitle
+                    title="Transactions"
+                    description="Point-of-sale transactions — history and status."
+                  />
+                  <TransactionHistoryView />
+                </>
+              )}
+              {view === "receivable" && (
+                <ReceivableReportView
+                  renderActions={(actions) => (
+                    <div className="flex items-start justify-between gap-4">
+                      <PageTitle
+                        title="Receivable Report"
+                        description="Amounts owed by account, payment type, and date range."
+                      />
+                      <div className="pt-1">{actions}</div>
+                    </div>
+                  )}
+                />
+              )}
+              {view === "listing" && (
+                <ItemListingView
+                  renderActions={(actions) => (
+                    <div className="flex items-start justify-between gap-4">
+                      <PageTitle
+                        title="Item Listing"
+                        description="Manage available services, examinations, packages, and their prices."
+                      />
+                      <div className="pt-1">{actions}</div>
+                    </div>
+                  )}
+                />
+              )}
+            </div>
+          </div>
+        ) : (
+        /* Content: product workspace (left) + cart panel (right).
             The cart panel is full-height and flush to the right edge, so the
-            padding lives on the product column rather than the outer grid. */}
+            padding lives on the product column rather than the outer grid. */
         <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[1fr_360px]">
           {/* Left: search + product grid.
               The big top field is contextual: it searches clients until one is
               chosen, then switches to searching services / codes. */}
           <div className="flex min-h-0 flex-col gap-4 p-4">
             {!hasCustomer ? (
-              <SearchSelect<Customer>
-                onSearch={(kw) => api.entities.Customer.search(kw)}
-                onSelect={selectCustomer}
-                renderPrimary={(c) => c.name}
-                renderSecondary={(c) =>
-                  [c.application_no, c.agency].filter(Boolean).join(" · ")
-                }
-                placeholder="Search client by name, application no, or agency..."
-                ariaLabel="Search client"
-                inputClassName="h-11 pl-10 text-sm"
-                autoFocus
-              />
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <SearchSelect<Customer>
+                    onSearch={(kw) => api.entities.Customer.search(kw)}
+                    onSelect={selectCustomer}
+                    renderPrimary={(c) => c.name}
+                    renderSecondary={(c) =>
+                      [c.application_no, c.agency].filter(Boolean).join(" · ")
+                    }
+                    placeholder="Search client by name, application no, or agency..."
+                    ariaLabel="Search client"
+                    inputClassName="h-11 pl-10 text-sm"
+                    autoFocus
+                  />
+                </div>
+                <Button
+                  type="button"
+                  className="h-11 shrink-0 cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+                  onClick={() => outPatient.openDialog()}
+                >
+                  <UserPlus className="mr-1 h-4 w-4" />
+                  Add Out-Patient
+                </Button>
+              </div>
             ) : (
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -172,6 +231,7 @@ export default function NewTransactionPage() {
             onSettle={() => setSettleOpen(true)}
           />
         </div>
+        )}
       </div>
 
       <SettleDialog
@@ -193,9 +253,18 @@ export default function NewTransactionPage() {
         icon={null}
         onConfirm={() => {
           setVoidOpen(false);
-          router.push("/transactions");
+          reset();
         }}
         onCancel={() => setVoidOpen(false)}
+      />
+
+      <AddOutPatientDialog
+        open={outPatient.open}
+        onOpenChange={outPatient.setOpen}
+        draft={outPatient.draft}
+        saving={outPatient.saving}
+        onUpdate={outPatient.updateField}
+        onSave={outPatient.save}
       />
     </div>
   );
@@ -218,7 +287,8 @@ function ClientPromptHint() {
         <p className="text-sm font-semibold text-foreground">Select a client to begin</p>
         <p className="mt-1 text-xs text-muted-foreground">
           Use the search field above to find a client by name, application
-          number, or agency.
+          number, or agency — or add a new out-patient if they aren&apos;t
+          registered yet.
         </p>
       </div>
     </div>

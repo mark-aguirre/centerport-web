@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/layout/app-layout";
 import { AuthProvider } from "@/components/auth-provider";
 import { AuthGate } from "@/components/auth-gate";
+import { LandingRedirect } from "@/components/layout/landing-redirect";
 
 /**
  * Route group layout for authenticated app pages.
@@ -17,6 +18,7 @@ export default function AppRouteLayout({
   return (
     <AuthProvider>
       <AuthGate>
+        <LandingRedirect />
         <AppLayout>{children}</AppLayout>
       </AuthGate>
     </AuthProvider>

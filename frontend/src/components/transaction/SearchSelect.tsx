@@ -216,7 +216,7 @@ export function SearchSelect<T extends Option>({
           role="listbox"
         >
           {results.length === 0 ? (
-            <p className="px-3 py-2 text-xs text-muted-foreground">
+            <p className="px-3 py-2 text-sm text-muted-foreground">
               {loading ? "Searching..." : "No results"}
             </p>
           ) : (
@@ -235,11 +235,11 @@ export function SearchSelect<T extends Option>({
                     onClick={() => handleSelect(item)}
                     onKeyDown={(e) => handleOptionKeyDown(e, index)}
                   >
-                    <span className="text-xs font-medium text-foreground/90">
+                    <span className="text-sm font-medium text-foreground/90">
                       {renderPrimary(item)}
                     </span>
                     {renderSecondary && (
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {renderSecondary(item)}
                       </span>
                     )}

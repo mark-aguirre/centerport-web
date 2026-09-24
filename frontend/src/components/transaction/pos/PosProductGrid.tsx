@@ -52,25 +52,25 @@ export function PosProductGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {products.map((product) => {
         const category = classifyProduct(product);
         return (
           <div
             key={product.id}
             className={cn(
-              "group flex flex-col rounded-lg border border-primary/15 bg-card p-4 text-left shadow-sm transition-colors",
+              "group flex flex-col rounded-lg border border-primary/15 bg-card p-3 text-left shadow-sm transition-colors",
               disabled ? "opacity-50" : "hover:border-primary/40 hover:shadow-md"
             )}
           >
-            <span className="text-[11px] font-bold uppercase tracking-wider text-primary/70">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-primary/70">
               {category}
             </span>
-            <span className="mt-1 min-h-9 text-sm font-semibold leading-tight text-foreground">
+            <span className="mt-0.5 min-h-8 text-xs font-semibold leading-tight text-foreground">
               {product.name}
             </span>
-            <div className="mt-6 flex items-center justify-between">
-              <span className="text-base font-bold tabular-nums text-foreground">
+            <div className="mt-3 flex items-center justify-between">
+              <span className="text-sm font-bold tabular-nums text-foreground">
                 {formatPeso(product.price)}
               </span>
               <button
@@ -79,13 +79,13 @@ export function PosProductGrid({
                 onClick={() => onAdd(product)}
                 aria-label={`Add ${product.name}`}
                 className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-md transition-transform duration-200 ease-out",
+                  "flex h-7 w-7 items-center justify-center rounded-md transition-transform duration-200 ease-out",
                   disabled
                     ? "cursor-not-allowed bg-muted text-muted-foreground"
                     : "cursor-pointer bg-primary text-primary-foreground shadow-sm group-hover:scale-110"
                 )}
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>

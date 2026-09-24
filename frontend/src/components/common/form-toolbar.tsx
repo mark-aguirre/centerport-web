@@ -2,6 +2,8 @@
 
 import { useState, useRef, useCallback, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { useIsLargeScreen } from "@/hooks/use-mobile";
+import { useLayout } from "@/components/layout-provider";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -148,6 +150,15 @@ export function FormToolbar({
   const [searchOpen, setSearchOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const actionsPortalTarget = usePortalTarget(actionsPortalId);
+  // The action strip (TopNav Row 3 / AppHeader) is only visible at `lg`+, so
+  // only portal the actions and search into it on large screens. Below `lg`
+  // they render inline next to the form where the strip is hidden.
+  const isLargeScreen = useIsLargeScreen();
+  const { navMode } = useLayout();
+  const portalActive = Boolean(actionsPortalTarget) && isLargeScreen;
+  // The search only relocates into the toolbar strip in topbar mode (Row 3).
+  // In sidebar mode it stays inline near the form.
+  const searchInStrip = portalActive && navMode === "topbar";
   const containerRef = useRef<HTMLDivElement>(null);
   const internalInputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -269,6 +280,104 @@ export function FormToolbar({
     </Tooltip>
   );
 
+  /**
+   * Renders the search input, dropdown, and result list.
+   *
+   * Rendered inline within the form on narrow screens and portaled into the
+   * layout's action strip (TopNav Row 3 / AppHeader) on large screens, so the
+   * search sits next to the CRUD buttons in the toolbar rather than the form.
+   */
+  const renderSearch = (className?: string, active = true) =>
+    onSearch ? (
+      <div
+        ref={active ? containerRef : undefined}
+        className={cn("relative min-w-64", className)}
+        onBlur={handleSearchBlur}
+      >
+        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          ref={active ? setInputRef : undefined}
+          type="search"
+          placeholder="Search..."
+          value={searchValue}
+          onChange={handleSearchChange}
+          onFocus={handleSearchFocus}
+          onKeyDown={handleSearchKeyDown}
+          className="w-full pl-9 h-8"
+          aria-expanded={showDropdown}
+          aria-autocomplete="list"
+          aria-activedescendant={highlightedIndex >= 0 ? `search-result-${highlightedIndex}` : undefined}
+          autoComplete="off"
+        />
+
+        {/* Search Results Dropdown */}
+        {showDropdown && (
+          <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-md border border-primary/20 bg-popover shadow-lg overflow-hidden">
+            {searchLoading && (
+              <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Searching...
+              </div>
+            )}
+            {!searchLoading && searchResults.length === 0 && searchValue.trim().length > 0 && (
+              <div className="px-3 py-2 text-xs text-muted-foreground">
+                No results found
+              </div>
+            )}
+            {searchResults.length > 0 && (
+              <ul ref={active ? listRef : undefined} role="listbox" className="max-h-60 overflow-y-auto">
+                {searchResults.map((result, index) => (
+                  <li
+                    key={result.id ?? index}
+                    id={`search-result-${index}`}
+                    role="option"
+                    aria-selected={index === highlightedIndex}
+                    tabIndex={-1}
+                    className={cn(
+                      "px-3 py-2 cursor-pointer select-none transition-colors",
+                      "hover:bg-primary/5 focus:bg-primary/5 focus:outline-none",
+                      index === highlightedIndex && "bg-primary/10"
+                    )}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleSelectItem(result);
+                    }}
+                    onMouseEnter={() => setHighlightedIndex(index)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSelectItem(result);
+                    }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-medium">
+                          {result.last_name}, {result.first_name}
+                        </span>
+                        {result.position && (
+                          <span className="text-[10px] text-muted-foreground ml-2">
+                            {result.position}
+                          </span>
+                        )}
+                      </div>
+                      {(result.profile_id || result.peme_id) && (
+                        <span className="text-[10px] font-mono text-primary/60">
+                          {result.profile_id || result.peme_id}
+                        </span>
+                      )}
+                    </div>
+                    {result.employer && (
+                      <div className="text-[10px] text-muted-foreground mt-0.5">
+                        {result.employer}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </div>
+    ) : null;
+
   const renderActions = (className?: string) => (
     <TooltipProvider delay={300}>
       <div className={cn("flex items-center gap-1.5", className)}>
@@ -377,98 +486,31 @@ export function FormToolbar({
         </div>
       )}
 
-      {/* Actions stay near the form on narrow screens. */}
+      {/* Actions + search stay near the form on narrow screens. When a portal
+          target is set (large screens) they render into the layout's action
+          strip instead — TopNav Row 3 in topbar mode, or the AppHeader. */}
       {renderActions(actionsPortalId ? "lg:hidden" : undefined)}
-      {actionsPortalTarget && createPortal(renderActions(), actionsPortalTarget)}
-
-      {/* Search */}
-      <div
-        ref={containerRef}
-        className="relative min-w-64 flex-1"
-        onBlur={handleSearchBlur}
-      >
-        <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          ref={setInputRef}
-          type="search"
-          placeholder="Search..."
-          value={searchValue}
-          onChange={handleSearchChange}
-          onFocus={handleSearchFocus}
-          onKeyDown={handleSearchKeyDown}
-          className="w-full pl-9 h-8"
-          aria-expanded={showDropdown}
-          aria-autocomplete="list"
-          aria-activedescendant={highlightedIndex >= 0 ? `search-result-${highlightedIndex}` : undefined}
-          autoComplete="off"
-        />
-
-        {/* Search Results Dropdown */}
-        {showDropdown && (
-          <div className="absolute z-50 top-full left-0 right-0 mt-1 rounded-md border border-primary/20 bg-popover shadow-lg overflow-hidden">
-            {searchLoading && (
-              <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground">
-                <Loader2 className="w-3 h-3 animate-spin" />
-                Searching...
-              </div>
-            )}
-            {!searchLoading && searchResults.length === 0 && searchValue.trim().length > 0 && (
-              <div className="px-3 py-2 text-xs text-muted-foreground">
-                No results found
-              </div>
-            )}
-            {searchResults.length > 0 && (
-              <ul ref={listRef} role="listbox" className="max-h-60 overflow-y-auto">
-                {searchResults.map((result, index) => (
-                  <li
-                    key={result.id ?? index}
-                    id={`search-result-${index}`}
-                    role="option"
-                    aria-selected={index === highlightedIndex}
-                    tabIndex={-1}
-                    className={cn(
-                      "px-3 py-2 cursor-pointer select-none transition-colors",
-                      "hover:bg-primary/5 focus:bg-primary/5 focus:outline-none",
-                      index === highlightedIndex && "bg-primary/10"
-                    )}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      handleSelectItem(result);
-                    }}
-                    onMouseEnter={() => setHighlightedIndex(index)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSelectItem(result);
-                    }}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-medium">
-                          {result.last_name}, {result.first_name}
-                        </span>
-                        {result.position && (
-                          <span className="text-[10px] text-muted-foreground ml-2">
-                            {result.position}
-                          </span>
-                        )}
-                      </div>
-                      {(result.profile_id || result.peme_id) && (
-                        <span className="text-[10px] font-mono text-primary/60">
-                          {result.profile_id || result.peme_id}
-                        </span>
-                      )}
-                    </div>
-                    {result.employer && (
-                      <div className="text-[10px] text-muted-foreground mt-0.5">
-                        {result.employer}
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+      {/* Inline search: shown near the form unless it has been relocated into
+          the topbar Row 3 strip. In sidebar mode it always stays inline. */}
+      {renderSearch(
+        cn("flex-1", searchInStrip ? "lg:hidden" : undefined),
+        !searchInStrip
+      )}
+      {portalActive &&
+        actionsPortalTarget &&
+        createPortal(
+          searchInStrip ? (
+            <>
+              {renderActions()}
+              {/* Search sits directly to the left, next to the CRUD buttons,
+                  and expands to fill the remaining strip width. */}
+              {renderSearch("flex-1 max-w-3xl", true)}
+            </>
+          ) : (
+            renderActions()
+          ),
+          actionsPortalTarget
         )}
-      </div>
     </div>
   );
 }
