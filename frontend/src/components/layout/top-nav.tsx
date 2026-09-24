@@ -258,7 +258,7 @@ export function TopNav() {
                   className={cn(
                     "group relative flex w-24 shrink-0 flex-col items-center gap-1 rounded-lg px-1.5 py-1.5 transition-all",
                     active
-                      ? "bg-primary/10 text-primary shadow-sm ring-2 ring-primary/70"
+                      ? "bg-ring/10 text-ring shadow-sm ring-2 ring-ring/50"
                       : "hover:bg-accent/60"
                   )}
                 >
@@ -267,7 +267,7 @@ export function TopNav() {
                   {active && (
                     <span
                       aria-hidden="true"
-                      className="absolute inset-x-2 bottom-0.5 h-1 rounded-full bg-primary"
+                      className="absolute inset-x-2 bottom-0.5 h-1 rounded-full bg-ring/70"
                     />
                   )}
                   <Icon
@@ -281,7 +281,7 @@ export function TopNav() {
                     className={cn(
                       "w-full text-center text-[11px] leading-tight",
                       active
-                        ? "font-bold text-primary"
+                        ? "font-bold text-ring"
                         : "font-semibold text-foreground/80"
                     )}
                   >
