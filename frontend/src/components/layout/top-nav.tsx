@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Ship, ChevronDown } from "lucide-react";
@@ -242,8 +243,17 @@ export function TopNav() {
               const iconColor = ICON_COLORS[item.href] ?? "text-primary";
               const label = TOOLBAR_LABELS[item.href] ?? item.title;
               return (
+                <Fragment key={item.href}>
+                  {/* Separator before Psychology within the Medical Examination
+                      group, distinguishing the psychological evaluation from the
+                      physical medical certificates. */}
+                  {item.href === "/psychology" && (
+                    <div
+                      className="mx-1 w-px shrink-0 self-stretch bg-border"
+                      aria-hidden="true"
+                    />
+                  )}
                 <Link
-                  key={item.href}
                   href={buildNavHref(item.href, selectedPatientId)}
                   title={item.title}
                   aria-current={active ? "page" : undefined}
@@ -280,6 +290,7 @@ export function TopNav() {
                     {label}
                   </span>
                 </Link>
+                </Fragment>
               );
             })}
           </div>

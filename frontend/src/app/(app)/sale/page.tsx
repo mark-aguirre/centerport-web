@@ -105,13 +105,14 @@ export default function NewTransactionPage() {
     <div className="flex h-full flex-col">
       <PosHeader />
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        {/* Full-height category rail, flush to the left edge. It expands to
-            show labels while the operator is choosing a client, then collapses
-            to icons once a client is selected to free space for the workspace. */}
+        {/* Full-height category rail, flush to the left edge. It stays expanded
+            with labels across the Transactions, Receivable, and Item Listing
+            views, and on New Sale until a client is chosen — then it collapses
+            to icons to free space for product entry and the cart. */}
         <PosCategoryRail
           view={view}
           onSelectView={setView}
-          collapsed={view === "pos" ? hasCustomer : true}
+          collapsed={view === "pos" && hasCustomer}
         />
 
         {view !== "pos" ? (

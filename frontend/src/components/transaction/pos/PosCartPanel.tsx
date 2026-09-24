@@ -164,17 +164,25 @@ export function PosCartPanel({
                           item.personal_account
                         )}
                       </p>
-                      <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                        {formatPeso(item.price_snapshot)} · {item.billing_type}
-                        {item.professional_fee > 0 &&
-                          ` · PF ${formatPeso(item.professional_fee)}`}
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                        <span className="text-muted-foreground">
+                          {formatPeso(item.price_snapshot)} each
+                        </span>
+                        <span className="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                          {item.billing_type}
+                        </span>
+                        {item.professional_fee > 0 && (
+                          <span className="text-muted-foreground">
+                            PF {formatPeso(item.professional_fee)}
+                          </span>
+                        )}
                         <ChevronDown
                           className={cn(
-                            "h-3 w-3 transition-transform",
+                            "h-3.5 w-3.5 text-muted-foreground transition-transform",
                             expanded && "rotate-180"
                           )}
                         />
-                      </p>
+                      </div>
                     </button>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold tabular-nums text-foreground">
