@@ -32,7 +32,16 @@ const ROUTE_ROLES: Record<string, Role[]> = {
   "/panama": ["RELEASING"],
   "/landbase": ["RELEASING"],
   "/psychology": ["PSYCHOLOGY"],
-  "/accounting": ["ACCOUNTING"],
+  // Accounting module routes. These map to the billing endpoints
+  // (/api/transactions, /api/receivables, /api/items, /api/customers,
+  // /api/products) which the backend restricts to ADMIN + ACCOUNTING.
+  // They must be listed explicitly: the navigation hrefs are /transactions,
+  // /receivable/report and /listing (not /accounting), so without these
+  // entries canAccessRoute treats them as unlisted, shows them to every
+  // authenticated user, and the backend then rejects the API call with 403.
+  "/transactions": ["ACCOUNTING"],
+  "/receivable": ["ACCOUNTING"],
+  "/listing": ["ACCOUNTING"],
   // Super Admin only: an empty required-role list means no non-ADMIN role
   // grants access, so only the ADMIN short-circuit in canAccessRoute passes.
   "/medical-personnel": [],

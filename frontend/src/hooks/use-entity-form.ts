@@ -3,11 +3,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import type { SeafarerProfile } from "@/lib/api";
+import { api, type SeafarerProfile } from "@/lib/api";
 import { ApiError } from "@/lib/http-client";
 import { humanizeField } from "@/lib/form-utils";
 import { saveDraft, loadDraft, clearDraft } from "@/lib/form-draft";
 import { saveLastRecordId, loadLastRecordId, clearLastRecordId } from "@/lib/last-state";
+import {
+  saveSelectedPatientId,
+  loadSelectedPatientId,
+} from "@/lib/selected-patient";
 import { useProfileSearch } from "./use-profile-search";
 import type { RecordSummary } from "@/components/common/record-selector";
 
@@ -242,6 +246,10 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
 
   const searchParams = useSearchParams();
   const editId = searchParams.get("id");
+  // A cross-page "open this patient" pointer. When present it takes precedence
+  // over last-state/most-recent so navigating here (e.g. Seabase -> Panama)
+  // loads the same seafarer's record for this module.
+  const profileIdParam = searchParams.get("profileId");
 
   // Restore an in-progress draft (unsaved New/Edit work) on first render so a
   // page reload continues where the user left off. Runs once via the lazy
@@ -308,15 +316,37 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     const loadRecord = async () => {
       try {
         let results: T[];
+        // When set, the load is scoped to a specific seafarer (a cross-page
+        // "selected patient"). In that case we must NOT fall back to a
+        // different patient's record — if this module has no record for them,
+        // we show their personal info on an empty form instead.
+        const targetProfileId = editId
+          ? null
+          : profileIdParam ?? loadSelectedPatientId();
+
         if (editId) {
+          // Deep-link to a specific record of this module.
           results = await entityApi.filter({ id: editId });
-        } else {
-          // No id in the URL: restore the record the user was last viewing on
-          // this page ("save last state"). Fall back to the globally most
-          // recent record when there is no saved last-state or it no longer
-          // resolves to an existing record.
-          const lastId = draftKey ? loadLastRecordId(draftKey) : null;
+        } else if (targetProfileId) {
+          // A selected patient carries across medical modules (e.g. Seabase ->
+          // Panama). Resolve *this module's* latest record for that seafarer.
           results = [];
+          try {
+            // listByProfile returns most-recent-first; take the latest.
+            const byProfile = await entityApi.listByProfile(targetProfileId);
+            results = byProfile.length > 0 ? [byProfile[0]] : [];
+          } catch (error: unknown) {
+            console.warn(
+              `Failed to load the selected patient's ${recordLabel}:`,
+              error instanceof Error ? error.message : error
+            );
+          }
+        } else {
+          // No selected patient: restore the record the user was last viewing
+          // on this page ("save last state"), then fall back to the globally
+          // most-recent record.
+          results = [];
+          const lastId = draftKey ? loadLastRecordId(draftKey) : null;
           if (lastId) {
             try {
               results = await entityApi.filter({ id: lastId });
@@ -358,6 +388,38 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
             setIsExistingRecord(true);
             // Remember this record as the page's last-viewed state.
             if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
+            // Remember this seafarer as the cross-page selected patient so the
+            // same person carries into other medical modules.
+            if (profileId) saveSelectedPatientId(profileId);
+          }
+        } else if (targetProfileId && !draftRestoredRef.current) {
+          // The selected patient has no record for this module yet. Keep the
+          // SAME patient in view by loading their seafarer profile into the
+          // personal-info fields on an empty form, rather than showing a
+          // different patient's record. Saving will then create a new record
+          // of this type for them.
+          try {
+            const profiles = await api.entities.SeafarerProfile.filter({
+              id: targetProfileId,
+            });
+            if (cancelled) return;
+            const profile = profiles[0];
+            if (profile) {
+              const personalData = buildPersonalData(profile);
+              setData({ ...emptyRecord, ...personalData } as T);
+              setExistingRecord(null);
+              setIsExistingRecord(false);
+              setProfileRecords([]);
+              // The patient stays selected for continued cross-page carry-over.
+              saveSelectedPatientId(targetProfileId);
+              // No record of this type exists to remember as last-state.
+              if (draftKey) clearLastRecordId(draftKey);
+            }
+          } catch (error: unknown) {
+            console.warn(
+              "Failed to load the selected patient's profile:",
+              error instanceof Error ? error.message : error
+            );
           }
         }
       } catch (error: unknown) {
@@ -381,7 +443,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     return () => {
       cancelled = true;
     };
-  }, [editId, entityApi, flattenResponse, getProfileId, getRecordId, fetchProfileRecords, draftKey]);
+  }, [editId, profileIdParam, entityApi, flattenResponse, getProfileId, getRecordId, fetchProfileRecords, draftKey, recordLabel, buildPersonalData, emptyRecord]);
 
   // -------------------------------------------------------------------------
   // Draft persistence (survive page reload)
@@ -495,6 +557,8 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
       const newProfileId = getProfileId(flattened);
       if (newProfileId) {
         fetchProfileRecords(newProfileId);
+        // Keep the cross-page selected patient in sync with the saved record.
+        saveSelectedPatientId(newProfileId);
       }
     } catch (error) {
       handleSaveError(error);
@@ -528,11 +592,13 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         draftRestoredRef.current = false;
         // Remember the switched-to record as the page's last-viewed state.
         if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
+        // Keep the cross-page selected patient in sync with the record shown.
+        saveSelectedPatientId(getProfileId(flattened));
       }
     } catch {
       toast.error("Failed to load the selected record");
     }
-  }, [entityApi, flattenResponse, getRecordId, draftKey]);
+  }, [entityApi, flattenResponse, getRecordId, getProfileId, draftKey]);
 
   // -------------------------------------------------------------------------
   // Profile search result selection
@@ -548,6 +614,10 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
   const handleSelectResult = useCallback(
     (profile: SeafarerProfile) => {
       const personalData = buildPersonalData(profile);
+
+      // The seafarer the user just picked becomes the cross-page selected
+      // patient, so opening another medical module shows the same person.
+      if (profile.id) saveSelectedPatientId(profile.id);
 
       // Fill only the personal/patient info fields (used while the user is
       // actively building a new record and attaching a seafarer to it).

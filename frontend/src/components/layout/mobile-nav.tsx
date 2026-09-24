@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navigation, groupNavigation } from "@/config/navigation";
+import { navigation, groupNavigation, buildNavHref } from "@/config/navigation";
 import { useAuth } from "@/components/auth-provider";
+import { useSelectedPatient } from "@/hooks/use-selected-patient";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -27,6 +28,8 @@ import { Separator } from "@/components/ui/separator";
 export function MobileNav() {
   const pathname = usePathname();
   const { canRoute } = useAuth();
+  // Carry the selected seafarer into per-seafarer medical modules.
+  const selectedPatientId = useSelectedPatient();
   const visibleNavigation = navigation.filter((item) => canRoute(item.href));
   const navigationGroups = groupNavigation(visibleNavigation);
 
@@ -74,7 +77,7 @@ export function MobileNav() {
                   return (
                     <Link
                       key={item.href}
-                      href={item.href}
+                      href={buildNavHref(item.href, selectedPatientId)}
                       className={cn(
                         "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                         isActive

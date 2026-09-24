@@ -64,6 +64,41 @@ export function groupNavigation(items: NavigationItem[]): NavigationGroup[] {
   return groups;
 }
 
+/**
+ * Routes that are per-seafarer medical modules. These share a single "selected
+ * patient" so opening one after another (e.g. Seabase -> Panama) shows the same
+ * seafarer. A patient-carrying `?profileId=` param is appended to these hrefs
+ * while a patient is selected; other routes are left untouched.
+ */
+export const PATIENT_AWARE_ROUTES: ReadonlySet<string> = new Set([
+  "/seabase",
+  "/laboratory",
+  "/mlc",
+  "/panama",
+  "/landbase",
+  "/psychology",
+]);
+
+/**
+ * Build the href to use for a navigation item, carrying the currently selected
+ * patient into per-seafarer medical modules.
+ *
+ * For patient-aware routes with a selected patient, appends `?profileId=<id>`
+ * so a hard navigation (or a shared link) opens the same seafarer. Non-medical
+ * routes, and the case where no patient is selected, return the plain href.
+ *
+ * @param href - The route's base href.
+ * @param selectedProfileId - The currently selected seafarer id, or null.
+ * @returns The href to navigate to.
+ */
+export function buildNavHref(
+  href: string,
+  selectedProfileId: string | null
+): string {
+  if (!selectedProfileId || !PATIENT_AWARE_ROUTES.has(href)) return href;
+  return `${href}?profileId=${encodeURIComponent(selectedProfileId)}`;
+}
+
 /** Application navigation routes used by sidebar and mobile nav. */
 export const navigation: NavigationItem[] = [
   {

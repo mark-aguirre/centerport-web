@@ -8,15 +8,22 @@ import {
   useSyncExternalStore,
 } from "react";
 
+/** Navigation chrome style: vertical sidebar or classic horizontal top menu bar. */
+export type NavMode = "sidebar" | "topbar";
+
 interface LayoutContextValue {
   fullWidth: boolean;
   setFullWidth: (value: boolean) => void;
   toggleFullWidth: () => void;
+  navMode: NavMode;
+  setNavMode: (value: NavMode) => void;
+  toggleNavMode: () => void;
 }
 
 const LayoutContext = createContext<LayoutContextValue | undefined>(undefined);
 
 const STORAGE_KEY = "centerport-full-width";
+const NAV_MODE_KEY = "centerport-nav-mode";
 
 /**
  * Subscribes to cross-tab `storage` events so the layout preference stays in
@@ -25,7 +32,7 @@ const STORAGE_KEY = "centerport-full-width";
  * @param onChange - Callback invoked when the stored value may have changed
  * @returns Cleanup function that removes the listener
  */
-function subscribeToFullWidth(onChange: () => void): () => void {
+function subscribeToStorage(onChange: () => void): () => void {
   window.addEventListener("storage", onChange);
   return () => window.removeEventListener("storage", onChange);
 }
@@ -50,25 +57,51 @@ function getFullWidthServerSnapshot(): boolean {
   return false;
 }
 
+/**
+ * Reads the persisted navigation mode from `localStorage`.
+ *
+ * Defaults to the classic top menu bar (`"topbar"`). Only returns `"sidebar"`
+ * when the user has explicitly opted into it.
+ *
+ * @returns `"sidebar"` when the vertical sidebar is enabled, otherwise `"topbar"`
+ */
+function getNavModeSnapshot(): NavMode {
+  return localStorage.getItem(NAV_MODE_KEY) === "sidebar" ? "sidebar" : "topbar";
+}
+
+/**
+ * Server snapshot for the navigation mode. Always `"topbar"` to match SSR
+ * and the default preference.
+ */
+function getNavModeServerSnapshot(): NavMode {
+  return "topbar";
+}
+
 interface LayoutProviderProps {
   children: React.ReactNode;
 }
 
 /**
- * Provides layout preferences (full-width toggle) to the component tree.
+ * Provides layout preferences (full-width toggle, navigation mode) to the tree.
  *
- * Persists the user's preference in `localStorage` so it survives page reloads
- * and stays in sync across tabs via the `storage` event. Reads the value with
+ * Persists preferences in `localStorage` so they survive reloads and stay in
+ * sync across tabs via the `storage` event. Reads values with
  * `useSyncExternalStore`, which is SSR-safe and avoids hydration mismatch
  * without needing a `mounted` flag.
  *
- * @see useLayout — consumer hook for reading and updating the preference
+ * @see useLayout — consumer hook for reading and updating the preferences
  */
 export function LayoutProvider({ children }: LayoutProviderProps) {
   const fullWidth = useSyncExternalStore(
-    subscribeToFullWidth,
+    subscribeToStorage,
     getFullWidthSnapshot,
     getFullWidthServerSnapshot,
+  );
+
+  const navMode = useSyncExternalStore(
+    subscribeToStorage,
+    getNavModeSnapshot,
+    getNavModeServerSnapshot,
   );
 
   // Keep the data-full-width attribute on <html> in sync with the preference.
@@ -92,8 +125,28 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     window.dispatchEvent(new StorageEvent("storage", { key: STORAGE_KEY }));
   }, []);
 
+  const setNavMode = useCallback((value: NavMode) => {
+    localStorage.setItem(NAV_MODE_KEY, value);
+    window.dispatchEvent(new StorageEvent("storage", { key: NAV_MODE_KEY }));
+  }, []);
+
+  const toggleNavMode = useCallback(() => {
+    const next = localStorage.getItem(NAV_MODE_KEY) === "topbar" ? "sidebar" : "topbar";
+    localStorage.setItem(NAV_MODE_KEY, next);
+    window.dispatchEvent(new StorageEvent("storage", { key: NAV_MODE_KEY }));
+  }, []);
+
   return (
-    <LayoutContext.Provider value={{ fullWidth, setFullWidth, toggleFullWidth }}>
+    <LayoutContext.Provider
+      value={{
+        fullWidth,
+        setFullWidth,
+        toggleFullWidth,
+        navMode,
+        setNavMode,
+        toggleNavMode,
+      }}
+    >
       {children}
     </LayoutContext.Provider>
   );
@@ -104,7 +157,7 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
  *
  * Must be used within a `LayoutProvider`. Throws if called outside one.
  *
- * @returns Object with `fullWidth` state and `setFullWidth` / `toggleFullWidth` functions
+ * @returns Object with `fullWidth` / `navMode` state and their setters/togglers
  */
 export function useLayout() {
   const context = useContext(LayoutContext);

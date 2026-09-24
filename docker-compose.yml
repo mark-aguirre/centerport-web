@@ -4,9 +4,9 @@
 #   backend  8081 -> 8080   (host 8080 is taken by Keycloak)
 #   frontend 3000 -> 3000
 #
-# External services already running on the LAN (NOT started here):
+# External services already running (NOT started here):
 #   Postgres   192.168.100.46:5432
-#   Keycloak   192.168.100.50:8080
+#   Keycloak   http://auth.apps-nest.com  (reverse proxy, port 80)
 #   Redis      192.168.100.50:6379
 #   SeaweedFS  192.168.100.50:8333
 #   PrintIO    192.168.100.50:3003

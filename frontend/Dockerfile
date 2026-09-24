@@ -4,7 +4,12 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+# Use `npm install` rather than `npm ci`: the committed lock file drifts from
+# package.json across OS/arch because some native deps (@emnapi/*, @unrs/*) are
+# optional and platform-specific, so it was resolved differently on Windows
+# than in this Linux image. `npm install` reconciles and refreshes the lock;
+# `npm ci` would hard-fail on the mismatch.
+RUN npm install --no-audit --no-fund
 
 # ---------- Stage 2: build ----------
 FROM node:22-alpine AS build

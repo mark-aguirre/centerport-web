@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { AppSidebar } from "./app-sidebar";
 import { AppHeader } from "./app-header";
+import { TopNav } from "./top-nav";
 import { useLayout } from "@/components/layout-provider";
 
 interface AppLayoutProps {
@@ -20,7 +21,7 @@ interface AppLayoutProps {
  * Layout structure: sidebar (left) | header + scrollable content (right).
  */
 export function AppLayout({ children }: AppLayoutProps) {
-  const { fullWidth } = useLayout();
+  const { fullWidth, navMode } = useLayout();
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -48,6 +49,26 @@ export function AppLayout({ children }: AppLayoutProps) {
   const toggleSidebar = useCallback(() => {
     setCollapsed((prev) => !prev);
   }, []);
+
+  // Classic top menu bar layout — navigation lives in a horizontal bar above
+  // the content instead of a sidebar. Immersive routes still opt out entirely.
+  if (navMode === "topbar" && !immersive) {
+    return (
+      <div className="flex h-screen flex-col overflow-hidden bg-background">
+        <TopNav />
+        <main
+          className="flex-1 overflow-auto bg-background"
+          style={{
+            paddingLeft: expanded ? "1rem" : "8%",
+            paddingRight: expanded ? "1rem" : "8%",
+          }}
+          suppressHydrationWarning
+        >
+          {children}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

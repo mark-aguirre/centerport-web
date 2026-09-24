@@ -52,7 +52,7 @@ export default function RootLayout({
             <LayoutProvider>{children}</LayoutProvider>
           </ThemeProvider>
         </TooltipProvider>
-        <Toaster richColors closeButton position="top-right" />
+        <Toaster richColors closeButton position="bottom-center" />
       </body>
     </html>
   );

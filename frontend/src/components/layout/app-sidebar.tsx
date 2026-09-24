@@ -6,10 +6,12 @@ import { usePathname } from "next/navigation";
 import {
   navigation,
   groupNavigation,
+  buildNavHref,
   type NavigationGroup,
   type NavigationItem,
 } from "@/config/navigation";
 import { useAuth } from "@/components/auth-provider";
+import { useSelectedPatient } from "@/hooks/use-selected-patient";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -53,6 +55,8 @@ function isItemActive(pathname: string, item: NavigationItem): boolean {
 export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
   const pathname = usePathname();
   const { canRoute } = useAuth();
+  // Carry the selected seafarer into per-seafarer medical modules.
+  const selectedPatientId = useSelectedPatient();
 
   // Only show nav entries the user's roles permit (mirrors backend rules).
   const visibleNavigation = navigation.filter((item) => canRoute(item.href));
@@ -64,7 +68,7 @@ export function AppSidebar({ collapsed, onToggle }: AppSidebarProps) {
 
     const linkContent = (
       <Link
-        href={item.href}
+        href={buildNavHref(item.href, selectedPatientId)}
         className={cn(
           "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
           isActive

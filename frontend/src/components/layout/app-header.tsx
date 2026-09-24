@@ -5,6 +5,7 @@ import { Ship } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeSelector } from "@/components/theme-selector";
 import { FullWidthToggle } from "@/components/layout/full-width-toggle";
+import { NavModeToggle } from "@/components/layout/nav-mode-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { navigation } from "@/config/navigation";
 
@@ -63,6 +64,7 @@ export function AppHeader({ onToggleSidebar, sidebarCollapsed }: AppHeaderProps)
 
       {/* Right Section */}
       <div className="flex items-center gap-2">
+        <NavModeToggle />
         <FullWidthToggle />
         <ThemeSelector />
         <UserMenu />
