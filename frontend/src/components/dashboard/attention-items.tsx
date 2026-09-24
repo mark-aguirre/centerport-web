@@ -5,6 +5,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import { Loader2, UserCheck } from "lucide-react";
 import { getTodaysVisits } from "@/lib/dashboard-data";
+import { ApiError } from "@/lib/http-client";
 import type { PatientVisitRecord } from "@/lib/api";
 
 /**
@@ -95,7 +96,12 @@ export function AttentionItems() {
         if (active) setVisits(data.slice(0, 6));
       })
       .catch((err) => {
-        console.error("[dashboard] getTodaysVisits failed:", err);
+        // A 403 means the signed-in user's role doesn't include the Visits
+        // module (ADMIN/INFORMATION). That's an expected access outcome, not a
+        // failure — render the empty state quietly instead of logging an error.
+        if (!(err instanceof ApiError && err.status === 403)) {
+          console.error("[dashboard] getTodaysVisits failed:", err);
+        }
         if (active) setVisits([]);
       });
     return () => {

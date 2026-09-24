@@ -237,7 +237,7 @@ export function TopNav() {
                 aria-hidden="true"
               />
             )}
-            {group.items.map((item) => {
+            {group.items.map((item, itemIndex) => {
               const Icon = item.icon;
               const active = isItemActive(pathname, item);
               const iconColor = ICON_COLORS[item.href] ?? "text-primary";
@@ -246,8 +246,11 @@ export function TopNav() {
                 <Fragment key={item.href}>
                   {/* Separator before Psychology within the Medical Examination
                       group, distinguishing the psychological evaluation from the
-                      physical medical certificates. */}
-                  {item.href === "/psychology" && (
+                      physical medical certificates. Only when Psychology is
+                      preceded by another item in the (role-filtered) group —
+                      otherwise the group divider already separates it and a
+                      second bar would render back-to-back. */}
+                  {item.href === "/psychology" && itemIndex > 0 && (
                     <div
                       className="mx-1 w-px shrink-0 self-stretch bg-border"
                       aria-hidden="true"

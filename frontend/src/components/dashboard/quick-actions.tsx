@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { FlaskConical, User, Ship, Landmark, FileText, CalendarCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useAuth } from "@/components/auth-provider";
 
 interface QuickAction {
   title: string;
@@ -52,15 +55,28 @@ const actions: QuickAction[] = [
 /**
  * Navigation shortcuts to common workflows.
  * Compact rows with descriptions — not icon-only buttons.
+ *
+ * Actions are filtered to the routes the signed-in user's roles permit, using
+ * the same `canRoute` check that gates the sidebar/top-nav (which mirrors the
+ * backend authorization rules). This is UX only — the backend still enforces
+ * access and returns 403 for any forbidden endpoint. If no actions remain for
+ * the user's role, the section is hidden entirely.
  */
 export function QuickActions() {
+  const { canRoute } = useAuth();
+  const visibleActions = actions.filter((action) => canRoute(action.href));
+
+  if (visibleActions.length === 0) {
+    return null;
+  }
+
   return (
     <section>
       <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
         Quick Actions
       </h2>
       <div className="space-y-1">
-        {actions.map((action) => (
+        {visibleActions.map((action) => (
           <Link
             key={action.title}
             href={action.href}
