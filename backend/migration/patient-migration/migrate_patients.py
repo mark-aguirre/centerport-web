@@ -59,19 +59,19 @@ except ImportError:  # pragma: no cover
 # Configuration
 # --------------------------------------------------------------------------- #
 SOURCE = {
-    "server": os.getenv("MSSQL_SERVER", r"100.106.221.83\SQLEXPRESS"),
-    "database": os.getenv("MSSQL_DATABASE", "Centerport_Medical"),
-    "trusted": os.getenv("MSSQL_TRUSTED", "yes"),   # Windows auth by default
-    "user": os.getenv("MSSQL_USER", "sa"),
-    "password": os.getenv("MSSQL_PASSWORD", "sasa"),
+    "server": os.getenv("MSSQL_SERVER", "NOT_SET"),
+    "database": os.getenv("MSSQL_DATABASE", "NOT_SET"),
+    "trusted": os.getenv("MSSQL_TRUSTED", "NOT_SET"),
+    "user": os.getenv("MSSQL_USER", "NOT_SET"),
+    "password": os.getenv("MSSQL_PASSWORD", "NOT_SET"),
 }
 
 TARGET = {
-    "host": os.getenv("PG_HOST", "192.168.100.46"),
-    "port": int(os.getenv("PG_PORT", "5432")),
-    "dbname": os.getenv("PG_DB", "centerport"),
-    "user": os.getenv("PG_USER", "postgres"),
-    "password": os.getenv("PG_PASSWORD", "postgres"),
+    "host": os.getenv("PG_HOST", "NOT_SET"),
+    "port": int(os.getenv("PG_PORT", "NOT_SET")),
+    "dbname": os.getenv("PG_DB", "NOT_SET"),
+    "user": os.getenv("PG_USER", "NOT_SET"),
+    "password": os.getenv("PG_PASSWORD", "NOT_SET"),
 }
 
 PROFILE_ID_MAXLEN = 12

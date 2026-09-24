@@ -74,27 +74,27 @@ except ImportError:  # pragma: no cover
 # Configuration (mirrors backend/.env)
 # --------------------------------------------------------------------------- #
 SOURCE = {
-    "server": os.getenv("MSSQL_SERVER", r"DESKTOP-KIIKPT8\SQLEXPRESS"),
-    "database": os.getenv("MSSQL_DATABASE", "Centerport_Medical"),
-    "trusted": os.getenv("MSSQL_TRUSTED", "yes"),
-    "user": os.getenv("MSSQL_USER", ""),
-    "password": os.getenv("MSSQL_PASSWORD", ""),
+    "server": os.getenv("MSSQL_SERVER", "NOT_SET"),
+    "database": os.getenv("MSSQL_DATABASE", "NOT_SET"),
+    "trusted": os.getenv("MSSQL_TRUSTED", "NOT_SET"),
+    "user": os.getenv("MSSQL_USER", "NOT_SET"),
+    "password": os.getenv("MSSQL_PASSWORD", "NOT_SET"),
 }
 
 TARGET = {
-    "host": os.getenv("PG_HOST", "localhost"),
-    "port": int(os.getenv("PG_PORT", "5434")),
-    "dbname": os.getenv("PG_DB", "centerport"),
-    "user": os.getenv("PG_USER", "postgres"),
-    "password": os.getenv("PG_PASSWORD", "postgres"),
+    "host": os.getenv("PG_HOST", "NOT_SET"),
+    "port": int(os.getenv("PG_PORT", "NOT_SET")),
+    "dbname": os.getenv("PG_DB", "NOT_SET"),
+    "user": os.getenv("PG_USER", "NOT_SET"),
+    "password": os.getenv("PG_PASSWORD", "NOT_SET"),
 }
 
 S3 = {
-    "endpoint": os.getenv("S3_ENDPOINT", "http://192.168.0.15:8333"),
-    "region": os.getenv("S3_REGION", "us-east-1"),
-    "bucket": os.getenv("S3_BUCKET", "patient-photos"),
-    "access_key": os.getenv("S3_ACCESS_KEY", "admin"),
-    "secret_key": os.getenv("S3_SECRET_KEY", "change-this-password"),
+    "endpoint": os.getenv("S3_ENDPOINT", "NOT_SET"),
+    "region": os.getenv("S3_REGION", "NOT_SET"),
+    "bucket": os.getenv("S3_BUCKET", "NOT_SET"),
+    "access_key": os.getenv("S3_ACCESS_KEY", "NOT_SET"),
+    "secret_key": os.getenv("S3_SECRET_KEY", "NOT_SET"),
     "path_style": os.getenv("S3_PATH_STYLE_ACCESS", "true").lower() in {"yes", "true", "1"},
 }
 
