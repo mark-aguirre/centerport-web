@@ -189,10 +189,10 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
 
       {/* Table header */}
       <div className="grid grid-cols-[2fr_1fr_1fr_3fr] gap-1 mb-1 px-1">
-        <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">Category</span>
-        <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider text-center">Normal</span>
-        <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider text-center">Abnormal</span>
-        <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">Observations</span>
+        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider">Category</span>
+        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Normal</span>
+        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Abnormal</span>
+        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider">Observations</span>
       </div>
 
       {/* Lab categories */}
@@ -201,7 +201,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
           <div key={cat.category}>
             {/* Category header */}
             <div className="bg-primary/5 px-2 py-1 rounded mb-1">
-              <span className="text-xs font-bold text-primary uppercase tracking-wide">
+              <span className="text-sm font-bold text-primary uppercase tracking-wide">
                 {cat.category}
               </span>
             </div>
@@ -221,7 +221,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
                       tabIndex={disabled ? -1 : undefined}
                       disabled={disabled}
                     />
-                    <span className="text-xs text-foreground/80">{item.label}</span>
+                    <span className="text-sm text-foreground">{item.label}</span>
                   </label>
                   <ResultInput
                     label={item.label}
@@ -252,22 +252,22 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
       </div>
 
       {/* Mandatory test note */}
-      <p className="text-xs text-foreground/70 italic mb-4">*Mandatory test</p>
+      <p className="text-sm text-foreground/80 italic mb-4">*Mandatory test</p>
       </>)}
 
       {/* Other Tests section — hidden in upToAlcohol mode */}
       {!upToAlcohol && (<>
       {/* Other Tests section */}
       <div className="border-t border-primary/10 pt-3 mb-4">
-        <h4 className="text-xs font-bold text-foreground/80 mb-2">Other test:</h4>
+        <h4 className="text-sm font-bold text-foreground/80 mb-2">Other test:</h4>
 
         {/* Table header */}
         <div className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 mb-1 px-1">
-          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider" />
-          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider" />
-          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider text-center">Normal</span>
-          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider text-center">Anormal</span>
-          <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">Observations</span>
+          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider" />
+          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider" />
+          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Normal</span>
+          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Anormal</span>
+          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider">Observations</span>
         </div>
 
         {/* Group 1: Breast examination & PAP Test */}
@@ -275,7 +275,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
           const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
           return (
             <div key={item.key} className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-              <span className="text-xs text-foreground/80 pl-2">{item.label}</span>
+              <span className="text-sm text-foreground pl-2">{item.label}</span>
               <div className="flex justify-center">
                 <input
                   type="checkbox"
@@ -320,7 +320,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
           const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
           return (
             <div key={item.key} className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-              <span className="text-xs text-foreground/80 pl-2">{item.label}</span>
+              <span className="text-sm text-foreground pl-2">{item.label}</span>
               <div className="flex justify-center">
                 <input
                   type="checkbox"
@@ -336,7 +336,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
                 <>
                   <div className="col-span-2">
                     <div className="flex items-center gap-1">
-                      <span className="text-[10px] text-foreground/60 whitespace-nowrap">Performed (dd/mm/yyyy):</span>
+                      <span className="text-xs text-foreground/80 whitespace-nowrap">Performed (dd/mm/yyyy):</span>
                       <Input
                         type="date"
                         value={result.performed_date || ""}
@@ -387,7 +387,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
 
       {/* VI. Other Diagnostic Tests and Results */}
       <div className="border-t border-primary/10 pt-4">
-        <h3 className="text-xs font-bold text-primary italic tracking-wide mb-3">
+        <h3 className="text-sm font-bold text-primary italic tracking-wide mb-3">
           <span className="lowercase">vi.</span> OTHER DIAGNOSTIC TESTS AND RESULTS:
         </h3>
 
@@ -407,7 +407,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
         </div>
 
         <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
+          <Label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">
             Medical practitioner&apos;s comments and assessment of fitness, with reasons for any limitations:
           </Label>
           <Textarea

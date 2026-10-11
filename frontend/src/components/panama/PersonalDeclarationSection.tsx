@@ -272,8 +272,8 @@ export default function PersonalDeclarationSection({
         key={item.storageKey}
         className={`grid grid-cols-[1fr_auto] items-center gap-2 rounded-sm border-b border-muted/30 px-1 py-1.5 ${rowBg}`}
       >
-        <span className="text-xs leading-tight text-foreground/80">
-          <span className="mr-1 font-semibold text-primary/70">{item.num}.</span>
+        <span className="text-sm leading-snug text-foreground">
+          <span className="mr-1 font-bold text-primary">{item.num}.</span>
           {item.label}
         </span>
         <GridYesNoRadio
@@ -295,18 +295,18 @@ export default function PersonalDeclarationSection({
       key={question.key}
       className="grid grid-cols-[44px_minmax(0,1fr)_144px] items-stretch border-b border-primary/20"
     >
-      <span className="px-2 py-3 text-xs font-semibold text-primary/70">
+      <span className="px-2 py-3 text-sm font-bold text-primary">
         {question.num}.
       </span>
-      <span className="border-l border-primary/20 px-3 py-3 text-xs leading-snug text-foreground/80">
+      <span className="border-l border-primary/20 px-3 py-3 text-sm leading-snug text-foreground">
         {question.text}
       </span>
       <div className="grid grid-rows-2 border-l border-primary/20">
         <div className="grid grid-cols-2 place-items-center border-b border-primary/20 bg-muted/30">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">
             YES
           </span>
-          <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+          <span className="text-xs font-bold uppercase tracking-wider text-primary">
             NO
           </span>
         </div>
@@ -352,14 +352,14 @@ export default function PersonalDeclarationSection({
           {[col1Items, col2Items].map((column, columnIndex) => (
             <div key={columnIndex}>
               <div className="sticky top-14 z-10 mb-1 grid grid-cols-[1fr_auto] items-center gap-2 border-b border-primary/20 bg-card px-1 pb-1.5 pt-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-primary/70">
+                <span className="text-xs font-bold uppercase tracking-wider text-foreground/80">
                   No. Condition
                 </span>
                 <div className="grid w-[72px] shrink-0 grid-cols-2 place-items-center gap-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">
                     YES
                   </span>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                  <span className="text-xs font-bold uppercase tracking-wider text-primary">
                     NO
                   </span>
                 </div>
@@ -405,10 +405,10 @@ export default function PersonalDeclarationSection({
             Additional questions
           </span>
           <div className="grid h-full grid-cols-2 place-items-center border-l border-primary/20">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
               YES
             </span>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
               NO
             </span>
           </div>
@@ -419,10 +419,10 @@ export default function PersonalDeclarationSection({
             key={question.key}
             className="grid grid-cols-[44px_minmax(0,1fr)_72px] items-stretch border-b border-primary/10 last:border-b-0"
           >
-            <span className="px-2 py-2 text-xs font-semibold text-primary/70">
+            <span className="px-2 py-2 text-sm font-bold text-primary">
               {question.num}.
             </span>
-            <span className="border-l border-primary/20 px-2 py-2 text-xs leading-tight text-foreground/80">
+            <span className="border-l border-primary/20 px-2 py-2 text-sm leading-snug text-foreground">
               {question.text}
             </span>
             <GridYesNoRadio
@@ -467,17 +467,17 @@ export default function PersonalDeclarationSection({
           <span aria-hidden="true" />
           <span className="border-l border-primary/20" aria-hidden="true" />
           <div className="grid h-9 grid-cols-2 place-items-center border-l border-primary/20">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
               YES
             </span>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-primary">
+            <span className="text-xs font-bold uppercase tracking-wider text-primary">
               NO
             </span>
           </div>
         </div>
         <div className="grid grid-cols-[44px_minmax(0,1fr)_72px] items-stretch">
-          <span className="px-2 py-2 text-xs font-semibold text-primary/70">45.</span>
-          <span className="border-l border-primary/20 px-2 py-2 text-xs leading-tight text-foreground/80">
+          <span className="px-2 py-2 text-sm font-bold text-primary">45.</span>
+          <span className="border-l border-primary/20 px-2 py-2 text-sm leading-snug text-foreground">
             Are you taking any non-prescription or prescription medications?
           </span>
           <GridYesNoRadio
@@ -522,14 +522,14 @@ export default function PersonalDeclarationSection({
 
           {/* Covid Q3 — date field */}
           <div className="grid grid-cols-[44px_minmax(0,1fr)] items-stretch border-b border-primary/20 md:grid-cols-[44px_minmax(0,1fr)_260px]">
-            <span className="px-2 py-3 text-xs font-semibold text-primary/70">3.</span>
-            <span className="border-l border-primary/20 px-3 py-3 text-xs leading-snug text-foreground/80">
+            <span className="px-2 py-3 text-sm font-bold text-primary">3.</span>
+            <span className="border-l border-primary/20 px-3 py-3 text-sm leading-snug text-foreground">
               When was the last time the Covid-19 test was performed?
             </span>
             <div className="col-span-2 flex items-center gap-2 border-t border-primary/20 px-3 py-2 md:col-span-1 md:border-l md:border-t-0">
               <Label
                 htmlFor="panama-covid-last-test-date"
-                className="whitespace-nowrap text-xs font-semibold text-foreground/70"
+                className="whitespace-nowrap text-sm font-bold text-foreground/80"
               >
                 Day/month/year:
               </Label>
@@ -550,7 +550,7 @@ export default function PersonalDeclarationSection({
           <div className="flex flex-col gap-2 border-b border-primary/20 px-3 py-2 sm:flex-row sm:items-center">
             <Label
               htmlFor="panama-covid-symptom-details"
-              className="shrink-0 text-xs font-semibold text-foreground/70"
+              className="shrink-0 text-sm font-bold text-foreground/80"
             >
               If the answer to the above question was &quot;Yes&quot;, please specify:
             </Label>
@@ -568,15 +568,15 @@ export default function PersonalDeclarationSection({
 
           {/* Covid Q6 — vaccine details */}
           <div className="grid grid-cols-[44px_minmax(0,1fr)] items-stretch md:grid-cols-[44px_minmax(0,1fr)_260px]">
-            <span className="px-2 py-3 text-xs font-semibold text-primary/70">6.</span>
-            <span className="border-l border-primary/20 px-3 py-3 text-xs leading-snug text-foreground/80">
+            <span className="px-2 py-3 text-sm font-bold text-primary">6.</span>
+            <span className="border-l border-primary/20 px-3 py-3 text-sm leading-snug text-foreground">
               If the answer to the above question was &quot;Yes&quot;, please indicate the name of the vaccine, how many doses and boosters have you received?
             </span>
             <div className="col-span-2 space-y-3 border-t border-primary/20 px-3 py-3 md:col-span-1 md:border-l md:border-t-0">
               <div className="space-y-1">
                 <Label
                   htmlFor="panama-covid-vaccine-type"
-                  className="text-xs font-semibold text-foreground/70"
+                  className="text-sm font-bold text-foreground/80"
                 >
                   Vaccine type:
                 </Label>
@@ -592,7 +592,7 @@ export default function PersonalDeclarationSection({
               <div className="space-y-1">
                 <Label
                   htmlFor="panama-covid-dose-count"
-                  className="text-xs font-semibold text-foreground/70"
+                  className="text-sm font-bold text-foreground/80"
                 >
                   Number of doses:
                 </Label>
@@ -608,7 +608,7 @@ export default function PersonalDeclarationSection({
               <div className="space-y-1">
                 <Label
                   htmlFor="panama-covid-boosters"
-                  className="text-xs font-semibold text-foreground/70"
+                  className="text-sm font-bold text-foreground/80"
                 >
                   Boosters:
                 </Label>

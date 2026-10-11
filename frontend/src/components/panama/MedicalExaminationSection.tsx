@@ -87,7 +87,7 @@ function NRARadio({
           aria-label={`${ariaLabel} - Normal`}
           tabIndex={disabled ? -1 : undefined}
         />
-        <span className="text-xs text-foreground/80">N</span>
+        <span className="text-sm text-foreground">N</span>
       </label>
       <label className={RADIO_OPTION_LABEL_CLASS}>
         <input
@@ -99,7 +99,7 @@ function NRARadio({
           aria-label={`${ariaLabel} - Abnormal`}
           tabIndex={disabled ? -1 : undefined}
         />
-        <span className="text-xs text-foreground/80">A</span>
+        <span className="text-sm text-foreground">A</span>
       </label>
     </div>
   );
@@ -173,7 +173,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
 
       {/* ===== i. Clinical Data ===== */}
       {!skipClinicalData && (<div className="mb-6">
-        <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
+        <h3 className="text-sm font-bold text-primary italic uppercase tracking-wide mb-2">
           <span className="lowercase">i.</span> Clinical Data
         </h3>
 
@@ -252,7 +252,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
 
       {/* ===== ii. Sight ===== */}
       {!clinicalDataOnly && (<div className="mb-6 border-t border-primary/10 pt-4">
-        <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
+        <h3 className="text-sm font-bold text-primary italic uppercase tracking-wide mb-2">
           <span className="lowercase">ii.</span> Sight
         </h3>
 
@@ -270,7 +270,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
         <div className="flex flex-col lg:flex-row gap-4 mb-3 items-start">
         {/* Visual Acuity Table */}
         <div className="min-w-0 max-w-full">
-        <Label className="block text-[11px] font-semibold text-primary/60 uppercase tracking-wider mb-1">
+        <Label className="block text-sm font-bold text-foreground/80 uppercase tracking-wider mb-1">
           Visual acuity
         </Label>
         <div className="overflow-x-auto">
@@ -278,25 +278,25 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
             <thead>
               <tr>
                 <th className="border border-primary/20 bg-primary/5 p-1.5 text-left" rowSpan={2} />
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] font-bold text-primary/70" colSpan={3}>
+                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary" colSpan={3}>
                   Unaided
                 </th>
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] font-bold text-primary/70" colSpan={2}>
+                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary" colSpan={2}>
                   Aided
                 </th>
               </tr>
               <tr>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">Right Eye</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">Left Eye</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">Binocular</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">Right Eye</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">Left Eye</th>
+                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Right Eye</th>
+                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Left Eye</th>
+                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Binocular</th>
+                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Right Eye</th>
+                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Left Eye</th>
               </tr>
             </thead>
             <tbody>
               {/* Distant row */}
               <tr>
-                <td className="border border-primary/20 p-1.5 text-xs font-semibold text-foreground/80">Distant</td>
+                <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80">Distant</td>
                 <td className="border border-primary/20 p-1">
                   <Input
                     value={data.sight_unaided_distant_right}
@@ -345,7 +345,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
               </tr>
               {/* Short distance row */}
               <tr>
-                <td className="border border-primary/20 p-1.5 text-xs font-semibold text-foreground/80">Short distance</td>
+                <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80">Short distance</td>
                 <td className="border border-primary/20 p-1">
                   <Input
                     value={data.sight_unaided_short_right}
@@ -398,14 +398,14 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
             <thead>
               <tr>
                 <th className="border border-primary/20 bg-primary/5 p-1.5" />
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] font-bold text-primary uppercase tracking-wider" colSpan={2}>
+                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary uppercase tracking-wider" colSpan={2}>
                   Visual fields
                 </th>
               </tr>
               <tr>
                 <th className="border border-primary/20 bg-primary/5 p-1.5" />
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">Normal</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">Defective</th>
+                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Normal</th>
+                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Defective</th>
               </tr>
             </thead>
             <tbody>
@@ -424,7 +424,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
                 ]
               ).map(({ label, normalKey, defectiveKey }) => (
                 <tr key={label}>
-                  <td className="border border-primary/20 p-1.5 text-xs font-semibold text-foreground/80 whitespace-nowrap">
+                  <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80 whitespace-nowrap">
                     {label}
                   </td>
                   <td className="border border-primary/20 p-1">
@@ -455,7 +455,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
         {/* Color Vision */}
         <div className="space-y-2">
           <div className="space-y-0.5 rounded-md border border-primary/20 bg-primary/5 p-3">
-            <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
+            <Label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">
               Color vision
             </Label>
             <div className={cn("flex items-center gap-4 h-8", disabled && "pointer-events-none")} role="radiogroup" aria-label="Color vision">
@@ -470,7 +470,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
                     aria-label={`Color vision - ${opt}`}
                     tabIndex={disabled ? -1 : undefined}
                   />
-                  <span className="text-xs text-foreground/80">{opt}</span>
+                  <span className="text-sm text-foreground">{opt}</span>
                 </label>
               ))}
             </div>
@@ -486,7 +486,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
 
       {/* ===== iii. Hearing (Tonal Audiometric) ===== */}
       {!clinicalDataOnly && (<div className="mb-6 border-t border-primary/10 pt-4">
-        <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
+        <h3 className="text-sm font-bold text-primary italic uppercase tracking-wide mb-2">
           <span className="lowercase">iii.</span> Hearing: (Tonal Audiometric)
         </h3>
 
@@ -495,14 +495,14 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
             <thead>
               <tr>
                 <th className="border border-primary/20 bg-primary/5 p-1.5" />
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-[11px] font-bold text-primary uppercase" colSpan={7}>
+                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary uppercase" colSpan={7}>
                   Pure tone and audio metry (threshold values in dB)
                 </th>
               </tr>
               <tr>
                 <th className="border border-primary/20 bg-primary/5 p-1.5" />
                 {HEARING_FREQUENCIES.map((freq) => (
-                  <th key={freq} className="border border-primary/20 bg-primary/5 p-1 text-center text-[11px] text-primary/70">
+                  <th key={freq} className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">
                     {freq} Hz
                   </th>
                 ))}
@@ -511,7 +511,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
             <tbody>
               {/* Right ear */}
               <tr>
-                <td className="border border-primary/20 p-1.5 text-xs font-semibold text-foreground/80">Right ear</td>
+                <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80">Right ear</td>
                 {HEARING_FREQUENCIES.map((freq) => {
                   const field = `hearing_right_${freq}` as keyof PanamaCertificate;
                   return (
@@ -528,7 +528,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
               </tr>
               {/* Left ear */}
               <tr>
-                <td className="border border-primary/20 p-1.5 text-xs font-semibold text-foreground/80">Left ear</td>
+                <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80">Left ear</td>
                 {HEARING_FREQUENCIES.map((freq) => {
                   const field = `hearing_left_${freq}` as keyof PanamaCertificate;
                   return (
@@ -550,7 +550,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
 
       {/* ===== iv. Physical Exploration ===== */}
       {!clinicalDataOnly && (<div className="border-t border-primary/10 pt-4">
-        <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
+        <h3 className="text-sm font-bold text-primary italic uppercase tracking-wide mb-2">
           <span className="lowercase">iv.</span> Physical Exploration
         </h3>
 
@@ -558,13 +558,13 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
         <div className="grid grid-cols-2 gap-4 mb-1">
           <div className="grid grid-cols-[2fr_1fr] items-center">
             <span />
-            <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider text-center">
+            <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">
               Normal/Abnormal
             </span>
           </div>
           <div className="grid grid-cols-[2fr_1fr] items-center">
             <span />
-            <span className="text-[11px] font-bold text-primary/70 uppercase tracking-wider text-center">
+            <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">
               Normal/Abnormal
             </span>
           </div>
@@ -577,7 +577,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
               const currentValue = (data.physical_exploration[item.key] || "") as PhysicalExplorationValue;
               return (
                 <div key={item.key} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
-                  <span className="text-xs text-foreground/80">{item.label}</span>
+                  <span className="text-sm text-foreground">{item.label}</span>
                   <div className="flex justify-center">
                     <NRARadio
                       name={`panama_pe_${item.key}`}
@@ -596,7 +596,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
               const currentValue = (data.physical_exploration[item.key] || "") as PhysicalExplorationValue;
               return (
                 <div key={item.key} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
-                  <span className="text-xs text-foreground/80">{item.label}</span>
+                  <span className="text-sm text-foreground">{item.label}</span>
                   <div className="flex justify-center">
                     <NRARadio
                       name={`panama_pe_${item.key}`}
@@ -614,7 +614,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
 
         {/* Additional comments */}
         <div className="space-y-1">
-          <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
+          <Label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">
             Additional clinical examination comments
           </Label>
           <Textarea

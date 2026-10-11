@@ -38,7 +38,7 @@ const TEXTAREA_CLASSES = cn(
   "disabled:cursor-not-allowed disabled:pointer-events-none"
 );
 const LABEL_CLASSES =
-  "text-[11px] font-semibold uppercase leading-snug tracking-wider text-primary/60";
+  "text-sm font-bold uppercase leading-snug tracking-wider text-foreground/80";
 const ROW_CLASSES =
   "grid grid-cols-1 gap-1.5 py-1.5 md:grid-cols-[260px_minmax(0,1fr)] md:items-center md:gap-3";
 
@@ -157,7 +157,7 @@ export default function GeneralInfoSection({
                   className="h-4 w-4 accent-primary"
                   aria-label={`Sex - ${sex}`}
                 />
-                <span className="text-xs text-foreground/80">{sex}</span>
+                <span className="text-sm text-foreground">{sex}</span>
               </label>
             ))}
           </div>
@@ -307,7 +307,7 @@ export default function GeneralInfoSection({
                     aria-label={`Type of vessel - ${option.label}`}
                     tabIndex={disabled ? -1 : undefined}
                   />
-                  <span className="text-xs text-foreground/80">{option.label}</span>
+                  <span className="text-sm text-foreground">{option.label}</span>
                 </label>
               ))}
             </div>
@@ -350,7 +350,7 @@ export default function GeneralInfoSection({
                     aria-label={`Sailing area - ${option.label}`}
                     tabIndex={disabled ? -1 : undefined}
                   />
-                  <span className="text-xs text-foreground/80">{option.label}</span>
+                  <span className="text-sm text-foreground">{option.label}</span>
                 </label>
               ))}
             </div>

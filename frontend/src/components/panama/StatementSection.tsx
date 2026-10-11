@@ -32,7 +32,7 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
       />
 
       {/* Intro text */}
-      <p className="text-xs text-foreground/80 mb-3">
+      <p className="text-sm text-foreground mb-3">
         I hereby certify that the personal declaration above is a true statement to the best of my knowledge.
       </p>
 
@@ -88,12 +88,12 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
         />
 
         {/* Authorization text */}
-        <p className="text-xs text-foreground/80 italic border-t border-primary/10 pt-3">
+        <p className="text-sm text-foreground italic border-t border-primary/10 pt-3">
           I hereby authorize the release of all my previous medical records from any health professionals, health, institutions, and public authorities to Dr.
         </p>
 
         {/* Practitioner section */}
-        <p className="text-xs text-foreground/70 font-semibold">
+        <p className="text-sm text-foreground/80 font-bold">
           (The approved medical practitioner)
         </p>
 

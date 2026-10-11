@@ -113,7 +113,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                     aria-label="Fit for look-out"
                     tabIndex={disabled ? -1 : undefined}
                   />
-                  <span className="text-xs text-foreground/80">Fit for look-out</span>
+                  <span className="text-sm text-foreground">Fit for look-out</span>
                 </label>
               </td>
               <td colSpan={3} className="border border-primary/30 p-2">
@@ -127,16 +127,16 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                     aria-label="Not fit for look-out duty"
                     tabIndex={disabled ? -1 : undefined}
                   />
-                  <span className="text-xs text-foreground/80">Not fit for look-out duty</span>
+                  <span className="text-sm text-foreground">Not fit for look-out duty</span>
                 </label>
               </td>
             </tr>
             <tr className="bg-primary/5">
               <th className="w-32 border border-primary/30 p-1.5" />
-              <th className="border border-primary/30 p-1.5 text-center text-[11px] font-semibold text-foreground/80">Deck service</th>
-              <th className="border border-primary/30 p-1.5 text-center text-[11px] font-semibold text-foreground/80">Engine service</th>
-              <th className="border border-primary/30 p-1.5 text-center text-[11px] font-semibold text-foreground/80">Catering service</th>
-              <th className="border border-primary/30 p-1.5 text-center text-[11px] font-semibold text-foreground/80">Other services</th>
+              <th className="border border-primary/30 p-1.5 text-center text-sm font-bold text-foreground/80">Deck service</th>
+              <th className="border border-primary/30 p-1.5 text-center text-sm font-bold text-foreground/80">Engine service</th>
+              <th className="border border-primary/30 p-1.5 text-center text-sm font-bold text-foreground/80">Catering service</th>
+              <th className="border border-primary/30 p-1.5 text-center text-sm font-bold text-foreground/80">Other services</th>
             </tr>
             {([
               {
@@ -149,7 +149,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
               },
             ] as const).map((row) => (
               <tr key={row.label}>
-                <th className="border border-primary/30 p-1.5 text-left text-xs font-semibold text-foreground/80">{row.label}</th>
+                <th className="border border-primary/30 p-1.5 text-left text-sm font-bold text-foreground/80">{row.label}</th>
                 {row.fields.map((field, index) => (
                   <td key={field} className="border border-primary/30 p-1.5 text-center">
                     <label className={cn("-m-1.5 flex cursor-pointer items-center justify-center rounded-sm p-1.5 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
@@ -169,7 +169,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
             <tr>
               <td className="border border-primary/30 p-2">
                 <label className={cn("-m-2 flex cursor-pointer items-center justify-between gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
-                  <span className="text-xs text-foreground/80">Without restrictions</span>
+                  <span className="text-sm text-foreground">Without restrictions</span>
                   <input
                     type="radio"
                     name="panama_restriction"
@@ -183,7 +183,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
               </td>
               <td className="border border-primary/30 p-2">
                 <label className={cn("-m-2 flex cursor-pointer items-center justify-between gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
-                  <span className="text-xs text-foreground/80">With restrictions</span>
+                  <span className="text-sm text-foreground">With restrictions</span>
                   <input
                     type="radio"
                     name="panama_restriction"
@@ -195,10 +195,10 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                   />
                 </label>
               </td>
-              <th className="border border-primary/30 p-2 text-left text-xs font-normal text-foreground/80">Visual aid required</th>
+              <th className="border border-primary/30 p-2 text-left text-sm font-bold text-foreground/80">Visual aid required</th>
               <td className="border border-primary/30 p-2">
                 <label className={cn("-m-2 flex cursor-pointer items-center justify-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
-                  <span className="text-xs text-foreground/80">Yes</span>
+                  <span className="text-sm text-foreground">Yes</span>
                   <input
                     type="radio"
                     name="panama_visual_aid"
@@ -212,7 +212,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
               </td>
               <td className="border border-primary/30 p-2">
                 <label className={cn("-m-2 flex cursor-pointer items-center justify-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
-                  <span className="text-xs text-foreground/80">No</span>
+                  <span className="text-sm text-foreground">No</span>
                   <input
                     type="radio"
                     name="panama_visual_aid"
@@ -234,7 +234,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
       {!upToWithoutRestrictions && (<>
       {/* Describe restrictions — always shown on Tab 8 */}
       <div className="mb-6 space-y-1">
-        <Label className="text-[11px] font-semibold uppercase tracking-wider text-primary/60">
+        <Label className="text-sm font-bold uppercase tracking-wider text-foreground/80">
           Describe restrictions (e.g. specific positions, type of ship, trade area):
         </Label>
         <Textarea
@@ -259,7 +259,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
           </colgroup>
           <tbody>
             <tr>
-              <th className="border border-primary/30 p-2 text-left text-[11px] font-bold text-foreground/80">
+              <th className="border border-primary/30 p-2 text-left text-sm font-bold text-foreground/80">
                 Medical certificate&apos;s issue date:
               </th>
               <td className="border border-primary/30 p-1.5">
@@ -273,7 +273,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
               </td>
             </tr>
             <tr>
-              <th className="border border-primary/30 p-2 text-left text-[11px] font-bold text-foreground/80">
+              <th className="border border-primary/30 p-2 text-left text-sm font-bold text-foreground/80">
                 Medical certificate&apos;s expiration:
               </th>
               <td className="border border-primary/30 p-1.5">
@@ -287,7 +287,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
               </td>
             </tr>
             <tr>
-              <th className="border border-primary/30 p-2 text-left text-[11px] font-bold text-foreground/80">
+              <th className="border border-primary/30 p-2 text-left text-sm font-bold text-foreground/80">
                 Number of medical certificate issued on the platform:
               </th>
               <td colSpan={3} className="border border-primary/30 p-2">
@@ -301,7 +301,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
               </td>
             </tr>
             <tr>
-              <th className="border border-primary/30 p-2 text-left text-[11px] font-bold text-foreground/80">
+              <th className="border border-primary/30 p-2 text-left text-sm font-bold text-foreground/80">
                 Physician&apos;s name and registration (typed or printed):
               </th>
               <td colSpan={3} className="border border-primary/30 p-2">
@@ -328,7 +328,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
               </td>
             </tr>
             <tr>
-              <th className="h-24 border border-primary/30 p-2 text-left align-middle text-[11px] font-bold text-foreground/80">
+              <th className="h-24 border border-primary/30 p-2 text-left align-middle text-sm font-bold text-foreground/80">
                 Signature and stamp of medical practitioner:
               </th>
               <td colSpan={3} className="border border-primary/30 p-2 align-top">
