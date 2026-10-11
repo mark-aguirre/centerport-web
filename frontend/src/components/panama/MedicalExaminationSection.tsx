@@ -113,8 +113,16 @@ function NRARadio({
  * - ii. Sight (visual acuity, visual fields, color vision)
  * - iii. Hearing (tonal audiometric at multiple frequencies)
  * - iv. Physical Exploration (body systems Normal/Abnormal grid)
+ *
+ * `clinicalDataOnly` — when true, renders only the section header and
+ * sub-section i (Clinical Data). Used when this section is embedded
+ * alongside another section in the same tab.
+ *
+ * `skipClinicalData` — when true, skips sub-section i and renders only
+ * ii (Sight), iii (Hearing), and iv (Physical Exploration). Used on the
+ * following tab after Clinical Data has already been shown.
  */
-export default function MedicalExaminationSection({ data, onChange, disabled }: PanamaSectionProps) {
+export default function MedicalExaminationSection({ data, onChange, disabled, clinicalDataOnly, skipClinicalData }: PanamaSectionProps & { clinicalDataOnly?: boolean; skipClinicalData?: boolean }) {
   const update = createFieldUpdater(data, onChange);
 
   const updateExploration = (key: string, value: PhysicalExplorationValue) => {
@@ -164,7 +172,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
       />
 
       {/* ===== i. Clinical Data ===== */}
-      <div className="mb-6">
+      {!skipClinicalData && (<div className="mb-6">
         <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
           <span className="lowercase">i.</span> Clinical Data
         </h3>
@@ -240,10 +248,10 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
             />
           </div>
         </div>
-      </div>
+      </div>)}
 
       {/* ===== ii. Sight ===== */}
-      <div className="mb-6 border-t border-primary/10 pt-4">
+      {!clinicalDataOnly && (<div className="mb-6 border-t border-primary/10 pt-4">
         <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
           <span className="lowercase">ii.</span> Sight
         </h3>
@@ -474,10 +482,10 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
             disabled={disabled}
           />
         </div>
-      </div>
+      </div>)}
 
       {/* ===== iii. Hearing (Tonal Audiometric) ===== */}
-      <div className="mb-6 border-t border-primary/10 pt-4">
+      {!clinicalDataOnly && (<div className="mb-6 border-t border-primary/10 pt-4">
         <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
           <span className="lowercase">iii.</span> Hearing: (Tonal Audiometric)
         </h3>
@@ -538,10 +546,10 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
             </tbody>
           </table>
         </div>
-      </div>
+      </div>)}
 
       {/* ===== iv. Physical Exploration ===== */}
-      <div className="border-t border-primary/10 pt-4">
+      {!clinicalDataOnly && (<div className="border-t border-primary/10 pt-4">
         <h3 className="text-xs font-bold text-primary italic uppercase tracking-wide mb-2">
           <span className="lowercase">iv.</span> Physical Exploration
         </h3>
@@ -620,7 +628,7 @@ export default function MedicalExaminationSection({ data, onChange, disabled }: 
             readOnly={disabled}
           />
         </div>
-      </div>
+      </div>)}
     </div>
   );
 }

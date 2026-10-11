@@ -29,8 +29,18 @@ import type { PanamaSectionProps } from "./types";
  * - Visual aid required
  * - Certificate dates (expiry, issued)
  * - Physician details
+ *
+ * `upToWithoutRestrictions` — when true, renders only through (and including)
+ * the "Without restrictions / With restrictions / Visual aid" row. The
+ * restrictions details textarea, certificate table, and physician block are
+ * hidden. Used for Tab 7.
+ *
+ * `restrictionsRestOnly` — when true, skips the fitness declaration, lookout
+ * radio, service table, and restrictions row, rendering only the restrictions
+ * details textarea (when applicable), certificate table, and physician block.
+ * Used for Tab 8.
  */
-export default function FitnessAssessmentSection({ data, onChange, disabled }: PanamaSectionProps) {
+export default function FitnessAssessmentSection({ data, onChange, disabled, upToWithoutRestrictions, restrictionsRestOnly }: PanamaSectionProps & { upToWithoutRestrictions?: boolean; restrictionsRestOnly?: boolean }) {
   const update = createFieldUpdater(data, onChange);
 
   // Dialog state for physician search
@@ -80,6 +90,8 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
         banner
       />
 
+      {/* Fitness declaration + table — hidden in restrictionsRestOnly (Tab 8) mode */}
+      {!restrictionsRestOnly && (<>
       {/* Assessment declaration and fitness table */}
       <p className="mb-3 text-xs leading-relaxed text-foreground/80">
         On the basis of the examinee&apos;s personal declaration, my clinical examination and the diagnostic test
@@ -216,23 +228,25 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
           </tbody>
         </table>
       </div>
+      </>)}
 
-      {data.fitness_restriction === "with" && (
-        <div className="mb-6 space-y-1">
-          <Label className="text-[11px] font-semibold uppercase tracking-wider text-primary/60">
-            Describe restrictions (e.g. specific positions, type of ship, trade area):
-          </Label>
-          <Textarea
-            value={data.fitness_restriction_details}
-            onChange={(e) => update("fitness_restriction_details", e.target.value)}
-            className={cn(
-              "h-16 resize-none rounded-md border border-primary/20 bg-white px-3 py-2 text-sm focus:outline-none focus-visible:border-primary dark:bg-input/30",
-              disabled && "pointer-events-none"
-            )}
-            readOnly={disabled}
-          />
-        </div>
-      )}
+      {/* Restriction details, certificate table, and physician — hidden in upToWithoutRestrictions (Tab 7) mode */}
+      {!upToWithoutRestrictions && (<>
+      {/* Describe restrictions — always shown on Tab 8 */}
+      <div className="mb-6 space-y-1">
+        <Label className="text-[11px] font-semibold uppercase tracking-wider text-primary/60">
+          Describe restrictions (e.g. specific positions, type of ship, trade area):
+        </Label>
+        <Textarea
+          value={data.fitness_restriction_details}
+          onChange={(e) => update("fitness_restriction_details", e.target.value)}
+          className={cn(
+            "h-16 resize-none rounded-md border border-primary/20 bg-white px-3 py-2 text-sm focus:outline-none focus-visible:border-primary dark:bg-input/30",
+            disabled && "pointer-events-none"
+          )}
+          readOnly={disabled}
+        />
+      </div>
 
       {/* Certificate details table */}
       <div className="overflow-x-auto">
@@ -342,6 +356,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled }: P
         title="Select Physician"
         description="Search and select a physician for this certificate."
       />
+      </>)}
     </div>
   );
 }

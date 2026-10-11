@@ -2,6 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Exclude the reference folder — it contains legacy JSX with Tailwind class
+   patterns that produce invalid CSS selectors (e.g. [&>[role=checkbox]])
+   when processed by the Tailwind v4 parser. */
+@source not "../../../reference/**";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

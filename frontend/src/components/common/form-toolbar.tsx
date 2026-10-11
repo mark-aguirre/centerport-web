@@ -460,32 +460,33 @@ export function FormToolbar({
     </TooltipProvider>
   );
 
+  /** Record metadata badge (record ID, created/updated timestamps). */
+  const renderMetadata = (className?: string) =>
+    metadata || metadataSlot ? (
+      <div className={cn("flex items-center gap-3", className)}>
+        {metadata?.recordId && (
+          <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded tracking-widest">
+            {metadata.recordId}
+          </span>
+        )}
+        {metadataSlot}
+        {metadata?.createdDate && (
+          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+            {metadata.createdLabel ?? "Registered"}: {" "}
+            {format(new Date(metadata.createdDate), "MMM d, yyyy h:mm a")}
+          </span>
+        )}
+        {metadata?.updatedDate && (
+          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+            {metadata.updatedLabel ?? "Updated"}: {" "}
+            {format(new Date(metadata.updatedDate), "MMM d, yyyy h:mm a")}
+          </span>
+        )}
+      </div>
+    ) : null;
+
   return (
     <div className="flex flex-wrap items-center gap-3 mb-4">
-      {/* Metadata */}
-      {(metadata || metadataSlot) && (
-        <div className="flex items-center gap-3">
-          {metadata?.recordId && (
-            <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded tracking-widest">
-              {metadata.recordId}
-            </span>
-          )}
-          {metadataSlot}
-          {metadata?.createdDate && (
-            <span className="text-[10px] text-muted-foreground">
-              {metadata.createdLabel ?? "Registered"}: {" "}
-              {format(new Date(metadata.createdDate), "MMM d, yyyy h:mm a")}
-            </span>
-          )}
-          {metadata?.updatedDate && (
-            <span className="text-[10px] text-muted-foreground">
-              {metadata.updatedLabel ?? "Updated"}: {" "}
-              {format(new Date(metadata.updatedDate), "MMM d, yyyy h:mm a")}
-            </span>
-          )}
-        </div>
-      )}
-
       {/* Actions + search stay near the form on narrow screens. When a portal
           target is set (large screens) they render into the layout's action
           strip instead — TopNav Row 3 in topbar mode, or the AppHeader. */}
@@ -496,6 +497,10 @@ export function FormToolbar({
         cn("flex-1", searchInStrip ? "lg:hidden" : undefined),
         !searchInStrip
       )}
+      {/* Metadata pushed to the right end of the strip. When the search is
+          relocated into the layout strip, the metadata rides along with it so
+          the badge + created date sit at the far right of that same row. */}
+      {renderMetadata(cn("ml-auto", searchInStrip ? "lg:hidden" : undefined))}
       {portalActive &&
         actionsPortalTarget &&
         createPortal(
@@ -505,6 +510,8 @@ export function FormToolbar({
               {/* Search sits directly to the left, next to the CRUD buttons,
                   and expands to fill the remaining strip width. */}
               {renderSearch("flex-1 max-w-3xl", true)}
+              {/* Record ID + created date pushed to the far right of the strip. */}
+              {renderMetadata("ml-auto")}
             </>
           ) : (
             renderActions()

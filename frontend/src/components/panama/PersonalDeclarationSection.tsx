@@ -166,8 +166,34 @@ function GridYesNoRadio({
  *
  * Clean grid layout: conditions in 2-column grid, additional questions and
  * covid section use consistent row-based table style.
+ *
+ * `col1Slice` / `col2Slice` optionally restrict which conditions are shown in
+ * each column. Pass `[start, end]` as 1-based condition numbers (inclusive).
+ * When omitted the full columns are rendered (1–21 left, 22–41 right).
+ * When a slice is provided only the conditions grid is rendered — the detail
+ * textarea, additional questions, medication, and covid blocks are hidden so
+ * the tab-1 preview stays compact.
+ *
+ * `showUpTo44` — when true (alongside slice props) renders the conditions
+ * details textarea and additional questions 37–44, but omits Q45 (medication),
+ * the comments textarea, and the Covid-19 section. Used for Tab 2 which shows
+ * the second half of the declaration through question 44.
  */
-export default function PersonalDeclarationSection({ data, onChange, disabled }: PanamaSectionProps) {
+export default function PersonalDeclarationSection({
+  data,
+  onChange,
+  disabled,
+  col1Slice,
+  col2Slice,
+  showUpTo44,
+  declarationRestOnly,
+}: PanamaSectionProps & {
+  col1Slice?: [number, number];
+  col2Slice?: [number, number];
+  showUpTo44?: boolean;
+  /** When true, skips the conditions grid and renders only Q45, Comments, and Covid-19. */
+  declarationRestOnly?: boolean;
+}) {
   const update = createFieldUpdater(data, onChange);
 
   const updateCondition = (conditionKey: string, value: YesNo) => {
@@ -296,6 +322,19 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
     </div>
   );
 
+  // Determine which conditions to show in each column.
+  // Slices are 1-based inclusive ranges referencing condition `num`.
+  const col1Items = col1Slice
+    ? CONDITIONS_COL_1.filter((c) => c.num >= col1Slice[0] && c.num <= col1Slice[1])
+    : CONDITIONS_COL_1;
+  const col2Items = col2Slice
+    ? CONDITIONS_COL_2.filter((c) => c.num >= col2Slice[0] && c.num <= col2Slice[1])
+    : CONDITIONS_COL_2;
+
+  // When either slice prop is provided without showUpTo44 we're in "preview"
+  // mode — only the conditions grid is shown; all other blocks are hidden.
+  const isPreview = (col1Slice !== undefined || col2Slice !== undefined) && !showUpTo44;
+
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
@@ -307,10 +346,10 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
         banner
       />
 
-      {/* Declaration conditions — 1–21 left, 22–41 right */}
-      <div className="mb-4 mt-6">
+      {/* Declaration conditions grid — hidden in declarationRestOnly mode */}
+      {!declarationRestOnly && (<div className="mb-4 mt-6">
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {[CONDITIONS_COL_1, CONDITIONS_COL_2].map((column, columnIndex) => (
+          {[col1Items, col2Items].map((column, columnIndex) => (
             <div key={columnIndex}>
               <div className="sticky top-14 z-10 mb-1 grid grid-cols-[1fr_auto] items-center gap-2 border-b border-primary/20 bg-card px-1 pb-1.5 pt-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-primary/70">
@@ -325,14 +364,20 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
                   </span>
                 </div>
               </div>
-              <div>{column.map(renderConditionRow)}</div>
+              <div>{column.map((item, idx) => renderConditionRow(item, idx))}</div>
             </div>
           ))}
         </div>
-      </div>
+      </div>)}
 
-      {/* Details for YES answers — directly below the declaration table */}
-      <div className="mt-4 space-y-2 border-t border-primary/10 pt-4">
+      {/* The blocks below are only shown in the full (non-preview) view,
+          or in showUpTo44 mode (which renders details + questions 37–44 only). */}
+      {(!isPreview) && (
+        <>
+        {/* Details for YES answers and additional Q37–44 — hidden in declarationRestOnly (Tab 3) mode */}
+        {!declarationRestOnly && (<>
+        {/* Details for YES answers — directly below the declaration table */}
+        <div className="mt-4 space-y-2 border-t border-primary/10 pt-4">
         <Label
           htmlFor="panama-declaration-condition-details"
           className="text-sm font-bold text-foreground/80"
@@ -391,7 +436,10 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
           </div>
         ))}
       </div>
+      </>)}
 
+      {/* Comments, Q45, and Covid — hidden in showUpTo44 (Tab 2) mode; always shown in declarationRestOnly (Tab 3) mode */}
+      {(!showUpTo44 || declarationRestOnly) && (<>
       {/* Comments — directly below additional questions */}
       <div className="mt-6 space-y-2">
         <Label
@@ -577,6 +625,9 @@ export default function PersonalDeclarationSection({ data, onChange, disabled }:
           </div>
         </div>
       </div>
+        </>)}
+        </>
+      )}
     </div>
   );
 }

@@ -111,9 +111,27 @@ function ResultInput({
  * Serology, Urinalysis, Stool, Toxicologic) with Normal/Abnormal/Observations
  * columns, plus an "Other test" section with checkboxes and a section for
  * additional diagnostic tests with practitioner comments.
+ *
+ * `upToAlcohol` — when true, renders only the lab categories table through
+ * (and including) the *Alcohol row. The "Other test" and "VI. Other Diagnostic
+ * Tests" blocks are hidden. Used for Tab 6; the rest goes to Tab 7.
+ *
+ * `otherTestsOnly` — when true, skips the lab categories table entirely and
+ * renders only the "Other test" and "VI. Other Diagnostic Tests" blocks.
+ * Used for Tab 7 after the lab table has already been shown on Tab 6.
  */
-export default function DiagnosticTestsSection({ data, onChange, disabled }: PanamaSectionProps) {
+export default function DiagnosticTestsSection({ data, onChange, disabled, upToAlcohol, otherTestsOnly }: PanamaSectionProps & { upToAlcohol?: boolean; otherTestsOnly?: boolean }) {
   const update = createFieldUpdater(data, onChange);
+
+  // When upToAlcohol is true, include all categories but cap the last one's
+  // items at (and including) the "alcohol" row.
+  const categoriesToRender = upToAlcohol
+    ? LAB_CATEGORIES.map((cat) => {
+        const alcoholIdx = cat.items.findIndex((i) => i.key === "alcohol");
+        if (alcoholIdx === -1) return cat;
+        return { ...cat, items: cat.items.slice(0, alcoholIdx + 1) };
+      })
+    : LAB_CATEGORIES;
 
   const updateLabTest = (key: string, field: keyof LabTestResult, value: string | boolean) => {
     const current = data.lab_tests[key] || { ...EMPTY_LAB_RESULT };
@@ -162,6 +180,8 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
         banner
       />
 
+      {/* Lab table — hidden in otherTestsOnly mode */}
+      {!otherTestsOnly && (<>
       {/* Laboratory Test heading */}
       <h3 className="text-xs font-bold text-primary uppercase tracking-widest text-center mb-3">
         Laboratory Test
@@ -177,7 +197,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
 
       {/* Lab categories */}
       <div className="space-y-3 mb-4">
-        {LAB_CATEGORIES.map((cat) => (
+        {categoriesToRender.map((cat) => (
           <div key={cat.category}>
             {/* Category header */}
             <div className="bg-primary/5 px-2 py-1 rounded mb-1">
@@ -233,7 +253,10 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
 
       {/* Mandatory test note */}
       <p className="text-xs text-foreground/70 italic mb-4">*Mandatory test</p>
+      </>)}
 
+      {/* Other Tests section — hidden in upToAlcohol mode */}
+      {!upToAlcohol && (<>
       {/* Other Tests section */}
       <div className="border-t border-primary/10 pt-3 mb-4">
         <h4 className="text-xs font-bold text-foreground/80 mb-2">Other test:</h4>
@@ -399,6 +422,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled }: Pan
           />
         </div>
       </div>
+    </>)}
     </div>
   );
 }
