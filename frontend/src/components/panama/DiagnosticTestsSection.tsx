@@ -188,8 +188,9 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
       </h3>
 
       {/* Table header */}
-      <div className="grid grid-cols-[2fr_1fr_1fr_3fr] gap-1 mb-1 px-1">
+      <div className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 mb-1 px-1">
         <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider">Category</span>
+        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider" />
         <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Normal</span>
         <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Abnormal</span>
         <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider">Observations</span>
@@ -210,8 +211,9 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
             {cat.items.map((item) => {
               const result = data.lab_tests[item.key] || EMPTY_LAB_RESULT;
               return (
-                <div key={item.key} className="grid grid-cols-[2fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-                  <label className={cn("flex items-center gap-2 cursor-pointer pl-10", disabled && "pointer-events-none")}>
+                <div key={item.key} className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
+                  <span className="text-sm text-foreground pl-2">{item.label}</span>
+                  <div className="flex justify-center">
                     <input
                       type="checkbox"
                       checked={result.checked ?? (!!result.normal || !!result.abnormal)}
@@ -221,8 +223,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
                       tabIndex={disabled ? -1 : undefined}
                       disabled={disabled}
                     />
-                    <span className="text-sm text-foreground">{item.label}</span>
-                  </label>
+                  </div>
                   <ResultInput
                     label={item.label}
                     field="Normal"

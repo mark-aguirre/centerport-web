@@ -113,7 +113,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                     aria-label="Fit for look-out"
                     tabIndex={disabled ? -1 : undefined}
                   />
-                  <span className="text-sm text-foreground">Fit for look-out</span>
+                  <span className="text-base font-semibold text-foreground">Fit for look-out</span>
                 </label>
               </td>
               <td colSpan={3} className="border border-primary/30 p-2">
@@ -127,7 +127,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                     aria-label="Not fit for look-out duty"
                     tabIndex={disabled ? -1 : undefined}
                   />
-                  <span className="text-sm text-foreground">Not fit for look-out duty</span>
+                  <span className="text-base font-semibold text-foreground">Not fit for look-out duty</span>
                 </label>
               </td>
             </tr>
@@ -182,7 +182,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                 </label>
               </td>
               <td className="border border-primary/30 p-2">
-                <label className={cn("-m-2 flex cursor-pointer items-center justify-between gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
+                <label className={cn("-m-2 flex cursor-pointer items-center justify-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-sm text-foreground">With restrictions</span>
                   <input
                     type="checkbox"
@@ -195,7 +195,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                   />
                 </label>
               </td>
-              <th className="border border-primary/30 p-2 text-left text-sm font-bold text-foreground/80">Visual aid required</th>
+              <th className="border border-primary/30 p-2 text-right text-sm font-bold text-foreground/80">Visual aid required</th>
               <td className="border border-primary/30 p-2">
                 <label className={cn("-m-2 flex cursor-pointer items-center justify-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-sm text-foreground">Yes</span>
