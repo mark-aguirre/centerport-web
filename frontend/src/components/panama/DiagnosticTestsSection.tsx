@@ -1,7 +1,6 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormField } from "@/components/common/form-field";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,7 @@ import { FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CELL_INPUT_CLASS } from "./constants";
 import { createFieldUpdater } from "./utils";
-import type { PanamaSectionProps, LabTestResult, OtherLabTestResult } from "./types";
+import type { PanamaCertificate, PanamaSectionProps, LabTestResult, OtherLabTestResult } from "./types";
 
 /** Lab test categories with their items */
 const LAB_CATEGORIES = [
@@ -69,6 +68,36 @@ const OTHER_TESTS_GROUP_2 = [
 
 const EMPTY_LAB_RESULT: LabTestResult = { checked: false, normal: "", abnormal: "", observations: "" };
 const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abnormal: "", observations: "", performed_date: "" };
+
+/**
+ * Build the "normal" default values for the Diagnostic Tests section
+ * (Sections V & VI). Single source of truth shared by the Set Normal button
+ * and the auto-apply-on-new-record flow.
+ *
+ * Every lab test and other test is checked and marked "X" in the Normal
+ * column; the free-text "other diagnostic tests" fields are cleared.
+ */
+export function buildDiagnosticNormalDefaults(): Partial<PanamaCertificate> {
+  const normalLabTests: Record<string, LabTestResult> = {};
+  LAB_CATEGORIES.forEach((cat) => {
+    cat.items.forEach((item) => {
+      normalLabTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "" };
+    });
+  });
+
+  const normalOtherTests: Record<string, OtherLabTestResult> = {};
+  [...OTHER_TESTS_GROUP_1, ...OTHER_TESTS_GROUP_2].forEach((item) => {
+    normalOtherTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "", performed_date: "" };
+  });
+
+  return {
+    lab_tests: normalLabTests,
+    lab_other_tests: normalOtherTests,
+    other_diag_test: "",
+    other_diag_result: "",
+    other_diag_comments: "",
+  };
+}
 
 /**
  * Compact text input for a single lab-result cell (Normal, Abnormal, or
@@ -145,37 +174,12 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
     onChange({ ...data, lab_other_tests: updated });
   };
 
-  /** Set all lab tests to "normal" and other tests to normal with checked. */
-  const handleSetNormal = () => {
-    const normalLabTests: Record<string, LabTestResult> = {};
-    LAB_CATEGORIES.forEach((cat) => {
-      cat.items.forEach((item) => {
-        normalLabTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "" };
-      });
-    });
-
-    const normalOtherTests: Record<string, OtherLabTestResult> = {};
-    [...OTHER_TESTS_GROUP_1, ...OTHER_TESTS_GROUP_2].forEach((item) => {
-      normalOtherTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "", performed_date: "" };
-    });
-
-    onChange({
-      ...data,
-      lab_tests: normalLabTests,
-      lab_other_tests: normalOtherTests,
-      other_diag_test: "",
-      other_diag_result: "",
-      other_diag_comments: "",
-    });
-  };
-
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
         title="v. Diagnostic Test and Results"
         icon={FlaskConical}
         subtitle="at medical discretion"
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         titleStyle={{ textTransform: "none" }}
         banner
       />

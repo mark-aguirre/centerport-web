@@ -1,14 +1,13 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
-import type { PanamaSectionProps, YesNo } from "./types";
+import type { PanamaCertificate, PanamaSectionProps, YesNo } from "./types";
 
 interface DeclarationCondition {
   num: number;
@@ -83,6 +82,44 @@ const DECLARATION_CONDITIONS: DeclarationCondition[] = [
 
 const CONDITIONS_COL_1 = DECLARATION_CONDITIONS.slice(0, 21);
 const CONDITIONS_COL_2 = DECLARATION_CONDITIONS.slice(21);
+
+/**
+ * Build the "normal"/healthy default values for the Personal Declaration
+ * section (Section II). Single source of truth shared by the Set Normal
+ * button and the auto-apply-on-new-record flow.
+ *
+ * Applies "no" to every declaration condition and to each adverse yes/no
+ * question (37–41, 43, 44, and the medication question 45), and "yes" to
+ * question 42 ("Do you feel healthy and fit …"). Free-text detail fields tied
+ * to those answers are cleared. Covid-19 questions capture factual history
+ * rather than a normal/abnormal finding, so they are left untouched.
+ *
+ * @param baseConditions Existing conditions map to merge onto (preserves any
+ *   non-declaration keys). Defaults to an empty map.
+ */
+export function buildDeclarationNormalDefaults(
+  baseConditions: Record<string, YesNo> = {}
+): Partial<PanamaCertificate> {
+  const normalConditions: Record<string, YesNo> = { ...baseConditions };
+  DECLARATION_CONDITIONS.forEach((item) => {
+    normalConditions[item.storageKey] = "no";
+  });
+
+  return {
+    conditions: normalConditions,
+    conditions_details: "",
+    question_37: "no",
+    question_38: "no",
+    question_39: "no",
+    question_40: "no",
+    question_41: "no",
+    question_43: "no",
+    question_44: "no",
+    question_42: "yes",
+    question_45: "no",
+    question_45_details: "",
+  };
+}
 
 /** Additional questions stored separately from declaration conditions. */
 const ADDITIONAL_QUESTIONS = [
@@ -201,42 +238,6 @@ export default function PersonalDeclarationSection({
     onChange({ ...data, conditions: updatedConditions });
   };
 
-  /**
-   * Set the declaration to its "normal"/healthy state.
-   *
-   * Applies "no" to every declaration condition and to each adverse
-   * yes/no question (37–41, 43, 44, and the medication question 45), and
-   * "yes" to question 42 ("Do you feel healthy and fit …") since a healthy
-   * examinee answers that affirmatively. Free-text detail fields tied to
-   * those answers are cleared. Covid-19 questions capture factual history
-   * rather than a normal/abnormal finding, so they are left untouched.
-   */
-  const handleSetNormal = () => {
-    const normalConditions = { ...data.conditions };
-    DECLARATION_CONDITIONS.forEach((item) => {
-      normalConditions[item.storageKey] = "no";
-    });
-
-    onChange({
-      ...data,
-      conditions: normalConditions,
-      conditions_details: "",
-      // Adverse additional questions → "no"
-      question_37: "no",
-      question_38: "no",
-      question_39: "no",
-      question_40: "no",
-      question_41: "no",
-      question_43: "no",
-      question_44: "no",
-      // "Do you feel healthy and fit …" → "yes" (the healthy answer)
-      question_42: "yes",
-      // Medication question → "no", clear its details
-      question_45: "no",
-      question_45_details: "",
-    });
-  };
-
   const inputClasses = cn(
     "h-8 text-sm bg-white border border-primary/20 rounded-md px-2",
     "focus:outline-none focus-visible:border-primary dark:bg-input/30",
@@ -342,7 +343,6 @@ export default function PersonalDeclarationSection({
         icon={FileText}
         subtitle="Have you ever had any of the following conditions?"
         className="mb-6"
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         banner
       />
 

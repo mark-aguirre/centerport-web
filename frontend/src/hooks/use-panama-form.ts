@@ -6,6 +6,10 @@ import { toast } from "sonner";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { EMPTY_CERTIFICATE, type PanamaCertificate } from "@/components/panama/types";
+import { buildDeclarationNormalDefaults } from "@/components/panama/PersonalDeclarationSection";
+import { buildExaminationNormalDefaults } from "@/components/panama/MedicalExaminationSection";
+import { buildDiagnosticNormalDefaults } from "@/components/panama/DiagnosticTestsSection";
+import { buildFitnessNormalDefaults } from "@/components/panama/FitnessAssessmentSection";
 import type { MedicalExam } from "@/components/medical/types";
 import type { RecordSummary } from "@/components/common/record-selector";
 import {
@@ -99,6 +103,17 @@ const panamaConfig: EntityFormConfig<PanamaCertificate> = {
   getCreatedDate: (record) => record.created_date,
 
   getEditGuardValue: (data) => !!data.full_name,
+
+  // When the user clicks "New", pre-fill every section with its "normal"
+  // defaults (the same values the per-section "Set Normal" buttons apply), so
+  // a fresh certificate starts fully marked normal and the examiner only edits
+  // the exceptions. Merged on top of EMPTY_CERTIFICATE by useEntityForm.
+  getNewRecordDefaults: () => ({
+    ...buildDeclarationNormalDefaults(),
+    ...buildExaminationNormalDefaults(),
+    ...buildDiagnosticNormalDefaults(),
+    ...buildFitnessNormalDefaults(),
+  }),
 
   successMessages: {
     create: "Panama certificate created successfully",

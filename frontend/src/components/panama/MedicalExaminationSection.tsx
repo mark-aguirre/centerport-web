@@ -1,7 +1,6 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormField } from "@/components/common/form-field";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -58,6 +57,41 @@ const EXPLORATION_COL_2: ExplorationItem[] = [
 
 /** Hearing frequency columns */
 const HEARING_FREQUENCIES = ["500", "1000", "2000", "3000", "4000", "6000"];
+
+/**
+ * Build the "normal" default values for the Medical Examination section
+ * (Section IV). Single source of truth shared by the Set Normal button and the
+ * auto-apply-on-new-record flow.
+ *
+ * - Sight: color vision → "Normal" and both visual-field entries → "Normal".
+ * - Physical exploration: every body-system row → "N" (Normal).
+ *
+ * Freeform clinical measurements (height, weight, vitals) and visual-acuity
+ * readings have no objective default, so they are left blank. The
+ * physical-exploration comment field is cleared.
+ *
+ * @param baseExploration Existing physical-exploration map to merge onto.
+ */
+export function buildExaminationNormalDefaults(
+  baseExploration: Record<string, PhysicalExplorationValue> = {}
+): Partial<PanamaCertificate> {
+  const normalExploration: Record<string, PhysicalExplorationValue> = {
+    ...baseExploration,
+  };
+  [...EXPLORATION_COL_1, ...EXPLORATION_COL_2].forEach((item) => {
+    normalExploration[item.key] = "N";
+  });
+
+  return {
+    physical_exploration: normalExploration,
+    physical_exploration_comments: "",
+    sight_color_vision: "Normal",
+    sight_fields_right_normal: "Normal",
+    sight_fields_right_defective: "",
+    sight_fields_left_normal: "Normal",
+    sight_fields_left_defective: "",
+  };
+}
 
 /**
  * NRA (Normal/Abnormal) radio group for physical exploration rows.
@@ -128,43 +162,11 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
     onChange({ ...data, physical_exploration: updated });
   };
 
-  /**
-   * Apply normal findings across every applicable control in the section.
-   *
-   * - Sight: color vision → "Normal" and both visual-field entries → "Normal"
-   *   (their column header is literally "Normal").
-   * - Physical exploration: every body-system row → "N" (Normal).
-   *
-   * Freeform clinical measurements (height, weight, vitals) and visual-acuity
-   * readings have no objective default, so they are left for the examiner to
-   * record. The physical-exploration comment field is cleared.
-   */
-  const handleSetNormal = () => {
-    const normalExploration: Record<string, PhysicalExplorationValue> = {
-      ...data.physical_exploration,
-    };
-    [...EXPLORATION_COL_1, ...EXPLORATION_COL_2].forEach((item) => {
-      normalExploration[item.key] = "N";
-    });
-
-    onChange({
-      ...data,
-      physical_exploration: normalExploration,
-      physical_exploration_comments: "",
-      sight_color_vision: "Normal",
-      sight_fields_right_normal: "Normal",
-      sight_fields_right_defective: "",
-      sight_fields_left_normal: "Normal",
-      sight_fields_left_defective: "",
-    });
-  };
-
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
         title="IV. MEDICAL EXAMINATION"
         icon={Stethoscope}
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         titleStyle={{ textTransform: "none" }}
         banner
       />

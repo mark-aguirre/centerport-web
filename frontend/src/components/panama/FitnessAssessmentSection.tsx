@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormField } from "@/components/common/form-field";
 import { FormSelect } from "@/components/common/form-select";
 import {
@@ -17,7 +16,31 @@ import { ShieldCheck, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MONTH_OPTIONS, YEAR_OPTIONS } from "./constants";
 import { createFieldUpdater } from "./utils";
-import type { PanamaSectionProps } from "./types";
+import type { PanamaCertificate, PanamaSectionProps } from "./types";
+
+/**
+ * Build the "normal" default values for the Fitness Assessment section
+ * (Section VII). Single source of truth shared by the Set Normal button and
+ * the auto-apply-on-new-record flow.
+ *
+ * Fit for all services, fit for lookout, without restrictions, no visual aid.
+ */
+export function buildFitnessNormalDefaults(): Partial<PanamaCertificate> {
+  return {
+    fitness_lookout: "fit",
+    fitness_deck_fit: true,
+    fitness_deck_unfit: false,
+    fitness_engine_fit: true,
+    fitness_engine_unfit: false,
+    fitness_catering_fit: true,
+    fitness_catering_unfit: false,
+    fitness_other_fit: true,
+    fitness_other_unfit: false,
+    fitness_restriction: "without",
+    fitness_restriction_details: "",
+    fitness_visual_aid: "no",
+  };
+}
 
 /**
  * Panama Medical Certificate — Assessment of Fitness for Service at Sea (Section VII).
@@ -61,31 +84,11 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
     disabled && "pointer-events-none"
   );
 
-  /** Set fitness to fit for all services, no restrictions, fit for lookout. */
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      fitness_lookout: "fit",
-      fitness_deck_fit: true,
-      fitness_deck_unfit: false,
-      fitness_engine_fit: true,
-      fitness_engine_unfit: false,
-      fitness_catering_fit: true,
-      fitness_catering_unfit: false,
-      fitness_other_fit: true,
-      fitness_other_unfit: false,
-      fitness_restriction: "without",
-      fitness_restriction_details: "",
-      fitness_visual_aid: "no",
-    });
-  };
-
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
         title="vii. Assessment of Fitness for Service at Sea"
         icon={ShieldCheck}
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         titleStyle={{ textTransform: "none" }}
         banner
       />
