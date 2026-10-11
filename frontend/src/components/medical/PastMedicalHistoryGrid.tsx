@@ -1,10 +1,9 @@
 "use client";
 
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
-import type { MedicalSectionProps } from "./types";
+import type { MedicalExam, MedicalSectionProps } from "./types";
 
 interface HistoryCondition {
   key: string;
@@ -100,6 +99,38 @@ const COLUMN_3: readonly HistoryCondition[] = [
   },
 ];
 
+/**
+ * Build the "normal"/healthy default values for the Past Medical History
+ * section. Single source of truth shared by the (now-removed) Set Normal
+ * button logic and the auto-apply-on-new-record flow.
+ *
+ * Applies "no" to every history condition, clears condition detail fields and
+ * the free-text "others"/maintenance fields, and marks "no" for having
+ * consulted a doctor in the past.
+ *
+ * @param baseHistory Existing medical_history map to merge onto (preserves any
+ *   keys not covered here). Defaults to an empty map.
+ */
+export function buildPastMedicalHistoryNormalDefaults(
+  baseHistory: Record<string, string> = {},
+): Partial<MedicalExam> {
+  const normalHistory: Record<string, string> = { ...baseHistory };
+
+  [...COLUMN_1, ...COLUMN_2, ...COLUMN_3].forEach((condition) => {
+    normalHistory[condition.key] = "no";
+    if (condition.detailKey) {
+      normalHistory[condition.detailKey] = "";
+    }
+  });
+
+  return {
+    medical_history: normalHistory,
+    medical_history_others: "",
+    consulted_doctor_past: "no",
+    maintenance_medications: "",
+  };
+}
+
 interface HistoryRowProps {
   condition: HistoryCondition;
   value: string;
@@ -189,25 +220,6 @@ export function PastMedicalHistoryGrid({
     });
   };
 
-  const handleSetNormal = () => {
-    const normalHistory = { ...history };
-
-    [...COLUMN_1, ...COLUMN_2, ...COLUMN_3].forEach((condition) => {
-      normalHistory[condition.key] = "no";
-      if (condition.detailKey) {
-        normalHistory[condition.detailKey] = "";
-      }
-    });
-
-    onChange({
-      ...data,
-      medical_history: normalHistory,
-      medical_history_others: "",
-      consulted_doctor_past: "no",
-      maintenance_medications: "",
-    });
-  };
-
   const renderRow = (condition: HistoryCondition) => (
     <HistoryRow
       key={condition.key}
@@ -243,7 +255,6 @@ export function PastMedicalHistoryGrid({
             Check the appropriate box.
           </p>
         </div>
-        <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 md:divide-x md:divide-primary/20">

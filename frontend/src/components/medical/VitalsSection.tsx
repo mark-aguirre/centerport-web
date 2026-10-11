@@ -1,11 +1,23 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
-import type { MedicalSectionProps } from "./types";
+import type { MedicalExam, MedicalSectionProps } from "./types";
+
+/**
+ * Build the "normal" default values for the Physical Examination vital-signs
+ * section. Single source of truth shared by the (now-removed) Set Normal
+ * button logic and the auto-apply-on-new-record flow.
+ *
+ * Marks the pulse rhythm as "Regular".
+ */
+export function buildVitalsNormalDefaults(): Partial<MedicalExam> {
+  return {
+    pe_rhythm: "Regular",
+  };
+}
 
 interface InlineVitalFieldProps {
   label: string;
@@ -50,10 +62,6 @@ export function VitalsSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
-  const handleSetNormal = () => {
-    update("pe_rhythm", "Regular");
-  };
-
   return (
     <div
       className={cn(
@@ -69,11 +77,6 @@ export function VitalsSection({
           Enter the data called for. Check the appropriate box. Under columns A,
           B, C check YES if normal; uncheck if not normal and specify findings.
         </p>
-        <SetNormalButton
-          onClick={handleSetNormal}
-          disabled={disabled}
-          className="self-start sm:self-center"
-        />
       </div>
 
       <div className="grid grid-cols-1 bg-muted/20 lg:grid-cols-[0.9fr_1.65fr_1fr_0.82fr_1.2fr]">

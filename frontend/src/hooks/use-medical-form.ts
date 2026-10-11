@@ -6,6 +6,16 @@ import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
 import type { MedicalExam } from "@/components/medical/types";
+import { buildPastMedicalHistoryNormalDefaults } from "@/components/medical/PastMedicalHistoryGrid";
+import { buildQuestionnaireNormalDefaults } from "@/components/medical/QuestionnaireGrid";
+import { buildVitalsNormalDefaults } from "@/components/medical/VitalsSection";
+import { buildVisionNormalDefaults } from "@/components/medical/VisionSection";
+import { buildAudiometrySpeechNormalDefaults } from "@/components/medical/AudiometrySpeechSection";
+import { buildConditionQuestionsNormalDefaults } from "@/components/medical/ConditionQuestionsSection";
+import { buildFindingsNormalDefaults } from "@/components/medical/FindingsGrid";
+import { buildAncillaryExamsNormalDefaults } from "@/components/medical/AncillaryExamsSection";
+import { buildFinalRecommendationNormalDefaults } from "@/components/medical/FinalRecommendationSection";
+import { buildFitnessAssessmentNormalDefaults } from "@/components/medical/FitnessAssessmentSection";
 import type { PanamaCertificate } from "@/components/panama/types";
 import type { RecordSummary } from "@/components/common/record-selector";
 import { coerceNulls } from "@/lib/form-utils";
@@ -346,6 +356,10 @@ const medicalConfig: EntityFormConfig<MedicalExam> = {
 
   recordLabel: "medical exam",
 
+  // When the user clicks "New", pre-fill every Physical Examination section
+  // with its "normal" defaults (the same values the per-section "Set Normal"
+  // buttons applied before they were removed), alongside the computed date
+  // fields. Merged on top of EMPTY_EXAM by useEntityForm.
   getNewRecordDefaults: () => {
     const today = new Date();
     const todayStr = today.toISOString().slice(0, 10);
@@ -356,6 +370,16 @@ const medicalConfig: EntityFormConfig<MedicalExam> = {
       date_initial_peme: todayStr,
       date_of_fitness: todayStr,
       valid_until: validUntilStr,
+      ...buildPastMedicalHistoryNormalDefaults(),
+      ...buildQuestionnaireNormalDefaults(),
+      ...buildVitalsNormalDefaults(),
+      ...buildVisionNormalDefaults(),
+      ...buildAudiometrySpeechNormalDefaults(),
+      ...buildConditionQuestionsNormalDefaults(),
+      ...buildFindingsNormalDefaults(),
+      ...buildAncillaryExamsNormalDefaults(),
+      ...buildFinalRecommendationNormalDefaults(),
+      ...buildFitnessAssessmentNormalDefaults(),
     };
   },
 };

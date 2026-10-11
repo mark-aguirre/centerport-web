@@ -1,13 +1,35 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
-import type { MedicalSectionProps } from "./types";
+import type { MedicalExam, MedicalSectionProps } from "./types";
+
+/**
+ * Build the "normal" default values for the Result of Ancillary Examinations
+ * section. Single source of truth shared by the (now-removed) Set Normal
+ * button logic and the auto-apply-on-new-record flow.
+ *
+ * Marks imaging/lab results as normal, serology as non-reactive, pregnancy as
+ * N/A, and the psychological test as recommended.
+ */
+export function buildAncillaryExamsNormalDefaults(): Partial<MedicalExam> {
+  return {
+    ancillary_chest_xray: "normal",
+    ancillary_ecg: "normal",
+    ancillary_cbc: "normal",
+    ancillary_urinalysis: "normal",
+    ancillary_stool_exam: "normal",
+    ancillary_hbsag: "non_reactive",
+    ancillary_hiv_aids: "non_reactive",
+    ancillary_rpr: "non_reactive",
+    ancillary_pregnancy_test: "N/A",
+    ancillary_psychological_test: "recommended",
+  };
+}
 
 interface ResultOption {
   label: string;
@@ -124,22 +146,6 @@ export function AncillaryExamsSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      ancillary_chest_xray: "normal",
-      ancillary_ecg: "normal",
-      ancillary_cbc: "normal",
-      ancillary_urinalysis: "normal",
-      ancillary_stool_exam: "normal",
-      ancillary_hbsag: "non_reactive",
-      ancillary_hiv_aids: "non_reactive",
-      ancillary_rpr: "non_reactive",
-      ancillary_pregnancy_test: "N/A",
-      ancillary_psychological_test: "recommended",
-    });
-  };
-
   return (
     <div
       className={cn(
@@ -152,11 +158,6 @@ export function AncillaryExamsSection({
           III. Result of Ancillary Examinations.
         </h2>
         <p className="flex-1 text-xs text-foreground/80">Check appropriate box</p>
-        <SetNormalButton
-          onClick={handleSetNormal}
-          disabled={disabled}
-          className="self-start sm:self-center"
-        />
       </div>
 
       <div className="flex items-center gap-2 border-b border-primary/20 px-3 py-2">

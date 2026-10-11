@@ -1,9 +1,8 @@
 "use client";
 
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { MedicalSectionProps } from "./types";
+import type { MedicalExam, MedicalSectionProps } from "./types";
 
 interface FindingItem {
   key: string;
@@ -74,6 +73,48 @@ const COLUMNS: readonly ColumnConfig[] = [
 ];
 
 /**
+ * Build the "normal" default values for the Physical Examination Findings
+ * table. Single source of truth shared by the (now-removed) Set Normal button
+ * logic and the auto-apply-on-new-record flow.
+ *
+ * Marks every A/B/C finding as normal (checked = true) and clears each item's
+ * remarks field.
+ *
+ * @param baseFindings Existing findings/remarks maps to merge onto (preserves
+ *   any keys not covered here). Each defaults to an empty map.
+ */
+export function buildFindingsNormalDefaults(
+  baseFindings: {
+    findings_a?: Record<string, boolean>;
+    findings_b?: Record<string, boolean>;
+    findings_c?: Record<string, boolean>;
+    findings_a_remarks?: Record<string, string>;
+    findings_b_remarks?: Record<string, string>;
+    findings_c_remarks?: Record<string, string>;
+  } = {},
+): Partial<MedicalExam> {
+  const normalFindings: Record<FindingsColumn, Record<string, boolean>> = {
+    findings_a: { ...baseFindings.findings_a },
+    findings_b: { ...baseFindings.findings_b },
+    findings_c: { ...baseFindings.findings_c },
+  };
+  const clearedRemarks: Record<FindingsRemarksColumn, Record<string, string>> = {
+    findings_a_remarks: { ...baseFindings.findings_a_remarks },
+    findings_b_remarks: { ...baseFindings.findings_b_remarks },
+    findings_c_remarks: { ...baseFindings.findings_c_remarks },
+  };
+
+  COLUMNS.forEach(({ field, remarksField, items }) => {
+    items.forEach((item) => {
+      normalFindings[field][item.key] = true;
+      clearedRemarks[remarksField][item.key] = "";
+    });
+  });
+
+  return { ...normalFindings, ...clearedRemarks };
+}
+
+/**
  * Physical Examination Findings table for the Seabase examination.
  *
  * A checked box indicates a normal finding. Each A/B/C item has an adjacent
@@ -106,31 +147,6 @@ export function FindingsGrid({
     });
   };
 
-  const handleSetNormal = () => {
-    const normalFindings: Record<FindingsColumn, Record<string, boolean>> = {
-      findings_a: { ...data.findings_a },
-      findings_b: { ...data.findings_b },
-      findings_c: { ...data.findings_c },
-    };
-    const clearedRemarks: Record<
-      FindingsRemarksColumn,
-      Record<string, string>
-    > = {
-      findings_a_remarks: { ...data.findings_a_remarks },
-      findings_b_remarks: { ...data.findings_b_remarks },
-      findings_c_remarks: { ...data.findings_c_remarks },
-    };
-
-    COLUMNS.forEach(({ field, remarksField, items }) => {
-      items.forEach((item) => {
-        normalFindings[field][item.key] = true;
-        clearedRemarks[remarksField][item.key] = "";
-      });
-    });
-
-    onChange({ ...data, ...normalFindings, ...clearedRemarks });
-  };
-
   return (
     <div
       className={cn(
@@ -142,7 +158,6 @@ export function FindingsGrid({
         <h2 className="shrink-0 text-sm font-bold uppercase tracking-wide text-primary">
           Physical Examination Findings
         </h2>
-        <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
       </div>
 
       <div className="overflow-x-auto">

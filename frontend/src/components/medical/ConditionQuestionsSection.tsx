@@ -1,10 +1,24 @@
 "use client";
 
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
-import type { MedicalSectionProps } from "./types";
+import type { MedicalExam, MedicalSectionProps } from "./types";
+
+/**
+ * Build the "normal" default values for the identification/look-out condition
+ * questions. Single source of truth shared by the (now-removed) Set Normal
+ * button logic and the auto-apply-on-new-record flow.
+ *
+ * Confirms identification documents were checked ("yes") and marks the
+ * seafarer fit for look-out duties ("yes").
+ */
+export function buildConditionQuestionsNormalDefaults(): Partial<MedicalExam> {
+  return {
+    identification_docs_checked: "yes",
+    fit_for_lookout: "yes",
+  };
+}
 
 /**
  * Identification-document confirmation for the Physical Examination form.
@@ -19,14 +33,6 @@ export function ConditionQuestionsSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      identification_docs_checked: "yes",
-      fit_for_lookout: "yes",
-    });
-  };
-
   return (
     <div
       className={cn(
@@ -34,10 +40,6 @@ export function ConditionQuestionsSection({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="mb-2 flex justify-end">
-        <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
-      </div>
-
       <div className="mx-auto grid w-fit grid-cols-[auto_auto] items-center gap-x-4">
         <div
           className="col-span-2 grid grid-cols-subgrid items-center border-b border-primary/20 pb-2"

@@ -1,11 +1,10 @@
 "use client";
 
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
-import type { MedicalSectionProps } from "./types";
+import type { MedicalExam, MedicalSectionProps } from "./types";
 
 interface QuestionnaireItem {
   key: string;
@@ -58,6 +57,38 @@ const QUESTIONNAIRE_ITEMS: readonly QuestionnaireItem[] = [
 
 const MEDICATION_QUESTION_KEY =
   "Non-prescription or prescription medication";
+
+/**
+ * Build the "normal"/healthy default values for the medical Questionnaire
+ * section. Single source of truth shared by the (now-removed) Set Normal
+ * button logic and the auto-apply-on-new-record flow.
+ *
+ * Answers "no" to every questionnaire item except the "feel healthy and fit"
+ * question (index 5, answered "yes"), clears all detail fields, answers "no"
+ * to the medication question, and clears the comments/medications free-text.
+ *
+ * @param baseQuestionnaire Existing questionnaire map to merge onto (preserves
+ *   any keys not covered here). Defaults to an empty map.
+ */
+export function buildQuestionnaireNormalDefaults(
+  baseQuestionnaire: Record<string, string> = {},
+): Partial<MedicalExam> {
+  const normalAnswers: Record<string, string> = { ...baseQuestionnaire };
+
+  QUESTIONNAIRE_ITEMS.forEach((item, index) => {
+    normalAnswers[item.key] = index === 5 ? "yes" : "no";
+    if (item.detailKey) {
+      normalAnswers[item.detailKey] = "";
+    }
+  });
+  normalAnswers[MEDICATION_QUESTION_KEY] = "no";
+
+  return {
+    questionnaire: normalAnswers,
+    questionnaire_comments: "",
+    questionnaire_medications_detail: "",
+  };
+}
 
 interface QuestionnaireRowProps {
   number: number;
@@ -139,25 +170,6 @@ export function QuestionnaireGrid({
     });
   };
 
-  const handleSetNormal = () => {
-    const normalAnswers = { ...questionnaire };
-
-    QUESTIONNAIRE_ITEMS.forEach((item, index) => {
-      normalAnswers[item.key] = index === 5 ? "yes" : "no";
-      if (item.detailKey) {
-        normalAnswers[item.detailKey] = "";
-      }
-    });
-    normalAnswers[MEDICATION_QUESTION_KEY] = "no";
-
-    onChange({
-      ...data,
-      questionnaire: normalAnswers,
-      questionnaire_comments: "",
-      questionnaire_medications_detail: "",
-    });
-  };
-
   return (
     <div
       className={cn(
@@ -177,12 +189,7 @@ export function QuestionnaireGrid({
             <span className="text-center text-[11px] font-bold uppercase tracking-wider text-primary/70">
               No
             </span>
-            <div className="flex justify-end">
-              <SetNormalButton
-                onClick={handleSetNormal}
-                disabled={disabled}
-              />
-            </div>
+            <div />
           </div>
 
           {QUESTIONNAIRE_ITEMS.slice(0, 6).map((item, index) => (

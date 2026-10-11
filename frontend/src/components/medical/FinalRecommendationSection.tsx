@@ -1,12 +1,11 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
-import type { MedicalSectionProps } from "./types";
+import type { MedicalExam, MedicalSectionProps } from "./types";
 
 const FINAL_RECOMMENDATION_OPTIONS = [
   "FIT",
@@ -66,6 +65,23 @@ function CertificationResultRow({
 }
 
 /**
+ * Build the "normal" default values for the Final Recommendation section.
+ * Single source of truth shared by the (now-removed) Set Normal button logic
+ * and the auto-apply-on-new-record flow.
+ *
+ * Recommends "FIT FOR SEA DUTY" and marks each certification-result row as
+ * "passed".
+ */
+export function buildFinalRecommendationNormalDefaults(): Partial<MedicalExam> {
+  return {
+    final_recommendation: "FIT FOR SEA DUTY",
+    cert_basic_ooh: "passed",
+    cert_additional_labs: "passed",
+    cert_flagpost: "passed",
+  };
+}
+
+/**
  * Final recommendation and certification-results section for the Seabase form.
  */
 export function FinalRecommendationSection({
@@ -78,16 +94,6 @@ export function FinalRecommendationSection({
   const showRestrictionDetails = (data.final_recommendation ?? "")
     .toUpperCase()
     .includes("RESTRICTION");
-
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      final_recommendation: "FIT FOR SEA DUTY",
-      cert_basic_ooh: "passed",
-      cert_additional_labs: "passed",
-      cert_flagpost: "passed",
-    });
-  };
 
   return (
     <div
@@ -110,11 +116,6 @@ export function FinalRecommendationSection({
             className="w-full sm:w-[260px]"
           />
         </div>
-        <SetNormalButton
-          onClick={handleSetNormal}
-          disabled={disabled}
-          className="self-start sm:self-center"
-        />
       </div>
 
       <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[165px_1fr] sm:items-center">

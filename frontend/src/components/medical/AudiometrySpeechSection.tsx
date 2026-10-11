@@ -1,14 +1,35 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
-import type { MedicalSectionProps } from "./types";
+import type { MedicalExam, MedicalSectionProps } from "./types";
 
 const HEARING_OPTIONS = ["Adequate", "Inadequate"];
 const YES_NO_OPTIONS = ["Yes", "No"];
+
+/**
+ * Build the "normal" default values for the Audiometry & Speech section
+ * (including the "aggravated by service at sea" medical-condition question).
+ * Single source of truth shared by the (now-removed) Set Normal button logic
+ * and the auto-apply-on-new-record flow.
+ *
+ * Marks hearing and speech as adequate/satisfactory and answers "No" to the
+ * sea-service aggravation question.
+ */
+export function buildAudiometrySpeechNormalDefaults(): Partial<MedicalExam> {
+  return {
+    audio_ad_right_2: "Adequate",
+    audio_as_left_2: "Adequate",
+    audio_ad_right_1: "adequate",
+    audio_as_left_1: "adequate",
+    audio_satisfactory: "Yes",
+    audio_unaided_hearing: "Yes",
+    speech_impaired_hearing: "adequate",
+    condition_aggravated_sea: "No",
+  };
+}
 
 interface HearingRadioGroupProps {
   label: string;
@@ -67,20 +88,6 @@ export function AudiometrySpeechSection({
 }: MedicalSectionProps) {
   const update = createFieldUpdater(data, onChange);
 
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      audio_ad_right_2: "Adequate",
-      audio_as_left_2: "Adequate",
-      audio_ad_right_1: "adequate",
-      audio_as_left_1: "adequate",
-      audio_satisfactory: "Yes",
-      audio_unaided_hearing: "Yes",
-      speech_impaired_hearing: "adequate",
-      condition_aggravated_sea: "No",
-    });
-  };
-
   return (
     <div
       className={cn(
@@ -92,7 +99,6 @@ export function AudiometrySpeechSection({
         <h2 className="text-sm font-bold uppercase tracking-wide text-primary">
           Audiometry &amp; Speech
         </h2>
-        <SetNormalButton onClick={handleSetNormal} disabled={disabled} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_1.05fr_0.6fr]">
