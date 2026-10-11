@@ -17,7 +17,7 @@ export function PageContainer({ children, className }: PageContainerProps) {
     <div
       className={cn(
         "flex-1 overflow-auto",
-        "p-4 md:p-6 lg:p-8",
+        "p-[10px]",
         "w-full",
         className
       )}
