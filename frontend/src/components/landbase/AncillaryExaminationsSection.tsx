@@ -2,12 +2,11 @@
 
 import { FormSelect } from "@/components/common/form-select";
 import RadioGroup from "@/components/common/radio-group";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
-import type { LandbaseSectionProps } from "./types";
+import type { LandbasePeme, LandbaseSectionProps } from "./types";
 import { createFieldUpdater } from "./utils";
 
 const NORMAL_FINDINGS_OPTIONS = [
@@ -26,6 +25,32 @@ const PSYCHOLOGICAL_OPTIONS = [
   { label: "Not Recommended", value: "Not Recommended" },
   { label: "Not Done", value: "Not Done" },
 ];
+
+/**
+ * Build the "normal" default values for the Landbase Ancillary Examinations
+ * section. Single source of truth shared by the (now-removed) Set Normal
+ * button logic and the auto-apply-on-new-record flow.
+ *
+ * Sets each test result to its normal/non-reactive value, pregnancy test to
+ * "N/A", psychological test to "Recommended", and clears the additional-tests
+ * free-text field.
+ */
+export function buildAncillaryExaminationsNormalDefaults(): Partial<LandbasePeme> {
+  return {
+    chest_xray: "normal",
+    cec: "normal",
+    cbc: "normal",
+    pregnancy_test: "N/A",
+    urinalysis: "normal",
+    stool_exam: "normal",
+    hbsag: "non_reactive",
+    hiv_aids_test: "non_reactive",
+    apb: "non_reactive",
+    drug_test: "normal",
+    psychological_test: "Recommended",
+    additional_tests: "",
+  };
+}
 
 interface ExamRowProps {
   label: string;
@@ -58,24 +83,6 @@ export default function AncillaryExaminationsSection({
 }: LandbaseSectionProps) {
   const updateField = createFieldUpdater(data, onChange);
 
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      chest_xray: "normal",
-      cec: "normal",
-      cbc: "normal",
-      pregnancy_test: "N/A",
-      urinalysis: "normal",
-      stool_exam: "normal",
-      hbsag: "non_reactive",
-      hiv_aids_test: "non_reactive",
-      apb: "non_reactive",
-      drug_test: "normal",
-      psychological_test: "Recommended",
-      additional_tests: "",
-    });
-  };
-
   return (
     <section className="overflow-x-auto rounded-lg border border-primary/20 bg-card shadow-sm">
       <div className="min-w-[960px]">
@@ -86,7 +93,6 @@ export default function AncillaryExaminationsSection({
           <p className="flex-1 text-xs text-foreground/80">
             Check appropriate box
           </p>
-          <SetNormalButton onClick={handleSetNormal} readOnly={disabled} />
         </div>
 
         <div className="flex items-center gap-2 border-b border-primary/20 px-2 py-1.5">

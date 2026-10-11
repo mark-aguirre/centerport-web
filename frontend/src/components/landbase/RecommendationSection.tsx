@@ -5,7 +5,6 @@ import {
   type CertificationDetailsValues,
 } from "@/components/common/certification-details-fields";
 import { FormSelect } from "@/components/common/form-select";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import type { LandbasePeme, LandbaseSectionProps } from "./types";
 import { createFieldUpdater } from "./utils";
 
@@ -28,6 +27,39 @@ const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
 };
 
 /**
+ * Build the "normal" default values for the Landbase Recommendation section.
+ * Single source of truth shared by the (now-removed) Set Normal button logic
+ * and the auto-apply-on-new-record flow.
+ *
+ * - Recommendation: "Fit for Employment"
+ * - Date of Initial PEME and Date of Fitness: today
+ * - Valid Until: two years after today (keeps validity in sync)
+ *
+ * Dates are stored as ISO (`yyyy-mm-dd`) — the native `type="date"` input
+ * renders them in the MM/DD/YYYY format shown on the field labels.
+ */
+export function buildRecommendationNormalDefaults(): Partial<LandbasePeme> {
+  const today = new Date();
+  const toIso = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  const todayIso = toIso(today);
+  const validUntil = new Date(today);
+  validUntil.setFullYear(validUntil.getFullYear() + 2);
+
+  return {
+    recommendation: "Fit for Employment",
+    date_initial_peme: todayIso,
+    date_of_fitness: todayIso,
+    valid_until: toIso(validUntil),
+  };
+}
+
+/**
  * Paper-form recommendation and certification section for Landbase PEME.
  *
  * Uses the existing recommendation, date, physician, certification number,
@@ -39,37 +71,6 @@ export default function RecommendationSection({
   disabled,
 }: LandbaseSectionProps) {
   const updateField = createFieldUpdater(data, onChange);
-
-  /**
-   * Set the section to its "normal" defaults:
-   * - Recommendation: "Fit for Employment"
-   * - Date of Initial PEME and Date of Fitness: today
-   * - Valid Until: two years after Date of Fitness (keeps validity in sync)
-   *
-   * Dates are stored as ISO (`yyyy-mm-dd`) — the native `type="date"` input
-   * renders them in the MM/DD/YYYY format shown on the field labels.
-   */
-  const handleSetNormal = () => {
-    const today = new Date();
-    const toIso = (d: Date) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    };
-
-    const todayIso = toIso(today);
-    const validUntil = new Date(today);
-    validUntil.setFullYear(validUntil.getFullYear() + 2);
-
-    onChange({
-      ...data,
-      recommendation: "Fit for Employment",
-      date_initial_peme: todayIso,
-      date_of_fitness: todayIso,
-      valid_until: toIso(validUntil),
-    });
-  };
 
   const handleCertChange = (
     field: keyof CertificationDetailsValues,
@@ -101,11 +102,7 @@ export default function RecommendationSection({
           disabled={disabled}
           className="w-full"
         />
-        <SetNormalButton
-          onClick={handleSetNormal}
-          readOnly={disabled}
-          className="justify-self-end"
-        />
+        <span aria-hidden="true" />
       </div>
 
       <div

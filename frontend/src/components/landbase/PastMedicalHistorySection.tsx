@@ -1,14 +1,17 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { Stethoscope } from "lucide-react";
-import type { LandbaseSectionProps, MedicalConditionValue } from "./types";
+import type {
+  LandbasePeme,
+  LandbaseSectionProps,
+  MedicalConditionValue,
+} from "./types";
 import { createFieldUpdater } from "./utils";
 
 interface HistoryCondition {
@@ -103,6 +106,38 @@ const COLUMN_3: readonly HistoryCondition[] = [
 ];
 
 const ALL_CONDITIONS = [...COLUMN_1, ...COLUMN_2, ...COLUMN_3];
+
+/**
+ * Build the "normal" default values for the Landbase Past Medical History
+ * section. Single source of truth shared by the (now-removed) Set Normal
+ * button logic and the auto-apply-on-new-record flow.
+ *
+ * Marks every history condition "no", clears all condition detail fields, and
+ * resets the supplementary consultation/medication fields.
+ *
+ * @param baseHistory Existing medical-history map to merge onto (preserves any
+ *   keys not covered here). Defaults to an empty map.
+ */
+export function buildPastMedicalHistoryNormalDefaults(
+  baseHistory: Record<string, string> = {}
+): Partial<LandbasePeme> {
+  const normalHistory = { ...baseHistory };
+
+  ALL_CONDITIONS.forEach((condition) => {
+    normalHistory[condition.key] = "no";
+    if (condition.detailKey) {
+      normalHistory[condition.detailKey] = "";
+    }
+  });
+
+  return {
+    medical_history: normalHistory,
+    medical_history_others: "",
+    consulted_doctor: false,
+    consulted_doctor_details: "",
+    maintenance_medications: "",
+  };
+}
 
 interface HistoryRowProps {
   condition: HistoryCondition;
@@ -202,26 +237,6 @@ export default function PastMedicalHistorySection({
     });
   };
 
-  const handleSetNormal = () => {
-    const normalHistory = { ...history };
-
-    ALL_CONDITIONS.forEach((condition) => {
-      normalHistory[condition.key] = "no";
-      if (condition.detailKey) {
-        normalHistory[condition.detailKey] = "";
-      }
-    });
-
-    onChange({
-      ...data,
-      medical_history: normalHistory,
-      medical_history_others: "",
-      consulted_doctor: false,
-      consulted_doctor_details: "",
-      maintenance_medications: "",
-    });
-  };
-
   const renderColumn = (conditions: readonly HistoryCondition[]) => (
     <div>
       {conditions.map((condition) => (
@@ -251,9 +266,6 @@ export default function PastMedicalHistorySection({
           title="I. Past Medical History."
           icon={Stethoscope}
           subtitle="Has applicant suffered from or been told he has any of the following? Check the appropriate box."
-          action={
-            <SetNormalButton onClick={handleSetNormal} readOnly={disabled} />
-          }
           className="mb-0 bg-primary/12 px-2 py-1.5"
         />
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +29,35 @@ interface QuestionDefinition {
   answerKey: QuestionnaireAnswerKey;
   detailsKey: QuestionnaireDetailsKey;
   text: string;
+}
+
+/**
+ * Build the "normal" default values for the Landbase Questionnaire section.
+ * Single source of truth shared by the (now-removed) Set Normal button logic
+ * and the auto-apply-on-new-record flow.
+ *
+ * Answers "no" to every adverse question (1–5, 7, 8) and "yes" to the
+ * fitness question (6), clearing all associated detail/comment fields.
+ */
+export function buildQuestionnaireNormalDefaults(): Partial<LandbasePeme> {
+  return {
+    questionnaire_1: "no",
+    questionnaire_1_details: "",
+    questionnaire_2: "no",
+    questionnaire_2_details: "",
+    questionnaire_3: "no",
+    questionnaire_3_details: "",
+    questionnaire_4: "no",
+    questionnaire_4_details: "",
+    questionnaire_5: "no",
+    questionnaire_5_details: "",
+    questionnaire_6: "yes",
+    questionnaire_6_details: "",
+    questionnaire_7: "no",
+    questionnaire_comments: "",
+    questionnaire_8: "no",
+    questionnaire_8_details: "",
+  };
 }
 
 const QUESTIONS: readonly QuestionDefinition[] = [
@@ -163,28 +191,6 @@ export default function QuestionnaireSection({
 }: LandbaseSectionProps) {
   const updateField = createFieldUpdater(data, onChange);
 
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      questionnaire_1: "no",
-      questionnaire_1_details: "",
-      questionnaire_2: "no",
-      questionnaire_2_details: "",
-      questionnaire_3: "no",
-      questionnaire_3_details: "",
-      questionnaire_4: "no",
-      questionnaire_4_details: "",
-      questionnaire_5: "no",
-      questionnaire_5_details: "",
-      questionnaire_6: "yes",
-      questionnaire_6_details: "",
-      questionnaire_7: "no",
-      questionnaire_comments: "",
-      questionnaire_8: "no",
-      questionnaire_8_details: "",
-    });
-  };
-
   return (
     <section className="overflow-x-auto rounded-lg border border-primary/20 bg-card shadow-sm">
       <div className="min-w-[960px]">
@@ -196,9 +202,7 @@ export default function QuestionnaireSection({
             <span>Yes</span>
             <span>No</span>
           </div>
-          <div className="flex justify-end">
-            {!disabled && <SetNormalButton onClick={handleSetNormal} />}
-          </div>
+          <span aria-hidden="true" />
         </div>
 
         {QUESTIONS.map((question) => (

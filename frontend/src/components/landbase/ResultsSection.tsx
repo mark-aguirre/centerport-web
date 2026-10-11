@@ -1,6 +1,5 @@
 "use client";
 
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import type { LandbasePeme, LandbaseSectionProps, PassStatus } from "./types";
@@ -32,10 +31,25 @@ const RESULT_ROWS: { field: ResultField; label: string }[] = [
 ];
 
 /**
+ * Build the "normal" default values for the Landbase Results section. Single
+ * source of truth shared by the (now-removed) Set Normal button logic and the
+ * auto-apply-on-new-record flow.
+ *
+ * Marks every result category as "passed".
+ */
+export function buildResultsNormalDefaults(): Partial<LandbasePeme> {
+  return {
+    basic_peme_result: "passed",
+    additional_lab_result: "passed",
+    flag_medical_lab_result: "passed",
+  };
+}
+
+/**
  * Paper-form result summary for the Landbase PEME form.
  *
  * Displays the three persisted result categories with explicit Passed and
- * With Significant Findings choices. Set Normal marks every row as passed.
+ * With Significant Findings choices.
  */
 export default function ResultsSection({
   data,
@@ -43,15 +57,6 @@ export default function ResultsSection({
   disabled,
 }: LandbaseSectionProps) {
   const updateField = createFieldUpdater(data, onChange);
-
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      basic_peme_result: "passed",
-      additional_lab_result: "passed",
-      flag_medical_lab_result: "passed",
-    });
-  };
 
   const updateResult = (field: keyof LandbasePeme, value: PassStatus) => {
     if (!disabled) {
@@ -68,7 +73,7 @@ export default function ResultsSection({
     >
       <div className="overflow-x-auto">
         <div className="min-w-[900px]">
-          {RESULT_ROWS.map((row, rowIndex) => (
+          {RESULT_ROWS.map((row) => (
             <div
               key={row.field}
               className="grid min-h-10 grid-cols-[minmax(340px,1.45fr)_minmax(150px,0.65fr)_minmax(260px,1fr)_110px] items-center gap-3 border-b border-primary/15 px-3 py-1.5 last:border-b-0 even:bg-muted/10"
@@ -97,15 +102,7 @@ export default function ResultsSection({
                   </span>
                 </label>
               ))}
-              {rowIndex === 0 ? (
-                <SetNormalButton
-                  onClick={handleSetNormal}
-                  readOnly={disabled}
-                  className="justify-self-end"
-                />
-              ) : (
-                <span aria-hidden="true" />
-              )}
+              <span aria-hidden="true" />
             </div>
           ))}
         </div>

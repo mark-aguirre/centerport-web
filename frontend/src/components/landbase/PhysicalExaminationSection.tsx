@@ -1,7 +1,6 @@
 "use client";
 
 import { FormSelect } from "@/components/common/form-select";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
@@ -229,6 +228,40 @@ const FINDING_COLUMNS: readonly FindingColumn[] = [
   },
 ];
 
+/**
+ * Build the "normal" default values for the Landbase Physical Examination
+ * section. Single source of truth shared by the (now-removed) Set Normal
+ * button logic and the auto-apply-on-new-record flow.
+ *
+ * Marks every A/B/C exploration row normal ("N") with empty findings, sets a
+ * regular heart rhythm, satisfactory vision/hearing/speech/psychological
+ * results, and adequate hearing on both sides.
+ */
+export function buildPhysicalExaminationNormalDefaults(): Partial<LandbasePeme> {
+  const normalFindings = Object.fromEntries(
+    FINDING_COLUMNS.flatMap((column) =>
+      column.items.flatMap((item) => [
+        [item.statusKey, "N"],
+        [item.findingsKey, ""],
+      ]),
+    ),
+  );
+
+  return {
+    ...normalFindings,
+    pe_rhythm: "Regular",
+    vision_satisfactory_sight: "yes",
+    vision_color_adequate: true,
+    hearing_ad: "Adequate",
+    hearing_as: "Adequate",
+    hearing_satisfactory: "yes",
+    hearing_right_adequacy: "adequate",
+    hearing_left_adequacy: "adequate",
+    speech_clarity: "adequate",
+    psychological_satisfactory: "yes",
+  } as Partial<LandbasePeme>;
+}
+
 interface FindingRowProps {
   item: FindingDefinition;
   data: LandbasePeme;
@@ -320,32 +353,6 @@ export default function PhysicalExaminationSection({
     });
   };
 
-  const handleSetNormal = () => {
-    const normalFindings = Object.fromEntries(
-      FINDING_COLUMNS.flatMap((column) =>
-        column.items.flatMap((item) => [
-          [item.statusKey, "N"],
-          [item.findingsKey, ""],
-        ]),
-      ),
-    );
-
-    onChange({
-      ...data,
-      ...normalFindings,
-      pe_rhythm: "Regular",
-      vision_satisfactory_sight: "yes",
-      vision_color_adequate: true,
-      hearing_ad: "Adequate",
-      hearing_as: "Adequate",
-      hearing_satisfactory: "yes",
-      hearing_right_adequacy: "adequate",
-      hearing_left_adequacy: "adequate",
-      speech_clarity: "adequate",
-      psychological_satisfactory: "yes",
-    } as LandbasePeme);
-  };
-
   return (
     <section className="overflow-x-auto rounded-lg border border-primary/20 bg-card shadow-sm">
       <div className="min-w-[1000px]">
@@ -356,10 +363,6 @@ export default function PhysicalExaminationSection({
           <p className="flex-1 text-xs text-foreground/80">
             Enter the data called for. Check the appropriate box. Under columns A, B, C check YES if normal; uncheck if not normal and specify findings.
           </p>
-          <SetNormalButton
-            onClick={handleSetNormal}
-            readOnly={disabled}
-          />
         </div>
 
         <div className="grid grid-cols-[0.85fr_0.9fr_1.9fr_1.5fr] bg-muted/20">

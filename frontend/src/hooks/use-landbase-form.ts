@@ -5,6 +5,12 @@ import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
 import { EMPTY_PEME, type LandbasePeme } from "@/components/landbase/types";
+import { buildPastMedicalHistoryNormalDefaults } from "@/components/landbase/PastMedicalHistorySection";
+import { buildQuestionnaireNormalDefaults } from "@/components/landbase/QuestionnaireSection";
+import { buildPhysicalExaminationNormalDefaults } from "@/components/landbase/PhysicalExaminationSection";
+import { buildAncillaryExaminationsNormalDefaults } from "@/components/landbase/AncillaryExaminationsSection";
+import { buildResultsNormalDefaults } from "@/components/landbase/ResultsSection";
+import { buildRecommendationNormalDefaults } from "@/components/landbase/RecommendationSection";
 import type { PemeSummary } from "@/components/landbase/PemeSelector";
 import {
   flattenProfileIntoRecord,
@@ -88,7 +94,15 @@ const landbaseConfig: EntityFormConfig<LandbasePeme> = {
     const validUntil = new Date(today);
     validUntil.setFullYear(validUntil.getFullYear() + 2);
     const validUntilStr = validUntil.toISOString().slice(0, 10);
+    // Section "normal" defaults first, then the explicit date fields so the
+    // latter win over any dates a section builder sets.
     return {
+      ...buildPastMedicalHistoryNormalDefaults(),
+      ...buildQuestionnaireNormalDefaults(),
+      ...buildPhysicalExaminationNormalDefaults(),
+      ...buildAncillaryExaminationsNormalDefaults(),
+      ...buildResultsNormalDefaults(),
+      ...buildRecommendationNormalDefaults(),
       date_initial_peme: todayStr,
       date_of_fitness: todayStr,
       valid_until: validUntilStr,
