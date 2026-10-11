@@ -146,11 +146,11 @@ function GridYesNoRadio({
           className="flex h-full min-h-6 w-full cursor-pointer items-center justify-center rounded-sm transition-colors hover:bg-primary/10"
         >
           <input
-            type="radio"
+            type="checkbox"
             name={name}
             checked={value === answer}
-            onChange={() => onChange(answer)}
-            className="h-4 w-4 accent-primary"
+            onChange={() => onChange(value === answer ? "" : answer)}
+            className="h-4 w-4 rounded accent-primary"
             aria-label={`${ariaLabel} - ${answer === "yes" ? "Yes" : "No"}`}
             tabIndex={disabled ? -1 : undefined}
           />

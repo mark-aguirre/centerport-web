@@ -105,11 +105,11 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
               <td colSpan={2} className="border border-primary/30 p-2">
                 <label className={cn("-m-2 flex cursor-pointer items-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="panama_fitness_lookout"
                     checked={data.fitness_lookout === "fit"}
-                    onChange={() => update("fitness_lookout", "fit")}
-                    className="h-4 w-4 accent-primary"
+                    onChange={() => update("fitness_lookout", data.fitness_lookout === "fit" ? "" : "fit")}
+                    className="h-4 w-4 rounded accent-primary"
                     aria-label="Fit for look-out"
                     tabIndex={disabled ? -1 : undefined}
                   />
@@ -119,11 +119,11 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
               <td colSpan={3} className="border border-primary/30 p-2">
                 <label className={cn("-m-2 flex cursor-pointer items-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="panama_fitness_lookout"
                     checked={data.fitness_lookout === "not_fit"}
-                    onChange={() => update("fitness_lookout", "not_fit")}
-                    className="h-4 w-4 accent-primary"
+                    onChange={() => update("fitness_lookout", data.fitness_lookout === "not_fit" ? "" : "not_fit")}
+                    className="h-4 w-4 rounded accent-primary"
                     aria-label="Not fit for look-out duty"
                     tabIndex={disabled ? -1 : undefined}
                   />
@@ -171,11 +171,11 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                 <label className={cn("-m-2 flex cursor-pointer items-center justify-between gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-sm text-foreground">Without restrictions</span>
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="panama_restriction"
                     checked={data.fitness_restriction === "without"}
-                    onChange={() => update("fitness_restriction", "without")}
-                    className="h-4 w-4 shrink-0 accent-primary"
+                    onChange={() => update("fitness_restriction", data.fitness_restriction === "without" ? "" : "without")}
+                    className="h-4 w-4 shrink-0 rounded accent-primary"
                     aria-label="Without restrictions"
                     tabIndex={disabled ? -1 : undefined}
                   />
@@ -185,11 +185,11 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                 <label className={cn("-m-2 flex cursor-pointer items-center justify-between gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-sm text-foreground">With restrictions</span>
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="panama_restriction"
                     checked={data.fitness_restriction === "with"}
-                    onChange={() => update("fitness_restriction", "with")}
-                    className="h-4 w-4 shrink-0 accent-primary"
+                    onChange={() => update("fitness_restriction", data.fitness_restriction === "with" ? "" : "with")}
+                    className="h-4 w-4 shrink-0 rounded accent-primary"
                     aria-label="With restrictions"
                     tabIndex={disabled ? -1 : undefined}
                   />
@@ -200,11 +200,11 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                 <label className={cn("-m-2 flex cursor-pointer items-center justify-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-sm text-foreground">Yes</span>
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="panama_visual_aid"
                     checked={data.fitness_visual_aid === "yes"}
-                    onChange={() => update("fitness_visual_aid", "yes")}
-                    className="h-4 w-4 accent-primary"
+                    onChange={() => update("fitness_visual_aid", data.fitness_visual_aid === "yes" ? "" : "yes")}
+                    className="h-4 w-4 rounded accent-primary"
                     aria-label="Visual aid required - Yes"
                     tabIndex={disabled ? -1 : undefined}
                   />
@@ -214,11 +214,11 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
                 <label className={cn("-m-2 flex cursor-pointer items-center justify-center gap-2 rounded-sm p-2 transition-colors hover:bg-primary/10", disabled && "pointer-events-none")}>
                   <span className="text-sm text-foreground">No</span>
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="panama_visual_aid"
                     checked={data.fitness_visual_aid === "no"}
-                    onChange={() => update("fitness_visual_aid", "no")}
-                    className="h-4 w-4 accent-primary"
+                    onChange={() => update("fitness_visual_aid", data.fitness_visual_aid === "no" ? "" : "no")}
+                    className="h-4 w-4 rounded accent-primary"
                     aria-label="Visual aid required - No"
                     tabIndex={disabled ? -1 : undefined}
                   />

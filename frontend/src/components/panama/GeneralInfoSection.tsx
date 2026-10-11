@@ -150,11 +150,11 @@ export default function GeneralInfoSection({
             {(["Male", "Female"] as const).map((sex) => (
               <label key={sex} className="flex items-center gap-1.5">
                 <input
-                  type="radio"
+                  type="checkbox"
                   name="panama_sex"
                   checked={data.sex === sex}
                   disabled
-                  className="h-4 w-4 accent-primary"
+                  className="h-4 w-4 rounded accent-primary"
                   aria-label={`Sex - ${sex}`}
                 />
                 <span className="text-sm text-foreground">{sex}</span>
@@ -299,11 +299,15 @@ export default function GeneralInfoSection({
                   className={RADIO_OPTION_LABEL_CLASS}
                 >
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="panama_type_of_vessel"
                     checked={data.type_of_ship === option.value}
-                    onChange={() => updateVesselType(option.value)}
-                    className="h-4 w-4 accent-primary"
+                    onChange={() =>
+                      data.type_of_ship === option.value
+                        ? update("type_of_ship", "")
+                        : updateVesselType(option.value)
+                    }
+                    className="h-4 w-4 rounded accent-primary"
                     aria-label={`Type of vessel - ${option.label}`}
                     tabIndex={disabled ? -1 : undefined}
                   />
@@ -342,11 +346,15 @@ export default function GeneralInfoSection({
                   className={RADIO_OPTION_LABEL_CLASS}
                 >
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="panama_sailing_area"
                     checked={data.trade_area === option.value}
-                    onChange={() => updateSailingArea(option.value)}
-                    className="h-4 w-4 accent-primary"
+                    onChange={() =>
+                      data.trade_area === option.value
+                        ? update("trade_area", "")
+                        : updateSailingArea(option.value)
+                    }
+                    className="h-4 w-4 rounded accent-primary"
                     aria-label={`Sailing area - ${option.label}`}
                     tabIndex={disabled ? -1 : undefined}
                   />

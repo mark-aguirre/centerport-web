@@ -57,7 +57,7 @@ const EXPLORATION_COL_2: ExplorationItem[] = [
 ];
 
 /** Hearing frequency columns */
-const HEARING_FREQUENCIES = ["500", "1000", "2000", "3000", "4000", "6000", "8000"];
+const HEARING_FREQUENCIES = ["500", "1000", "2000", "3000", "4000", "6000"];
 
 /**
  * NRA (Normal/Abnormal) radio group for physical exploration rows.
@@ -76,30 +76,28 @@ function NRARadio({
   disabled?: boolean;
 }) {
   return (
-    <div className={cn("flex items-center gap-2 shrink-0", disabled && "pointer-events-none")} role="radiogroup" aria-label={ariaLabel}>
+    <div className={cn("flex items-center gap-6 shrink-0", disabled && "pointer-events-none")} role="radiogroup" aria-label={ariaLabel}>
       <label className={RADIO_OPTION_LABEL_CLASS}>
         <input
-          type="radio"
+          type="checkbox"
           name={name}
           checked={value === "N"}
-          onChange={() => onChange("N")}
-          className="w-4 h-4 accent-primary"
+          onChange={() => onChange(value === "N" ? "" : "N")}
+          className="w-4 h-4 rounded accent-primary"
           aria-label={`${ariaLabel} - Normal`}
           tabIndex={disabled ? -1 : undefined}
         />
-        <span className="text-sm text-foreground">N</span>
       </label>
       <label className={RADIO_OPTION_LABEL_CLASS}>
         <input
-          type="radio"
+          type="checkbox"
           name={name}
           checked={value === "A"}
-          onChange={() => onChange("A")}
-          className="w-4 h-4 accent-primary"
+          onChange={() => onChange(value === "A" ? "" : "A")}
+          className="w-4 h-4 rounded accent-primary"
           aria-label={`${ariaLabel} - Abnormal`}
           tabIndex={disabled ? -1 : undefined}
         />
-        <span className="text-sm text-foreground">A</span>
       </label>
     </div>
   );
@@ -462,11 +460,11 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
               {["Not tested", "Normal", "Doubtful", "Defective"].map((opt) => (
                 <label key={opt} className={RADIO_OPTION_LABEL_CLASS}>
                   <input
-                    type="radio"
+                    type="checkbox"
                     name="panama_color_vision"
                     checked={data.sight_color_vision === opt}
-                    onChange={() => update("sight_color_vision", opt)}
-                    className="w-4 h-4 accent-primary"
+                    onChange={() => update("sight_color_vision", data.sight_color_vision === opt ? "" : opt)}
+                    className="w-4 h-4 rounded accent-primary"
                     aria-label={`Color vision - ${opt}`}
                     tabIndex={disabled ? -1 : undefined}
                   />
@@ -495,17 +493,21 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
             <thead>
               <tr>
                 <th className="border border-primary/20 bg-primary/5 p-1.5" />
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary uppercase" colSpan={7}>
+                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary uppercase" colSpan={6}>
                   Pure tone and audio metry (threshold values in dB)
                 </th>
               </tr>
               <tr>
                 <th className="border border-primary/20 bg-primary/5 p-1.5" />
-                {HEARING_FREQUENCIES.map((freq) => (
-                  <th key={freq} className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">
-                    {freq} Hz
-                  </th>
-                ))}
+                {HEARING_FREQUENCIES.map((freq) => {
+                  // 4000 and 6000 Hz column headers are intentionally blank.
+                  const hiddenLabels = ["4000", "6000"];
+                  return (
+                    <th key={freq} className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">
+                      {hiddenLabels.includes(freq) ? "" : `${freq} Hz`}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody>
@@ -559,13 +561,13 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
           <div className="grid grid-cols-[2fr_1fr] items-center">
             <span />
             <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">
-              Normal/Abnormal
+              Normal | Abnormal
             </span>
           </div>
           <div className="grid grid-cols-[2fr_1fr] items-center">
             <span />
             <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">
-              Normal/Abnormal
+              Normal | Abnormal
             </span>
           </div>
         </div>
