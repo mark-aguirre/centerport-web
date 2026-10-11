@@ -13,12 +13,7 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+
 
 /**
  * Subscribes a component to the mounted DOM node with the given id and returns
@@ -239,12 +234,10 @@ export function FormToolbar({
   );
 
   /**
-   * Renders a single icon-only action button wrapped in a tooltip.
+   * Renders a single action button showing both its icon and a text label.
    *
-   * The visible label is dropped in favor of an accessible tooltip: `label`
-   * is shown on hover/focus and also set as `aria-label` so the control keeps
-   * its accessible name for screen readers. The icon-only footprint keeps the
-   * CRUD strip compact, mirroring the legacy desktop toolbar.
+   * The label is visible beside the icon (and set as `aria-label` for screen
+   * readers) so the strip reads clearly for every user.
    */
   const iconAction = (
     key: string,
@@ -258,26 +251,21 @@ export function FormToolbar({
       iconColor?: string;
     }
   ) => (
-    <Tooltip key={key}>
-      <TooltipTrigger
-        render={
-          <Button
-            size="icon-sm"
-            variant={opts?.variant ?? "outline"}
-            onClick={onClick}
-            disabled={opts?.disabled}
-            aria-label={label}
-            className={cn(
-              "cursor-pointer disabled:cursor-not-allowed",
-              opts?.iconColor
-            )}
-          />
-        }
-      >
-        {icon}
-      </TooltipTrigger>
-      <TooltipContent>{label}</TooltipContent>
-    </Tooltip>
+    <Button
+      key={key}
+      size="sm"
+      variant={opts?.variant ?? "outline"}
+      onClick={onClick}
+      disabled={opts?.disabled}
+      aria-label={label}
+      className={cn(
+        "cursor-pointer gap-1.5 disabled:cursor-not-allowed",
+        opts?.iconColor
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+    </Button>
   );
 
   /**
@@ -379,7 +367,6 @@ export function FormToolbar({
     ) : null;
 
   const renderActions = (className?: string) => (
-    <TooltipProvider delay={300}>
       <div className={cn("flex items-center gap-1.5", className)}>
         {editing ? (
           <>
@@ -410,46 +397,34 @@ export function FormToolbar({
           })
         )}
         {!editing && onNew && (
-          <Tooltip>
-            <TooltipTrigger
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleNewClick}
+            aria-label="New"
+            className="cursor-pointer gap-1.5 text-emerald-600"
+          >
+            <Plus />
+            <span>New</span>
+          </Button>
+        )}
+        {printMenu ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger
               render={
                 <Button
-                  size="icon-sm"
+                  size="sm"
                   variant="outline"
-                  onClick={handleNewClick}
-                  aria-label="New"
-                  className="cursor-pointer text-emerald-600"
+                  aria-label="Print Preview"
+                  className="cursor-pointer gap-1.5 text-violet-500"
                 />
               }
             >
-              <Plus />
-            </TooltipTrigger>
-            <TooltipContent>New</TooltipContent>
-          </Tooltip>
-        )}
-        {printMenu ? (
-          <Tooltip>
-            <DropdownMenu>
-              <TooltipTrigger
-                render={
-                  <DropdownMenuTrigger
-                    render={
-                      <Button
-                        size="icon-sm"
-                        variant="outline"
-                        aria-label="Print Preview"
-                        className="cursor-pointer text-violet-500"
-                      />
-                    }
-                  />
-                }
-              >
-                <Printer />
-              </TooltipTrigger>
-              {printMenu}
-            </DropdownMenu>
-            <TooltipContent>Print Preview</TooltipContent>
-          </Tooltip>
+              <Printer />
+              <span>Print</span>
+            </DropdownMenuTrigger>
+            {printMenu}
+          </DropdownMenu>
         ) : (
           onPrint &&
           iconAction("print", "Print", <Printer />, onPrint, {
@@ -457,7 +432,6 @@ export function FormToolbar({
           })
         )}
       </div>
-    </TooltipProvider>
   );
 
   /** Record metadata badge (record ID, created/updated timestamps). */

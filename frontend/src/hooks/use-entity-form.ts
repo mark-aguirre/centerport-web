@@ -199,6 +199,19 @@ export interface UseEntityFormResult<T> {
   profileRecords: RecordSummary[];
   /** Switch to a different record by its UUID. */
   handleSelectRecord: (id: string) => void;
+  /**
+   * True while the "no record found — create one?" prompt is open (shown when
+   * a searched seafarer has no record of this module's type).
+   */
+  createPromptOpen: boolean;
+  /** Name of the seafarer the create prompt refers to (for the dialog copy). */
+  createPromptName: string;
+  /** Human-readable record type label (e.g. "MLC record") for prompt copy. */
+  recordLabel: string;
+  /** Confirm the prompt: start a new record pre-filled with that seafarer. */
+  confirmCreateRecord: () => void;
+  /** Dismiss the prompt and leave the page untouched. */
+  cancelCreateRecord: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -274,6 +287,12 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
   const [saveAlert, setSaveAlert] = useState<string | null>(null);
   const [profileRecords, setProfileRecords] = useState<RecordSummary[]>([]);
   const [needsPatientSelection, setNeedsPatientSelection] = useState(false);
+  // "No record found — create one?" confirmation prompt. Opened when a searched
+  // seafarer has no record of this module's type. Holds the pending profile so
+  // confirming starts a new record pre-filled with that seafarer's info.
+  const [createPromptOpen, setCreatePromptOpen] = useState(false);
+  const [createPromptName, setCreatePromptName] = useState("");
+  const pendingCreateProfileRef = useRef<SeafarerProfile | null>(null);
 
   const {
     searchResults: profileSearchResults,
@@ -632,20 +651,18 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         }
       };
 
-      // When the seafarer has no record of this type, just notify the user.
-      // Don't populate the patient/personal info and don't touch the current
-      // page state — leave the interface exactly as it is.
+      // When the seafarer has no record of this type, ask whether to create
+      // one. The pending profile is stashed so confirming can start a new
+      // record pre-filled with that seafarer's info. The current page state is
+      // left untouched until the user decides.
       const handleNoRecord = () => {
         const name = [profile.first_name, profile.last_name]
           .filter(Boolean)
           .join(" ")
           .trim();
-        toast.info(
-          name
-            ? `No ${recordLabel} found for ${name}`
-            : `No ${recordLabel} found for this seafarer`,
-          { description: `Click New to create a ${recordLabel} for this seafarer.` }
-        );
+        pendingCreateProfileRef.current = profile;
+        setCreatePromptName(name);
+        setCreatePromptOpen(true);
       };
 
       // Fetch all records for this profile and use the authoritative by-profile
@@ -703,6 +720,48 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
   );
 
   // -------------------------------------------------------------------------
+  // "No record found — create one?" prompt resolution
+  // -------------------------------------------------------------------------
+
+  /**
+   * Confirm the "create a new record for this seafarer?" prompt.
+   *
+   * Starts a fresh record (same reset as handleNew: clears drafts, enters edit
+   * mode, applies any new-record defaults) and pre-fills it with the pending
+   * seafarer's personal info, so the user lands on a ready-to-fill form.
+   */
+  const confirmCreateRecord = useCallback(() => {
+    const profile = pendingCreateProfileRef.current;
+    setCreatePromptOpen(false);
+    if (!profile) return;
+
+    const defaults = config.getNewRecordDefaults?.() ?? {};
+    const personalData = buildPersonalData(profile);
+
+    if (draftKey) clearDraft(draftKey);
+    draftRestoredRef.current = false;
+    if (draftKey) clearLastRecordId(draftKey);
+
+    setData({ ...emptyRecord, ...defaults, ...personalData } as T);
+    setOriginalData(null);
+    setEditing(true);
+    setIsExistingRecord(false);
+    setExistingRecord(null);
+    setProfileRecords([]);
+    // A patient is already attached, so no further selection is required.
+    setNeedsPatientSelection(false);
+    if (profile.id) saveSelectedPatientId(profile.id);
+
+    pendingCreateProfileRef.current = null;
+  }, [config, buildPersonalData, emptyRecord, draftKey]);
+
+  /** Dismiss the "create a new record?" prompt and leave the page untouched. */
+  const cancelCreateRecord = useCallback(() => {
+    setCreatePromptOpen(false);
+    pendingCreateProfileRef.current = null;
+  }, []);
+
+  // -------------------------------------------------------------------------
   // Return
   // -------------------------------------------------------------------------
 
@@ -728,6 +787,11 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     needsPatientSelection,
     profileRecords,
     handleSelectRecord,
+    createPromptOpen,
+    createPromptName,
+    recordLabel,
+    confirmCreateRecord,
+    cancelCreateRecord,
   };
 }
 

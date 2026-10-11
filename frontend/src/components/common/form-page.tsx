@@ -7,6 +7,8 @@ import { PageContainer } from "@/components/common/page-container";
 import { SectionReveal } from "@/components/common/section-reveal";
 import { FormToolbar } from "@/components/common/form-toolbar";
 import { RecordSelector } from "@/components/common/record-selector";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { FilePlus2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { SearchResultItem } from "@/components/common/form-toolbar";
 import type { UseEntityFormResult } from "@/hooks/use-entity-form";
@@ -149,6 +151,11 @@ function FormPageContent<T>({
     needsPatientSelection,
     profileRecords,
     handleSelectRecord,
+    createPromptOpen,
+    createPromptName,
+    recordLabel,
+    confirmCreateRecord,
+    cancelCreateRecord,
   } = form;
 
   /** Alias kept for potential future pre-new logic (e.g. search focus). */
@@ -235,6 +242,23 @@ function FormPageContent<T>({
           ))}
         </div>
       )}
+
+      {/* "No record found — create one?" prompt, shown when a searched
+          seafarer has no record of this module's type. */}
+      <ConfirmDialog
+        open={createPromptOpen}
+        icon={FilePlus2}
+        title={`No ${recordLabel} found`}
+        message={
+          createPromptName
+            ? `${createPromptName} has no ${recordLabel} yet. Do you want to create one now?`
+            : `This seafarer has no ${recordLabel} yet. Do you want to create one now?`
+        }
+        confirmLabel="Yes, create one"
+        cancelLabel="Cancel"
+        onConfirm={confirmCreateRecord}
+        onCancel={cancelCreateRecord}
+      />
     </PageContainer>
   );
 }

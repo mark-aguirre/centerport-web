@@ -1,6 +1,5 @@
 import { PageContainer } from "@/components/common/page-container";
 import { DashboardGate } from "@/components/dashboard/dashboard-gate";
-import { StatsStripClient } from "@/components/dashboard/stats-strip-client";
 import { AttentionItems } from "@/components/dashboard/attention-items";
 import { QuickActions } from "@/components/dashboard/quick-actions";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
@@ -19,9 +18,6 @@ export default function DashboardPage() {
   return (
     <DashboardGate>
       <PageContainer>
-        {/* Status strip — fetches its own data client-side */}
-        <StatsStripClient className="mb-8 pb-4 border-b" />
-
         {/* Main content: attention + actions */}
         <div className="grid gap-8 lg:grid-cols-5">
           {/* Left: what needs doing */}

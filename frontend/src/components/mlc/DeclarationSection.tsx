@@ -2,7 +2,6 @@
 
 import { FormField } from "@/components/common/form-field";
 import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { cn } from "@/lib/utils";
 import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { ClipboardCheck } from "lucide-react";
@@ -33,6 +32,29 @@ const DECLARATION_CONDITIONS: { field: keyof MlcRecord; label: string }[] = [
     label: "Colour vision meets standards in STCW Code, Section A-I/9?",
   },
 ];
+
+/**
+ * Build the "normal" default values for the MLC Declaration section. Single
+ * source of truth shared by the (now-removed) Set Normal button logic and the
+ * auto-apply-on-new-record flow.
+ *
+ * All physician-declaration questions pass (yes), no visual aids worn, fit for
+ * look-out, no limitations, and the applicant is not an at-risk case.
+ */
+export function buildDeclarationNormalDefaults(): Partial<MlcRecord> {
+  return {
+    id_documents_checked: "yes",
+    hearing_meets_standards: "yes",
+    unaided_hearing_satisfactory: "yes",
+    visual_acuity_meets_standards: "yes",
+    colour_vision_meets_standards: "yes",
+    visual_aids: [],
+    fit_for_lookout: "yes",
+    no_limitations: "yes",
+    limitations_details: "",
+    applicant_condition_risk: "no",
+  };
+}
 
 interface YesNoOptionsProps {
   name: string;
@@ -98,22 +120,6 @@ export default function DeclarationSection({
     onChange({ ...data, [field]: value });
   };
 
-  const handleSetNormal = () => {
-    onChange({
-      ...data,
-      id_documents_checked: "yes",
-      hearing_meets_standards: "yes",
-      unaided_hearing_satisfactory: "yes",
-      visual_acuity_meets_standards: "yes",
-      colour_vision_meets_standards: "yes",
-      visual_aids: [],
-      fit_for_lookout: "yes",
-      no_limitations: "yes",
-      limitations_details: "",
-      applicant_condition_risk: "no",
-    });
-  };
-
   const toggleVisualAid = (aid: Exclude<VisualAid, "none">) => {
     if (disabled) return;
 
@@ -130,7 +136,6 @@ export default function DeclarationSection({
       <SectionHeader
         title="Declaration of the Authorized Physician"
         icon={ClipboardCheck}
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         banner
       />
 

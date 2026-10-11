@@ -5,6 +5,8 @@ import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
 import { EMPTY_MLC, type MlcRecord } from "@/components/mlc/types";
+import { buildDeclarationNormalDefaults } from "@/components/mlc/DeclarationSection";
+import { buildFinalRecommendationNormalDefaults } from "@/components/mlc/FinalRecommendationSection";
 import type { RecordSummary } from "@/components/common/record-selector";
 import {
   flattenProfileIntoRecord,
@@ -132,7 +134,14 @@ export function useMlcForm(): UseMlcFormResult {
           },
           MEDICAL_DIRECTOR: { name: "medical_director" },
         });
-        return { ...personnelDefaultsRef.current, ...assigned };
+        // Section "normal" defaults first, then personnel/assigned defaults so
+        // the latter win on any overlapping field.
+        return {
+          ...buildDeclarationNormalDefaults(),
+          ...buildFinalRecommendationNormalDefaults(),
+          ...personnelDefaultsRef.current,
+          ...assigned,
+        };
       },
     }),
     [entriesRef]

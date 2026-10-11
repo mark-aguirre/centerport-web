@@ -1,7 +1,6 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
-import { SetNormalButton } from "@/components/common/set-normal-button";
 import { FormSelect } from "@/components/common/form-select";
 import {
   CertificationDetailsFields,
@@ -20,6 +19,39 @@ const FITNESS_OPTIONS = [
 ];
 
 /**
+ * Build the "normal" default values for the MLC Final Recommendation section.
+ * Single source of truth shared by the (now-removed) Set Normal button logic
+ * and the auto-apply-on-new-record flow.
+ *
+ * - Fitness determination: "Fit for Sea Duty"
+ * - Date of Initial PEME and Date of Fitness: today
+ * - Valid Until: two years after today (keeps validity in sync)
+ *
+ * Dates are stored as ISO (`yyyy-mm-dd`); the native `type="date"` inputs
+ * render them in the locale format shown on the field labels.
+ */
+export function buildFinalRecommendationNormalDefaults(): Partial<MlcRecord> {
+  const today = new Date();
+  const toIso = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
+
+  const todayIso = toIso(today);
+  const validUntil = new Date(today);
+  validUntil.setFullYear(validUntil.getFullYear() + 2);
+
+  return {
+    fitness_determination: "Fit for Sea Duty",
+    date_initial_peme: todayIso,
+    date_of_fitness: todayIso,
+    valid_until_date: toIso(validUntil),
+  };
+}
+
+/**
  * Final Recommendation section for the MLC Health Certificate form.
  *
  * Captures: fitness determination dropdown, date of initial PEME,
@@ -34,37 +66,6 @@ export default function FinalRecommendationSection({
   disabled,
 }: MlcSectionProps) {
   const updateField = createFieldUpdater(data, onChange);
-
-  /**
-   * Set the section to its "normal" defaults:
-   * - Fitness determination: "Fit for Sea Duty"
-   * - Date of Initial PEME and Date of Fitness: today
-   * - Valid Until: two years after Date of Fitness (keeps validity in sync)
-   *
-   * Dates are stored as ISO (`yyyy-mm-dd`) — the native `type="date"` input
-   * renders them in the MM/DD/YYYY format shown on the field labels.
-   */
-  const handleSetNormal = () => {
-    const today = new Date();
-    const toIso = (d: Date) => {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, "0");
-      const day = String(d.getDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    };
-
-    const todayIso = toIso(today);
-    const validUntil = new Date(today);
-    validUntil.setFullYear(validUntil.getFullYear() + 2);
-
-    onChange({
-      ...data,
-      fitness_determination: "Fit for Sea Duty",
-      date_initial_peme: todayIso,
-      date_of_fitness: todayIso,
-      valid_until_date: toIso(validUntil),
-    });
-  };
 
   /** Map from CertificationDetailsValues keys to MLC field names. */
   const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
@@ -93,7 +94,6 @@ export default function FinalRecommendationSection({
       <SectionHeader
         title="Final Recommendation"
         icon={Award}
-        action={<SetNormalButton onClick={handleSetNormal} disabled={disabled} />}
         banner
       />
       <div className="space-y-2">
