@@ -57,6 +57,10 @@ export interface RawPemeResponse extends Partial<LandbasePeme> {
 const FIELD_DEFAULTS: Record<string, unknown> = {
   consulted_doctor: false,
   medical_history: {},
+  // Nullable tri-state: Adequate (true) / Defective (false) / not assessed (null).
+  // Keep a backend null as null so the checkbox renders unchecked and the print
+  // payload treats it as "neither selected".
+  vision_color_adequate: null,
 };
 
 /**

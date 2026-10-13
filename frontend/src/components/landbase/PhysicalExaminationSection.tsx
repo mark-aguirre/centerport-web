@@ -418,15 +418,31 @@ export default function PhysicalExaminationSection({
               </div>
               <div className="row-span-2 flex items-center p-2">
                 <div className="space-y-2">
-                  {[
+                  {([
                     ["Adequate", true],
                     ["Defective", false],
-                  ].map(([label, colorValue]) => (
-                    <label key={String(label)} className={cn("flex items-center gap-1.5", disabled ? "pointer-events-none" : "cursor-pointer")}>
-                      <input type="checkbox" checked={data.vision_color_adequate === colorValue} onChange={() => { if (!disabled) update("vision_color_adequate", colorValue as boolean); }} tabIndex={disabled ? -1 : undefined} className="h-4 w-4 rounded accent-primary" aria-label={`Color vision - ${label}`} aria-disabled={disabled} />
-                      <span className="text-sm text-foreground/80">{String(label)}</span>
-                    </label>
-                  ))}
+                  ] as [string, boolean][]).map(([label, colorValue]) => {
+                    const checked = data.vision_color_adequate === colorValue;
+                    return (
+                      <label key={label} className={cn("flex items-center gap-1.5", disabled ? "pointer-events-none" : "cursor-pointer")}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            if (disabled) return;
+                            // Clicking the already-selected box clears it (null);
+                            // otherwise it selects this option.
+                            update("vision_color_adequate", checked ? null : colorValue);
+                          }}
+                          tabIndex={disabled ? -1 : undefined}
+                          className="h-4 w-4 rounded accent-primary"
+                          aria-label={`Color vision - ${label}`}
+                          aria-disabled={disabled}
+                        />
+                        <span className="text-sm text-foreground/80">{label}</span>
+                      </label>
+                    );
+                  })}
                 </div>
               </div>
 

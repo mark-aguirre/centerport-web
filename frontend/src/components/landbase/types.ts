@@ -151,7 +151,13 @@ export interface LandbasePeme {
   vision_near_os_corrected: string;
   vision_satisfactory_sight: YesNo;
   vision_visual_aid: VisualAidValue;
-  vision_color_adequate: boolean;
+  /**
+   * Ishihara color vision result.
+   * - `true`  — Adequate
+   * - `false` — Defective
+   * - `null`  — not assessed / neither box checked (clearable)
+   */
+  vision_color_adequate: boolean | null;
   hearing_ad: string;
   hearing_as: string;
   hearing_satisfactory: YesNo;

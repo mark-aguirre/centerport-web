@@ -13,9 +13,13 @@
 import { fetchPhotoAsBase64 } from "@/lib/photo";
 import type { LandbasePeme } from "./types";
 
-/** Convert a boolean to the "Adequate"/"Defective" convention used by the MLC template. */
-const colorVision = (adequate: boolean | undefined): string =>
-  adequate ? "Adequate" : "Defective";
+/**
+ * Convert the nullable color-vision boolean to the "Adequate"/"Defective"
+ * convention used by the MLC template. `null`/`undefined` (not assessed)
+ * maps to an empty string so the report shows neither option.
+ */
+const colorVision = (adequate: boolean | null | undefined): string =>
+  adequate == null ? "" : adequate ? "Adequate" : "Defective";
 
 /**
  * Read a medical-history condition and convert it to the "yes"/"no" string

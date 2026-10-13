@@ -47,19 +47,21 @@ function LandbaseFormContent() {
   ) : undefined;
 
   return (
-    <FormPage
-      form={form}
-      sections={SECTIONS}
-      getBusinessId={(record) => record?.peme_id}
-      editGuard={(data) => !!data.last_name}
-      metadataSlot={metadataSlot}
-      printMenu={
-        <ReportMenu
-          pemeId={form.existingRecord?.id}
-          data={form.existingRecord ?? form.data}
-        />
-      }
-    />
+    <div className="landbase-bold-values">
+      <FormPage
+        form={form}
+        sections={SECTIONS}
+        getBusinessId={(record) => record?.peme_id}
+        editGuard={(data) => !!data.last_name}
+        metadataSlot={metadataSlot}
+        printMenu={
+          <ReportMenu
+            pemeId={form.existingRecord?.id}
+            data={form.existingRecord ?? form.data}
+          />
+        }
+      />
+    </div>
   );
 }
 
