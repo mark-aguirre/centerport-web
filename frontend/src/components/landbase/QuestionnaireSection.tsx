@@ -210,8 +210,8 @@ export default function QuestionnaireSection({
             key={question.answerKey}
             className="grid min-h-10 grid-cols-[24px_minmax(0,1fr)_72px_minmax(260px,0.9fr)] items-center gap-2 border-b border-primary/10 px-2 py-1.5"
           >
-            <span className="text-xs text-foreground/80">{question.number}.</span>
-            <span className="text-xs text-foreground/80">{question.text}</span>
+            <span className="text-sm text-foreground/80">{question.number}.</span>
+            <span className="text-sm text-foreground/80">{question.text}</span>
             <YesNoControl
               name={question.answerKey}
               value={data[question.answerKey]}
@@ -230,8 +230,8 @@ export default function QuestionnaireSection({
         ))}
 
         <div className="grid min-h-10 grid-cols-[24px_minmax(0,1fr)_72px_minmax(260px,0.9fr)] items-center gap-2 px-2 py-1.5">
-          <span className="text-xs text-foreground/80">7.</span>
-          <span className="text-xs text-foreground/80">
+          <span className="text-sm text-foreground/80">7.</span>
+          <span className="text-sm text-foreground/80">
             Are you allergic to any medication?
           </span>
           <YesNoControl
@@ -249,7 +249,7 @@ export default function QuestionnaireSection({
           <div className="space-y-1">
             <Label
               htmlFor="questionnaire-comments"
-              className="text-xs text-foreground/80"
+              className="text-sm text-foreground/80"
             >
               Comments
             </Label>
@@ -272,8 +272,8 @@ export default function QuestionnaireSection({
         </div>
 
         <div className="grid min-h-10 grid-cols-[24px_minmax(0,1fr)_72px_minmax(260px,0.9fr)] items-center gap-2 px-2 py-1.5">
-          <span className="text-xs text-foreground/80">8.</span>
-          <span className="text-xs text-foreground/80">
+          <span className="text-sm text-foreground/80">8.</span>
+          <span className="text-sm text-foreground/80">
             Are you taking any non-prescription or prescription medication?
           </span>
           <YesNoControl

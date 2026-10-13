@@ -66,7 +66,7 @@ function ExamRow({ label, children, className }: ExamRowProps) {
         className,
       )}
     >
-      <span className="text-xs font-semibold text-foreground/80">{label}</span>
+      <span className="text-sm font-semibold text-foreground/80">{label}</span>
       {children}
     </div>
   );
@@ -98,7 +98,7 @@ export default function AncillaryExaminationsSection({
         <div className="flex items-center gap-2 border-b border-primary/20 px-2 py-1.5">
           <label
             htmlFor="ancillary-xray-no"
-            className="shrink-0 text-xs font-semibold text-foreground/80"
+            className="shrink-0 text-sm font-semibold text-foreground/80"
           >
             X-ray No.:
           </label>
@@ -222,7 +222,7 @@ export default function AncillaryExaminationsSection({
               />
             </ExamRow>
             <div className="grid flex-1 grid-cols-[132px_minmax(0,1fr)] items-start gap-2 px-2 py-3">
-              <span className="text-xs font-semibold text-foreground/80">
+              <span className="text-sm font-semibold text-foreground/80">
                 J. Blood Type:
               </span>
               <FormSelect
@@ -238,7 +238,7 @@ export default function AncillaryExaminationsSection({
         </div>
 
         <div className="flex items-center gap-4 border-t border-primary/20 px-3 py-1.5">
-          <span className="shrink-0 text-xs font-semibold text-foreground/80">
+          <span className="shrink-0 text-sm font-semibold text-foreground/80">
             Psychological Test:
           </span>
           <RadioGroup
@@ -255,7 +255,7 @@ export default function AncillaryExaminationsSection({
         <div className="space-y-1 border-t border-primary/20 px-3 py-2">
           <label
             htmlFor="ancillary-additional-tests"
-            className="text-xs italic text-foreground/80"
+            className="text-sm italic text-foreground/80"
           >
             Additional Test (Specify): e.g Blood Chemistries, Drug Tests, Alcohol Tests, Liver Function Test, Stool Culture, etc.:
           </label>

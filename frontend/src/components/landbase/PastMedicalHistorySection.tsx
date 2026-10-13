@@ -159,7 +159,7 @@ function HistoryRow({
   return (
     <>
       <div className="grid min-h-9 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-primary/20 px-2 py-1.5">
-        <span className="text-xs leading-tight text-foreground/80">
+        <span className="text-sm leading-tight text-foreground/80">
           {condition.label}
         </span>
         <div
@@ -193,7 +193,7 @@ function HistoryRow({
                 aria-label={`${condition.label} - ${optionLabel}`}
                 aria-disabled={disabled}
               />
-              <span className="text-xs text-foreground/80">{optionLabel}</span>
+              <span className="text-sm text-foreground/80">{optionLabel}</span>
             </label>
           ))}
         </div>
@@ -281,7 +281,7 @@ export default function PastMedicalHistorySection({
             <div className="grid min-h-10 grid-cols-[auto_1fr] items-center gap-2 px-2 py-1.5">
               <Label
                 htmlFor="pmh-others"
-                className="text-xs text-foreground/80"
+                className="text-sm text-foreground/80"
               >
                 Others
               </Label>
@@ -324,7 +324,7 @@ export default function PastMedicalHistorySection({
               <Label
                 htmlFor="consulted_doctor"
                 className={cn(
-                  "text-xs text-foreground/80",
+                  "text-sm text-foreground/80",
                   !disabled && "cursor-pointer",
                 )}
               >
@@ -349,7 +349,7 @@ export default function PastMedicalHistorySection({
           <div className="flex items-center gap-2 px-2 py-1.5">
             <Label
               htmlFor="pmh-medications"
-              className="shrink-0 text-xs text-foreground/80"
+              className="shrink-0 text-sm text-foreground/80"
             >
               Are you taking maintenance medications? If Yes, specify.
             </Label>

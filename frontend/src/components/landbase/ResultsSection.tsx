@@ -78,7 +78,7 @@ export default function ResultsSection({
               key={row.field}
               className="grid min-h-10 grid-cols-[minmax(340px,1.45fr)_minmax(150px,0.65fr)_minmax(260px,1fr)_110px] items-center gap-3 border-b border-primary/15 px-3 py-1.5 last:border-b-0 even:bg-muted/10"
             >
-              <span className="text-xs text-foreground/80">{row.label}:</span>
+              <span className="text-sm text-foreground/80">{row.label}:</span>
               {RESULT_OPTIONS.map((option) => (
                 <label
                   key={option.value}
@@ -97,7 +97,7 @@ export default function ResultsSection({
                     tabIndex={disabled ? -1 : undefined}
                     className="h-4 w-4 accent-primary"
                   />
-                  <span className="whitespace-nowrap text-xs text-foreground/80">
+                  <span className="whitespace-nowrap text-sm text-foreground/80">
                     {option.label}
                   </span>
                 </label>

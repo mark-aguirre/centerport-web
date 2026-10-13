@@ -79,7 +79,7 @@ function ChoiceGroup({
             aria-label={`${ariaLabel} - ${option.label}`}
             aria-disabled={disabled}
           />
-          <span className="text-xs text-foreground/80">{option.label}</span>
+          <span className="text-sm text-foreground/80">{option.label}</span>
         </label>
       ))}
     </div>
@@ -101,7 +101,7 @@ function CompactInput({
 }: CompactInputProps) {
   return (
     <label className="grid grid-cols-[auto_minmax(52px,1fr)] items-center gap-1.5">
-      <span className="text-[11px] font-semibold text-foreground/80">{label}</span>
+      <span className="text-sm font-semibold text-foreground/80">{label}</span>
       <Input
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -280,7 +280,7 @@ function FindingRow({ item, data, disabled, onChange }: FindingRowProps) {
           disabled ? "pointer-events-none" : "cursor-pointer",
         )}
       >
-        <span className="text-[11px] leading-tight text-foreground/80">
+        <span className="text-sm leading-tight text-foreground/80">
           {item.label}
         </span>
         <input
@@ -375,7 +375,7 @@ export default function PhysicalExaminationSection({
             <CompactInput label="Pulse Rate (bpm):" value={data.pe_pulse_rate} onChange={(value) => update("pe_pulse_rate", value)} disabled={disabled} />
           </div>
           <div className="space-y-1.5 border-r border-primary/20 p-2">
-            <p className="text-center text-[11px] font-bold uppercase text-foreground/80">Blood Pressure:</p>
+            <p className="text-center text-sm font-bold uppercase text-foreground/80">Blood Pressure:</p>
             <div className="grid grid-cols-2 gap-2">
               <CompactInput label="Systolic (mm Hg):" value={systolic} onChange={(value) => updateBloodPressure("pe_bp_systolic", value)} disabled={disabled} />
               <CompactInput label="Diastolic (mm Hg):" value={diastolic} onChange={(value) => updateBloodPressure("pe_bp_diastolic", value)} disabled={disabled} />
@@ -384,7 +384,7 @@ export default function PhysicalExaminationSection({
           <div className="grid grid-cols-2 gap-2 p-2">
             <CompactInput label="Respiration:" value={data.pe_respiration} onChange={(value) => update("pe_respiration", value)} disabled={disabled} />
             <div className="grid grid-cols-[auto_1fr] items-center gap-1.5">
-              <span className="text-[11px] font-semibold uppercase text-foreground/80">Rhythm:</span>
+              <span className="text-sm font-semibold uppercase text-foreground/80">Rhythm:</span>
               <FormSelect label="" value={data.pe_rhythm} onChange={(value) => update("pe_rhythm", value as LandbasePeme["pe_rhythm"])} options={["Regular", "Irregular"]} size="sm" disabled={disabled} />
             </div>
             <div className="col-span-2">
@@ -397,13 +397,13 @@ export default function PhysicalExaminationSection({
           <div className="border-r border-primary/20">
             <div className="grid grid-cols-[76px_145px_145px_92px_105px_minmax(105px,1fr)]">
               <div className="border-r border-b border-primary/20 px-2 py-1.5 text-sm font-bold uppercase text-foreground">Vision</div>
-              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-[11px] font-bold uppercase text-primary/70">Far Vision</div>
-              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-[11px] font-bold uppercase text-primary/70">Near Vision</div>
-              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-[11px] font-bold uppercase text-primary/70">Satisfactory Sight</div>
-              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-[11px] font-bold uppercase text-primary/70">Visual Aids</div>
-              <div className="border-b border-primary/20 px-2 py-1.5 text-center text-[11px] font-bold uppercase text-primary/70">Color Vision</div>
+              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Far Vision</div>
+              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Near Vision</div>
+              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Satisfactory Sight</div>
+              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Visual Aids</div>
+              <div className="border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Color Vision</div>
 
-              <div className="flex items-center border-r border-b border-primary/20 px-2 py-1.5 text-xs text-foreground/80">Uncorrected</div>
+              <div className="flex items-center border-r border-b border-primary/20 px-2 py-1.5 text-sm text-foreground/80">Uncorrected</div>
               <div className="border-r border-b border-primary/20 p-1.5">
                 <AcuityPair firstLabel="OD" firstValue={data.vision_far_od_uncorrected} secondLabel="OS" secondValue={data.vision_far_os_uncorrected} onFirstChange={(value) => update("vision_far_od_uncorrected", value)} onSecondChange={(value) => update("vision_far_os_uncorrected", value)} disabled={disabled} />
               </div>
@@ -424,13 +424,13 @@ export default function PhysicalExaminationSection({
                   ].map(([label, colorValue]) => (
                     <label key={String(label)} className={cn("flex items-center gap-1.5", disabled ? "pointer-events-none" : "cursor-pointer")}>
                       <input type="checkbox" checked={data.vision_color_adequate === colorValue} onChange={() => { if (!disabled) update("vision_color_adequate", colorValue as boolean); }} tabIndex={disabled ? -1 : undefined} className="h-4 w-4 rounded accent-primary" aria-label={`Color vision - ${label}`} aria-disabled={disabled} />
-                      <span className="text-xs text-foreground/80">{String(label)}</span>
+                      <span className="text-sm text-foreground/80">{String(label)}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className="flex items-center border-r border-primary/20 px-2 py-1.5 text-xs text-foreground/80">Corrected</div>
+              <div className="flex items-center border-r border-primary/20 px-2 py-1.5 text-sm text-foreground/80">Corrected</div>
               <div className="border-r border-primary/20 p-1.5">
                 <AcuityPair firstLabel="OD" firstValue={data.vision_far_od_corrected} secondLabel="OS" secondValue={data.vision_far_os_corrected} onFirstChange={(value) => update("vision_far_od_corrected", value)} onSecondChange={(value) => update("vision_far_os_corrected", value)} disabled={disabled} />
               </div>
@@ -441,11 +441,11 @@ export default function PhysicalExaminationSection({
 
             <div className="grid grid-cols-2 border-t border-primary/20">
               <div className="flex items-center gap-3 border-r border-primary/20 px-2 py-1.5">
-                <span className="text-[11px] font-bold uppercase text-foreground/80">Clarity of Speech:</span>
+                <span className="text-sm font-bold uppercase text-foreground/80">Clarity of Speech:</span>
                 <ChoiceGroup name="speech-clarity" value={data.speech_clarity} options={ADEQUACY_OPTIONS} ariaLabel="Clarity of speech" onChange={(value) => update("speech_clarity", value as LandbasePeme["speech_clarity"])} disabled={disabled} />
               </div>
               <div className="flex items-center gap-3 px-2 py-1.5">
-                <span className="text-[11px] font-bold text-primary/70">Satisfactory Psychological Test</span>
+                <span className="text-sm font-bold text-primary/70">Satisfactory Psychological Test</span>
                 <ChoiceGroup name="psychological-satisfactory" value={data.psychological_satisfactory} options={YES_NO_OPTIONS} ariaLabel="Satisfactory psychological test" onChange={(value) => update("psychological_satisfactory", value as YesNo)} disabled={disabled} />
               </div>
             </div>
@@ -465,16 +465,16 @@ export default function PhysicalExaminationSection({
                 </div>
               </div>
               <div className="space-y-1">
-                <span className="text-[11px] font-bold text-primary/70">Satisfactory Hearing:</span>
+                <span className="text-sm font-bold text-primary/70">Satisfactory Hearing:</span>
                 <FormSelect label="" value={toSelectYesNo(data.hearing_satisfactory)} onChange={(value) => update("hearing_satisfactory", value.toLowerCase() as YesNo)} options={["Yes", "No"]} size="sm" disabled={disabled} />
               </div>
               <div className="col-span-2 space-y-2 border-t border-primary/10 pt-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-10 shrink-0 text-[11px] font-bold uppercase text-primary/70">Right:</span>
+                  <span className="w-10 shrink-0 text-sm font-bold uppercase text-primary/70">Right:</span>
                   <ChoiceGroup name="hearing-right" value={data.hearing_right_adequacy} options={ADEQUACY_OPTIONS} ariaLabel="Right hearing" className="flex-1 flex-nowrap" onChange={(value) => update("hearing_right_adequacy", value as LandbasePeme["hearing_right_adequacy"])} disabled={disabled} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="w-10 shrink-0 text-[11px] font-bold uppercase text-primary/70">Left:</span>
+                  <span className="w-10 shrink-0 text-sm font-bold uppercase text-primary/70">Left:</span>
                   <ChoiceGroup name="hearing-left" value={data.hearing_left_adequacy} options={ADEQUACY_OPTIONS} ariaLabel="Left hearing" className="flex-1 flex-nowrap" onChange={(value) => update("hearing_left_adequacy", value as LandbasePeme["hearing_left_adequacy"])} disabled={disabled} />
                 </div>
               </div>
@@ -486,8 +486,8 @@ export default function PhysicalExaminationSection({
           {FINDING_COLUMNS.map((column, columnIndex) => (
             <div key={column.heading} className={cn(columnIndex < 2 && "border-r border-primary/20")}>
               <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] border-b border-primary/20 bg-muted/20">
-                <h3 className="border-r border-primary/20 px-2 py-1 text-center text-[11px] font-bold uppercase text-foreground">{column.heading}</h3>
-                <span className="px-2 py-1 text-center text-[11px] font-bold uppercase text-foreground">Findings</span>
+                <h3 className="border-r border-primary/20 px-2 py-1 text-center text-sm font-bold uppercase text-foreground">{column.heading}</h3>
+                <span className="px-2 py-1 text-center text-sm font-bold uppercase text-foreground">Findings</span>
               </div>
               <div className="space-y-1 p-1.5">
                 {column.items.map((item) => (
