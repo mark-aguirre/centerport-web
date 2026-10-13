@@ -213,7 +213,7 @@ export function AudiometrySpeechSection({
       </div>
 
       <div className="flex flex-col gap-2 border-t border-primary/20 px-3 py-2 sm:flex-row sm:items-center">
-        <p className="flex-1 text-xs font-semibold uppercase leading-relaxed text-primary/80">
+        <p className="flex-1 text-sm font-semibold uppercase leading-relaxed text-primary/80">
           Is applicant suffering from any medical condition likely to be
           aggravated by service at sea or to render the seafarer unfit for such
           service or to endanger the health of other persons on board?

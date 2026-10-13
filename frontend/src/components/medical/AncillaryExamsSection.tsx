@@ -70,7 +70,7 @@ function ResultRow({
 }: ResultRowProps) {
   return (
     <div className="grid min-h-9 grid-cols-[130px_1fr] items-center border-b border-primary/20 last:border-b-0">
-      <span className="border-r border-primary/20 px-2 text-xs font-semibold text-foreground/80">
+      <span className="border-r border-primary/20 px-2 text-sm font-semibold text-foreground/80">
         {code}. {label}:
       </span>
       <div
@@ -118,7 +118,7 @@ function SelectResultRow({
 }: SelectResultRowProps) {
   return (
     <div className="grid min-h-9 grid-cols-[130px_1fr] items-center border-b border-primary/20 last:border-b-0">
-      <span className="border-r border-primary/20 px-2 text-xs font-semibold text-foreground/80">
+      <span className="border-r border-primary/20 px-2 text-sm font-semibold text-foreground/80">
         {code}. {label}
       </span>
       <FormSelect
@@ -163,7 +163,7 @@ export function AncillaryExamsSection({
       <div className="flex items-center gap-2 border-b border-primary/20 px-3 py-2">
         <label
           htmlFor="ancillary-xray-number"
-          className="text-xs font-semibold text-foreground/80"
+          className="text-sm font-semibold text-foreground/80"
         >
           X-ray No.:
         </label>
@@ -281,7 +281,7 @@ export function AncillaryExamsSection({
         role="radiogroup"
         aria-label="Psychological test result"
       >
-        <span className="text-xs font-semibold text-foreground/80">
+        <span className="text-sm font-semibold text-foreground/80">
           Psychological Test:
         </span>
         {[
@@ -308,7 +308,7 @@ export function AncillaryExamsSection({
       <div className="space-y-1 px-3 py-2">
         <label
           htmlFor="ancillary-additional-tests"
-          className="text-xs font-semibold italic text-foreground/80"
+          className="text-sm font-semibold italic text-foreground/80"
         >
           Additional Test (Specify): e.g Blood Chemistries, Drug Tests, Alcohol
           Test, Liver Function Test, Stool Culture, etc.:

@@ -111,7 +111,7 @@ function QuestionnaireRow({
 }: QuestionnaireRowProps) {
   return (
     <div className="grid min-h-9 grid-cols-[minmax(0,1fr)_56px_56px_minmax(280px,0.78fr)] items-center gap-1 border-b border-primary/20 px-1.5 py-1">
-      <span className="text-xs leading-tight text-foreground/80">
+      <span className="text-sm leading-tight text-foreground/80">
         <span className="mr-4 font-semibold">{number}.</span>
         {item.label}
       </span>
@@ -180,7 +180,7 @@ export function QuestionnaireGrid({
       <div className="overflow-x-auto">
         <div className="min-w-[900px]">
           <div className="grid grid-cols-[minmax(0,1fr)_56px_56px_minmax(280px,0.78fr)] items-center gap-1 border-b border-primary/20 bg-primary/12 px-1.5 py-1.5">
-            <span className="text-xs font-bold text-foreground/90">
+            <span className="text-sm font-bold text-foreground/90">
               Please select on the appropriate box.
             </span>
             <span className="text-center text-[11px] font-bold uppercase tracking-wider text-primary/70">
@@ -224,7 +224,7 @@ export function QuestionnaireGrid({
           <div className="grid grid-cols-[95px_minmax(0,1fr)_112px_minmax(280px,0.78fr)] items-start gap-2 border-b border-primary/20 px-2 py-1">
             <label
               htmlFor="questionnaire-comments"
-              className="pt-1 text-xs font-semibold text-foreground/80"
+              className="pt-1 text-sm font-semibold text-foreground/80"
             >
               Comments
             </label>
@@ -245,7 +245,7 @@ export function QuestionnaireGrid({
           </div>
 
           <div className="grid min-h-9 grid-cols-[minmax(0,1fr)_56px_56px_minmax(280px,0.78fr)] items-center gap-1 px-1.5 py-1">
-            <span className="text-xs leading-tight text-foreground/80">
+            <span className="text-sm leading-tight text-foreground/80">
               <span className="mr-4 font-semibold">8.</span>
               Are you taking any non-prescription or prescription medication?
             </span>

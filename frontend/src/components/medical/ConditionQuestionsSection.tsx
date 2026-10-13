@@ -46,7 +46,7 @@ export function ConditionQuestionsSection({
           role="radiogroup"
           aria-label="Identification documents checked"
         >
-          <span className="whitespace-nowrap text-right text-xs font-semibold uppercase text-foreground/80">
+          <span className="whitespace-nowrap text-right text-sm font-semibold uppercase text-foreground/80">
             Confirmation that identification documents were checked at the point
             of examination:
           </span>
@@ -76,7 +76,7 @@ export function ConditionQuestionsSection({
           role="radiogroup"
           aria-label="Fit for look-out duties"
         >
-          <span className="whitespace-nowrap text-right text-xs font-bold uppercase tracking-wide text-primary">
+          <span className="whitespace-nowrap text-right text-sm font-bold uppercase tracking-wide text-primary">
             Fit for Look-out Duties:
           </span>
           <div className="grid grid-cols-2 justify-items-start gap-4">

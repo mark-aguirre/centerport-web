@@ -43,7 +43,7 @@ function CertificationResultRow({
 
   return (
     <div className="grid min-h-9 grid-cols-[minmax(330px,1.5fr)_minmax(150px,0.65fr)_minmax(250px,1fr)] items-center gap-3 px-2">
-      <span className="text-xs text-foreground/80">{label}:</span>
+      <span className="text-sm text-foreground/80">{label}:</span>
       {options.map((option) => (
         <label key={option.value} className={RADIO_OPTION_LABEL_CLASS}>
           <input
@@ -121,7 +121,7 @@ export function FinalRecommendationSection({
       <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[165px_1fr] sm:items-center">
         <label
           htmlFor="recommendation-remarks"
-          className="text-xs font-bold text-foreground/80"
+          className="text-sm font-bold text-foreground/80"
         >
           REMARK/Special Needs:
         </label>
@@ -141,7 +141,7 @@ export function FinalRecommendationSection({
         <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[165px_1fr] sm:items-center">
           <label
             htmlFor="restriction-details"
-            className="text-xs font-bold text-foreground/80"
+            className="text-sm font-bold text-foreground/80"
           >
             Restriction Details:
           </label>

@@ -53,7 +53,7 @@ function FitnessChoice({
       role="radiogroup"
       aria-label={label}
     >
-      <span className="text-xs font-bold uppercase text-foreground/80">
+      <span className="text-sm font-bold uppercase text-foreground/80">
         {label}:
       </span>
       <div className="flex items-center gap-8">
@@ -194,7 +194,7 @@ export function FitnessAssessmentSection({
         role="radiogroup"
         aria-label="Visual aids required"
       >
-        <span className="text-xs font-semibold text-foreground/80">
+        <span className="text-sm font-semibold text-foreground/80">
           Visual Aids Required:
         </span>
         {[

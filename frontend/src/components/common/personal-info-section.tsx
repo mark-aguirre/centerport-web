@@ -126,7 +126,7 @@ export function PersonalInfoSection<T extends object = Record<string, string>>({
     disabled && "pointer-events-none"
   );
 
-  const labelClasses = "text-xs font-semibold text-foreground/70 whitespace-nowrap";
+  const labelClasses = "text-sm font-semibold text-foreground/70 whitespace-nowrap";
 
   const getValue = (field: PersonalInfoField): string =>
     String((data as Record<string, unknown>)[field] ?? "");

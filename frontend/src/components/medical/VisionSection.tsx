@@ -131,7 +131,7 @@ export function VisionSection({
           STCW Code, Section A-I/9:
         </div>
 
-        <div className="flex items-center justify-center border-b border-primary/20 p-2 text-xs text-foreground/80 lg:border-r">
+        <div className="flex items-center justify-center border-b border-primary/20 p-2 text-sm text-foreground/80 lg:border-r">
           Uncorrected
         </div>
         <div className="grid grid-cols-2 gap-2 border-b border-primary/20 p-2 lg:border-r">
@@ -249,7 +249,7 @@ export function VisionSection({
           </div>
         </div>
 
-        <div className="flex items-center justify-center border-b border-primary/20 p-2 text-xs text-foreground/80 lg:border-r lg:border-b-0">
+        <div className="flex items-center justify-center border-b border-primary/20 p-2 text-sm text-foreground/80 lg:border-r lg:border-b-0">
           Corrected
         </div>
         <div className="grid grid-cols-2 gap-2 border-b border-primary/20 p-2 lg:border-r lg:border-b-0">
