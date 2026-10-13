@@ -393,15 +393,15 @@ export default function PhysicalExaminationSection({
           </div>
         </div>
 
-        <div className="grid grid-cols-[2.35fr_1fr] border-t border-primary/20">
+        <div className="grid grid-cols-[2.5fr_1fr] border-t border-primary/20">
           <div className="border-r border-primary/20">
-            <div className="grid grid-cols-[76px_145px_145px_92px_105px_minmax(105px,1fr)]">
-              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-sm font-bold uppercase text-foreground">Vision</div>
-              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Far Vision</div>
-              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Near Vision</div>
-              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Satisfactory Sight</div>
-              <div className="border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Visual Aids</div>
-              <div className="border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase text-primary/70">Color Vision</div>
+            <div className="grid grid-cols-[76px_132px_132px_124px_132px_minmax(120px,1fr)]">
+              <div className="flex items-center border-r border-b border-primary/20 px-2 py-1.5 text-sm font-bold uppercase leading-tight text-foreground">Vision</div>
+              <div className="flex items-center justify-center border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase leading-tight text-primary/70 [text-wrap:balance]">Far Vision</div>
+              <div className="flex items-center justify-center border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase leading-tight text-primary/70 [text-wrap:balance]">Near Vision</div>
+              <div className="flex items-center justify-center border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase leading-tight text-primary/70 [text-wrap:balance]">Satisfactory Sight</div>
+              <div className="flex items-center justify-center border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase leading-tight text-primary/70 [text-wrap:balance]">Visual Aids</div>
+              <div className="flex items-center justify-center border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase leading-tight text-primary/70 [text-wrap:balance]">Color Vision</div>
 
               <div className="flex items-center border-r border-b border-primary/20 px-2 py-1.5 text-sm text-foreground/80">Uncorrected</div>
               <div className="border-r border-b border-primary/20 p-1.5">
