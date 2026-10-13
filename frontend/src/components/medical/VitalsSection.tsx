@@ -34,7 +34,7 @@ function InlineVitalField({
 }: InlineVitalFieldProps) {
   return (
     <label className="grid grid-cols-[auto_minmax(70px,1fr)] items-center gap-2">
-      <span className="text-[11px] font-semibold text-foreground/80">
+      <span className="text-sm font-semibold text-foreground/80">
         {label}:
       </span>
       <Input
@@ -118,7 +118,7 @@ export function VitalsSection({
             disabled={disabled}
           />
           <div className="grid grid-cols-[auto_minmax(90px,1fr)] items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase text-foreground/80">
+            <span className="text-sm font-semibold uppercase text-foreground/80">
               Rhythm:
             </span>
             <FormSelect
@@ -147,7 +147,7 @@ export function VitalsSection({
         </div>
 
         <label className="flex min-h-20 flex-col justify-between gap-2 p-2">
-          <span className="text-[11px] font-semibold text-foreground/80">
+          <span className="text-sm font-semibold text-foreground/80">
             Body Temperature:
           </span>
           <Input

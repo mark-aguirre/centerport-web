@@ -89,7 +89,7 @@ function ResultRow({
               className="h-4 w-4 accent-primary"
               aria-label={`${label} - ${option.label}`}
             />
-            <span className="whitespace-nowrap text-xs text-foreground/80">
+            <span className="whitespace-nowrap text-sm text-foreground/80">
               {option.label}
             </span>
           </label>
@@ -300,7 +300,7 @@ export function AncillaryExamsSection({
               className="h-4 w-4 accent-primary"
               aria-label={`Psychological test - ${label}`}
             />
-            <span className="text-xs text-foreground/80">{label}</span>
+            <span className="text-sm text-foreground/80">{label}</span>
           </label>
         ))}
       </div>

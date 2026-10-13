@@ -174,11 +174,11 @@ export function FindingsGrid({
               <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] border-b border-primary/20 bg-muted/20">
                 <h3
                   id={`${field}-heading`}
-                  className="border-r border-primary/20 px-2 py-1 text-center text-[11px] font-bold uppercase tracking-wider text-foreground"
+                  className="border-r border-primary/20 px-2 py-1 text-center text-sm font-bold uppercase tracking-wider text-foreground"
                 >
                   {label}
                 </h3>
-                <span className="px-2 py-1 text-center text-[11px] font-bold uppercase tracking-wider text-foreground">
+                <span className="px-2 py-1 text-center text-sm font-bold uppercase tracking-wider text-foreground">
                   Findings
                 </span>
               </div>
@@ -190,7 +190,7 @@ export function FindingsGrid({
                     className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] items-center gap-1"
                   >
                     <label className="flex min-w-0 cursor-pointer items-center justify-between gap-1 px-1">
-                      <span className="text-[11px] leading-tight text-foreground/80">
+                      <span className="text-sm leading-tight text-foreground/80">
                         {item.label}
                       </span>
                       <input

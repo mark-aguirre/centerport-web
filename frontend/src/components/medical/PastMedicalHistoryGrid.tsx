@@ -151,7 +151,7 @@ function HistoryRow({
   return (
     <>
       <div className="grid min-h-8 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-primary/20 px-2 py-1">
-        <span className="text-[11px] leading-tight text-foreground/80">
+        <span className="text-sm leading-tight text-foreground/80">
           {condition.label}
         </span>
         <div
@@ -176,7 +176,7 @@ function HistoryRow({
                 className="h-4 w-4 accent-primary"
                 aria-label={`${condition.label} - ${optionLabel}`}
               />
-              <span className="text-[11px] text-foreground/80">
+              <span className="text-sm text-foreground/80">
                 {optionLabel}
               </span>
             </label>
@@ -269,7 +269,7 @@ export function PastMedicalHistoryGrid({
           <div className="grid min-h-9 grid-cols-[minmax(0,auto)_1fr] items-center gap-2 border-b border-primary/20 px-2 py-1">
             <label
               htmlFor="medical-history-others"
-              className="text-[11px] text-foreground/80"
+              className="text-sm text-foreground/80"
             >
               Others
             </label>

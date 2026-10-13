@@ -50,7 +50,7 @@ function HearingRadioGroup({
       role="radiogroup"
       aria-label={`${label} hearing`}
     >
-      <span className="w-11 shrink-0 text-[11px] font-bold uppercase text-primary/70">
+      <span className="w-11 shrink-0 text-sm font-bold uppercase text-primary/70">
         {label}:
       </span>
       {HEARING_OPTIONS.map((option) => {
@@ -66,7 +66,7 @@ function HearingRadioGroup({
               className="h-4 w-4 accent-primary"
               aria-label={`${label} hearing - ${option}`}
             />
-            <span className="text-xs text-foreground/80">{option}</span>
+            <span className="text-sm text-foreground/80">{option}</span>
           </label>
         );
       })}
@@ -110,7 +110,7 @@ export function AudiometrySpeechSection({
         </div>
 
         <div className="space-y-2 border-b border-primary/20 p-3 lg:border-b-0 lg:border-r">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-primary/70">
+          <p className="text-sm font-bold uppercase tracking-wide text-primary/70">
             Hearing by Audio Metry
           </p>
           <div className="grid grid-cols-[minmax(110px,0.75fr)_minmax(250px,1.25fr)] gap-4">
@@ -154,11 +154,11 @@ export function AudiometrySpeechSection({
         </div>
 
         <div className="space-y-3 border-b border-primary/20 p-3 lg:border-b-0 lg:border-r">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-primary/70">
+          <p className="text-sm font-bold uppercase tracking-wide text-primary/70">
             Meets Standards in STCW Code, Section A-I/9:
           </p>
           <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-primary/60">
+            <span className="text-sm font-semibold uppercase tracking-wider text-primary/60">
               Satisfactory Hearing
             </span>
             <FormSelect
@@ -171,7 +171,7 @@ export function AudiometrySpeechSection({
             />
           </div>
           <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-primary/60">
+            <span className="text-sm font-semibold uppercase tracking-wider text-primary/60">
               Unaided Hearing Satisfactory
             </span>
             <FormSelect
@@ -205,7 +205,7 @@ export function AudiometrySpeechSection({
                   className="h-4 w-4 accent-primary"
                   aria-label={`Speech assessment - ${option}`}
                 />
-                <span className="text-xs text-foreground/80">{option}</span>
+                <span className="text-sm text-foreground/80">{option}</span>
               </label>
             );
           })}
