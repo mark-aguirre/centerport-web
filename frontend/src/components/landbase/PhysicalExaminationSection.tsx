@@ -395,7 +395,7 @@ export default function PhysicalExaminationSection({
 
         <div className="grid grid-cols-[2.5fr_1fr] border-t border-primary/20">
           <div className="border-r border-primary/20">
-            <div className="grid grid-cols-[76px_132px_132px_124px_132px_minmax(120px,1fr)]">
+            <div className="grid grid-cols-[76px_minmax(132px,1fr)_minmax(132px,1fr)_124px_132px_132px]">
               <div className="flex items-center border-r border-b border-primary/20 px-2 py-1.5 text-sm font-bold uppercase leading-tight text-foreground">Vision</div>
               <div className="flex items-center justify-center border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase leading-tight text-primary/70 [text-wrap:balance]">Far Vision</div>
               <div className="flex items-center justify-center border-r border-b border-primary/20 px-2 py-1.5 text-center text-sm font-bold uppercase leading-tight text-primary/70 [text-wrap:balance]">Near Vision</div>
