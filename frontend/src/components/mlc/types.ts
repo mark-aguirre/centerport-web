@@ -20,9 +20,8 @@ export type VisualAid = "spectacles" | "contact_lenses" | "none";
 /** MLC fitness determination */
 export type FitnessDetermination =
   | "Fit for Sea Duty"
-  | "Fit with Restrictions"
-  | "Temporarily Unfit"
-  | "Unfit for Sea Service"
+  | "Fit with Restriction"
+  | "Unfit"
   | "";
 
 /** Certificate type per MLC standards */

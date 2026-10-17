@@ -13,9 +13,8 @@ import type { MlcSectionProps, MlcRecord } from "./types";
 /** Fitness determination options per MLC standards. */
 const FITNESS_OPTIONS = [
   "Fit for Sea Duty",
-  "Fit with Restrictions",
-  "Temporarily Unfit",
-  "Unfit for Sea Service",
+  "Fit with Restriction",
+  "Unfit",
 ];
 
 /**

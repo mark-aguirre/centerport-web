@@ -31,6 +31,10 @@ export async function buildMlcPayload(data: MlcRecord): Promise<Record<string, s
 
   const photoBase64 = await fetchPhotoAsBase64(data.photo_url);
 
+  // Resolve the company value once from whichever source is populated
+  // (shipping company takes precedence, then the seafarer's employer).
+  const company = data.shipping_company || data.employer || "";
+
   return {
     fullname,
     last_name: lastName,
@@ -50,7 +54,13 @@ export async function buildMlcPayload(data: MlcRecord): Promise<Record<string, s
     position_engine: "",
     position_steward: "",
     position_other: "",
-    shipping_company: data.shipping_company ?? "",
+    // The PrintIO MLC template's "Company" box variable name lives on the
+    // PrintIO server, so we emit the resolved value under every likely name;
+    // PrintIO ignores keys the template doesn't reference.
+    company,
+    company_name: company,
+    employer: company,
+    shipping_company: company,
     sirb_no: data.sirb_no ?? "",
     id_documents_checked: data.id_documents_checked ?? "",
     hearing_meets_standards: data.hearing_meets_standards ?? "",
