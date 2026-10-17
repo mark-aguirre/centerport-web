@@ -11,6 +11,7 @@ import {
   type NavigationItem,
 } from "@/config/navigation";
 import { useAuth } from "@/components/auth-provider";
+import { useLayout } from "@/components/layout-provider";
 import { useSelectedPatient } from "@/hooks/use-selected-patient";
 import { cn } from "@/lib/utils";
 import {
@@ -98,6 +99,7 @@ export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { canRoute } = useAuth();
+  const { fullWidth } = useLayout();
   // Carry the selected seafarer into per-seafarer medical modules so opening
   // one after another (e.g. Seabase -> Panama) shows the same patient.
   const selectedPatientId = useSelectedPatient();
@@ -313,12 +315,21 @@ export function TopNav() {
           non-form pages via `showActionBar` so it never renders as an empty
           band on Dashboard, Visit, or the accounting screens. */}
       {showActionBar && (
-        <div className="hidden min-h-9 items-center border-t border-border/60 bg-muted/20 px-3 py-1.5 md:px-4 lg:flex">
+        <div
+          className="hidden min-h-9 items-center border-t border-border/60 bg-muted/20 py-1.5 lg:flex"
+          style={{
+            paddingLeft: fullWidth ? "1rem" : "8%",
+            paddingRight: fullWidth ? "1rem" : "8%",
+          }}
+          suppressHydrationWarning
+        >
+          {/* Inner inset mirrors PageContainer's p-[10px] so the action
+              buttons line up with the left/right edges of the form content. */}
           <div
             id="app-header-actions"
             role="toolbar"
             aria-label="Page actions"
-            className="flex w-full items-center gap-2"
+            className="flex w-full items-center gap-2 px-[10px]"
           />
         </div>
       )}

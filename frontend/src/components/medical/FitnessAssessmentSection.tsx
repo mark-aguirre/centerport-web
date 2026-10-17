@@ -19,15 +19,12 @@ import type { MedicalExam, MedicalSectionProps } from "./types";
  * at Sea section. Single source of truth shared by the (now-removed) Set
  * Normal button logic and the auto-apply-on-new-record flow.
  *
- * Marks the seafarer fit for every service category and sets visual aids
- * required to "no".
+ * The service-category fitness fields (Deck, Engine, Catering, Other) are left
+ * blank on new records so the examiner marks them explicitly. Only visual aids
+ * required defaults to "no".
  */
 export function buildFitnessAssessmentNormalDefaults(): Partial<MedicalExam> {
   return {
-    fitness_deck_services: "fit",
-    fitness_engine_services: "fit",
-    fitness_catering_services: "fit",
-    fitness_other_services: "fit",
     visual_aids_required: "no",
   };
 }

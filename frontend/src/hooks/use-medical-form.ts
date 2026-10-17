@@ -390,14 +390,17 @@ const medicalConfig: EntityFormConfig<MedicalExam> = {
 
 type MedicalPersonnelDefaults = Pick<
   MedicalExam,
-  "authorized_physician" | "medical_certification_no" | "medical_director"
+  "authorized_physician" | "medical_director"
 >;
 
-/** Extracts only the certification personnel fields that carry into the next exam. */
+/**
+ * Extracts only the certification personnel fields that carry into the next
+ * exam. Medical Certification No. is intentionally excluded: it is manual user
+ * input per exam, not a value carried forward from the previous record.
+ */
 function getPersonnelDefaults(record: MedicalExam): MedicalPersonnelDefaults {
   return {
     authorized_physician: record.authorized_physician,
-    medical_certification_no: record.medical_certification_no,
     medical_director: record.medical_director,
   };
 }
@@ -458,9 +461,10 @@ export function useMedicalForm(): UseMedicalFormResult {
       ...medicalConfig,
       getNewRecordDefaults: () => {
         const assigned = mapEntriesToFields<MedicalExam>(entriesRef.current, {
+          // Medical Certification No. is manual user input on the Seabase form,
+          // not the authorized physician's license number — only carry the name.
           AUTHORIZED_PHYSICIAN: {
             name: "authorized_physician",
-            licenseNo: "medical_certification_no",
           },
           MEDICAL_DIRECTOR: { name: "medical_director" },
         });

@@ -22,6 +22,23 @@ function lower(value: string | undefined): string {
   return (value ?? "").toLowerCase();
 }
 
+/**
+ * Combine the systolic and diastolic readings into a single `"120/80"` blood
+ * pressure string.
+ *
+ * The Vitals form stores the two readings separately (`pe_bp_systolic` /
+ * `pe_bp_diastolic`); the templates that expect a single `blood_pressure`
+ * value receive them joined with a slash. Returns an empty string when both
+ * readings are blank, and still joins with a slash when only one is present so
+ * the missing side is visible (e.g. `"120/"`).
+ */
+function bloodPressureOf(data: MedicalExam): string {
+  const systolic = data.pe_bp_systolic ?? "";
+  const diastolic = data.pe_bp_diastolic ?? "";
+  if (!systolic && !diastolic) return "";
+  return `${systolic}/${diastolic}`;
+}
+
 /** Build the "First Middle Last" display name, dropping empty parts. */
 function fullNameOf(data: MedicalExam): string {
   return [data.first_name, data.middle_name, data.last_name]
@@ -377,7 +394,7 @@ export async function buildSeabaseDetailedPayload(
     weight_kg: data.pe_weight ?? "",
     height_cm: data.pe_height ?? "",
     bmi: data.pe_bmi ?? "",
-    blood_pressure: data.blood_pressure ?? "",
+    blood_pressure: bloodPressureOf(data),
     pulse_rate: data.pe_pulse_rate ?? "",
     respiration: data.pe_respiration ?? "",
     body_temperature: data.pe_body_temperature ?? "",
@@ -486,12 +503,17 @@ export async function buildSeabaseDetailedPayload(
   };
 
   // Lowercase every mapped value for the template's expected tokens. The photo
-  // is added afterwards so its base64 data is never altered.
+  // and the patient's full name are added afterwards so their casing (and the
+  // photo's base64 data) is never altered.
   const lowercased: Record<string, string> = Object.fromEntries(
     Object.entries(payload).map(([key, value]) => [key, value.toLowerCase()]),
   );
 
-  return { ...lowercased, photo_url: photoBase64 };
+  return {
+    ...lowercased,
+    patient_full_name: fullNameOf(data),
+    photo_url: photoBase64,
+  };
 }
 
 /**
