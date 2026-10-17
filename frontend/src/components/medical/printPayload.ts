@@ -37,6 +37,35 @@ interface DateParts {
   year: string;
 }
 
+/** Three-letter English month abbreviations, indexed 1-12. */
+const MONTH_ABBREVIATIONS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/**
+ * Convert a numeric month string (`"01"`-`"12"`) to its three-letter English
+ * abbreviation (e.g. `"10"` -> `"Oct"`).
+ *
+ * Returns an empty string when the input is missing or out of range so the
+ * MER template renders a blank month rather than a stray value.
+ */
+function monthAbbreviation(month: string): string {
+  const index = Number(month);
+  if (!Number.isInteger(index) || index < 1 || index > 12) return "";
+  return MONTH_ABBREVIATIONS[index - 1];
+}
+
 /**
  * Splits an ISO-ish date string (`YYYY-MM-DD`) into day/month/year parts.
  *
@@ -544,12 +573,13 @@ export async function buildSeabaseMerPayload(
 
   return {
     // Identity / personal information
+    patient_full_name: fullNameOf(data),
     last_name: data.last_name ?? "",
     first_name: data.first_name ?? "",
     middle_name: data.middle_name ?? "",
     age: data.age ?? "",
     date_of_birth_day: birth.day,
-    date_of_birth_month: birth.month,
+    date_of_birth_month: monthAbbreviation(birth.month),
     date_of_birth_year: birth.year,
     place_of_birth: data.place_of_birth ?? "",
     nationality: data.nationality ?? "",
@@ -852,10 +882,10 @@ export async function buildSeabaseMerPayload(
 
     // Examination / certification dates
     date_of_medical_examination_day: examDate.day,
-    date_of_medical_examination_month: examDate.month,
+    date_of_medical_examination_month: monthAbbreviation(examDate.month),
     date_of_medical_examination_year: examDate.year,
     medical_exam_expiration_date_day: expiry.day,
-    medical_exam_expiration_date_month: expiry.month,
+    medical_exam_expiration_date_month: monthAbbreviation(expiry.month),
     medical_exam_expiration_date_year: expiry.year,
     medical_exam_report_number: data.medical_certification_no ?? "",
     authorized_physician: data.authorized_physician ?? "",

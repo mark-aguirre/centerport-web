@@ -50,7 +50,7 @@ function FitnessChoice({
   return (
     <div
       className="grid grid-cols-[145px_1fr] items-center gap-3"
-      role="radiogroup"
+      role="group"
       aria-label={label}
     >
       <span className="text-sm font-bold uppercase text-foreground/80">
@@ -63,10 +63,10 @@ function FitnessChoice({
         ].map(([optionValue, optionLabel]) => (
           <label key={optionValue} className={RADIO_OPTION_LABEL_CLASS}>
             <input
-              type="radio"
+              type="checkbox"
               name={name}
               checked={value === optionValue}
-              onChange={() => onChange(optionValue)}
+              onChange={() => onChange(value === optionValue ? "" : optionValue)}
               tabIndex={disabled ? -1 : undefined}
               className="h-4 w-4 accent-primary"
               aria-label={`${label} - ${optionLabel}`}
@@ -122,11 +122,7 @@ export function FitnessAssessmentSection({
   };
 
   const selectPhysician = (personnel: MedicalPersonnel) => {
-    onChange({
-      ...data,
-      authorized_physician: personnel.name,
-      medical_certification_no: personnel.license_no,
-    });
+    update("authorized_physician", personnel.name);
   };
 
   const selectDirector = (personnel: MedicalPersonnel) => {

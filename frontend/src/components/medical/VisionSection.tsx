@@ -7,7 +7,7 @@ import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { createFieldUpdater } from "./utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
-const ACUITY_OPTIONS = ["Adequate", "Defective"];
+const ACUITY_OPTIONS = ["YES", "NO"];
 const STCW_OPTIONS = ["Yes", "No"];
 
 /**

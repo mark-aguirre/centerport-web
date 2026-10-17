@@ -8,14 +8,10 @@ import { createFieldUpdater } from "./utils";
 import type { MedicalExam, MedicalSectionProps } from "./types";
 
 const FINAL_RECOMMENDATION_OPTIONS = [
-  "FIT",
+  "FIT FOR SEA DUTY",
+  "FIT WITH RESTRICTION",
   "UNFIT",
   "FIT TO WORK",
-  "FIT w/ RESTRICTION",
-  "FIT FOR EMPLOYMENT",
-  "FIT FOR TRAINING",
-  "FIT FOR ENROLLMENT",
-  "FIT FOR SEA DUTY",
 ];
 
 interface CertificationResultRowProps {

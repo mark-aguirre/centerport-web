@@ -8,6 +8,13 @@ import type { MedicalExam, MedicalSectionProps } from "./types";
 
 const HEARING_OPTIONS = ["Adequate", "Inadequate"];
 const YES_NO_OPTIONS = ["Yes", "No"];
+const HEARING_ACUITY_OPTIONS = [
+  "Normal Hearing Acuity",
+  "Mild Hearing Loss",
+  "Moderate Hearing Loss",
+  "Severe Hearing Loss",
+  "N/A",
+];
 
 /**
  * Build the "normal" default values for the Audiometry & Speech section
@@ -20,8 +27,8 @@ const YES_NO_OPTIONS = ["Yes", "No"];
  */
 export function buildAudiometrySpeechNormalDefaults(): Partial<MedicalExam> {
   return {
-    audio_ad_right_2: "Adequate",
-    audio_as_left_2: "Adequate",
+    audio_ad_right_2: "Normal Hearing Acuity",
+    audio_as_left_2: "Normal Hearing Acuity",
     audio_ad_right_1: "adequate",
     audio_as_left_1: "adequate",
     audio_satisfactory: "Yes",
@@ -121,7 +128,7 @@ export function AudiometrySpeechSection({
                   label=""
                   value={data.audio_ad_right_2}
                   onChange={(value) => update("audio_ad_right_2", value)}
-                  options={HEARING_OPTIONS}
+                  options={HEARING_ACUITY_OPTIONS}
                   disabled={disabled}
                 />
               </div>
@@ -131,7 +138,7 @@ export function AudiometrySpeechSection({
                   label=""
                   value={data.audio_as_left_2}
                   onChange={(value) => update("audio_as_left_2", value)}
-                  options={HEARING_OPTIONS}
+                  options={HEARING_ACUITY_OPTIONS}
                   disabled={disabled}
                 />
               </div>
