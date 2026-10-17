@@ -363,9 +363,9 @@ class ContractVerificationTest {
         @DisplayName("RecommendationValue serializes to exact frontend literals")
         void recommendationLiterals() throws Exception {
             assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT_FOR_EMPLOYMENT))
-                    .isEqualTo("\"Fit for Employment\"");
-            assertThat(objectMapper.writeValueAsString(RecommendationValue.UNFIT_FOR_EMPLOYMENT))
-                    .isEqualTo("\"Unfit for Employment\"");
+                    .isEqualTo("\"FIT FOR EMPLOYMENT\"");
+            assertThat(objectMapper.writeValueAsString(RecommendationValue.UNFIT))
+                    .isEqualTo("\"UNFIT\"");
         }
 
         @Test

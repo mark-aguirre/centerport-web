@@ -363,16 +363,19 @@ class EnumSerializationTest {
     class RecommendationValueTest {
         @Test
         void shouldSerializeToFrontendLiteral() throws Exception {
-            assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT_FOR_EMPLOYMENT)).isEqualTo("\"Fit for Employment\"");
-            assertThat(objectMapper.writeValueAsString(RecommendationValue.UNFIT_FOR_EMPLOYMENT)).isEqualTo("\"Unfit for Employment\"");
-            assertThat(objectMapper.writeValueAsString(RecommendationValue.REQUIRES_FURTHER_EVALUATION)).isEqualTo("\"Requires Further Evaluation\"");
-            assertThat(objectMapper.writeValueAsString(RecommendationValue.TEMPORARILY_UNFIT)).isEqualTo("\"Temporarily Unfit\"");
-            assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT_WITH_RESTRICTION)).isEqualTo("\"Fit with Restriction\"");
+            assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT)).isEqualTo("\"FIT\"");
+            assertThat(objectMapper.writeValueAsString(RecommendationValue.UNFIT)).isEqualTo("\"UNFIT\"");
+            assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT_TO_WORK)).isEqualTo("\"FIT TO WORK\"");
+            assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT_WITH_RESTRICTION)).isEqualTo("\"FIT w/ RESTRICTION\"");
+            assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT_FOR_EMPLOYMENT)).isEqualTo("\"FIT FOR EMPLOYMENT\"");
+            assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT_FOR_TRAINING)).isEqualTo("\"FIT FOR TRAINING\"");
+            assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT_FOR_ENROLLMENT)).isEqualTo("\"FIT FOR ENROLLMENT\"");
+            assertThat(objectMapper.writeValueAsString(RecommendationValue.FIT_FOR_SEA_DUTY)).isEqualTo("\"FIT FOR SEA DUTY\"");
         }
 
         @Test
         void shouldDeserializeFromFrontendLiteral() throws Exception {
-            assertThat(objectMapper.readValue("\"Fit for Employment\"", RecommendationValue.class))
+            assertThat(objectMapper.readValue("\"FIT FOR EMPLOYMENT\"", RecommendationValue.class))
                     .isEqualTo(RecommendationValue.FIT_FOR_EMPLOYMENT);
         }
 

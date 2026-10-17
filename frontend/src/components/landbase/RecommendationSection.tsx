@@ -10,11 +10,14 @@ import { createFieldUpdater } from "./utils";
 
 // Must match the backend `RecommendationValue` enum values exactly (case-sensitive).
 const RECOMMENDATION_OPTIONS = [
-  "Fit for Employment",
-  "Unfit for Employment",
-  "Requires Further Evaluation",
-  "Temporarily Unfit",
-  "Fit with Restriction",
+  "FIT",
+  "UNFIT",
+  "FIT TO WORK",
+  "FIT w/ RESTRICTION",
+  "FIT FOR EMPLOYMENT",
+  "FIT FOR TRAINING",
+  "FIT FOR ENROLLMENT",
+  "FIT FOR SEA DUTY",
 ];
 
 const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
@@ -31,7 +34,7 @@ const FIELD_MAP: Record<keyof CertificationDetailsValues, string> = {
  * Single source of truth shared by the (now-removed) Set Normal button logic
  * and the auto-apply-on-new-record flow.
  *
- * - Recommendation: "Fit for Employment"
+ * - Recommendation: "FIT FOR EMPLOYMENT"
  * - Date of Initial PEME and Date of Fitness: today
  * - Valid Until: two years after today (keeps validity in sync)
  *
@@ -52,7 +55,7 @@ export function buildRecommendationNormalDefaults(): Partial<LandbasePeme> {
   validUntil.setFullYear(validUntil.getFullYear() + 2);
 
   return {
-    recommendation: "Fit for Employment",
+    recommendation: "FIT FOR EMPLOYMENT",
     date_initial_peme: todayIso,
     date_of_fitness: todayIso,
     valid_until: toIso(validUntil),

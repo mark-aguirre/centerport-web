@@ -9,11 +9,14 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * or requires further evaluation.
  */
 public enum RecommendationValue {
-    FIT_FOR_EMPLOYMENT("Fit for Employment"),
-    UNFIT_FOR_EMPLOYMENT("Unfit for Employment"),
-    REQUIRES_FURTHER_EVALUATION("Requires Further Evaluation"),
-    TEMPORARILY_UNFIT("Temporarily Unfit"),
-    FIT_WITH_RESTRICTION("Fit with Restriction");
+    FIT("FIT"),
+    UNFIT("UNFIT"),
+    FIT_TO_WORK("FIT TO WORK"),
+    FIT_WITH_RESTRICTION("FIT w/ RESTRICTION"),
+    FIT_FOR_EMPLOYMENT("FIT FOR EMPLOYMENT"),
+    FIT_FOR_TRAINING("FIT FOR TRAINING"),
+    FIT_FOR_ENROLLMENT("FIT FOR ENROLLMENT"),
+    FIT_FOR_SEA_DUTY("FIT FOR SEA DUTY");
 
     private final String value;
 

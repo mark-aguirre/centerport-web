@@ -9,6 +9,7 @@ import type {
   LandbaseSectionProps,
   PhysicalExplorationValue,
   YesNo,
+  YesNoNa,
 } from "./types";
 
 interface ChoiceOption {
@@ -312,9 +313,10 @@ function FindingRow({ item, data, disabled, onChange }: FindingRowProps) {
   );
 }
 
-function toSelectYesNo(value: YesNo): string {
+function toSelectYesNo(value: YesNoNa): string {
   if (value === "yes") return "Yes";
   if (value === "no") return "No";
+  if (value === "n/a") return "N/A";
   return "";
 }
 
@@ -473,16 +475,16 @@ export default function PhysicalExaminationSection({
               <div className="space-y-2">
                 <div className="grid grid-cols-[24px_1fr] items-center gap-1.5">
                   <span className="text-[11px] font-bold text-primary/70">AD:</span>
-                  <FormSelect label="" value={data.hearing_ad} onChange={(value) => update("hearing_ad", value)} options={["Adequate", "Inadequate"]} size="sm" disabled={disabled} />
+                  <FormSelect label="" value={data.hearing_ad} onChange={(value) => update("hearing_ad", value)} options={["Normal Hearing Acuity", "Mild Hearing Loss", "Moderate Hearing Loss", "Severe Hearing Loss", "N/A"]} size="sm" disabled={disabled} />
                 </div>
                 <div className="grid grid-cols-[24px_1fr] items-center gap-1.5">
                   <span className="text-[11px] font-bold text-primary/70">AS:</span>
-                  <FormSelect label="" value={data.hearing_as} onChange={(value) => update("hearing_as", value)} options={["Adequate", "Inadequate"]} size="sm" disabled={disabled} />
+                  <FormSelect label="" value={data.hearing_as} onChange={(value) => update("hearing_as", value)} options={["Normal Hearing Acuity", "Mild Hearing Loss", "Moderate Hearing Loss", "Severe Hearing Loss", "N/A"]} size="sm" disabled={disabled} />
                 </div>
               </div>
               <div className="space-y-1">
                 <span className="text-sm font-bold text-primary/70">Satisfactory Hearing:</span>
-                <FormSelect label="" value={toSelectYesNo(data.hearing_satisfactory)} onChange={(value) => update("hearing_satisfactory", value.toLowerCase() as YesNo)} options={["Yes", "No"]} size="sm" disabled={disabled} />
+                <FormSelect label="" value={toSelectYesNo(data.hearing_satisfactory)} onChange={(value) => update("hearing_satisfactory", value.toLowerCase() as YesNoNa)} options={["Yes", "No", "N/A"]} size="sm" disabled={disabled} />
               </div>
               <div className="col-span-2 space-y-2 border-t border-primary/10 pt-2">
                 <div className="flex items-center gap-2">

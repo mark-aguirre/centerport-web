@@ -127,6 +127,14 @@ export const navigation: NavigationItem[] = [
     group: "Medical Examination",
   },
   {
+    title: "Overseas Land-Based Workers Medical Certificate",
+    shortTitle: "Landbase",
+    subtitle: "POEA/DMW Medical Examination — Land-Based OFW",
+    href: "/landbase",
+    icon: Building2,
+    group: "Medical Examination",
+  },
+  {
     title: "Laboratory",
     href: "/laboratory",
     icon: FlaskConical,
@@ -146,14 +154,6 @@ export const navigation: NavigationItem[] = [
     subtitle: "Seafarer's Medical Examination — Panama Registry",
     href: "/panama",
     icon: Globe,
-    group: "Medical Examination",
-  },
-  {
-    title: "Overseas Land-Based Workers Medical Certificate",
-    shortTitle: "Landbase",
-    subtitle: "POEA/DMW Medical Examination — Land-Based OFW",
-    href: "/landbase",
-    icon: Building2,
     group: "Medical Examination",
   },
   {

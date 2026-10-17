@@ -44,6 +44,21 @@ const peStatus = (value: string | undefined): string =>
  * day/month/year parts for templates that render each part in a separate box.
  * Any unparseable/empty value yields empty strings for all three parts.
  */
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+] as const;
+
 const splitDate = (
   value: string | undefined,
 ): { day: string; month: string; year: string } => {
@@ -52,7 +67,7 @@ const splitDate = (
   if (Number.isNaN(parsed.getTime())) return { day: "", month: "", year: "" };
   return {
     day: String(parsed.getDate()).padStart(2, "0"),
-    month: String(parsed.getMonth() + 1).padStart(2, "0"),
+    month: MONTH_NAMES[parsed.getMonth()],
     year: String(parsed.getFullYear()),
   };
 };
@@ -76,8 +91,8 @@ export async function buildMlcPayload(data: LandbasePeme): Promise<Record<string
     last_name: data.last_name ?? "",
     first_name: data.first_name ?? "",
     middle_name: data.middle_name ?? "",
-    age: "",
-    birthdate: "",
+    age: data.age ?? "",
+    birthdate: data.birthdate ?? "",
     place_of_birth: data.place_of_birth ?? "",
     nationality: data.nationality ?? "",
     gender: data.gender ?? "",
@@ -85,7 +100,7 @@ export async function buildMlcPayload(data: LandbasePeme): Promise<Record<string
     religion: data.religion ?? "",
     address: data.address ?? "",
     passport_no: data.passport_no ?? "",
-    country_of_destination: "",
+    country_of_destination: data.country_of_destination ?? "",
     position: data.position ?? "",
     employer: data.employer ?? "",
 
@@ -323,7 +338,10 @@ export async function buildMerPayload(data: LandbasePeme): Promise<Record<string
     authorized_physician: data.authorized_physician ?? "",
     medical_certification_no: data.medical_certification_no ?? "",
     nameAndSignatureOfApplication: fullNameOf(data),
-    peme_id: data.peme_id ?? "",
+    // The MER template's "MEDICAL EXAMINATION REPORT NO." field is bound to
+    // `peme_id`, but it should display the Medical Certification No. entered on
+    // the form, so send that value under the `peme_id` key the template reads.
+    peme_id: data.medical_certification_no ?? "",
   };
 }
 
@@ -334,8 +352,9 @@ export async function buildMerPayload(data: LandbasePeme): Promise<Record<string
  * the PrintIO summary template. The patient photo is fetched from the linked
  * seafarer profile and embedded inline as a base64 data URL.
  *
- * NOTE: `age`, `birthdate`, `country_of_destination`, and `suffering` have no
- * corresponding field on the PEME model and are sent as empty strings until a
+ * NOTE: `age`, `birthdate`, and `country_of_destination` are sourced from the
+ * linked seafarer profile (flattened onto the PEME record). `suffering` has no
+ * corresponding field on the PEME model and is sent as an empty string until a
  * data source is available.
  */
 export async function buildSummaryPayload(data: LandbasePeme): Promise<Record<string, string>> {
@@ -346,8 +365,8 @@ export async function buildSummaryPayload(data: LandbasePeme): Promise<Record<st
     last_name: data.last_name ?? "",
     first_name: data.first_name ?? "",
     middle_name: data.middle_name ?? "",
-    age: "",
-    birthdate: "",
+    age: data.age ?? "",
+    birthdate: data.birthdate ?? "",
     place_of_birth: data.place_of_birth ?? "",
     nationality: data.nationality ?? "",
     gender: data.gender ?? "",
@@ -356,7 +375,7 @@ export async function buildSummaryPayload(data: LandbasePeme): Promise<Record<st
     address: data.address ?? "",
     passport_no: data.passport_no ?? "",
     position: data.position ?? "",
-    country_of_destination: "",
+    country_of_destination: data.country_of_destination ?? "",
     employer: data.employer ?? "",
 
     // Assessment results

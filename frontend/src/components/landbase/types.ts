@@ -11,6 +11,9 @@ export type MedicalConditionValue = "yes" | "no" | "";
 /** Questionnaire answer: yes or no */
 export type YesNo = "yes" | "no" | "";
 
+/** Yes/No/N-A answer used by Satisfactory Hearing. */
+export type YesNoNa = "yes" | "no" | "n/a" | "";
+
 /** Normal/abnormal value used by Landbase physical-exploration fields. */
 export type PhysicalExplorationValue = "N" | "A" | "";
 
@@ -59,11 +62,14 @@ export type BloodType = "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" 
  * `@JsonValue` strings exactly (case-sensitive); the API rejects any other value.
  */
 export type RecommendationValue =
-  | "Fit for Employment"
-  | "Unfit for Employment"
-  | "Requires Further Evaluation"
-  | "Temporarily Unfit"
-  | "Fit with Restriction"
+  | "FIT"
+  | "UNFIT"
+  | "FIT TO WORK"
+  | "FIT w/ RESTRICTION"
+  | "FIT FOR EMPLOYMENT"
+  | "FIT FOR TRAINING"
+  | "FIT FOR ENROLLMENT"
+  | "FIT FOR SEA DUTY"
   | "";
 
 /** Full Landbase PEME record */
@@ -160,7 +166,7 @@ export interface LandbasePeme {
   vision_color_adequate: boolean | null;
   hearing_ad: string;
   hearing_as: string;
-  hearing_satisfactory: YesNo;
+  hearing_satisfactory: YesNoNa;
   hearing_right_adequacy: AdequacyValue;
   hearing_left_adequacy: AdequacyValue;
   speech_clarity: AdequacyValue;
