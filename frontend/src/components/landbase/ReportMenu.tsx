@@ -11,11 +11,6 @@ import { buildReportPayload, type ReportSlug } from "@/components/landbase/print
 /** Landbase reports offered by the print dropdown, in display order. */
 const REPORT_OPTIONS: readonly ReportMenuOption[] = [
   {
-    slug: "landbase-mlc",
-    label: "MLC Certificate",
-    description: "Maritime Labour Convention medical certificate",
-  },
-  {
     slug: "landbase-summary",
     label: "Summary Report",
     description: "Results and recommendation overview",
@@ -24,6 +19,11 @@ const REPORT_OPTIONS: readonly ReportMenuOption[] = [
     slug: "landbase-detailed",
     label: "Detailed Report",
     description: "Complete PEME with all sections",
+  },
+  {
+    slug: "landbase-mlc",
+    label: "MLC Certificate",
+    description: "Maritime Labour Convention medical certificate",
   },
   {
     slug: "landbase-mer",

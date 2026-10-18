@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
@@ -79,24 +79,6 @@ const mlcConfig: EntityFormConfig<MlcRecord> = {
 };
 
 // ---------------------------------------------------------------------------
-// Carry-forward personnel defaults
-// ---------------------------------------------------------------------------
-
-type MlcPersonnelDefaults = Pick<
-  MlcRecord,
-  "examining_physician" | "medical_certification_no" | "medical_director"
->;
-
-/** Extracts only the certification personnel fields that carry into the next record. */
-function getPersonnelDefaults(record: MlcRecord): MlcPersonnelDefaults {
-  return {
-    examining_physician: record.examining_physician,
-    medical_certification_no: record.medical_certification_no,
-    medical_director: record.medical_director,
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Public hook & types
 // ---------------------------------------------------------------------------
 
@@ -115,12 +97,12 @@ export interface UseMlcFormResult extends UseEntityFormResult<MlcRecord> {
  * @returns Object with form state, action handlers, and ref for first-field focus
  */
 export function useMlcForm(): UseMlcFormResult {
-  const personnelDefaultsRef = useRef<MlcPersonnelDefaults>(
-    getPersonnelDefaults(EMPTY_MLC)
-  );
-
-  // Assigned Super Admin defaults for the MLC module (Authorized Physician +
-  // Medical Director). These take precedence over carry-forward.
+  // Assigned Super Admin defaults for the MLC module (Examining Physician +
+  // Medical Director). These are the sole source for the signatory fields on a
+  // new record, and the backend only returns ACTIVE personnel — a deactivated
+  // person is never pre-filled. The signatory names are intentionally NOT
+  // carried forward from the previous record, which could resurrect an
+  // inactive person.
   const { entriesRef } = useModuleDefaults("MLC");
 
   const config = useMemo<EntityFormConfig<MlcRecord>>(
@@ -128,9 +110,10 @@ export function useMlcForm(): UseMlcFormResult {
       ...mlcConfig,
       getNewRecordDefaults: () => {
         const assigned = mapEntriesToFields<MlcRecord>(entriesRef.current, {
+          // Medical Certification No. is manual user input on the MLC form,
+          // not the examining physician's license number — only carry the name.
           AUTHORIZED_PHYSICIAN: {
             name: "examining_physician",
-            licenseNo: "medical_certification_no",
           },
           MEDICAL_DIRECTOR: { name: "medical_director" },
         });
@@ -139,7 +122,6 @@ export function useMlcForm(): UseMlcFormResult {
         return {
           ...buildDeclarationNormalDefaults(),
           ...buildFinalRecommendationNormalDefaults(),
-          ...personnelDefaultsRef.current,
           ...assigned,
         };
       },
@@ -148,12 +130,6 @@ export function useMlcForm(): UseMlcFormResult {
   );
 
   const form = useEntityForm(config);
-
-  useEffect(() => {
-    if (form.existingRecord) {
-      personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
-    }
-  }, [form.existingRecord]);
 
   return form;
 }

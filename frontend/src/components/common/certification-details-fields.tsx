@@ -70,15 +70,7 @@ export function CertificationDetailsFields({
   const [directorDialogOpen, setDirectorDialogOpen] = useState(false);
 
   const handleSelectPhysician = (personnel: MedicalPersonnel) => {
-    if (onBatchChange) {
-      onBatchChange({
-        authorizedPhysician: personnel.name,
-        medicalCertificationNo: personnel.license_no,
-      });
-    } else {
-      onChange("authorizedPhysician", personnel.name);
-      onChange("medicalCertificationNo", personnel.license_no);
-    }
+    onChange("authorizedPhysician", personnel.name);
   };
 
   const handleSelectDirector = (personnel: MedicalPersonnel) => {
@@ -181,12 +173,12 @@ export function CertificationDetailsFields({
           label="Medical Certification No."
           value={values.medicalCertificationNo}
           onChange={(v) => onChange("medicalCertificationNo", v)}
-          disabled
+          disabled={disabled}
         />
       </div>
 
       {/* Row 3: Medical Director (search dialog) */}
-      <div>
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-[3fr_1fr]">
         <div className="space-y-0.5">
           <Label className="text-[11px] font-semibold text-primary/60 uppercase tracking-wider">
             Medical Director
@@ -212,6 +204,7 @@ export function CertificationDetailsFields({
             </Button>
           </div>
         </div>
+        <span aria-hidden="true" />
       </div>
 
       {/* Medical Personnel Search Dialogs */}

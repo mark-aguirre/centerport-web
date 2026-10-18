@@ -32,6 +32,9 @@ const panamaConfig: EntityFormConfig<PanamaCertificate> = {
   entityApi: api.entities.PanamaCertificate,
   emptyRecord: EMPTY_CERTIFICATE,
   draftKey: "panama",
+  // When the Panama page opens with a carried-over selected patient who has no
+  // Panama certificate yet, prompt (Yes/No) to create one.
+  promptCreateOnLoad: true,
 
   flattenResponse: (raw) => flattenProfileIntoRecord(raw as RawPanamaResponse),
   stripSystemFields,

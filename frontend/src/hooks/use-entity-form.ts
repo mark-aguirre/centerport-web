@@ -136,6 +136,15 @@ export interface EntityFormConfig<T> {
   getNewRecordDefaults?: () => Partial<T>;
 
   /**
+   * When true, opening the page with a cross-page selected patient who has no
+   * record of this module's type pops the "No {record} found — create one?"
+   * Yes/No prompt (instead of silently showing their personal info on an empty
+   * form). Confirming starts a fresh record; declining leaves the personal info
+   * visible. Defaults to false to preserve the silent behavior of other modules.
+   */
+  promptCreateOnLoad?: boolean;
+
+  /**
    * Stable per-entity key used to persist an in-progress draft so unsaved
    * work survives a page reload (e.g. "landbase", "medical").
    *
@@ -255,6 +264,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     successMessages,
     recordLabel = "record",
     draftKey,
+    promptCreateOnLoad = false,
   } = config;
 
   const searchParams = useSearchParams();
@@ -433,6 +443,19 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
               saveSelectedPatientId(targetProfileId);
               // No record of this type exists to remember as last-state.
               if (draftKey) clearLastRecordId(draftKey);
+              // Ask whether to create a record for this patient now (opt-in per
+              // module). The pending profile is stashed so confirming starts a
+              // fresh record pre-filled with their info (see confirmCreateRecord);
+              // declining leaves the personal info visible on the empty form.
+              if (promptCreateOnLoad) {
+                const name = [profile.first_name, profile.last_name]
+                  .filter(Boolean)
+                  .join(" ")
+                  .trim();
+                pendingCreateProfileRef.current = profile;
+                setCreatePromptName(name);
+                setCreatePromptOpen(true);
+              }
             }
           } catch (error: unknown) {
             console.warn(
@@ -462,7 +485,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     return () => {
       cancelled = true;
     };
-  }, [editId, profileIdParam, entityApi, flattenResponse, getProfileId, getRecordId, fetchProfileRecords, draftKey, recordLabel, buildPersonalData, emptyRecord]);
+  }, [editId, profileIdParam, entityApi, flattenResponse, getProfileId, getRecordId, fetchProfileRecords, draftKey, recordLabel, buildPersonalData, emptyRecord, promptCreateOnLoad]);
 
   // -------------------------------------------------------------------------
   // Draft persistence (survive page reload)

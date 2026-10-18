@@ -184,6 +184,8 @@ export async function buildMerPayload(data: LandbasePeme): Promise<Record<string
     position_applied_for: data.position ?? "",
     country_of_destination: data.country_of_destination ?? "",
     employer_name: data.employer ?? "",
+    xray_no: data.xray_no ?? "",
+    reference_no: data.peme_id ?? "",
 
     photo_url:photoBase64,
     // Past Medical History (read from the medical_history map by exact key)
@@ -444,6 +446,7 @@ export async function buildDetailedPayload(data: LandbasePeme): Promise<Record<s
   return {
     // Identity / personal information
     photo_url: photoBase64,
+    patient_fullname: fullNameOf(data),
     last_name: data.last_name ?? "",
     first_name: data.first_name ?? "",
     middle_name: data.middle_name ?? "",

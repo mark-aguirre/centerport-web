@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
@@ -113,24 +113,6 @@ const landbaseConfig: EntityFormConfig<LandbasePeme> = {
 };
 
 // ---------------------------------------------------------------------------
-// Carry-forward personnel defaults
-// ---------------------------------------------------------------------------
-
-type LandbasePersonnelDefaults = Pick<
-  LandbasePeme,
-  "authorized_physician" | "medical_certification_no" | "medical_director"
->;
-
-/** Extracts only the certification personnel fields that carry into the next PEME. */
-function getPersonnelDefaults(record: LandbasePeme): LandbasePersonnelDefaults {
-  return {
-    authorized_physician: record.authorized_physician,
-    medical_certification_no: record.medical_certification_no,
-    medical_director: record.medical_director,
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Public hook & types
 // ---------------------------------------------------------------------------
 
@@ -158,12 +140,12 @@ export interface UseLandbaseFormResult extends UseEntityFormResult<LandbasePeme>
  * @returns Object with form state, action handlers, and ref for first-field focus
  */
 export function useLandbaseForm(): UseLandbaseFormResult {
-  const personnelDefaultsRef = useRef<LandbasePersonnelDefaults>(
-    getPersonnelDefaults(EMPTY_PEME)
-  );
-
   // Assigned Super Admin defaults for the Landbase module (Authorized Physician
-  // + Medical Director). These take precedence over carry-forward.
+  // + Medical Director). These are the sole source for the signatory fields on
+  // a new record, and the backend only returns ACTIVE personnel — a deactivated
+  // person is never pre-filled. The signatory names are intentionally NOT
+  // carried forward from the previous record, which could resurrect an
+  // inactive person.
   const { entriesRef } = useModuleDefaults("LANDBASE");
 
   const config = useMemo<EntityFormConfig<LandbasePeme>>(
@@ -171,15 +153,15 @@ export function useLandbaseForm(): UseLandbaseFormResult {
       ...landbaseConfig,
       getNewRecordDefaults: () => {
         const assigned = mapEntriesToFields<LandbasePeme>(entriesRef.current, {
+          // Medical Certification No. is manual user input on the Landbase form,
+          // not the authorized physician's license number — only carry the name.
           AUTHORIZED_PHYSICIAN: {
             name: "authorized_physician",
-            licenseNo: "medical_certification_no",
           },
           MEDICAL_DIRECTOR: { name: "medical_director" },
         });
         return {
           ...landbaseConfig.getNewRecordDefaults!(),
-          ...personnelDefaultsRef.current,
           ...assigned,
         };
       },
@@ -188,12 +170,6 @@ export function useLandbaseForm(): UseLandbaseFormResult {
   );
 
   const form = useEntityForm(config);
-
-  useEffect(() => {
-    if (form.existingRecord) {
-      personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
-    }
-  }, [form.existingRecord]);
 
   // Map generic profileRecords to PemeSummary shape for backward compat
   const profilePemes: PemeSummary[] = form.profileRecords.map((r) => ({

@@ -142,7 +142,7 @@ function ClinicalCell({
 }) {
   return (
     <div className={cn("flex items-center gap-2 px-3 py-2", className)}>
-      <span className="shrink-0 text-sm font-bold text-foreground">{label}</span>
+      <span className="w-56 shrink-0 text-sm font-bold text-foreground">{label}</span>
       <Input
         aria-label={label}
         value={value}

@@ -253,33 +253,4 @@ label[for],
 }
 
 /* ------------------------------------------------------------------ */
-/* Landbase PEME — emphasize field values                             */
-/*                                                                    */
-/* Scoped to the Landbase page via the `.landbase-bold-values`        */
-/* wrapper. Makes the actual field *values* (text inputs, textareas,  */
-/* select triggers, autocomplete inputs, and yes/no radio labels)     */
-/* render bold with a subtle highlight so entered data stands out     */
-/* from the surrounding chrome. Labels are left untouched (they are   */
-/* already bold). Toolbar/search inputs live outside the section      */
-/* cards, so this does not affect them.                               */
-/* ------------------------------------------------------------------ */
-.landbase-bold-values :is(input, textarea)[data-slot="input"],
-.landbase-bold-values textarea,
-.landbase-bold-values [data-slot="select-trigger"],
-.landbase-bold-values [data-slot="select-value"] {
-  font-weight: 700;
-  color: var(--primary);
-}
 
-/* Subtle highlight tint behind value fields */
-.landbase-bold-values :is(input, textarea)[data-slot="input"],
-.landbase-bold-values textarea,
-.landbase-bold-values [data-slot="select-trigger"] {
-  background-color: color-mix(in oklch, var(--primary) 6%, white);
-}
-
-/* Yes/No radio option text */
-.landbase-bold-values [role="radiogroup"] span {
-  font-weight: 700;
-  color: var(--primary);
-}

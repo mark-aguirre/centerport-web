@@ -12,6 +12,7 @@
  */
 
 import type { PanamaCertificate } from "@/components/panama/types";
+import { defaultLabResult, defaultOtherResult } from "@/components/panama/constants";
 
 /** Storage keys for the declaration conditions, aligned with PersonalDeclarationSection. */
 const CONDITION_KEYS = [
@@ -226,6 +227,7 @@ export function buildPanamaPayload(data: PanamaCertificate): Record<string, stri
     statement_id_number: data.statement_id_number ?? "",
     statement_witness_name: data.statement_witness_name ?? "",
     statement_release_to_dr: data.statement_release_to_dr ?? "",
+    authorize_physician: (data.physician_name ?? "").split("—")[0].trim(),
     statement_practitioner_id_number: data.statement_practitioner_id_number ?? "",
     statement_practitioner_name: data.statement_practitioner_name ?? "",
     statement_practitioner_signature: data.statement_practitioner_signature ?? "",
@@ -324,9 +326,11 @@ export function buildPanamaPayload(data: PanamaCertificate): Record<string, stri
   }
 
   // Laboratory tests — "true"/"false" checkbox state + normal/abnormal/observations.
+  // Fall back to the same per-key defaults the Diagnostic Tests UI applies when
+  // a test has no stored entry, so an untouched record prints what the form shows.
   const labTests = data.lab_tests ?? {};
   for (const key of LAB_TEST_KEYS) {
-    const test = labTests[key];
+    const test = key in labTests ? labTests[key] : defaultLabResult(key);
     payload[`${key}_checked`] = boolStr(test?.checked ?? (!!test?.normal || !!test?.abnormal));
     payload[`${key}_normal`] = test?.normal ?? "";
     // The template misspells the abnormal field as "abdnormal" for a couple of
@@ -336,10 +340,11 @@ export function buildPanamaPayload(data: PanamaCertificate): Record<string, stri
   }
 
   // Other diagnostic tests (normal/abnormal style) — "true"/"false" checkbox
-  // state plus normal/abnormal/observations.
+  // state plus normal/abnormal/observations. Fall back to the UI's per-key
+  // defaults when there is no stored entry.
   const otherTests = data.lab_other_tests ?? {};
   for (const key of OTHER_TEST_KEYS) {
-    const test = otherTests[key];
+    const test = key in otherTests ? otherTests[key] : defaultOtherResult(key);
     payload[`${key}_checked`] = boolStr(test?.checked);
     payload[`${key}_normal`] = test?.normal ?? "";
     payload[`${key}_abnormal`] = test?.abnormal ?? "";
@@ -349,7 +354,7 @@ export function buildPanamaPayload(data: PanamaCertificate): Record<string, stri
   // Other diagnostic tests (date style) — "true"/"false" checkbox state plus a
   // split performed date and observations, matching the template's field names.
   for (const key of OTHER_TEST_DATE_KEYS) {
-    const test = otherTests[key];
+    const test = key in otherTests ? otherTests[key] : defaultOtherResult(key);
     const { day, month, year } = splitDate(test?.performed_date);
     payload[`${key}_checked`] = boolStr(test?.checked);
     payload[`${key}_performed_date_day`] = day;
@@ -357,6 +362,11 @@ export function buildPanamaPayload(data: PanamaCertificate): Record<string, stri
     payload[`${key}_performed_date_year`] = year;
     payload[`${key}_performed_date_observations`] = test?.observations ?? "";
   }
+
+  // Chest X-ray observations under the template's short key (`chest_xray_ob`),
+  // in addition to the `_performed_date_observations` key emitted above.
+  const chestXray = "chest_xray" in otherTests ? otherTests.chest_xray : defaultOtherResult("chest_xray");
+  payload.chest_xray_ob = chestXray?.observations ?? "";
 
   return payload;
 }

@@ -63,29 +63,60 @@ public class PersonnelAssignmentService {
     /**
      * Resolves the active default signatories for a module.
      *
-     * <p>Only assignments whose personnel are currently active are returned;
-     * an inactive assigned person is treated as "no default" so forms surface
-     * the missing-assignment message rather than silently defaulting to someone
-     * who has been deactivated.
+     * <p>For every role the module allows, a default is resolved in this order:
+     * <ol>
+     *   <li>the explicitly assigned person, when one is configured and currently
+     *       active; otherwise</li>
+     *   <li>a fallback: the first active {@link MedicalPersonnel} holding that
+     *       role (name-ascending for a stable pick).</li>
+     * </ol>
+     *
+     * <p>This lets report forms pre-fill signatory fields from the personnel
+     * directory even when no explicit module assignment has been configured.
+     * Inactive personnel are never used in either step; a role with no active
+     * assignment and no active role-holder simply yields no entry, so the form
+     * leaves that field blank.
      *
      * @param module the module to resolve defaults for
      * @return the resolved defaults (entries may be empty)
      */
     public ModuleDefaultsDto resolveDefaults(PersonnelModule module) {
         List<ModuleDefaultsDto.Entry> entries = new ArrayList<>();
+
+        // Index the module's active explicit assignments by role.
+        java.util.Map<PersonnelRole, MedicalPersonnel> assignedByRole =
+                new java.util.EnumMap<>(PersonnelRole.class);
         for (PersonnelAssignment assignment : repository.findByModule(module)) {
             MedicalPersonnel person = assignment.getPersonnel();
             if (person == null || !Boolean.TRUE.equals(person.getActive())) {
                 continue;
             }
+            assignedByRole.put(assignment.getRole(), person);
+        }
+
+        // Resolve a default for each role the module supports: explicit active
+        // assignment first, then fall back to an active role-holder.
+        for (PersonnelRole role : module.allowedRoles()) {
+            MedicalPersonnel person = assignedByRole.get(role);
+            if (person == null) {
+                person = personnelRepository
+                        .findByRoleAndActiveTrueOrderByNameAsc(role)
+                        .stream()
+                        .findFirst()
+                        .orElse(null);
+            }
+            if (person == null) {
+                continue;
+            }
             entries.add(ModuleDefaultsDto.Entry.builder()
-                    .role(assignment.getRole())
+                    .role(role)
                     .personnelName(person.getName())
                     .personnelLicenseNo(person.getLicenseNo())
                     .personnelTitle(person.getTitle())
                     .signatureUrl(person.getSignatureUrl())
                     .build());
         }
+
         return ModuleDefaultsDto.builder()
                 .module(module)
                 .entries(entries)

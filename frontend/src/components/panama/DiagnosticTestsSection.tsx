@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createFieldUpdater } from "./utils";
+import { defaultLabResult, defaultOtherResult } from "./constants";
 import type { PanamaCertificate, PanamaSectionProps, LabTestResult, OtherLabTestResult } from "./types";
 
 /** Lab test categories with their items */
@@ -65,49 +66,6 @@ const OTHER_TESTS_GROUP_2 = [
   { key: "chest_xray", label: "Chest X-ray", hasDate: true },
   { key: "ekg", label: "EKG (over 50 years)", hasDate: true },
 ];
-
-/**
- * Default result shown for a test that has no stored entry yet: checked, with
- * an "X" in the Normal column. Applied only when the data map has no entry for
- * the test key, so an examiner's explicit edit (including clearing it) is never
- * overridden.
- */
-const DEFAULT_NORMAL_LAB_RESULT: LabTestResult = { checked: true, normal: "X", abnormal: "", observations: "" };
-const DEFAULT_NORMAL_OTHER_RESULT: OtherLabTestResult = { checked: true, normal: "X", abnormal: "", observations: "", performed_date: "" };
-
-/**
- * Lab-test keys that default differently from the usual checked + "X".
- *   - RH Typing: unchecked with "+" in the Normal column.
- *   - GCH (Pregnant): unchecked with "N/A" in the Normal column.
- */
-const SPECIAL_DEFAULT_LAB_RESULTS: Record<string, LabTestResult> = {
-  rh_typing: { checked: false, normal: "+", abnormal: "", observations: "" },
-  gch_pregnant: { checked: false, normal: "N/A", abnormal: "", observations: "" },
-};
-
-/** The default LabTestResult for a lab item with no stored entry yet. */
-function defaultLabResult(key: string): LabTestResult {
-  return SPECIAL_DEFAULT_LAB_RESULTS[key] ?? DEFAULT_NORMAL_LAB_RESULT;
-}
-
-/**
- * "Other test" keys that default differently from the usual checked + "X":
- *   - Breast examination, PAP Test, PSA men: unchecked with "N/A" in Normal.
- *   - Chest X-ray, EKG: date-based rows (no Normal/Abnormal cells shown), so
- *     their Observations column defaults to "NORMAL".
- */
-const SPECIAL_DEFAULT_OTHER_RESULTS: Record<string, OtherLabTestResult> = {
-  breast_examination: { checked: false, normal: "N/A", abnormal: "", observations: "", performed_date: "" },
-  pap_test: { checked: false, normal: "N/A", abnormal: "", observations: "", performed_date: "" },
-  psa_men: { checked: false, normal: "N/A", abnormal: "", observations: "", performed_date: "" },
-  chest_xray: { checked: true, normal: "", abnormal: "", observations: "NORMAL", performed_date: "" },
-  ekg: { checked: true, normal: "", abnormal: "", observations: "NORMAL", performed_date: "" },
-};
-
-/** The default OtherLabTestResult for an other-test item with no stored entry. */
-function defaultOtherResult(key: string): OtherLabTestResult {
-  return SPECIAL_DEFAULT_OTHER_RESULTS[key] ?? DEFAULT_NORMAL_OTHER_RESULT;
-}
 
 /**
  * Visibly boxed input used inside the bordered "Other test" results table, so

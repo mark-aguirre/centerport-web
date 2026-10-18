@@ -389,27 +389,6 @@ const medicalConfig: EntityFormConfig<MedicalExam> = {
 };
 
 // ---------------------------------------------------------------------------
-// Carry-forward personnel defaults
-// ---------------------------------------------------------------------------
-
-type MedicalPersonnelDefaults = Pick<
-  MedicalExam,
-  "authorized_physician" | "medical_director"
->;
-
-/**
- * Extracts only the certification personnel fields that carry into the next
- * exam. Medical Certification No. is intentionally excluded: it is manual user
- * input per exam, not a value carried forward from the previous record.
- */
-function getPersonnelDefaults(record: MedicalExam): MedicalPersonnelDefaults {
-  return {
-    authorized_physician: record.authorized_physician,
-    medical_director: record.medical_director,
-  };
-}
-
-// ---------------------------------------------------------------------------
 // Public hook & types
 // ---------------------------------------------------------------------------
 
@@ -452,12 +431,12 @@ export const PANAMA_SYNC_PROMPT =
  * @returns Object with form state, action handlers, and Panama sync controls
  */
 export function useMedicalForm(): UseMedicalFormResult {
-  const personnelDefaultsRef = useRef<MedicalPersonnelDefaults>(
-    getPersonnelDefaults(EMPTY_EXAM)
-  );
-
   // Assigned Super Admin defaults for the Seabase module (Authorized Physician
-  // + Medical Director). These take precedence over carry-forward.
+  // + Medical Director). These are the sole source for the signatory fields on
+  // a new record, and the backend only returns ACTIVE personnel — a deactivated
+  // person is never pre-filled. The signatory names are intentionally NOT
+  // carried forward from the previous record, which could resurrect an
+  // inactive person.
   const { entriesRef } = useModuleDefaults("SEABASE");
 
   const config = useMemo<EntityFormConfig<MedicalExam>>(
@@ -474,7 +453,6 @@ export function useMedicalForm(): UseMedicalFormResult {
         });
         return {
           ...medicalConfig.getNewRecordDefaults!(),
-          ...personnelDefaultsRef.current,
           ...assigned,
         };
       },
@@ -495,12 +473,6 @@ export function useMedicalForm(): UseMedicalFormResult {
   const [panamaConfirmOpen, setPanamaConfirmOpen] = useState(false);
   const [panamaSyncing, setPanamaSyncing] = useState(false);
   const pendingResolveRef = useRef<((updatePanama: boolean) => void) | null>(null);
-
-  useEffect(() => {
-    if (form.existingRecord) {
-      personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
-    }
-  }, [form.existingRecord]);
 
   // Keep the baseline in step with the persisted record after a save or record
   // switch so subsequent edits diff correctly.
