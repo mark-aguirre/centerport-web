@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { Label } from "@/components/ui/label";
@@ -7,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CELL_INPUT_CLASS } from "./constants";
 import { createFieldUpdater } from "./utils";
 import type { PanamaCertificate, PanamaSectionProps, LabTestResult, OtherLabTestResult } from "./types";
 
@@ -70,6 +70,16 @@ const EMPTY_LAB_RESULT: LabTestResult = { checked: false, normal: "", abnormal: 
 const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abnormal: "", observations: "", performed_date: "" };
 
 /**
+ * Visibly boxed input used inside the bordered "Other test" results table, so
+ * each value reads as a distinct input field (a bordered, rounded box inset in
+ * the cell), consistent with the Sight and Hearing tables.
+ */
+const BOXED_CELL_INPUT_CLASS = cn(
+  "h-7 w-full min-w-0 bg-white text-xs border border-primary/20 rounded-md px-2",
+  "focus:outline-none focus-visible:border-primary dark:bg-input/30"
+);
+
+/**
  * Build the "normal" default values for the Diagnostic Tests section
  * (Sections V & VI). Single source of truth shared by the Set Normal button
  * and the auto-apply-on-new-record flow.
@@ -125,7 +135,7 @@ function ResultInput({
     <Input
       value={value}
       onChange={(e) => onValueChange(e.target.value)}
-      className={cn(CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+      className={cn(BOXED_CELL_INPUT_CLASS, disabled && "pointer-events-none")}
       aria-label={`${label} - ${field}`}
       readOnly={disabled}
     />
@@ -186,208 +196,272 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
 
       {/* Lab table — hidden in otherTestsOnly mode */}
       {!otherTestsOnly && (<>
-      {/* Laboratory Test heading */}
-      <h3 className="text-xs font-bold text-primary uppercase tracking-widest text-center mb-3">
-        Laboratory Test
-      </h3>
+      {/* Mandatory test note — above the table, as on the official form */}
+      <p className="mb-2 text-sm italic text-foreground/80">*Mandatory test</p>
 
-      {/* Table header */}
-      <div className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 mb-1 px-1">
-        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider">Category</span>
-        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider" />
-        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Normal</span>
-        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Abnormal</span>
-        <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider">Observations</span>
+      {/* Laboratory Test — bordered table matching the official layout:
+          LABORATORY TEST band, then CATEGORY | checkbox | RESULTS
+          (Normal | Abnormal) | Observations, with full-width category bands. */}
+      <div className="mb-4 overflow-x-auto">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr>
+              <th className="border border-primary/30 bg-primary/12 p-1.5 text-center text-xs font-bold uppercase tracking-wider text-primary" colSpan={5}>
+                Laboratory Test
+              </th>
+            </tr>
+            <tr>
+              <th className="border border-primary/30 bg-primary/5 p-1.5 text-left text-xs font-bold uppercase tracking-wider text-foreground/80" rowSpan={2}>
+                Category
+              </th>
+              <th className="w-10 border border-primary/30 bg-primary/5 p-1.5" rowSpan={2} />
+              <th className="border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase tracking-wider text-foreground/80" colSpan={2}>
+                Results
+              </th>
+              <th className="border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase tracking-wider text-foreground/80" rowSpan={2}>
+                Observations
+              </th>
+            </tr>
+            <tr>
+              <th className="w-28 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase text-foreground/80">
+                Normal
+              </th>
+              <th className="w-28 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase text-foreground/80">
+                Abnormal
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {categoriesToRender.map((cat) => (
+              <Fragment key={cat.category}>
+                {/* Category band row — spans the full table width */}
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="border border-primary/30 bg-primary/5 px-2 py-1 text-sm font-bold uppercase tracking-wide text-primary"
+                  >
+                    {cat.category}
+                  </td>
+                </tr>
+
+                {/* Category item rows */}
+                {cat.items.map((item) => {
+                  const result = data.lab_tests[item.key] || EMPTY_LAB_RESULT;
+                  return (
+                    <tr key={item.key}>
+                      <td className="border border-primary/30 py-1.5 pl-6 pr-1.5 text-sm text-foreground">
+                        {item.label}
+                      </td>
+                      <td className="border border-primary/30 p-1.5 text-center">
+                        <input
+                          type="checkbox"
+                          checked={result.checked ?? (!!result.normal || !!result.abnormal)}
+                          onChange={(e) => updateLabTest(item.key, "checked", e.target.checked)}
+                          className={cn("h-4 w-4 rounded accent-primary", disabled && "pointer-events-none")}
+                          aria-label={item.label}
+                          tabIndex={disabled ? -1 : undefined}
+                          disabled={disabled}
+                        />
+                      </td>
+                      <td className="border border-primary/30 p-1">
+                        <ResultInput
+                          label={item.label}
+                          field="Normal"
+                          value={result.normal}
+                          onValueChange={(v) => updateLabTest(item.key, "normal", v)}
+                          disabled={disabled}
+                        />
+                      </td>
+                      <td className="border border-primary/30 p-1">
+                        <ResultInput
+                          label={item.label}
+                          field="Abnormal"
+                          value={result.abnormal}
+                          onValueChange={(v) => updateLabTest(item.key, "abnormal", v)}
+                          disabled={disabled}
+                        />
+                      </td>
+                      <td className="border border-primary/30 p-1">
+                        <ResultInput
+                          label={item.label}
+                          field="Observations"
+                          value={result.observations}
+                          onValueChange={(v) => updateLabTest(item.key, "observations", v)}
+                          disabled={disabled}
+                        />
+                      </td>
+                    </tr>
+                  );
+                })}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      {/* Lab categories */}
-      <div className="space-y-3 mb-4">
-        {categoriesToRender.map((cat) => (
-          <div key={cat.category}>
-            {/* Category header */}
-            <div className="bg-primary/5 px-2 py-1 rounded mb-1">
-              <span className="text-sm font-bold text-primary uppercase tracking-wide">
-                {cat.category}
-              </span>
-            </div>
-
-            {/* Category items */}
-            {cat.items.map((item) => {
-              const result = data.lab_tests[item.key] || EMPTY_LAB_RESULT;
-              return (
-                <div key={item.key} className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-                  <span className="text-sm text-foreground pl-2">{item.label}</span>
-                  <div className="flex justify-center">
-                    <input
-                      type="checkbox"
-                      checked={result.checked ?? (!!result.normal || !!result.abnormal)}
-                      onChange={(e) => updateLabTest(item.key, "checked", e.target.checked)}
-                      className={cn("w-4 h-4 accent-primary rounded", disabled && "pointer-events-none")}
-                      aria-label={item.label}
-                      tabIndex={disabled ? -1 : undefined}
-                      disabled={disabled}
-                    />
-                  </div>
-                  <ResultInput
-                    label={item.label}
-                    field="Normal"
-                    value={result.normal}
-                    onValueChange={(v) => updateLabTest(item.key, "normal", v)}
-                    disabled={disabled}
-                  />
-                  <ResultInput
-                    label={item.label}
-                    field="Abnormal"
-                    value={result.abnormal}
-                    onValueChange={(v) => updateLabTest(item.key, "abnormal", v)}
-                    disabled={disabled}
-                  />
-                  <ResultInput
-                    label={item.label}
-                    field="Observations"
-                    value={result.observations}
-                    onValueChange={(v) => updateLabTest(item.key, "observations", v)}
-                    disabled={disabled}
-                  />
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-
-      {/* Mandatory test note */}
-      <p className="text-sm text-foreground/80 italic mb-4">*Mandatory test</p>
       </>)}
 
       {/* Other Tests section — hidden in upToAlcohol mode */}
       {!upToAlcohol && (<>
-      {/* Other Tests section */}
-      <div className="border-t border-primary/10 pt-3 mb-4">
-        <h4 className="text-sm font-bold text-foreground/80 mb-2">Other test:</h4>
+      {/* Other Tests section — bordered table matching the official layout:
+          Other test | checkbox | RESULTS (Normal | Anormal) | Observations. */}
+      <div className="border-t border-primary/10 pt-3 mb-4 overflow-x-auto">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr>
+              <th className="border border-primary/30 bg-primary/5 p-1.5 text-left text-xs font-bold text-foreground/80">
+                Other test:
+              </th>
+              <th className="w-10 border border-primary/30 bg-primary/5 p-1.5" />
+              <th className="border border-primary/30 bg-primary/5 p-1.5 text-center text-xs font-bold uppercase tracking-wider text-foreground/80" colSpan={2}>
+                Results
+              </th>
+              <th className="border border-primary/30 bg-primary/5 p-1.5 text-center text-xs font-bold uppercase tracking-wider text-foreground/80" rowSpan={2}>
+                Observations
+              </th>
+            </tr>
+            <tr>
+              <th className="border border-primary/30 bg-primary/5 p-1.5" />
+              <th className="border border-primary/30 bg-primary/5 p-1.5" />
+              <th className="w-28 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase text-foreground/80">
+                Normal
+              </th>
+              <th className="w-28 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase text-foreground/80">
+                Anormal
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {/* Group 1: Breast examination & PAP Test */}
+            {OTHER_TESTS_GROUP_1.map((item) => {
+              const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
+              return (
+                <tr key={item.key}>
+                  <td className="border border-primary/30 py-1.5 pl-6 pr-1.5 text-sm text-foreground whitespace-nowrap">
+                    {item.label}
+                  </td>
+                  <td className="border border-primary/30 p-1.5 text-center">
+                    <input
+                      type="checkbox"
+                      checked={result.checked}
+                      onChange={(e) => updateOtherTest(item.key, "checked", e.target.checked)}
+                      className={cn("h-4 w-4 rounded accent-primary", disabled && "pointer-events-none")}
+                      aria-label={item.label}
+                      tabIndex={disabled ? -1 : undefined}
+                      disabled={disabled}
+                    />
+                  </td>
+                  <td className="border border-primary/30 p-1">
+                    <ResultInput
+                      label={item.label}
+                      field="Normal"
+                      value={result.normal}
+                      onValueChange={(v) => updateOtherTest(item.key, "normal", v)}
+                      disabled={disabled}
+                    />
+                  </td>
+                  <td className="border border-primary/30 p-1">
+                    <ResultInput
+                      label={item.label}
+                      field="Abnormal"
+                      value={result.abnormal}
+                      onValueChange={(v) => updateOtherTest(item.key, "abnormal", v)}
+                      disabled={disabled}
+                    />
+                  </td>
+                  <td className="border border-primary/30 p-1">
+                    <ResultInput
+                      label={item.label}
+                      field="Observations"
+                      value={result.observations}
+                      onValueChange={(v) => updateOtherTest(item.key, "observations", v)}
+                      disabled={disabled}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
 
-        {/* Table header */}
-        <div className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 mb-1 px-1">
-          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider" />
-          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider" />
-          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Normal</span>
-          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">Anormal</span>
-          <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider">Observations</span>
-        </div>
+            {/* Spacer row between the two groups (matches the gap in the form) */}
+            <tr aria-hidden="true">
+              <td className="border border-primary/30 p-1.5">&nbsp;</td>
+              <td className="border border-primary/30 p-1.5" />
+              <td className="border border-primary/30 p-1.5" />
+              <td className="border border-primary/30 p-1.5" />
+              <td className="border border-primary/30 p-1.5" />
+            </tr>
 
-        {/* Group 1: Breast examination & PAP Test */}
-        {OTHER_TESTS_GROUP_1.map((item) => {
-          const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
-          return (
-            <div key={item.key} className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-              <span className="text-sm text-foreground pl-2">{item.label}</span>
-              <div className="flex justify-center">
-                <input
-                  type="checkbox"
-                  checked={result.checked}
-                  onChange={(e) => updateOtherTest(item.key, "checked", e.target.checked)}
-                  className="w-4 h-4 accent-primary rounded"
-                  aria-label={item.label}
-                  tabIndex={disabled ? -1 : undefined}
-                  disabled={disabled}
-                />
-              </div>
-              <ResultInput
-                label={item.label}
-                field="Normal"
-                value={result.normal}
-                onValueChange={(v) => updateOtherTest(item.key, "normal", v)}
-                disabled={disabled}
-              />
-              <ResultInput
-                label={item.label}
-                field="Abnormal"
-                value={result.abnormal}
-                onValueChange={(v) => updateOtherTest(item.key, "abnormal", v)}
-                disabled={disabled}
-              />
-              <ResultInput
-                label={item.label}
-                field="Observations"
-                value={result.observations}
-                onValueChange={(v) => updateOtherTest(item.key, "observations", v)}
-                disabled={disabled}
-              />
-            </div>
-          );
-        })}
-
-        {/* Separator between groups */}
-        <div className="my-2 border-t border-muted/30" />
-
-        {/* Group 2: PSA, Chest X-ray, EKG — with optional date fields */}
-        {OTHER_TESTS_GROUP_2.map((item) => {
-          const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
-          return (
-            <div key={item.key} className="grid grid-cols-[2fr_0.5fr_1fr_1fr_3fr] gap-1 items-center py-1 px-1 border-b border-muted/20">
-              <span className="text-sm text-foreground pl-2">{item.label}</span>
-              <div className="flex justify-center">
-                <input
-                  type="checkbox"
-                  checked={result.checked}
-                  onChange={(e) => updateOtherTest(item.key, "checked", e.target.checked)}
-                  className={cn("w-4 h-4 accent-primary rounded", disabled && "pointer-events-none")}
-                  aria-label={item.label}
-                  tabIndex={disabled ? -1 : undefined}
-                  disabled={disabled}
-                />
-              </div>
-              {item.hasDate ? (
-                <>
-                  <div className="col-span-2">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-foreground/80 whitespace-nowrap">Performed (dd/mm/yyyy):</span>
-                      <Input
-                        type="date"
-                        value={result.performed_date || ""}
-                        onChange={(e) => updateOtherTest(item.key, "performed_date", e.target.value)}
-                        className={cn(CELL_INPUT_CLASS, "flex-1", disabled && "pointer-events-none")}
-                        aria-label={`${item.label} - Performed date`}
-                        readOnly={disabled}
-                      />
-                    </div>
-                  </div>
-                  <ResultInput
-                    label={item.label}
-                    field="Observations"
-                    value={result.observations}
-                    onValueChange={(v) => updateOtherTest(item.key, "observations", v)}
-                    disabled={disabled}
-                  />
-                </>
-              ) : (
-                <>
-                  <ResultInput
-                    label={item.label}
-                    field="Normal"
-                    value={result.normal}
-                    onValueChange={(v) => updateOtherTest(item.key, "normal", v)}
-                    disabled={disabled}
-                  />
-                  <ResultInput
-                    label={item.label}
-                    field="Abnormal"
-                    value={result.abnormal}
-                    onValueChange={(v) => updateOtherTest(item.key, "abnormal", v)}
-                    disabled={disabled}
-                  />
-                  <ResultInput
-                    label={item.label}
-                    field="Observations"
-                    value={result.observations}
-                    onValueChange={(v) => updateOtherTest(item.key, "observations", v)}
-                    disabled={disabled}
-                  />
-                </>
-              )}
-            </div>
-          );
-        })}
+            {/* Group 2: PSA, Chest X-ray, EKG — date tests span the results cols */}
+            {OTHER_TESTS_GROUP_2.map((item) => {
+              const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
+              return (
+                <tr key={item.key}>
+                  <td className="border border-primary/30 py-1.5 pl-6 pr-1.5 text-sm text-foreground whitespace-nowrap">
+                    {item.label}
+                  </td>
+                  <td className="border border-primary/30 p-1.5 text-center">
+                    <input
+                      type="checkbox"
+                      checked={result.checked}
+                      onChange={(e) => updateOtherTest(item.key, "checked", e.target.checked)}
+                      className={cn("h-4 w-4 rounded accent-primary", disabled && "pointer-events-none")}
+                      aria-label={item.label}
+                      tabIndex={disabled ? -1 : undefined}
+                      disabled={disabled}
+                    />
+                  </td>
+                  {item.hasDate ? (
+                    <td className="border border-primary/30 p-1.5" colSpan={2}>
+                      <div className="flex items-center gap-2">
+                        <span className="whitespace-nowrap text-xs text-foreground/80">
+                          Performed (day /month /year):
+                        </span>
+                        <Input
+                          type="date"
+                          value={result.performed_date || ""}
+                          onChange={(e) => updateOtherTest(item.key, "performed_date", e.target.value)}
+                          className={cn(BOXED_CELL_INPUT_CLASS, "flex-1", disabled && "pointer-events-none")}
+                          aria-label={`${item.label} - Performed date`}
+                          readOnly={disabled}
+                          tabIndex={disabled ? -1 : undefined}
+                        />
+                      </div>
+                    </td>
+                  ) : (
+                    <>
+                      <td className="border border-primary/30 p-1">
+                        <ResultInput
+                          label={item.label}
+                          field="Normal"
+                          value={result.normal}
+                          onValueChange={(v) => updateOtherTest(item.key, "normal", v)}
+                          disabled={disabled}
+                        />
+                      </td>
+                      <td className="border border-primary/30 p-1">
+                        <ResultInput
+                          label={item.label}
+                          field="Abnormal"
+                          value={result.abnormal}
+                          onValueChange={(v) => updateOtherTest(item.key, "abnormal", v)}
+                          disabled={disabled}
+                        />
+                      </td>
+                    </>
+                  )}
+                  <td className="border border-primary/30 p-1">
+                    <ResultInput
+                      label={item.label}
+                      field="Observations"
+                      value={result.observations}
+                      onValueChange={(v) => updateOtherTest(item.key, "observations", v)}
+                      disabled={disabled}
+                    />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       {/* VI. Other Diagnostic Tests and Results */}

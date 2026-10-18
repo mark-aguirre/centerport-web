@@ -1,13 +1,11 @@
 "use client";
 
 import { SectionHeader } from "@/components/common/section-header";
-import { FormField } from "@/components/common/form-field";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Stethoscope } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { CELL_INPUT_CLASS, RADIO_OPTION_LABEL_CLASS } from "./constants";
 import { createFieldUpdater } from "./utils";
 import type { PanamaSectionProps, PanamaCertificate, PhysicalExplorationValue } from "./types";
 
@@ -20,7 +18,13 @@ import type { PanamaSectionProps, PanamaCertificate, PhysicalExplorationValue } 
  */
 type ExplorationItem = { key: string; label: string };
 
-/** Physical exploration items — Column 1 */
+/**
+ * Physical exploration items — Column 1 (left group).
+ *
+ * `key` values are kept stable (they are the persisted JSON map keys and are
+ * referenced by the Seabase sync); only display labels/ordering follow the
+ * official certificate layout.
+ */
 const EXPLORATION_COL_1: ExplorationItem[] = [
   { key: "head", label: "Head" },
   { key: "mouth", label: "Mouth" },
@@ -31,32 +35,42 @@ const EXPLORATION_COL_1: ExplorationItem[] = [
   { key: "tympanic_membrane", label: "Tympanic Membrane" },
   { key: "eyes", label: "Eyes" },
   { key: "pupils", label: "Pupils" },
-  { key: "ophthalmoscopy", label: "Ophthalmoscopy" },
+  { key: "ophthalmoscopy", label: "Ofthalmoscopy" },
   { key: "eye_movement", label: "Eye movement" },
   { key: "lungs", label: "Lungs" },
-  { key: "chest", label: "Chest" },
-  { key: "breast_examination", label: "Breast examination" },
+  { key: "chest", label: "Chest cavity" },
   { key: "heart", label: "Heart" },
 ];
 
-/** Physical exploration items — Column 2 */
+/** Physical exploration items — Column 2 (right group) */
 const EXPLORATION_COL_2: ExplorationItem[] = [
   { key: "skin", label: "Skin" },
   { key: "varicose_veins", label: "Varicose veins" },
-  { key: "vascular_incl_pedal", label: "Vascular (inc. Pedal)" },
+  { key: "vascular_incl_pedal", label: "Vascular (inc. Pedal pulses)" },
   { key: "abdomen_and_viscera", label: "Abdomen and viscera" },
   { key: "hernias", label: "Hernias" },
   { key: "anus_not_rectal_exam", label: "Anus (not rectal exam)" },
   { key: "gu_system", label: "G-U system" },
-  { key: "upper_and_lower", label: "Upper and lower" },
-  { key: "spine_cervical_thoracic_lumbar", label: "Spine (Cervical, Thoracic and Lumbar)" },
+  { key: "upper_and_lower", label: "Upper and lower extremities" },
+  { key: "spine_cervical_thoracic_lumbar", label: "Spine (Cervical,Thoracic and Lumbar)" },
   { key: "neurologic_full_brief", label: "Neurologic (full brief)" },
   { key: "psychiatric", label: "Psychiatric" },
   { key: "general_appearance", label: "General appearance" },
+  { key: "breast_examination", label: "Breast examination" },
 ];
 
 /** Hearing frequency columns */
 const HEARING_FREQUENCIES = ["500", "1000", "2000", "3000", "4000", "6000"];
+
+/**
+ * Format a hearing frequency column header, e.g. "1000" -> "1,000 Hz".
+ * Adds a thousands separator to match the official certificate labels.
+ */
+function formatFrequencyLabel(freq: string): string {
+  const n = Number(freq);
+  const withSeparator = Number.isFinite(n) ? n.toLocaleString("en-US") : freq;
+  return `${withSeparator} Hz`;
+}
 
 /**
  * Build the "normal" default values for the Medical Examination section
@@ -94,45 +108,53 @@ export function buildExaminationNormalDefaults(
 }
 
 /**
- * NRA (Normal/Abnormal) radio group for physical exploration rows.
+ * Visibly boxed input used inside the Sight (acuity + visual fields) and
+ * Hearing table cells, so each value reads as a distinct input field (a
+ * bordered, rounded box inset in the cell).
  */
-function NRARadio({
-  name,
+const BOXED_CELL_INPUT_CLASS = cn(
+  "h-7 w-full min-w-0 bg-white text-xs border border-primary/20 rounded-md px-2",
+  "focus:outline-none focus-visible:border-primary dark:bg-input/30"
+);
+
+/**
+ * A single labelled cell in the Clinical Data bordered table.
+ *
+ * Renders the field label inline on the left and a borderless input on the
+ * right so the surrounding table borders define the grid (matching the
+ * official certificate layout). Border classes between cells are supplied by
+ * the caller via `className`.
+ */
+function ClinicalCell({
+  label,
+  field,
   value,
-  onChange,
-  ariaLabel,
+  onUpdate,
   disabled,
+  className,
 }: {
-  name: string;
-  value: PhysicalExplorationValue;
-  onChange: (v: PhysicalExplorationValue) => void;
-  ariaLabel: string;
+  label: string;
+  field: keyof PanamaCertificate;
+  value: string;
+  onUpdate: (field: keyof PanamaCertificate, value: string) => void;
   disabled?: boolean;
+  className?: string;
 }) {
   return (
-    <div className={cn("flex items-center gap-6 shrink-0", disabled && "pointer-events-none")} role="radiogroup" aria-label={ariaLabel}>
-      <label className={RADIO_OPTION_LABEL_CLASS}>
-        <input
-          type="checkbox"
-          name={name}
-          checked={value === "N"}
-          onChange={() => onChange(value === "N" ? "" : "N")}
-          className="w-4 h-4 rounded accent-primary"
-          aria-label={`${ariaLabel} - Normal`}
-          tabIndex={disabled ? -1 : undefined}
-        />
-      </label>
-      <label className={RADIO_OPTION_LABEL_CLASS}>
-        <input
-          type="checkbox"
-          name={name}
-          checked={value === "A"}
-          onChange={() => onChange(value === "A" ? "" : "A")}
-          className="w-4 h-4 rounded accent-primary"
-          aria-label={`${ariaLabel} - Abnormal`}
-          tabIndex={disabled ? -1 : undefined}
-        />
-      </label>
+    <div className={cn("flex items-center gap-2 px-3 py-2", className)}>
+      <span className="shrink-0 text-sm font-bold text-foreground">{label}</span>
+      <Input
+        aria-label={label}
+        value={value}
+        onChange={(event) => onUpdate(field, event.target.value)}
+        className={cn(
+          "h-8 min-w-0 flex-1 bg-white text-sm border border-primary/20 rounded-md px-2",
+          "focus:outline-none focus-visible:border-primary dark:bg-input/30",
+          disabled && "pointer-events-none"
+        )}
+        readOnly={disabled}
+        tabIndex={disabled ? -1 : undefined}
+      />
     </div>
   );
 }
@@ -162,6 +184,47 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
     onChange({ ...data, physical_exploration: updated });
   };
 
+  /**
+   * Render the three cells (label, Normal checkbox, Abnormal checkbox) for one
+   * physical-exploration item. When `item` is undefined (the right group has
+   * fewer rows than the left), render empty bordered cells so the grid stays
+   * aligned.
+   */
+  const renderExplorationCells = (item: ExplorationItem | undefined) => {
+    if (!item) {
+      return (
+        <>
+          <td className="border border-primary/30 p-1.5" />
+          <td className="border border-primary/30 p-1.5" />
+          <td className="border border-primary/30 p-1.5" />
+        </>
+      );
+    }
+    const currentValue = (data.physical_exploration[item.key] || "") as PhysicalExplorationValue;
+    const toggle = (answer: PhysicalExplorationValue) =>
+      updateExploration(item.key, currentValue === answer ? "" : answer);
+    return (
+      <>
+        <td className="border border-primary/30 p-1.5 text-sm text-foreground">
+          {item.label}
+        </td>
+        {(["N", "A"] as const).map((answer) => (
+          <td key={answer} className="border border-primary/30 p-1.5 text-center">
+            <input
+              type="checkbox"
+              name={`panama_pe_${item.key}`}
+              checked={currentValue === answer}
+              onChange={() => toggle(answer)}
+              className={cn("h-4 w-4 rounded accent-primary", disabled && "pointer-events-none")}
+              aria-label={`${item.label} - ${answer === "N" ? "Normal" : "Abnormal"}`}
+              tabIndex={disabled ? -1 : undefined}
+            />
+          </td>
+        ))}
+      </>
+    );
+  };
+
   return (
     <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
       <SectionHeader
@@ -177,73 +240,84 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
           <span className="lowercase">i.</span> Clinical Data
         </h3>
 
-        <div className="space-y-2">
-          {/* Row 1: Height, Weight */}
-          <div className="grid grid-cols-2 gap-2">
-            <FormField
-              label="Height (cm)"
+        {/* Bordered table: labelled cells, two per row (BMI and SpO2 span
+            the full width) to match the official certificate layout. */}
+        <div className="overflow-hidden rounded-md border border-primary/30">
+          {/* Row 1: Height | Weight */}
+          <div className="grid grid-cols-1 border-b border-primary/30 sm:grid-cols-2">
+            <ClinicalCell
+              label="Height (m/cm):"
+              field="height_cm"
               value={data.height_cm}
-              onChange={(v) => update("height_cm", v)}
+              onUpdate={update}
               disabled={disabled}
+              className="border-b border-primary/30 sm:border-b-0 sm:border-r"
             />
-            <FormField
-              label="Weight (Kg)"
+            <ClinicalCell
+              label="Weight (Kg):"
+              field="weight_kg"
               value={data.weight_kg}
-              onChange={(v) => update("weight_kg", v)}
+              onUpdate={update}
               disabled={disabled}
             />
           </div>
 
-          {/* Row 2: BMI */}
-          <div className="grid grid-cols-2 gap-2">
-            <FormField
-              label="Body Mass Index (BMI)"
+          {/* Row 2: BMI (full width) */}
+          <div className="border-b border-primary/30">
+            <ClinicalCell
+              label="Body Mass Index (BMI):"
+              field="bmi"
               value={data.bmi}
-              onChange={(v) => update("bmi", v)}
+              onUpdate={update}
               disabled={disabled}
             />
-            <div />
           </div>
 
-          {/* Row 3: SpO2 */}
-          <div className="grid grid-cols-2 gap-2">
-            <FormField
-              label="Oxygen Saturation (SpO2)"
+          {/* Row 3: SpO2 (full width) */}
+          <div className="border-b border-primary/30">
+            <ClinicalCell
+              label="Oxygen Saturation (SpO2):"
+              field="oxygen_saturation"
               value={data.oxygen_saturation}
-              onChange={(v) => update("oxygen_saturation", v)}
+              onUpdate={update}
               disabled={disabled}
             />
-            <div />
           </div>
 
-          {/* Row 4: Heart rate, Respiratory rate */}
-          <div className="grid grid-cols-2 gap-2">
-            <FormField
-              label="Heart rate (minute)"
+          {/* Row 4: Heart Rate | Respiratory Rate */}
+          <div className="grid grid-cols-1 border-b border-primary/30 sm:grid-cols-2">
+            <ClinicalCell
+              label="Heart Rate (minute):"
+              field="heart_rate"
               value={data.heart_rate}
-              onChange={(v) => update("heart_rate", v)}
+              onUpdate={update}
               disabled={disabled}
+              className="border-b border-primary/30 sm:border-b-0 sm:border-r"
             />
-            <FormField
-              label="Respiratory Rate (minute)"
+            <ClinicalCell
+              label="Respiratory Rate (minute):"
+              field="respiratory_rate"
               value={data.respiratory_rate}
-              onChange={(v) => update("respiratory_rate", v)}
+              onUpdate={update}
               disabled={disabled}
             />
           </div>
 
-          {/* Row 5: Blood Pressure */}
-          <div className="grid grid-cols-2 gap-2">
-            <FormField
-              label="Blood pressure Systolic (mmHg)"
+          {/* Row 5: Systolic | Diastolic */}
+          <div className="grid grid-cols-1 sm:grid-cols-2">
+            <ClinicalCell
+              label="Systolic Blood Pressure (mm Hg):"
+              field="blood_pressure_systolic"
               value={data.blood_pressure_systolic}
-              onChange={(v) => update("blood_pressure_systolic", v)}
+              onUpdate={update}
               disabled={disabled}
+              className="border-b border-primary/30 sm:border-b-0 sm:border-r"
             />
-            <FormField
-              label="Diastolic (mmHg)"
+            <ClinicalCell
+              label="Diastolic (mm/Hg):"
+              field="blood_pressure_diastolic"
               value={data.blood_pressure_diastolic}
-              onChange={(v) => update("blood_pressure_diastolic", v)}
+              onUpdate={update}
               disabled={disabled}
             />
           </div>
@@ -256,156 +330,162 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
           <span className="lowercase">ii.</span> Sight
         </h3>
 
-        {/* Glasses/contact question */}
-        <div className="mb-3">
-          <FormField
-            label="Use of glasses or contact lenses: Yes/No (if yes, specify which type and for what purpose)"
+        {/* Glasses/contact question — sentence-case label on its own line,
+            matching the official certificate wording. */}
+        <div className="mb-3 space-y-1">
+          <label
+            htmlFor="panama-sight-glasses"
+            className="block text-sm text-foreground"
+          >
+            Use of glasses or contact lenses: Yes/No (if yes, specify which type and for what purpose)
+          </label>
+          <Input
+            id="panama-sight-glasses"
             value={data.sight_glasses_contact}
-            onChange={(v) => update("sight_glasses_contact", v)}
-            disabled={disabled}
+            onChange={(event) => update("sight_glasses_contact", event.target.value)}
+            className={cn(
+              "h-8 w-full bg-white text-sm border border-primary/20 rounded-md px-2",
+              "focus:outline-none focus-visible:border-primary dark:bg-input/30",
+              disabled && "pointer-events-none"
+            )}
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
           />
         </div>
 
         {/* Visual Acuity + Visual Fields (side by side) */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-3 items-start">
+        <div className="mb-3 flex flex-col items-start gap-4 lg:flex-row">
         {/* Visual Acuity Table */}
-        <div className="min-w-0 max-w-full">
-        <Label className="block text-sm font-bold text-foreground/80 uppercase tracking-wider mb-1">
-          Visual acuity
-        </Label>
-        <div className="overflow-x-auto">
+        <div className="min-w-0 max-w-full overflow-x-auto">
           <table className="border-collapse text-xs">
             <thead>
               <tr>
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-left" rowSpan={2} />
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary" colSpan={3}>
+                <th className="border border-primary/30 bg-primary/12 p-1.5 text-left" rowSpan={3} />
+                <th className="border border-primary/30 bg-primary/12 p-1.5 text-center text-xs font-bold text-primary" colSpan={6}>
+                  Visual acuity
+                </th>
+              </tr>
+              <tr>
+                <th className="border border-primary/30 bg-primary/12 p-1.5 text-center text-xs font-bold text-primary" colSpan={3}>
                   Unaided
                 </th>
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary" colSpan={2}>
+                <th className="border border-primary/30 bg-primary/12 p-1.5 text-center text-xs font-bold text-primary" colSpan={3}>
                   Aided
                 </th>
               </tr>
               <tr>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Right Eye</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Left Eye</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Binocular</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Right Eye</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Left Eye</th>
+                {["Right eye", "Left eye", "Binocular", "Right eye", "Left eye", "Binocular"].map(
+                  (head, idx) => (
+                    <th
+                      key={`${head}-${idx}`}
+                      className="border border-primary/30 bg-primary/5 p-1 text-center text-xs text-foreground/80"
+                    >
+                      {head}
+                    </th>
+                  )
+                )}
               </tr>
             </thead>
             <tbody>
-              {/* Distant row */}
+              {(
+                [
+                  {
+                    label: "Distant",
+                    cells: [
+                      "sight_unaided_distant_right",
+                      "sight_unaided_distant_left",
+                      "sight_unaided_distant_binocular",
+                      "sight_aided_distant_right",
+                      "sight_aided_distant_left",
+                      "sight_aided_distant_binocular",
+                    ] as const,
+                  },
+                  {
+                    label: "Short distance",
+                    cells: [
+                      "sight_unaided_short_right",
+                      "sight_unaided_short_left",
+                      "sight_unaided_short_binocular",
+                      "sight_aided_short_right",
+                      "sight_aided_short_left",
+                      "sight_aided_short_binocular",
+                    ] as const,
+                  },
+                ]
+              ).map(({ label, cells }) => (
+                <tr key={label}>
+                  <td className="border border-primary/30 p-1.5 text-sm font-bold text-foreground/80 whitespace-nowrap">
+                    {label}
+                  </td>
+                  {cells.map((field) => (
+                    <td key={field} className="w-24 border border-primary/30 p-1">
+                      <Input
+                        value={data[field]}
+                        onChange={(e) => update(field, e.target.value)}
+                        className={cn(BOXED_CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                        aria-label={`${label} - ${field}`}
+                        readOnly={disabled}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+
+              {/* Color vision — final full-width row of the acuity table: the
+                  "Color vision" label in the leftmost column, the four options
+                  spread across the six data columns (two columns each). */}
               <tr>
-                <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80">Distant</td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_unaided_distant_right}
-                    onChange={(e) => update("sight_unaided_distant_right", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
-                    aria-label="Distant - Unaided Right Eye"
-                    readOnly={disabled}
-                  />
+                <td className="border border-primary/30 p-1.5 text-sm font-bold text-foreground/80 whitespace-nowrap">
+                  Color vision
                 </td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_unaided_distant_left}
-                    onChange={(e) => update("sight_unaided_distant_left", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
-                    aria-label="Distant - Unaided Left Eye"
-                    readOnly={disabled}
-                  />
-                </td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_unaided_distant_binocular}
-                    onChange={(e) => update("sight_unaided_distant_binocular", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
-                    aria-label="Distant - Unaided Binocular"
-                    readOnly={disabled}
-                  />
-                </td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_aided_distant_right}
-                    onChange={(e) => update("sight_aided_distant_right", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
-                    aria-label="Distant - Aided Right Eye"
-                    readOnly={disabled}
-                  />
-                </td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_aided_distant_left}
-                    onChange={(e) => update("sight_aided_distant_left", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
-                    aria-label="Distant - Aided Left Eye"
-                    readOnly={disabled}
-                  />
-                </td>
-              </tr>
-              {/* Short distance row */}
-              <tr>
-                <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80">Short distance</td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_unaided_short_right}
-                    onChange={(e) => update("sight_unaided_short_right", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
-                    aria-label="Short distance - Unaided Right Eye"
-                    readOnly={disabled}
-                  />
-                </td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_unaided_short_left}
-                    onChange={(e) => update("sight_unaided_short_left", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
-                    aria-label="Short distance - Unaided Left Eye"
-                    readOnly={disabled}
-                  />
-                </td>
-                <td className="border border-primary/20 p-1" />
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_aided_short_right}
-                    onChange={(e) => update("sight_aided_short_right", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
-                    aria-label="Short distance - Aided Right Eye"
-                    readOnly={disabled}
-                  />
-                </td>
-                <td className="border border-primary/20 p-1">
-                  <Input
-                    value={data.sight_aided_short_left}
-                    onChange={(e) => update("sight_aided_short_left", e.target.value)}
-                    className={cn(CELL_INPUT_CLASS, "w-24", disabled && "pointer-events-none")}
-                    aria-label="Short distance - Aided Left Eye"
-                    readOnly={disabled}
-                  />
-                </td>
+                {["Not tested", "Normal", "Doubtful", "Defective"].map((opt) => (
+                  <td
+                    key={opt}
+                    colSpan={opt === "Defective" ? 3 : 1}
+                    className="border border-primary/30 p-1.5"
+                  >
+                    <label
+                      className={cn(
+                        "flex items-center gap-2",
+                        disabled && "pointer-events-none"
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        name="panama_color_vision"
+                        checked={data.sight_color_vision === opt}
+                        onChange={() =>
+                          update(
+                            "sight_color_vision",
+                            data.sight_color_vision === opt ? "" : opt
+                          )
+                        }
+                        className="h-4 w-4 rounded accent-primary"
+                        aria-label={`Color vision - ${opt}`}
+                        tabIndex={disabled ? -1 : undefined}
+                      />
+                      <span className="text-sm text-foreground whitespace-nowrap">{opt}</span>
+                    </label>
+                  </td>
+                ))}
               </tr>
             </tbody>
           </table>
         </div>
-        </div>
 
         {/* Visual Fields Table */}
-        <div className="shrink-0">
-          <Label className="block text-[11px] font-semibold text-primary/60 uppercase tracking-wider mb-1 invisible lg:visible">
-            &nbsp;
-          </Label>
+        <div className="shrink-0 overflow-x-auto">
           <table className="border-collapse text-xs">
             <thead>
               <tr>
-                <th className="border border-primary/20 bg-primary/5 p-1.5" />
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary uppercase tracking-wider" colSpan={2}>
+                <th className="border border-primary/30 bg-primary/12 p-1.5" rowSpan={2} />
+                <th className="border border-primary/30 bg-primary/12 p-1.5 text-center text-xs font-bold uppercase tracking-wider text-primary" colSpan={2}>
                   Visual fields
                 </th>
               </tr>
               <tr>
-                <th className="border border-primary/20 bg-primary/5 p-1.5" />
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Normal</th>
-                <th className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">Defective</th>
+                <th className="border border-primary/30 bg-primary/5 p-1 text-center text-xs text-foreground/80">Normal</th>
+                <th className="border border-primary/30 bg-primary/5 p-1 text-center text-xs text-foreground/80">Defective</th>
               </tr>
             </thead>
             <tbody>
@@ -424,23 +504,23 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
                 ]
               ).map(({ label, normalKey, defectiveKey }) => (
                 <tr key={label}>
-                  <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80 whitespace-nowrap">
+                  <td className="border border-primary/30 p-1.5 text-sm font-bold text-foreground/80 whitespace-nowrap">
                     {label}
                   </td>
-                  <td className="border border-primary/20 p-1">
+                  <td className="w-28 border border-primary/30 p-1">
                     <Input
                       value={data[normalKey]}
                       onChange={(e) => update(normalKey, e.target.value)}
-                      className={cn(CELL_INPUT_CLASS, "w-40", disabled && "pointer-events-none")}
+                      className={cn(BOXED_CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                       aria-label={`${label} visual field - Normal`}
                       readOnly={disabled}
                     />
                   </td>
-                  <td className="border border-primary/20 p-1">
+                  <td className="w-28 border border-primary/30 p-1">
                     <Input
                       value={data[defectiveKey]}
                       onChange={(e) => update(defectiveKey, e.target.value)}
-                      className={cn(CELL_INPUT_CLASS, "w-40", disabled && "pointer-events-none")}
+                      className={cn(BOXED_CELL_INPUT_CLASS, disabled && "pointer-events-none")}
                       aria-label={`${label} visual field - Defective`}
                       readOnly={disabled}
                     />
@@ -452,34 +532,27 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
         </div>
         </div>
 
-        {/* Color Vision */}
-        <div className="space-y-2">
-          <div className="space-y-0.5 rounded-md border border-primary/20 bg-primary/5 p-3">
-            <Label className="text-sm font-bold text-foreground/80 uppercase tracking-wider">
-              Color vision
-            </Label>
-            <div className={cn("flex items-center gap-4 h-8", disabled && "pointer-events-none")} role="radiogroup" aria-label="Color vision">
-              {["Not tested", "Normal", "Doubtful", "Defective"].map((opt) => (
-                <label key={opt} className={RADIO_OPTION_LABEL_CLASS}>
-                  <input
-                    type="checkbox"
-                    name="panama_color_vision"
-                    checked={data.sight_color_vision === opt}
-                    onChange={() => update("sight_color_vision", data.sight_color_vision === opt ? "" : opt)}
-                    className="w-4 h-4 rounded accent-primary"
-                    aria-label={`Color vision - ${opt}`}
-                    tabIndex={disabled ? -1 : undefined}
-                  />
-                  <span className="text-sm text-foreground">{opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-          <FormField
-            label="Method: (Plates) Pseudo-Isochromatic Ishihara 24 or 38 plates equivalent"
+        {/* Color vision method — directly under the acuity table, matching the
+            official certificate (the Color vision selection itself is the last
+            row of the acuity table above). */}
+        <div className="mt-3 space-y-1">
+          <label
+            htmlFor="panama-sight-color-method"
+            className="block text-sm font-bold text-foreground"
+          >
+            Method: (Plates) Pseudo-Isochromatic (Ishihara 24 or 38 plates equivalent):
+          </label>
+          <Input
+            id="panama-sight-color-method"
             value={data.sight_color_method}
-            onChange={(v) => update("sight_color_method", v)}
-            disabled={disabled}
+            onChange={(event) => update("sight_color_method", event.target.value)}
+            className={cn(
+              "h-8 w-full bg-white text-sm border border-primary/20 rounded-md px-2",
+              "focus:outline-none focus-visible:border-primary dark:bg-input/30",
+              disabled && "pointer-events-none"
+            )}
+            readOnly={disabled}
+            tabIndex={disabled ? -1 : undefined}
           />
         </div>
       </div>)}
@@ -491,22 +564,22 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
         </h3>
 
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-xs">
+          <table className="border-collapse text-xs">
             <thead>
               <tr>
-                <th className="border border-primary/20 bg-primary/5 p-1.5" />
-                <th className="border border-primary/20 bg-primary/5 p-1.5 text-center text-xs font-bold text-primary uppercase" colSpan={6}>
+                <th className="border border-primary/30 p-1.5" />
+                <th className="border border-primary/30 bg-primary/12 p-1.5 text-center text-xs font-bold text-primary" colSpan={6}>
                   Pure tone and audio metry (threshold values in dB)
                 </th>
               </tr>
               <tr>
-                <th className="border border-primary/20 bg-primary/5 p-1.5" />
+                <th className="border border-primary/30 p-1.5" />
                 {HEARING_FREQUENCIES.map((freq) => {
                   // 4000 and 6000 Hz column headers are intentionally blank.
                   const hiddenLabels = ["4000", "6000"];
                   return (
-                    <th key={freq} className="border border-primary/20 bg-primary/5 p-1 text-center text-xs text-foreground/80">
-                      {hiddenLabels.includes(freq) ? "" : `${freq} Hz`}
+                    <th key={freq} className="w-24 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold text-foreground/80">
+                      {hiddenLabels.includes(freq) ? "" : formatFrequencyLabel(freq)}
                     </th>
                   );
                 })}
@@ -515,15 +588,16 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
             <tbody>
               {/* Right ear */}
               <tr>
-                <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80">Right ear</td>
+                <td className="border border-primary/30 p-1.5 text-sm font-bold text-foreground/80 whitespace-nowrap">Right ear</td>
                 {HEARING_FREQUENCIES.map((freq) => {
                   const field = `hearing_right_${freq}` as keyof PanamaCertificate;
                   return (
-                    <td key={freq} className="border border-primary/20 p-1">
+                    <td key={freq} className="w-24 border border-primary/30 p-1">
                       <Input
                         value={(data[field] as string) ?? ""}
                         onChange={(e) => update(field, e.target.value)}
-                        className={cn(CELL_INPUT_CLASS, "w-full", disabled && "pointer-events-none")}
+                        className={cn(BOXED_CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                        aria-label={`Right ear - ${freq} Hz`}
                         readOnly={disabled}
                       />
                     </td>
@@ -532,15 +606,16 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
               </tr>
               {/* Left ear */}
               <tr>
-                <td className="border border-primary/20 p-1.5 text-sm font-bold text-foreground/80">Left ear</td>
+                <td className="border border-primary/30 p-1.5 text-sm font-bold text-foreground/80 whitespace-nowrap">Left ear</td>
                 {HEARING_FREQUENCIES.map((freq) => {
                   const field = `hearing_left_${freq}` as keyof PanamaCertificate;
                   return (
-                    <td key={freq} className="border border-primary/20 p-1">
+                    <td key={freq} className="w-24 border border-primary/30 p-1">
                       <Input
                         value={(data[field] as string) ?? ""}
                         onChange={(e) => update(field, e.target.value)}
-                        className={cn(CELL_INPUT_CLASS, "w-full", disabled && "pointer-events-none")}
+                        className={cn(BOXED_CELL_INPUT_CLASS, disabled && "pointer-events-none")}
+                        aria-label={`Left ear - ${freq} Hz`}
                         readOnly={disabled}
                       />
                     </td>
@@ -558,62 +633,53 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
           <span className="lowercase">iv.</span> Physical Exploration
         </h3>
 
-        {/* Column headers */}
-        <div className="grid grid-cols-2 gap-4 mb-1">
-          <div className="grid grid-cols-[2fr_1fr] items-center">
-            <span />
-            <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">
-              Normal | Abnormal
-            </span>
-          </div>
-          <div className="grid grid-cols-[2fr_1fr] items-center">
-            <span />
-            <span className="text-xs font-bold text-foreground/80 uppercase tracking-wider text-center">
-              Normal | Abnormal
-            </span>
-          </div>
-        </div>
-
-        {/* Body system rows — 2 columns */}
-        <div className="grid grid-cols-2 gap-4 mb-3">
-          <div>
-            {EXPLORATION_COL_1.map((item, index) => {
-              const currentValue = (data.physical_exploration[item.key] || "") as PhysicalExplorationValue;
-              return (
-                <div key={item.key} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
-                  <span className="text-sm text-foreground">{item.label}</span>
-                  <div className="flex justify-center">
-                    <NRARadio
-                      name={`panama_pe_${item.key}`}
-                      value={currentValue}
-                      onChange={(v) => updateExploration(item.key, v)}
-                      ariaLabel={item.label}
-                      disabled={disabled}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div>
-            {EXPLORATION_COL_2.map((item, index) => {
-              const currentValue = (data.physical_exploration[item.key] || "") as PhysicalExplorationValue;
-              return (
-                <div key={item.key} className={`grid grid-cols-[2fr_1fr] items-center py-1.5 border-b border-muted/30 px-1 rounded-sm ${index % 2 === 0 ? "bg-muted/30" : ""}`}>
-                  <span className="text-sm text-foreground">{item.label}</span>
-                  <div className="flex justify-center">
-                    <NRARadio
-                      name={`panama_pe_${item.key}`}
-                      value={currentValue}
-                      onChange={(v) => updateExploration(item.key, v)}
-                      ariaLabel={item.label}
-                      disabled={disabled}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+        {/* Bordered two-group table: each row pairs a left-group item and a
+            right-group item, each with Normal/Abnormal checkbox columns. */}
+        <div className="mb-3 overflow-x-auto">
+          <table className="w-full table-fixed border-collapse text-xs">
+            <colgroup>
+              {/* Two mirrored groups so both halves are exactly equal width:
+                  label (fills) | Normal (fixed) | Abnormal (fixed). */}
+              <col />
+              <col className="w-20" />
+              <col className="w-20" />
+              <col />
+              <col className="w-20" />
+              <col className="w-20" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th className="border border-primary/30 bg-primary/5 p-1.5" />
+                <th className="w-20 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold text-foreground/80">
+                  Normal
+                </th>
+                <th className="w-20 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold text-foreground/80">
+                  Abnormal
+                </th>
+                <th className="border border-primary/30 bg-primary/5 p-1.5" />
+                <th className="w-20 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold text-foreground/80">
+                  Normal
+                </th>
+                <th className="w-20 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold text-foreground/80">
+                  Abnormal
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({
+                length: Math.max(EXPLORATION_COL_1.length, EXPLORATION_COL_2.length),
+              }).map((_, rowIndex) => {
+                const left = EXPLORATION_COL_1[rowIndex];
+                const right = EXPLORATION_COL_2[rowIndex];
+                return (
+                  <tr key={rowIndex}>
+                    {renderExplorationCells(left)}
+                    {renderExplorationCells(right)}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
         {/* Additional comments */}

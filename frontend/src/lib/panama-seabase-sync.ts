@@ -662,6 +662,15 @@ export function applyMedicalToPanama(
     (next.physician_name as unknown) = physicianName;
   }
 
+  // III. Statement — import-only auto-population from Seabase.
+  //
+  // These identity/date fields are derived from the seafarer and the medical
+  // exam, not entered on the Panama form, so they are refreshed on import but
+  // never carried back to Seabase (not part of SCALAR_FIELDS) and never raise
+  // the "update Seabase too?" prompt. Each value is only filled when it is
+  // currently blank, so an examiner's manual edit is never overwritten.
+  applyStatementFromMedical(next, medical);
+
   // Medical conditions: fan a recorded Seabase answer out to its Panama
   // declaration key(s). An unrecorded Seabase answer leaves Panama as-is.
   const history = medical.medical_history ?? {};
@@ -748,6 +757,93 @@ function composePhysicianName(medical: MedicalExam): string {
   if (!name) return "";
   const registration = String(medical.medical_certification_no ?? "").trim();
   return registration ? `${name} — ${registration}` : name;
+}
+
+/**
+ * Populate the Panama "III. Statement" identity and date fields from the
+ * seafarer and the Seabase medical exam. Import-only — these are derived
+ * values, so they are only written when the destination is currently blank
+ * (an examiner's manual edit is never overwritten) and are never carried back
+ * to Seabase.
+ *
+ * Field sources:
+ *   - "Name and signature of person undergoing examination" (both the
+ *     examinee and practitioner blocks) <- the patient full name already on
+ *     the Panama record (e.g. "MUTUC, JOHN REY, LOPEZ").
+ *   - "Name and signature of Witness" (both blocks) and the "release ... to
+ *     Dr." line <- the Seabase authorized physician.
+ *   - Statement date and practitioner date (day / month-abbr / year) <- the
+ *     Seabase date of the PEME. The explicit "Date of Initial PEME"
+ *     (`date_initial_peme`) is preferred; when the examiner left it blank the
+ *     date of fitness and finally the exam's created date are used as
+ *     fallbacks so the statement date still reflects when the PEME occurred.
+ *
+ * Mutates `next` in place.
+ */
+function applyStatementFromMedical(
+  next: PanamaCertificate,
+  medical: MedicalExam
+): void {
+  /** Write `value` into `key` only when the current value is blank. */
+  const fillIfBlank = (key: keyof PanamaCertificate, value: string) => {
+    if (!value) return;
+    if (String(next[key] ?? "").trim() !== "") return;
+    (next[key] as unknown) = value;
+  };
+
+  // Patient full name -> examinee + practitioner "person undergoing examination".
+  const patientName = String(next.full_name ?? "").trim();
+  fillIfBlank("statement_name", patientName);
+  fillIfBlank("statement_practitioner_name", patientName);
+
+  // ID / passport -> examinee + practitioner "ID Number or passport" rows.
+  // Prefer the passport number, falling back to the seaman's book number.
+  const idNumber =
+    String(next.passport_no ?? "").trim() ||
+    String(next.seamans_book_no ?? "").trim();
+  fillIfBlank("statement_id_number", idNumber);
+  fillIfBlank("statement_practitioner_id_number", idNumber);
+
+  // Authorized physician -> witness fields and the "release ... to Dr." line.
+  const physician = String(medical.authorized_physician ?? "").trim();
+  fillIfBlank("statement_witness_name", physician);
+  fillIfBlank("statement_practitioner_witness", physician);
+  fillIfBlank("statement_release_to_dr", physician);
+
+  // Date of the PEME -> statement date + practitioner date (split fields).
+  // Prefer the explicit "Date of Initial PEME"; fall back to the date of
+  // fitness and then the exam's created date so a blank initial-PEME field
+  // doesn't leave the statement date empty.
+  const pemeDate = firstParseableDate([
+    medical.date_initial_peme,
+    medical.date_of_fitness,
+    medical.created_date,
+  ]);
+  if (pemeDate) {
+    const { day, month, year } = pemeDate;
+    fillIfBlank("statement_day", day);
+    fillIfBlank("statement_month", month);
+    fillIfBlank("statement_year", year);
+    fillIfBlank("statement_practitioner_date_day", day);
+    fillIfBlank("statement_practitioner_date_month", month);
+    fillIfBlank("statement_practitioner_date_year", year);
+  }
+}
+
+/**
+ * Decompose the first parseable date in `candidates` into Panama
+ * day / month-abbreviation / year components. Returns null when none of the
+ * candidates yields a complete date.
+ */
+function firstParseableDate(
+  candidates: Array<string | undefined>
+): { day: string; month: string; year: string } | null {
+  for (const candidate of candidates) {
+    if (!candidate || !candidate.trim()) continue;
+    const { day, month, year } = decomposeDate(candidate);
+    if (day && month && year) return { day, month, year };
+  }
+  return null;
 }
 
 // ---------------------------------------------------------------------------

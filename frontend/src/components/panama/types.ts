@@ -84,7 +84,17 @@ export interface PanamaCertificate {
   statement_day: string;
   statement_month: string;
   statement_year: string;
+  /** Examinee's ID number or passport, shown in the Statement table. */
+  statement_id_number: string;
   statement_witness_name: string;
+  /**
+   * The physician named in the "I hereby authorize the release of all my
+   * previous medical records ... to Dr. ___" authorization line.
+   * Auto-populated from the Seabase authorized physician on import.
+   */
+  statement_release_to_dr: string;
+  /** Practitioner block: examinee's ID number or passport. */
+  statement_practitioner_id_number: string;
   statement_practitioner_name: string;
   statement_practitioner_signature: string;
   statement_practitioner_date_day: string;
@@ -111,12 +121,14 @@ export interface PanamaCertificate {
   sight_unaided_distant_binocular: string;
   sight_unaided_short_right: string;
   sight_unaided_short_left: string;
+  sight_unaided_short_binocular: string;
   // Visual acuity — Aided
   sight_aided_distant_right: string;
   sight_aided_distant_left: string;
   sight_aided_distant_binocular: string;
   sight_aided_short_right: string;
   sight_aided_short_left: string;
+  sight_aided_short_binocular: string;
   // Visual fields
   sight_fields_right_normal: string;
   sight_fields_right_defective: string;
@@ -284,7 +296,10 @@ export const EMPTY_CERTIFICATE: PanamaCertificate = {
   statement_day: "",
   statement_month: "",
   statement_year: "",
+  statement_id_number: "",
   statement_witness_name: "",
+  statement_release_to_dr: "",
+  statement_practitioner_id_number: "",
   statement_practitioner_name: "",
   statement_practitioner_signature: "",
   statement_practitioner_date_day: "",
@@ -310,11 +325,13 @@ export const EMPTY_CERTIFICATE: PanamaCertificate = {
   sight_unaided_distant_binocular: "",
   sight_unaided_short_right: "",
   sight_unaided_short_left: "",
+  sight_unaided_short_binocular: "",
   sight_aided_distant_right: "",
   sight_aided_distant_left: "",
   sight_aided_distant_binocular: "",
   sight_aided_short_right: "",
   sight_aided_short_left: "",
+  sight_aided_short_binocular: "",
   sight_fields_right_normal: "",
   sight_fields_right_defective: "",
   sight_fields_left_normal: "",

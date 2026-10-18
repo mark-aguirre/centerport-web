@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { SectionHeader } from "@/components/common/section-header";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -265,27 +266,48 @@ export default function PersonalDeclarationSection({
     return "";
   };
 
-  const renderConditionRow = (item: DeclarationCondition, index: number) => {
+  /**
+   * Render the four cells (No., Condition, YES checkbox, NO checkbox) for one
+   * declaration condition inside the bordered table. When `item` is undefined
+   * (the two groups have unequal lengths) render empty bordered cells so the
+   * grid stays aligned.
+   */
+  const renderConditionCells = (item: DeclarationCondition | undefined) => {
+    if (!item) {
+      return (
+        <>
+          <td className="border border-primary/30 p-1.5" />
+          <td className="border border-primary/30 p-1.5" />
+          <td className="border border-primary/30 p-1.5" />
+          <td className="border border-primary/30 p-1.5" />
+        </>
+      );
+    }
     const currentValue = getConditionValue(item);
-    const rowBg = index % 2 === 0 ? "bg-muted/30" : "";
+    const toggle = (answer: YesNo) =>
+      updateCondition(item.storageKey, currentValue === answer ? "" : answer);
     return (
-      <div
-        key={item.storageKey}
-        className={`grid grid-cols-[1fr_auto] items-center gap-2 rounded-sm border-b border-muted/30 px-1 py-1.5 ${rowBg}`}
-      >
-        <span className="text-sm leading-snug text-foreground">
-          <span className="mr-1 font-bold text-primary">{item.num}.</span>
+      <>
+        <td className="border border-primary/30 p-1.5 text-center text-sm font-bold text-primary">
+          {item.num}.
+        </td>
+        <td className="border border-primary/30 p-1.5 text-sm text-foreground">
           {item.label}
-        </span>
-        <GridYesNoRadio
-          name={`panama_declaration_${item.num}`}
-          value={currentValue}
-          onChange={(answer) => updateCondition(item.storageKey, answer)}
-          ariaLabel={item.label}
-          className="grid w-[72px] shrink-0 grid-cols-2 place-items-center gap-2"
-          disabled={disabled}
-        />
-      </div>
+        </td>
+        {(["yes", "no"] as const).map((answer) => (
+          <td key={answer} className="w-12 border border-primary/30 p-1.5 text-center">
+            <input
+              type="checkbox"
+              name={`panama_declaration_${item.num}`}
+              checked={currentValue === answer}
+              onChange={() => toggle(answer)}
+              className={cn("h-4 w-4 rounded accent-primary", disabled && "pointer-events-none")}
+              aria-label={`${item.label} - ${answer === "yes" ? "Yes" : "No"}`}
+              tabIndex={disabled ? -1 : undefined}
+            />
+          </td>
+        ))}
+      </>
     );
   };
 
@@ -346,28 +368,54 @@ export default function PersonalDeclarationSection({
         banner
       />
 
-      {/* Declaration conditions grid — hidden in declarationRestOnly mode */}
-      {!declarationRestOnly && (<div className="mb-4 mt-6">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {[col1Items, col2Items].map((column, columnIndex) => (
-            <div key={columnIndex}>
-              <div className="sticky top-14 z-10 mb-1 grid grid-cols-[1fr_auto] items-center gap-2 border-b border-primary/20 bg-card px-1 pb-1.5 pt-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-foreground/80">
-                  No. Condition
-                </span>
-                <div className="grid w-[72px] shrink-0 grid-cols-2 place-items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                    YES
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-primary">
-                    NO
-                  </span>
-                </div>
-              </div>
-              <div>{column.map((item, idx) => renderConditionRow(item, idx))}</div>
-            </div>
-          ))}
-        </div>
+      {/* Declaration conditions — bordered two-group table matching the
+          official layout: No. | Condition | YES | NO, repeated for both the
+          left (col1) and right (col2) groups, paired row by row. */}
+      {!declarationRestOnly && (<div className="mb-4 mt-6 overflow-x-auto">
+        <table className="w-full table-fixed border-collapse text-xs">
+          <colgroup>
+            {/* Two mirrored groups so both halves are exactly equal width:
+                No. (fixed) | Condition (fills) | Yes (fixed) | No (fixed). */}
+            {[0, 1].map((groupIndex) => (
+              <Fragment key={groupIndex}>
+                <col className="w-10" />
+                <col />
+                <col className="w-12" />
+                <col className="w-12" />
+              </Fragment>
+            ))}
+          </colgroup>
+          <thead>
+            <tr>
+              {[0, 1].map((groupIndex) => (
+                <Fragment key={groupIndex}>
+                  <th className="w-10 border border-primary/30 bg-primary/5 p-1.5 text-center text-xs font-bold uppercase tracking-wider text-foreground/80">
+                    No.
+                  </th>
+                  <th className="border border-primary/30 bg-primary/5 p-1.5 text-left text-xs font-bold uppercase tracking-wider text-foreground/80">
+                    Condition
+                  </th>
+                  <th className="w-12 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase tracking-wider text-primary">
+                    Yes
+                  </th>
+                  <th className="w-12 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase tracking-wider text-primary">
+                    No
+                  </th>
+                </Fragment>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({
+              length: Math.max(col1Items.length, col2Items.length),
+            }).map((_, rowIndex) => (
+              <tr key={rowIndex}>
+                {renderConditionCells(col1Items[rowIndex])}
+                {renderConditionCells(col2Items[rowIndex])}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>)}
 
       {/* The blocks below are only shown in the full (non-preview) view,
@@ -397,44 +445,55 @@ export default function PersonalDeclarationSection({
         />
       </div>
 
-      {/* Additional questions 37–44 */}
-      <div className="my-4 overflow-hidden rounded-md border border-primary/20">
-        <div className="grid grid-cols-[44px_minmax(0,1fr)_72px] items-center border-b border-primary/20 bg-muted/30">
-          <span aria-hidden="true" />
-          <span className="border-l border-primary/20 px-2 py-2 text-sm font-bold text-foreground/80">
-            Additional questions
-          </span>
-          <div className="grid h-full grid-cols-2 place-items-center border-l border-primary/20">
-            <span className="text-xs font-bold uppercase tracking-wider text-primary">
-              YES
-            </span>
-            <span className="text-xs font-bold uppercase tracking-wider text-primary">
-              NO
-            </span>
-          </div>
-        </div>
-
-        {ADDITIONAL_QUESTIONS.map((question) => (
-          <div
-            key={question.key}
-            className="grid grid-cols-[44px_minmax(0,1fr)_72px] items-stretch border-b border-primary/10 last:border-b-0"
-          >
-            <span className="px-2 py-2 text-sm font-bold text-primary">
-              {question.num}.
-            </span>
-            <span className="border-l border-primary/20 px-2 py-2 text-sm leading-snug text-foreground">
-              {question.text}
-            </span>
-            <GridYesNoRadio
-              name={`panama_${question.key}`}
-              value={data[question.key]}
-              onChange={(answer) => update(question.key, answer)}
-              ariaLabel={question.text}
-              className="grid grid-cols-2 place-items-center border-l border-primary/20"
-              disabled={disabled}
-            />
-          </div>
-        ))}
+      {/* Additional questions 37–44 — bordered table matching the official
+          layout: No. | Additional questions | YES | NO. */}
+      <div className="my-4 overflow-x-auto">
+        <table className="w-full border-collapse text-xs">
+          <thead>
+            <tr>
+              <th className="w-10 border border-primary/30 bg-primary/5 p-1.5" />
+              <th className="border border-primary/30 bg-primary/5 p-1.5 text-left text-sm font-bold text-foreground/80">
+                Additional questions
+              </th>
+              <th className="w-12 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase tracking-wider text-primary">
+                Yes
+              </th>
+              <th className="w-12 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase tracking-wider text-primary">
+                No
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {ADDITIONAL_QUESTIONS.map((question) => {
+              const value = data[question.key];
+              const toggle = (answer: YesNo) =>
+                update(question.key, value === answer ? "" : answer);
+              return (
+                <tr key={question.key}>
+                  <td className="border border-primary/30 p-1.5 text-center text-sm font-bold text-primary">
+                    {question.num}.
+                  </td>
+                  <td className="border border-primary/30 p-1.5 text-sm leading-snug text-foreground">
+                    {question.text}
+                  </td>
+                  {(["yes", "no"] as const).map((answer) => (
+                    <td key={answer} className="w-12 border border-primary/30 p-1.5 text-center">
+                      <input
+                        type="checkbox"
+                        name={`panama_${question.key}`}
+                        checked={value === answer}
+                        onChange={() => toggle(answer)}
+                        className={cn("h-4 w-4 rounded accent-primary", disabled && "pointer-events-none")}
+                        aria-label={`${question.text} - ${answer === "yes" ? "Yes" : "No"}`}
+                        tabIndex={disabled ? -1 : undefined}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
       </>)}
 
