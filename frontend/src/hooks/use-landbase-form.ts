@@ -48,6 +48,8 @@ const landbaseConfig: EntityFormConfig<LandbasePeme> = {
     last_name: profile.last_name ?? "",
     first_name: profile.first_name ?? "",
     middle_name: profile.middle_name ?? "",
+    birthdate: profile.birthdate ?? "",
+    age: profile.age ?? "",
     place_of_birth: profile.place_of_birth ?? "",
     passport_no: profile.passport_no ?? "",
     religion: profile.religion ?? "",

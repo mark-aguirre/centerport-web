@@ -438,12 +438,12 @@ export function FormToolbar({
   const renderMetadata = (className?: string) =>
     metadata || metadataSlot ? (
       <div className={cn("flex items-center gap-3", className)}>
+        {metadataSlot}
         {metadata?.recordId && (
           <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded tracking-widest">
             {metadata.recordId}
           </span>
         )}
-        {metadataSlot}
         {metadata?.createdDate && (
           <span className="text-[10px] text-muted-foreground whitespace-nowrap">
             {metadata.createdLabel ?? "Registered"}: {" "}

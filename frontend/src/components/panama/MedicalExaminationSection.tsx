@@ -262,26 +262,31 @@ export default function MedicalExaminationSection({ data, onChange, disabled, cl
             />
           </div>
 
-          {/* Row 2: BMI (full width) */}
-          <div className="border-b border-primary/30">
+          {/* Row 2: BMI — label + half-width input (empty right half) so the
+              input matches the Height input width. */}
+          <div className="grid grid-cols-1 border-b border-primary/30 sm:grid-cols-2">
             <ClinicalCell
               label="Body Mass Index (BMI):"
               field="bmi"
               value={data.bmi}
               onUpdate={update}
               disabled={disabled}
+              className="border-b border-primary/30 sm:border-b-0 sm:border-r"
             />
+            <div aria-hidden="true" />
           </div>
 
-          {/* Row 3: SpO2 (full width) */}
-          <div className="border-b border-primary/30">
+          {/* Row 3: SpO2 — label + half-width input (empty right half). */}
+          <div className="grid grid-cols-1 border-b border-primary/30 sm:grid-cols-2">
             <ClinicalCell
               label="Oxygen Saturation (SpO2):"
               field="oxygen_saturation"
               value={data.oxygen_saturation}
               onUpdate={update}
               disabled={disabled}
+              className="border-b border-primary/30 sm:border-b-0 sm:border-r"
             />
+            <div aria-hidden="true" />
           </div>
 
           {/* Row 4: Heart Rate | Respiratory Rate */}

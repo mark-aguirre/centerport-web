@@ -671,6 +671,10 @@ export function applyMedicalToPanama(
   // currently blank, so an examiner's manual edit is never overwritten.
   applyStatementFromMedical(next, medical);
 
+  // Diagnostic "Other test" performed dates (Chest X-ray, EKG) <- the Seabase
+  // PEME date. Import-only and fill-if-blank, like the Statement fields.
+  applyOtherTestDatesFromMedical(next, medical);
+
   // Medical conditions: fan a recorded Seabase answer out to its Panama
   // declaration key(s). An unrecorded Seabase answer leaves Panama as-is.
   const history = medical.medical_history ?? {};
@@ -844,6 +848,62 @@ function firstParseableDate(
     if (day && month && year) return { day, month, year };
   }
   return null;
+}
+
+/**
+ * Resolve the Seabase PEME date as an ISO `yyyy-mm-dd` string, preferring the
+ * explicit "Date of Initial PEME" and falling back to the date of fitness and
+ * the exam's created date. Returns "" when none resolves.
+ */
+function resolvePemeIsoDate(medical: MedicalExam): string {
+  const parts = firstParseableDate([
+    medical.date_initial_peme,
+    medical.date_of_fitness,
+    medical.created_date,
+  ]);
+  if (!parts) return "";
+  const monthIndex = MONTH_ABBR.findIndex(
+    (m) => m.toLowerCase() === parts.month.toLowerCase()
+  );
+  if (monthIndex < 0) return "";
+  return `${parts.year}-${pad2(String(monthIndex + 1))}-${pad2(parts.day)}`;
+}
+
+/**
+ * Populate the "Performed (day/month/year)" date for the date-based "Other
+ * test" rows (Chest X-ray, EKG) from the Seabase PEME date. Import-only and
+ * fill-if-blank: only sets the date when the row has no performed date yet, so
+ * an examiner's manual edit is never overwritten.
+ *
+ * Mutates `next` in place.
+ */
+function applyOtherTestDatesFromMedical(
+  next: PanamaCertificate,
+  medical: MedicalExam
+): void {
+  const isoDate = resolvePemeIsoDate(medical);
+  if (!isoDate) return;
+
+  const dateKeys = ["chest_xray", "ekg"];
+  const otherTests = { ...(next.lab_other_tests ?? {}) };
+  let changed = false;
+  for (const key of dateKeys) {
+    const existing = otherTests[key];
+    if (existing && String(existing.performed_date ?? "").trim() !== "") continue;
+    // Seed the row from any existing values, defaulting a brand-new row to the
+    // date-test default shown in the UI (checked, Observations "NORMAL").
+    otherTests[key] = {
+      checked: existing?.checked ?? true,
+      normal: existing?.normal ?? "",
+      abnormal: existing?.abnormal ?? "",
+      observations: existing?.observations ?? "NORMAL",
+      performed_date: isoDate,
+    };
+    changed = true;
+  }
+  if (changed) {
+    next.lab_other_tests = otherTests;
+  }
 }
 
 // ---------------------------------------------------------------------------

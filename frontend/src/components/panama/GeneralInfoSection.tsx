@@ -40,7 +40,14 @@ const TEXTAREA_CLASSES = cn(
 const LABEL_CLASSES =
   "text-sm font-bold uppercase leading-snug tracking-wider text-foreground/80";
 const ROW_CLASSES =
-  "grid grid-cols-1 gap-1.5 py-1.5 md:grid-cols-[260px_minmax(0,1fr)] md:items-center md:gap-3";
+  "grid grid-cols-1 gap-1.5 py-1.5 md:grid-cols-[360px_minmax(0,1fr)] md:items-center md:gap-3";
+
+/**
+ * Shared max width for the single-line text inputs so they don't stretch the
+ * full remaining row width (keeps the input column narrower than the widened
+ * label column).
+ */
+const INPUT_WIDTH = "w-full max-w-md";
 
 /**
  * Panama Medical Certificate General Information section.
@@ -101,7 +108,7 @@ export default function GeneralInfoSection({
             id="panama-full-name"
             value={data.full_name}
             disabled
-            className={cn(INPUT_CLASSES, "min-w-0")}
+            className={cn(INPUT_CLASSES, INPUT_WIDTH)}
           />
         </div>
 
@@ -186,7 +193,7 @@ export default function GeneralInfoSection({
             value={data.home_address}
             readOnly
             tabIndex={-1}
-            className={cn(INPUT_CLASSES, "min-w-0")}
+            className={cn(INPUT_CLASSES, INPUT_WIDTH)}
           />
         </div>
 
@@ -199,7 +206,7 @@ export default function GeneralInfoSection({
             value={data.passport_no}
             readOnly
             tabIndex={-1}
-            className={cn(INPUT_CLASSES, "min-w-0")}
+            className={cn(INPUT_CLASSES, INPUT_WIDTH)}
           />
         </div>
 
@@ -212,7 +219,7 @@ export default function GeneralInfoSection({
             value={data.seamans_book_no}
             readOnly
             tabIndex={-1}
-            className={cn(INPUT_CLASSES, "min-w-0")}
+            className={cn(INPUT_CLASSES, INPUT_WIDTH)}
           />
         </div>
 
@@ -226,7 +233,7 @@ export default function GeneralInfoSection({
             onChange={(event) => update("department", event.target.value)}
             readOnly={disabled}
             tabIndex={disabled ? -1 : undefined}
-            className={cn(INPUT_CLASSES, "min-w-0")}
+            className={cn(INPUT_CLASSES, INPUT_WIDTH)}
           />
         </div>
 
@@ -239,7 +246,7 @@ export default function GeneralInfoSection({
             value={data.crew_position}
             readOnly
             tabIndex={-1}
-            className={cn(INPUT_CLASSES, "min-w-0")}
+            className={cn(INPUT_CLASSES, INPUT_WIDTH)}
           />
         </div>
 
@@ -253,7 +260,7 @@ export default function GeneralInfoSection({
             onChange={(event) => update("lookout_duties", event.target.value)}
             readOnly={disabled}
             tabIndex={disabled ? -1 : undefined}
-            className={cn(INPUT_CLASSES, "min-w-0")}
+            className={cn(INPUT_CLASSES, INPUT_WIDTH)}
           />
         </div>
 

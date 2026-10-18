@@ -23,6 +23,29 @@ function lower(value: string | undefined): string {
 }
 
 /**
+ * Keys in the Detailed-report payload whose values must keep their stored
+ * casing (names, places, addresses, employer, position). Every other field is
+ * lowercased for the template's expected tokens, but these identity /
+ * personal-information fields print exactly as entered on the form.
+ */
+const DETAILED_PRESERVE_CASE_KEYS = new Set<string>([
+  "last_name",
+  "first_name",
+  "middle_name",
+  "place_of_birth",
+  "date_of_birth",
+  "nationality",
+  "address",
+  "passport_no",
+  "seamans_book_no",
+  "name_of_employee",
+  "contact_number",
+  "position_applied_for",
+  "authorized_physician",
+  "medical_director",
+]);
+
+/**
  * Combine the systolic and diastolic readings into a single `"120/80"` blood
  * pressure string.
  *
@@ -45,6 +68,18 @@ function fullNameOf(data: MedicalExam): string {
     .filter(Boolean)
     .join(" ")
     .trim();
+}
+
+/**
+ * The seaman's book number for the exam. Sourced from the linked seafarer
+ * profile and flattened onto `seamans_book_no` by the medical form's
+ * `flattenResponse`; falls back to the profile snapshot if still present.
+ * Returns "" when unavailable.
+ */
+function seamansBookNoOf(data: MedicalExam): string {
+  if (data.seamans_book_no) return data.seamans_book_no;
+  const value = data.seafarer_profile?.seamans_book_no;
+  return typeof value === "string" ? value : "";
 }
 
 /** A date split into its day, month, and year string parts. */
@@ -135,7 +170,7 @@ export async function buildSeabaseMlcPayload(data: MedicalExam):Promise<Record<s
     address: data.address ?? "",
     passport_no: data.passport_no ?? "",
     position: data.position ?? "",
-    seamans_book_no: "",
+    seamans_book_no: seamansBookNoOf(data),
     employer: data.employer ?? "",
     country: "",
     field19: "",
@@ -213,7 +248,7 @@ export async function buildSeabaseSummaryPayload(
     address: data.address ?? "",
     passport_no: data.passport_no ?? "",
     position_applied_for: data.position ?? "",
-    sirb: "",
+    sirb: seamansBookNoOf(data),
     company: data.employer ?? "",
     country: "",
 
@@ -228,9 +263,10 @@ export async function buildSeabaseSummaryPayload(
     // template's expected tokens; dates and the base64 photo are left as-is)
     final_recommendation: lower(data.final_recommendation),
     fitness_restrictions: lower(data.restriction_details || data.recommendation_remarks),
-    authorized_physician: lower(data.authorized_physician),
+    // Physician / director names keep their stored casing (not lowercased).
+    authorized_physician: data.authorized_physician ?? "",
     date_initial_peme: data.date_initial_peme ?? "",
-    medical_director: lower(data.medical_director),
+    medical_director: data.medical_director ?? "",
     date_of_fitness: data.date_of_fitness ?? "",
     valid_until: data.valid_until ?? "",
     photo_url: photoBase64,
@@ -317,7 +353,7 @@ export async function buildSeabaseDetailedPayload(
     nationality: data.nationality ?? "",
     address: data.address ?? "",
     passport_no: data.passport_no ?? "",
-    seamans_book_no: "",
+    seamans_book_no: seamansBookNoOf(data),
     name_of_employee: data.employer ?? "",
     contact_number: data.contact_no ?? "",
     position_applied_for: data.position ?? "",
@@ -502,11 +538,15 @@ export async function buildSeabaseDetailedPayload(
     medical_director: data.medical_director ?? "",
   };
 
-  // Lowercase every mapped value for the template's expected tokens. The photo
-  // and the patient's full name are added afterwards so their casing (and the
-  // photo's base64 data) is never altered.
+  // Lowercase mapped token values for the template's expected tokens, but keep
+  // identity / personal-information fields in their stored casing so the print
+  // matches the form (e.g. "ABARCA" stays "ABARCA"). The photo and the
+  // patient's full name are added afterwards and never altered.
   const lowercased: Record<string, string> = Object.fromEntries(
-    Object.entries(payload).map(([key, value]) => [key, value.toLowerCase()]),
+    Object.entries(payload).map(([key, value]) => [
+      key,
+      DETAILED_PRESERVE_CASE_KEYS.has(key) ? value : value.toLowerCase(),
+    ]),
   );
 
   return {
@@ -610,9 +650,13 @@ export async function buildSeabaseMerPayload(
     religion: data.religion ?? "",
     address: data.address ?? "",
     passport_no: data.passport_no ?? "",
-    seamans_book_no: "",
+    seamans_book_no: seamansBookNoOf(data),
     position: data.position ?? "",
     employer: data.employer ?? "",
+    // No country field on the seabase model (kept empty, as in the other
+    // seabase payloads); reference_no is the exam's sequential business ID.
+    country: "",
+    reference_no: data.exam_id ?? "",
 
     // Past medical history (yes/no answers from the medical_history map)
     head_or_neck_injury: historyYesNo(data, "Head or Neck Injury"),
@@ -766,6 +810,10 @@ export async function buildSeabaseMerPayload(
     audiometry_as_1: data.audio_as_left_1 ?? "",
     audiometry_ad_2: data.audio_ad_right_2 ?? "",
     audiometry_as_2: data.audio_as_left_2 ?? "",
+    // AD/AS hearing-by-audiometry summary results (same source as the
+    // detailed report's hearing_ad / hearing_as).
+    hearing_by_audiometry_ad: data.audio_ad_right_2 ?? "",
+    hearing_by_audiometry_as: data.audio_as_left_2 ?? "",
     clarity_of_speech: data.speech_impaired_hearing ?? "",
 
     photo_url: photoBase64,

@@ -59,6 +59,8 @@ export interface MedicalExam {
   middle_name: string;
   place_of_birth: string;
   passport_no: string;
+  /** Seaman's book number — sourced from the linked seafarer profile. */
+  seamans_book_no: string;
   religion: string;
   nationality: string;
   gender: Gender;

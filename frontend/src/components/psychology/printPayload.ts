@@ -16,16 +16,36 @@ const fullNameOf = (data: PsychologyRecord): string =>
   [data.first_name, data.middle_name, data.last_name].filter(Boolean).join(" ").trim();
 
 /**
- * Lowercase every string value in a flat payload, leaving keys untouched.
+ * Keys whose values must keep their original casing (names, positions, and
+ * other identity/free-text fields). Everything else is lowercased to match the
+ * template's expected tokens. This keeps the printed report consistent with the
+ * casing shown on the form (e.g. "ABARCA" stays "ABARCA" rather than "abarca").
+ */
+const PRESERVE_CASE_KEYS = new Set<string>([
+  "patientFullname",
+  "referred-by",
+  "position",
+  "remarks",
+  "conclusion",
+  "psychometrician",
+  "psychologist",
+]);
+
+/**
+ * Lowercase string values in a flat payload, leaving keys untouched and
+ * preserving the casing of identity/free-text fields in {@link PRESERVE_CASE_KEYS}.
  *
- * PrintIO receives the template values in lowercase; keys must still mirror the
+ * PrintIO receives token fields in lowercase; keys must still mirror the
  * template variable names exactly, so only the values are transformed.
  */
 const lowercaseValues = (
   payload: Record<string, string>,
 ): Record<string, string> =>
   Object.fromEntries(
-    Object.entries(payload).map(([key, value]) => [key, value.toLowerCase()]),
+    Object.entries(payload).map(([key, value]) => [
+      key,
+      PRESERVE_CASE_KEYS.has(key) ? value : value.toLowerCase(),
+    ]),
   );
 
 /**

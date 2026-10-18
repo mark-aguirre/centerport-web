@@ -98,8 +98,8 @@ export function FinalRecommendationSection({
         disabled && "pointer-events-none",
       )}
     >
-      <div className="flex flex-col gap-2 border-b border-primary/20 bg-primary/12 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+      <div className="flex flex-col gap-2 border-b border-primary/20 bg-primary/12 px-3 py-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <h2 className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-primary">
             IV. Final Recommendation:
           </h2>
@@ -112,6 +112,30 @@ export function FinalRecommendationSection({
             className="w-full sm:w-[260px]"
           />
         </div>
+
+        {/* Restriction Details — inline, right beside the dropdown, shown only
+            when the recommendation includes a restriction. */}
+        {showRestrictionDetails && (
+          <div className="flex flex-1 flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+            <label
+              htmlFor="restriction-details"
+              className="whitespace-nowrap text-sm font-bold text-foreground/80"
+            >
+              Restriction Details:
+            </label>
+            <Input
+              id="restriction-details"
+              value={data.restriction_details}
+              onChange={(event) =>
+                update("restriction_details", event.target.value)
+              }
+              placeholder="Specify the restriction (e.g. specific positions, type of ship, trade area)"
+              readOnly={disabled}
+              tabIndex={disabled ? -1 : undefined}
+              className="h-8 flex-1 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
+            />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[165px_1fr] sm:items-center">
@@ -132,28 +156,6 @@ export function FinalRecommendationSection({
           className="h-8 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
         />
       </div>
-
-      {showRestrictionDetails && (
-        <div className="grid grid-cols-1 gap-2 border-b border-primary/20 px-3 py-2 sm:grid-cols-[165px_1fr] sm:items-center">
-          <label
-            htmlFor="restriction-details"
-            className="text-sm font-bold text-foreground/80"
-          >
-            Restriction Details:
-          </label>
-          <Input
-            id="restriction-details"
-            value={data.restriction_details}
-            onChange={(event) =>
-              update("restriction_details", event.target.value)
-            }
-            placeholder="Specify the restriction (e.g. specific positions, type of ship, trade area)"
-            readOnly={disabled}
-            tabIndex={disabled ? -1 : undefined}
-            className="h-8 border border-primary/20 bg-white px-2 text-xs dark:bg-input/30"
-          />
-        </div>
-      )}
 
       <div className="overflow-x-auto bg-muted/10 py-1">
         <div className="min-w-[830px]">

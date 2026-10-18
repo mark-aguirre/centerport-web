@@ -316,7 +316,7 @@ export default function PersonalDeclarationSection({
   ) => (
     <div
       key={question.key}
-      className="grid grid-cols-[44px_minmax(0,1fr)_144px] items-stretch border-b border-primary/20"
+      className="grid grid-cols-[44px_minmax(0,1fr)_200px] items-stretch border-b border-primary/20"
     >
       <span className="px-2 py-3 text-sm font-bold text-primary">
         {question.num}.
@@ -522,7 +522,7 @@ export default function PersonalDeclarationSection({
 
       {/* Question 45 — Medication */}
       <div className="mt-6 overflow-hidden rounded-md border border-primary/20">
-        <div className="grid grid-cols-[44px_minmax(0,1fr)_72px] items-center border-b border-primary/20 bg-muted/30">
+        <div className="grid grid-cols-[44px_minmax(0,1fr)_200px] items-center border-b border-primary/20 bg-muted/30">
           <span aria-hidden="true" />
           <span className="border-l border-primary/20" aria-hidden="true" />
           <div className="grid h-9 grid-cols-2 place-items-center border-l border-primary/20">
@@ -534,7 +534,7 @@ export default function PersonalDeclarationSection({
             </span>
           </div>
         </div>
-        <div className="grid grid-cols-[44px_minmax(0,1fr)_72px] items-stretch">
+        <div className="grid grid-cols-[44px_minmax(0,1fr)_200px] items-stretch">
           <span className="px-2 py-2 text-sm font-bold text-primary">45.</span>
           <span className="border-l border-primary/20 px-2 py-2 text-sm leading-snug text-foreground">
             Are you taking any non-prescription or prescription medications?

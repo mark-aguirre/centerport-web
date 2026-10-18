@@ -76,6 +76,29 @@ const splitDate = (
 const fullNameOf = (data: LandbasePeme): string =>
   [data.first_name, data.middle_name, data.last_name].filter(Boolean).join(" ").trim();
 
+/** Compute whole-year age from an ISO-ish birthdate string, or "" if unparseable. */
+const ageFromBirthdate = (birthdate: string | undefined): string => {
+  if (!birthdate) return "";
+  const birth = new Date(birthdate);
+  if (Number.isNaN(birth.getTime())) return "";
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age >= 0 ? String(age) : "";
+};
+
+/**
+ * Resolve the birthdate/age pair for a print payload. Age falls back to being
+ * computed from the birthdate when the record carries a birthdate but no age,
+ * so reports never render a blank age for a patient with a known birthdate.
+ */
+const birthdateAndAge = (data: LandbasePeme): { birthdate: string; age: string } => {
+  const birthdate = data.birthdate ?? "";
+  const age = data.age && data.age.trim() !== "" ? data.age : ageFromBirthdate(birthdate);
+  return { birthdate, age };
+};
+
 /**
  * Builds the PrintIO payload for the landbase MLC medical certificate.
  *
@@ -85,14 +108,15 @@ const fullNameOf = (data: LandbasePeme): string =>
  */
 export async function buildMlcPayload(data: LandbasePeme): Promise<Record<string, string>> {
   const photoBase64 = await fetchPhotoAsBase64(data.photo_url);
+  const { birthdate, age } = birthdateAndAge(data);
 
   return {
     // Identity / personal information
     last_name: data.last_name ?? "",
     first_name: data.first_name ?? "",
     middle_name: data.middle_name ?? "",
-    age: data.age ?? "",
-    birthdate: data.birthdate ?? "",
+    age,
+    birthdate,
     place_of_birth: data.place_of_birth ?? "",
     nationality: data.nationality ?? "",
     gender: data.gender ?? "",
@@ -140,6 +164,7 @@ export async function buildMlcPayload(data: LandbasePeme): Promise<Record<string
 export async function buildMerPayload(data: LandbasePeme): Promise<Record<string, string>>{
   const initialPeme = splitDate(data.date_initial_peme);
   const validUntil = splitDate(data.valid_until);
+  const { birthdate, age } = birthdateAndAge(data);
 
   const photoBase64 = await fetchPhotoAsBase64(data.photo_url);
   return {
@@ -147,8 +172,8 @@ export async function buildMerPayload(data: LandbasePeme): Promise<Record<string
     last_name: data.last_name ?? "",
     given_name: data.first_name ?? "",
     middle_name: data.middle_name ?? "",
-    age: data.age ?? "",
-    date_of_birth: data.birthdate ?? "",
+    age,
+    date_of_birth: birthdate,
     place_of_birth: data.place_of_birth ?? "",
     nationality: data.nationality ?? "",
     gender: data.gender ?? "",
@@ -359,14 +384,15 @@ export async function buildMerPayload(data: LandbasePeme): Promise<Record<string
  */
 export async function buildSummaryPayload(data: LandbasePeme): Promise<Record<string, string>> {
   const photoBase64 = await fetchPhotoAsBase64(data.photo_url);
+  const { birthdate, age } = birthdateAndAge(data);
 
   return {
     // Identity / personal information
     last_name: data.last_name ?? "",
     first_name: data.first_name ?? "",
     middle_name: data.middle_name ?? "",
-    age: data.age ?? "",
-    birthdate: data.birthdate ?? "",
+    age,
+    birthdate,
     place_of_birth: data.place_of_birth ?? "",
     nationality: data.nationality ?? "",
     gender: data.gender ?? "",
@@ -413,6 +439,7 @@ export async function buildSummaryPayload(data: LandbasePeme): Promise<Record<st
  */
 export async function buildDetailedPayload(data: LandbasePeme): Promise<Record<string, string>> {
   const photoBase64 = await fetchPhotoAsBase64(data.photo_url);
+  const { birthdate, age } = birthdateAndAge(data);
 
   return {
     // Identity / personal information
@@ -421,8 +448,8 @@ export async function buildDetailedPayload(data: LandbasePeme): Promise<Record<s
     first_name: data.first_name ?? "",
     middle_name: data.middle_name ?? "",
     place_of_birth: data.place_of_birth ?? "",
-    age: data.age ?? "",
-    birthdate: data.birthdate ?? "",
+    age,
+    birthdate,
     gender: data.gender ?? "",
     marital_status: data.civil_status ?? "",
     religion: data.religion ?? "",

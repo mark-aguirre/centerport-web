@@ -66,8 +66,48 @@ const OTHER_TESTS_GROUP_2 = [
   { key: "ekg", label: "EKG (over 50 years)", hasDate: true },
 ];
 
-const EMPTY_LAB_RESULT: LabTestResult = { checked: false, normal: "", abnormal: "", observations: "" };
-const EMPTY_OTHER_RESULT: OtherLabTestResult = { checked: false, normal: "", abnormal: "", observations: "", performed_date: "" };
+/**
+ * Default result shown for a test that has no stored entry yet: checked, with
+ * an "X" in the Normal column. Applied only when the data map has no entry for
+ * the test key, so an examiner's explicit edit (including clearing it) is never
+ * overridden.
+ */
+const DEFAULT_NORMAL_LAB_RESULT: LabTestResult = { checked: true, normal: "X", abnormal: "", observations: "" };
+const DEFAULT_NORMAL_OTHER_RESULT: OtherLabTestResult = { checked: true, normal: "X", abnormal: "", observations: "", performed_date: "" };
+
+/**
+ * Lab-test keys that default differently from the usual checked + "X".
+ *   - RH Typing: unchecked with "+" in the Normal column.
+ *   - GCH (Pregnant): unchecked with "N/A" in the Normal column.
+ */
+const SPECIAL_DEFAULT_LAB_RESULTS: Record<string, LabTestResult> = {
+  rh_typing: { checked: false, normal: "+", abnormal: "", observations: "" },
+  gch_pregnant: { checked: false, normal: "N/A", abnormal: "", observations: "" },
+};
+
+/** The default LabTestResult for a lab item with no stored entry yet. */
+function defaultLabResult(key: string): LabTestResult {
+  return SPECIAL_DEFAULT_LAB_RESULTS[key] ?? DEFAULT_NORMAL_LAB_RESULT;
+}
+
+/**
+ * "Other test" keys that default differently from the usual checked + "X":
+ *   - Breast examination, PAP Test, PSA men: unchecked with "N/A" in Normal.
+ *   - Chest X-ray, EKG: date-based rows (no Normal/Abnormal cells shown), so
+ *     their Observations column defaults to "NORMAL".
+ */
+const SPECIAL_DEFAULT_OTHER_RESULTS: Record<string, OtherLabTestResult> = {
+  breast_examination: { checked: false, normal: "N/A", abnormal: "", observations: "", performed_date: "" },
+  pap_test: { checked: false, normal: "N/A", abnormal: "", observations: "", performed_date: "" },
+  psa_men: { checked: false, normal: "N/A", abnormal: "", observations: "", performed_date: "" },
+  chest_xray: { checked: true, normal: "", abnormal: "", observations: "NORMAL", performed_date: "" },
+  ekg: { checked: true, normal: "", abnormal: "", observations: "NORMAL", performed_date: "" },
+};
+
+/** The default OtherLabTestResult for an other-test item with no stored entry. */
+function defaultOtherResult(key: string): OtherLabTestResult {
+  return SPECIAL_DEFAULT_OTHER_RESULTS[key] ?? DEFAULT_NORMAL_OTHER_RESULT;
+}
 
 /**
  * Visibly boxed input used inside the bordered "Other test" results table, so
@@ -91,13 +131,17 @@ export function buildDiagnosticNormalDefaults(): Partial<PanamaCertificate> {
   const normalLabTests: Record<string, LabTestResult> = {};
   LAB_CATEGORIES.forEach((cat) => {
     cat.items.forEach((item) => {
-      normalLabTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "" };
+      // RH Typing defaults to unchecked + "N/A"; every other test to the
+      // usual checked + "X" in the Normal column.
+      normalLabTests[item.key] = { ...defaultLabResult(item.key) };
     });
   });
 
   const normalOtherTests: Record<string, OtherLabTestResult> = {};
   [...OTHER_TESTS_GROUP_1, ...OTHER_TESTS_GROUP_2].forEach((item) => {
-    normalOtherTests[item.key] = { checked: true, normal: "X", abnormal: "", observations: "", performed_date: "" };
+    // Per-key defaults: Breast/PAP/PSA -> unchecked + "N/A"; Chest X-ray/EKG ->
+    // Observations "NORMAL"; everything else -> checked + "X".
+    normalOtherTests[item.key] = { ...defaultOtherResult(item.key) };
   });
 
   return {
@@ -173,13 +217,15 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
     : LAB_CATEGORIES;
 
   const updateLabTest = (key: string, field: keyof LabTestResult, value: string | boolean) => {
-    const current = data.lab_tests[key] || { ...EMPTY_LAB_RESULT };
+    // Start from the stored result, or the per-key default when none exists
+    // yet, so the edit builds on the same values shown in the (defaulted) UI.
+    const current = key in data.lab_tests ? data.lab_tests[key] : { ...defaultLabResult(key) };
     const updated = { ...data.lab_tests, [key]: { ...current, [field]: value } };
     onChange({ ...data, lab_tests: updated });
   };
 
   const updateOtherTest = (key: string, field: keyof OtherLabTestResult, value: string | boolean) => {
-    const current = data.lab_other_tests[key] || { ...EMPTY_OTHER_RESULT };
+    const current = key in data.lab_other_tests ? data.lab_other_tests[key] : { ...defaultOtherResult(key) };
     const updated = { ...data.lab_other_tests, [key]: { ...current, [field]: value } };
     onChange({ ...data, lab_other_tests: updated });
   };
@@ -246,7 +292,9 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
 
                 {/* Category item rows */}
                 {cat.items.map((item) => {
-                  const result = data.lab_tests[item.key] || EMPTY_LAB_RESULT;
+                  // No stored entry -> default to checked + "X" in Normal
+                  // (RH Typing defaults to unchecked + "N/A").
+                  const result = item.key in data.lab_tests ? data.lab_tests[item.key] : defaultLabResult(item.key);
                   return (
                     <tr key={item.key}>
                       <td className="border border-primary/30 py-1.5 pl-6 pr-1.5 text-sm text-foreground">
@@ -260,7 +308,6 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
                           className={cn("h-4 w-4 rounded accent-primary", disabled && "pointer-events-none")}
                           aria-label={item.label}
                           tabIndex={disabled ? -1 : undefined}
-                          disabled={disabled}
                         />
                       </td>
                       <td className="border border-primary/30 p-1">
@@ -303,7 +350,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
       {/* Other Tests section — hidden in upToAlcohol mode */}
       {!upToAlcohol && (<>
       {/* Other Tests section — bordered table matching the official layout:
-          Other test | checkbox | RESULTS (Normal | Anormal) | Observations. */}
+          Other test | checkbox | RESULTS (Normal | Abnormal) | Observations. */}
       <div className="border-t border-primary/10 pt-3 mb-4 overflow-x-auto">
         <table className="w-full border-collapse text-xs">
           <thead>
@@ -326,14 +373,14 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
                 Normal
               </th>
               <th className="w-28 border border-primary/30 bg-primary/5 p-1 text-center text-xs font-bold uppercase text-foreground/80">
-                Anormal
+                Abnormal
               </th>
             </tr>
           </thead>
           <tbody>
             {/* Group 1: Breast examination & PAP Test */}
             {OTHER_TESTS_GROUP_1.map((item) => {
-              const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
+              const result = item.key in data.lab_other_tests ? data.lab_other_tests[item.key] : defaultOtherResult(item.key);
               return (
                 <tr key={item.key}>
                   <td className="border border-primary/30 py-1.5 pl-6 pr-1.5 text-sm text-foreground whitespace-nowrap">
@@ -347,7 +394,6 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
                       className={cn("h-4 w-4 rounded accent-primary", disabled && "pointer-events-none")}
                       aria-label={item.label}
                       tabIndex={disabled ? -1 : undefined}
-                      disabled={disabled}
                     />
                   </td>
                   <td className="border border-primary/30 p-1">
@@ -392,7 +438,7 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
 
             {/* Group 2: PSA, Chest X-ray, EKG — date tests span the results cols */}
             {OTHER_TESTS_GROUP_2.map((item) => {
-              const result = data.lab_other_tests[item.key] || EMPTY_OTHER_RESULT;
+              const result = item.key in data.lab_other_tests ? data.lab_other_tests[item.key] : defaultOtherResult(item.key);
               return (
                 <tr key={item.key}>
                   <td className="border border-primary/30 py-1.5 pl-6 pr-1.5 text-sm text-foreground whitespace-nowrap">
@@ -406,7 +452,6 @@ export default function DiagnosticTestsSection({ data, onChange, disabled, upToA
                       className={cn("h-4 w-4 rounded accent-primary", disabled && "pointer-events-none")}
                       aria-label={item.label}
                       tabIndex={disabled ? -1 : undefined}
-                      disabled={disabled}
                     />
                   </td>
                   {item.hasDate ? (

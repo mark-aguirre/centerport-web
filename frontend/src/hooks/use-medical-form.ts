@@ -36,6 +36,7 @@ export const EMPTY_EXAM: MedicalExam = {
   middle_name: "",
   place_of_birth: "",
   passport_no: "",
+  seamans_book_no: "",
   religion: "",
   nationality: "",
   gender: "",
@@ -235,6 +236,7 @@ function flattenResponse(record: MedicalExam): MedicalExam {
       middle_name?: string;
       place_of_birth?: string;
       passport_no?: string;
+      seamans_book_no?: string;
       religion?: string;
       nationality?: string;
       gender?: string;
@@ -266,6 +268,7 @@ function flattenResponse(record: MedicalExam): MedicalExam {
     middle_name: record.middle_name || profile.middle_name || "",
     place_of_birth: record.place_of_birth || profile.place_of_birth || "",
     passport_no: record.passport_no || profile.passport_no || "",
+    seamans_book_no: record.seamans_book_no || profile.seamans_book_no || "",
     religion: record.religion || profile.religion || "",
     nationality: record.nationality || profile.nationality || "",
     gender: (record.gender || profile.gender || "") as MedicalExam["gender"],
@@ -324,6 +327,7 @@ const medicalConfig: EntityFormConfig<MedicalExam> = {
     middle_name: profile.middle_name ?? "",
     place_of_birth: profile.place_of_birth ?? "",
     passport_no: profile.passport_no ?? "",
+    seamans_book_no: profile.seamans_book_no ?? "",
     religion: profile.religion ?? "",
     nationality: profile.nationality ?? "",
     gender: (profile.gender ?? "") as MedicalExam["gender"],

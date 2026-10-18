@@ -15,6 +15,8 @@ import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { ReportMenu } from "@/components/panama/ReportMenu";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SectionReveal } from "@/components/common/section-reveal";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PanamaCertificate, PanamaSectionProps } from "@/components/panama/types";
 
 // ---------------------------------------------------------------------------
@@ -196,6 +198,62 @@ function PanamaTabsBody({
 }
 
 // ---------------------------------------------------------------------------
+// Tab step navigator (Back / Next through the 8 tabs) — rendered in the
+// toolbar's metadata slot so it sits beside the search bar.
+// ---------------------------------------------------------------------------
+
+function TabStepNavigator({
+  activeTab,
+  onTabChange,
+}: {
+  activeTab: TabValue;
+  onTabChange: (tab: TabValue) => void;
+}) {
+  const index = TABS.findIndex((t) => t.value === activeTab);
+  const atStart = index <= 0;
+  const atEnd = index >= TABS.length - 1;
+
+  const goTo = (targetIndex: number) => {
+    const target = TABS[targetIndex];
+    if (target) onTabChange(target.value);
+  };
+
+  return (
+    <div className="flex items-center gap-1 rounded-md border border-primary/30 bg-primary/5 px-1 py-0.5 shadow-sm">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 shrink-0 cursor-pointer text-primary hover:bg-primary/10 disabled:opacity-40"
+        onClick={() => goTo(index - 1)}
+        disabled={atStart}
+        aria-label="Previous step"
+        title="Previous step"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+
+      <span className="min-w-[6rem] px-1 text-center text-xs font-bold tracking-wide text-primary">
+        Page ({index + 1} of {TABS.length})
+      </span>
+
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 shrink-0 cursor-pointer text-primary hover:bg-primary/10 disabled:opacity-40"
+        onClick={() => goTo(index + 1)}
+        disabled={atEnd}
+        aria-label="Next step"
+        title="Next step"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Panama form content
 // ---------------------------------------------------------------------------
 
@@ -214,6 +272,9 @@ function PanamaFormContent() {
         getBusinessId={(record) => record?.panama_id}
         editGuard={(data) => !!data.full_name}
         printMenu={<ReportMenu data={form.existingRecord ?? form.data} />}
+        metadataSlot={
+          <TabStepNavigator activeTab={activeTab} onTabChange={setActiveTab} />
+        }
         preSections={
           <PanamaTabsBody
             data={form.data}
