@@ -16,6 +16,8 @@
  *     `Normal`/`Defective`/`Doubtful`/`Not tested` — needs a value transform.
  *   - Fitness / visual aid: both sides use `fit`/`unfit` and `yes`/`no`
  *     lowercase, so the medical status strings must be written back lowercase.
+ *   - Fit for look-out: Seabase uses `yes`/`no`; Panama uses `fit`/`not_fit`
+ *     — needs a value transform.
  *   - Certificate dates: Panama stores split day / month-abbreviation / year
  *     (`Jan`..`Dec`); the medical record stores an ISO `YYYY-MM-DD` string.
  *
@@ -125,11 +127,22 @@ const COLOR_VISION_FIELD: ScalarFieldMap = {
   },
 };
 
+/**
+ * Restriction details — free-text describing the restriction, shared verbatim.
+ * Seabase shows `restriction_details` only when the recommendation includes a
+ * restriction; Panama stores it in `fitness_restriction_details`.
+ */
+const RESTRICTION_DETAILS_FIELD: ScalarFieldMap = {
+  panama: "fitness_restriction_details",
+  medical: "restriction_details",
+};
+
 /** All scalar field mappings across the synced sections. */
 const SCALAR_FIELDS: ScalarFieldMap[] = [
   ...VITALS_FIELDS,
   ...VISION_ACUITY_FIELDS,
   COLOR_VISION_FIELD,
+  RESTRICTION_DETAILS_FIELD,
 ];
 
 // ---------------------------------------------------------------------------
@@ -507,6 +520,50 @@ function medicalToFitnessPair(value: string | undefined): { fit: boolean; unfit:
   return { fit: false, unfit: false };
 }
 
+/**
+ * Fit-for-look-out determination. The two forms use different vocabularies for
+ * the same concept:
+ *   - Seabase (Medical) `fit_for_lookout`: `yes` / `no`.
+ *   - Panama `fitness_lookout`: `fit` / `not_fit`.
+ * These translate between them in each direction. An unrecognised value maps
+ * to "" so a blank/unknown state is never fabricated into a positive answer.
+ */
+function lookoutMedicalToPanama(value: string | undefined): string {
+  const v = (value ?? "").trim().toLowerCase();
+  if (v === "yes") return "fit";
+  if (v === "no") return "not_fit";
+  return "";
+}
+
+/** Translate a Panama look-out value (`fit`/`not_fit`) into Seabase `yes`/`no`. */
+function lookoutPanamaToMedical(value: string | undefined): string {
+  const v = (value ?? "").trim().toLowerCase();
+  if (v === "fit") return "yes";
+  if (v === "not_fit") return "no";
+  return "";
+}
+
+/**
+ * Restriction choice. The two forms express the same assessment differently:
+ *   - Seabase (Medical) `final_recommendation`: a dropdown whose relevant
+ *     values are `FIT FOR SEA DUTY` / `FIT TO WORK` (no restrictions),
+ *     `FIT WITH RESTRICTION` (restricted), and `UNFIT`.
+ *   - Panama `fitness_restriction`: `without` / `with` / "".
+ * Map the Seabase recommendation onto the Panama restriction checkbox:
+ *   - A fit recommendation (`FIT FOR SEA DUTY` / `FIT TO WORK`) -> `without`.
+ *   - A restricted recommendation (contains `RESTRICTION`) -> `with`.
+ *   - `UNFIT` or any other value -> "" (neither restriction box applies to an
+ *     unfit assessment, so nothing is fabricated).
+ */
+function recommendationMedicalToPanamaRestriction(value: string | undefined): string {
+  const v = (value ?? "").trim().toUpperCase();
+  if (!v) return "";
+  if (v.includes("UNFIT")) return "";
+  if (v.includes("RESTRICTION")) return "with";
+  if (v.includes("FIT")) return "without";
+  return "";
+}
+
 // ---------------------------------------------------------------------------
 // Fitness / certification date mapping
 // ---------------------------------------------------------------------------
@@ -629,6 +686,34 @@ export function applyMedicalToPanama(
       const { fit, unfit } = medicalToFitnessPair(value);
       (next[fitField] as unknown) = fit;
       (next[unfitField] as unknown) = unfit;
+    }
+  }
+
+  // Fit for look-out. An UNFIT final recommendation forces "Not fit for
+  // look-out duty" (an unfit seafarer cannot be fit for look-out), overriding
+  // the Seabase fit_for_lookout answer. Otherwise the recorded fit_for_lookout
+  // answer is translated in (yes -> fit, no -> not_fit); an empty/unknown
+  // value leaves Panama as-is.
+  const recommendationUnfit =
+    typeof medical.final_recommendation === "string" &&
+    medical.final_recommendation.trim().toUpperCase().includes("UNFIT");
+  if (recommendationUnfit) {
+    (next.fitness_lookout as unknown) = "not_fit";
+  } else if (typeof medical.fit_for_lookout === "string" && medical.fit_for_lookout.trim() !== "") {
+    const lookout = lookoutMedicalToPanama(medical.fit_for_lookout);
+    if (lookout) {
+      (next.fitness_lookout as unknown) = lookout;
+    }
+  }
+
+  // Restriction choice (Seabase recommendation -> Panama without/with). A fit
+  // recommendation checks "Without restrictions"; a restricted one checks
+  // "With restrictions". UNFIT / blank leave Panama as-is so an unfit
+  // assessment never fabricates a restriction box.
+  if (typeof medical.final_recommendation === "string" && medical.final_recommendation.trim() !== "") {
+    const restriction = recommendationMedicalToPanamaRestriction(medical.final_recommendation);
+    if (restriction) {
+      (next.fitness_restriction as unknown) = restriction;
     }
   }
 
@@ -953,6 +1038,14 @@ export function getChangedSyncFields(
     if (bStatus !== aStatus) changed.push(String(fitField));
   }
 
+  // Fit for look-out (compare the Seabase value each side would carry back).
+  if (
+    lookoutPanamaToMedical(normalize(before.fitness_lookout)) !==
+    lookoutPanamaToMedical(normalize(after.fitness_lookout))
+  ) {
+    changed.push("fitness_lookout");
+  }
+
   // Visual aids.
   if (normalize(before.fitness_visual_aid) !== normalize(after.fitness_visual_aid)) {
     changed.push("fitness_visual_aid");
@@ -1035,6 +1128,9 @@ export function applyPanamaToMedical(panama: PanamaCertificate): Partial<Medical
   for (const { fitField, unfitField, medical: mKey } of FITNESS_FIELDS) {
     (payload[mKey] as unknown) = fitnessPairToMedical(!!panama[fitField], !!panama[unfitField]);
   }
+
+  // Fit for look-out (fit/not_fit -> yes/no) back to Seabase.
+  (payload.fit_for_lookout as unknown) = lookoutPanamaToMedical(panama.fitness_lookout);
 
   // Visual aids required (lowercase yes/no).
   const visualAid = String(panama.fitness_visual_aid ?? "").trim().toLowerCase();
