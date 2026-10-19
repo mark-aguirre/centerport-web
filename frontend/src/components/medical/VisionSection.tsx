@@ -20,7 +20,8 @@ const STCW_OPTIONS = ["Yes", "No"];
 export function buildVisionNormalDefaults(): Partial<MedicalExam> {
   return {
     vision_color: "adequate",
-    vision_visual_acuity: "Adequate",
+    // The Visual Acuity select offers YES/NO; default a new record to YES.
+    vision_visual_acuity: "YES",
     vision_meets_stcw: "Yes",
   };
 }
