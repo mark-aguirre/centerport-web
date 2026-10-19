@@ -23,20 +23,23 @@ import type { PanamaCertificate, PanamaSectionProps } from "./types";
  * (Section VII). Single source of truth shared by the Set Normal button and
  * the auto-apply-on-new-record flow.
  *
- * Fit for all services, fit for lookout, without restrictions, no visual aid.
+ * Mirrors the Seabase medical form: the service-category fitness fields
+ * (Deck, Engine, Catering, Other), the look-out determination, and the
+ * restriction choice are left blank on a new record so the examiner marks
+ * them explicitly. Only "visual aid required" defaults to "no".
  */
 export function buildFitnessNormalDefaults(): Partial<PanamaCertificate> {
   return {
-    fitness_lookout: "fit",
-    fitness_deck_fit: true,
+    fitness_lookout: "",
+    fitness_deck_fit: false,
     fitness_deck_unfit: false,
-    fitness_engine_fit: true,
+    fitness_engine_fit: false,
     fitness_engine_unfit: false,
-    fitness_catering_fit: true,
+    fitness_catering_fit: false,
     fitness_catering_unfit: false,
-    fitness_other_fit: true,
+    fitness_other_fit: false,
     fitness_other_unfit: false,
-    fitness_restriction: "without",
+    fitness_restriction: "",
     fitness_restriction_details: "",
     fitness_visual_aid: "no",
   };
