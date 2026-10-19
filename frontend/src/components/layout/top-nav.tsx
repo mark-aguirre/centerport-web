@@ -23,7 +23,7 @@ import {
 import { ThemeSelector } from "@/components/theme-selector";
 import { FullWidthToggle } from "@/components/layout/full-width-toggle";
 import { NavModeToggle } from "@/components/layout/nav-mode-toggle";
-import { ToolbarCollapseToggle } from "@/components/layout/toolbar-collapse-toggle";
+import { ToolbarCompactToggle } from "@/components/layout/toolbar-compact-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 
 /** True when the given nav item matches the current route. */
@@ -209,7 +209,7 @@ export function TopNav() {
 
         {/* Right-side controls */}
         <div className="flex items-center gap-1">
-          <ToolbarCollapseToggle />
+          <ToolbarCompactToggle />
           <NavModeToggle />
           <FullWidthToggle />
           <ThemeSelector />

@@ -19,7 +19,7 @@ import { useLayout } from "@/components/layout-provider";
  * the LayoutProvider context. Only rendered inside TopNav, so it is naturally
  * absent in sidebar navigation mode.
  */
-export function ToolbarCollapseToggle() {
+export function ToolbarCompactToggle() {
   const { toolbarCompact, toggleToolbarCompact } = useLayout();
 
   return (
