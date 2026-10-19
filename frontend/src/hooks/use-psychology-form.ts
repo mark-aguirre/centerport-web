@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
@@ -24,15 +24,21 @@ type PsychologyPersonnelDefaults = Pick<
   | "psychologist_license_no"
 >;
 
-/** Selects only the examiner details that should carry into the next evaluation. */
-function getPersonnelDefaults(record: PsychologyRecord): PsychologyPersonnelDefaults {
-  return {
-    psychometrician: record.psychometrician,
-    psychometrician_license_no: record.psychometrician_license_no,
-    psychologist: record.psychologist,
-    psychologist_license_no: record.psychologist_license_no,
-  };
-}
+/**
+ * Blank signatory defaults for a brand-new evaluation.
+ *
+ * Psychometrician / Psychologist are NEVER carried forward from the previous
+ * record: a prior evaluation may have been signed by someone who is now
+ * inactive in Medical Personnel, and carrying that name forward would resurrect
+ * an inactive signatory on a new form. Instead these fields start blank and are
+ * filled solely from the active Super Admin defaults resolved server-side.
+ */
+const BLANK_PERSONNEL_DEFAULTS: PsychologyPersonnelDefaults = {
+  psychometrician: "",
+  psychometrician_license_no: "",
+  psychologist: "",
+  psychologist_license_no: "",
+};
 
 const psychologyConfig: EntityFormConfig<PsychologyRecord> = {
   entityApi: api.entities.PsychologyEvaluation,
@@ -102,12 +108,9 @@ const psychologyConfig: EntityFormConfig<PsychologyRecord> = {
  * Connected to the backend `/api/psychology-evaluations` endpoint.
  */
 export function usePsychologyForm(): UseEntityFormResult<PsychologyRecord> {
-  const personnelDefaultsRef = useRef<PsychologyPersonnelDefaults>(
-    getPersonnelDefaults(EMPTY_PSYCHOLOGY_RECORD)
-  );
-
-  // Assigned Super Admin defaults for the Psychology module (Psychometrician +
-  // Psychologist). These take precedence over carry-forward.
+  // Active Super Admin defaults for the Psychology module (Psychometrician +
+  // Psychologist). The server resolves these to ACTIVE personnel only, so an
+  // inactive person is never pre-filled.
   const { entriesRef } = useModuleDefaults("PSYCHOLOGY");
 
   const config = useMemo<EntityFormConfig<PsychologyRecord>>(
@@ -127,19 +130,14 @@ export function usePsychologyForm(): UseEntityFormResult<PsychologyRecord> {
             },
           }
         );
-        return { ...personnelDefaultsRef.current, ...assigned };
+        // Start from blank signatory fields (never carried forward), then
+        // overlay only the active defaults. A role with no active default
+        // stays blank instead of resurrecting a previous inactive signatory.
+        return { ...BLANK_PERSONNEL_DEFAULTS, ...assigned };
       },
     }),
     [entriesRef]
   );
 
-  const form = useEntityForm(config);
-
-  useEffect(() => {
-    if (form.existingRecord) {
-      personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
-    }
-  }, [form.existingRecord]);
-
-  return form;
+  return useEntityForm(config);
 }
