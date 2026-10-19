@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, type Dispatch, type SetStateAction } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { api, type SeafarerProfile } from "@/lib/api";
@@ -181,8 +181,8 @@ export interface EntityFormConfig<T> {
 export interface UseEntityFormResult<T> {
   /** Current form data. */
   data: T;
-  /** Replace form data directly (used by section onChange callbacks). */
-  setData: (data: T) => void;
+  /** Replace form data directly, or update it functionally (used by section onChange callbacks). */
+  setData: Dispatch<SetStateAction<T>>;
   /** True while the initial record is being fetched. */
   loading: boolean;
   /** True while a save operation is in-flight. */
