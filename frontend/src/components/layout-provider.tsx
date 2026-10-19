@@ -18,12 +18,16 @@ interface LayoutContextValue {
   navMode: NavMode;
   setNavMode: (value: NavMode) => void;
   toggleNavMode: () => void;
+  toolbarCompact: boolean;
+  setToolbarCompact: (value: boolean) => void;
+  toggleToolbarCompact: () => void;
 }
 
 const LayoutContext = createContext<LayoutContextValue | undefined>(undefined);
 
 const STORAGE_KEY = "centerport-full-width";
 const NAV_MODE_KEY = "centerport-nav-mode";
+const TOOLBAR_COMPACT_KEY = "centerport-toolbar-compact";
 
 /**
  * Subscribes to cross-tab `storage` events so the layout preference stays in
@@ -77,6 +81,24 @@ function getNavModeServerSnapshot(): NavMode {
   return "topbar";
 }
 
+/**
+ * Reads the persisted toolbar-compact preference from `localStorage`.
+ *
+ * @returns `true` when the quick-access toolbar is in compact mode, otherwise `false`
+ */
+function getToolbarCompactSnapshot(): boolean {
+  return localStorage.getItem(TOOLBAR_COMPACT_KEY) === "true";
+}
+
+/**
+ * Server snapshot for the toolbar-compact preference. Always `false` to match
+ * SSR; the blocking `<script>` in `layout.tsx` sets `data-toolbar-compact`
+ * on `<html>` to prevent a size flash of the toolbar before hydration.
+ */
+function getToolbarCompactServerSnapshot(): boolean {
+  return false;
+}
+
 interface LayoutProviderProps {
   children: React.ReactNode;
 }
@@ -104,6 +126,12 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     getNavModeServerSnapshot,
   );
 
+  const toolbarCompact = useSyncExternalStore(
+    subscribeToStorage,
+    getToolbarCompactSnapshot,
+    getToolbarCompactServerSnapshot,
+  );
+
   // Keep the data-full-width attribute on <html> in sync with the preference.
   useEffect(() => {
     if (fullWidth) {
@@ -112,6 +140,16 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
       document.documentElement.removeAttribute("data-full-width");
     }
   }, [fullWidth]);
+
+  // Keep the data-toolbar-compact attribute on <html> in sync with the
+  // preference (mirrors the data-full-width effect; backs the anti-flash script).
+  useEffect(() => {
+    if (toolbarCompact) {
+      document.documentElement.setAttribute("data-toolbar-compact", "true");
+    } else {
+      document.documentElement.removeAttribute("data-toolbar-compact");
+    }
+  }, [toolbarCompact]);
 
   const setFullWidth = useCallback((value: boolean) => {
     localStorage.setItem(STORAGE_KEY, String(value));
@@ -136,6 +174,18 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
     window.dispatchEvent(new StorageEvent("storage", { key: NAV_MODE_KEY }));
   }, []);
 
+  const setToolbarCompact = useCallback((value: boolean) => {
+    localStorage.setItem(TOOLBAR_COMPACT_KEY, String(value));
+    // Notify same-tab subscribers (storage event only fires in other tabs).
+    window.dispatchEvent(new StorageEvent("storage", { key: TOOLBAR_COMPACT_KEY }));
+  }, []);
+
+  const toggleToolbarCompact = useCallback(() => {
+    const next = localStorage.getItem(TOOLBAR_COMPACT_KEY) !== "true";
+    localStorage.setItem(TOOLBAR_COMPACT_KEY, String(next));
+    window.dispatchEvent(new StorageEvent("storage", { key: TOOLBAR_COMPACT_KEY }));
+  }, []);
+
   return (
     <LayoutContext.Provider
       value={{
@@ -145,6 +195,9 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
         navMode,
         setNavMode,
         toggleNavMode,
+        toolbarCompact,
+        setToolbarCompact,
+        toggleToolbarCompact,
       }}
     >
       {children}
@@ -157,7 +210,8 @@ export function LayoutProvider({ children }: LayoutProviderProps) {
  *
  * Must be used within a `LayoutProvider`. Throws if called outside one.
  *
- * @returns Object with `fullWidth` / `navMode` state and their setters/togglers
+ * @returns Object with `fullWidth` / `navMode` / `toolbarCompact` state and
+ *   their setters/togglers
  */
 export function useLayout() {
   const context = useContext(LayoutContext);

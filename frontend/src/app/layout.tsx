@@ -42,7 +42,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem("centerport-theme");if(t==="sand"||t==="ocean"){document.documentElement.setAttribute("data-theme",t)}else{document.documentElement.setAttribute("data-theme","ocean")}}catch(e){document.documentElement.setAttribute("data-theme","ocean")}})();(function(){try{if(localStorage.getItem("centerport-full-width")==="true"){document.documentElement.setAttribute("data-full-width","true")}}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem("centerport-theme");if(t==="sand"||t==="ocean"){document.documentElement.setAttribute("data-theme",t)}else{document.documentElement.setAttribute("data-theme","ocean")}}catch(e){document.documentElement.setAttribute("data-theme","ocean")}})();(function(){try{if(localStorage.getItem("centerport-full-width")==="true"){document.documentElement.setAttribute("data-full-width","true")}}catch(e){}})();(function(){try{if(localStorage.getItem("centerport-toolbar-compact")==="true"){document.documentElement.setAttribute("data-toolbar-compact","true")}}catch(e){}})();`,
           }}
         />
       </head>

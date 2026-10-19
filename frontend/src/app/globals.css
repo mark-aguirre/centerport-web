@@ -188,6 +188,18 @@
     @apply bg-background text-foreground;
   }
 
+  /* Compact mode anti-flash: before hydration, the blocking script in
+     layout.tsx sets data-toolbar-compact on <html> from localStorage. The
+     quick-access toolbar (TopNav Row 2) stays fully visible in compact mode —
+     only its icons shrink and labels hide — so we tighten the row's vertical
+     padding here to roughly match the hydrated compact look and limit the
+     resize flash. The React `toolbarCompact` flag drives the full compact
+     styling (half-size icons, hidden labels) once hydrated. */
+  html[data-toolbar-compact="true"] [data-toolbar-quick-access] {
+    padding-top: 0.125rem;
+    padding-bottom: 0.125rem;
+  }
+
   html {
     @apply font-sans;
     font-size: 90%;

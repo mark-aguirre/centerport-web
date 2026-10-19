@@ -23,6 +23,7 @@ import {
 import { ThemeSelector } from "@/components/theme-selector";
 import { FullWidthToggle } from "@/components/layout/full-width-toggle";
 import { NavModeToggle } from "@/components/layout/nav-mode-toggle";
+import { ToolbarCollapseToggle } from "@/components/layout/toolbar-collapse-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 
 /** True when the given nav item matches the current route. */
@@ -99,7 +100,7 @@ export function TopNav() {
   const pathname = usePathname();
   const router = useRouter();
   const { canRoute } = useAuth();
-  const { fullWidth } = useLayout();
+  const { fullWidth, toolbarCompact } = useLayout();
   // Carry the selected seafarer into per-seafarer medical modules so opening
   // one after another (e.g. Seabase -> Panama) shows the same patient.
   const selectedPatientId = useSelectedPatient();
@@ -208,6 +209,7 @@ export function TopNav() {
 
         {/* Right-side controls */}
         <div className="flex items-center gap-1">
+          <ToolbarCollapseToggle />
           <NavModeToggle />
           <FullWidthToggle />
           <ThemeSelector />
@@ -218,7 +220,14 @@ export function TopNav() {
       {/* Row 2 — Quick-access icon toolbar (classic large buttons), grouped
           by category with a vertical separator between each group. Some routes
           (e.g. Medical Personnel) stay in the menus but are hidden here. */}
-      <div className="flex items-stretch gap-1 overflow-x-auto border-t border-border/60 bg-muted/30 px-3 py-1.5 md:px-4 [&::-webkit-scrollbar]:hidden">
+      <div
+        data-toolbar-quick-access
+        className={cn(
+          "flex items-stretch gap-1 overflow-x-auto border-t border-border/60 bg-muted/30 px-3 md:px-4 [&::-webkit-scrollbar]:hidden transition-all",
+          toolbarCompact ? "py-0.5" : "py-1.5"
+        )}
+        suppressHydrationWarning
+      >
         {navigationGroups
           .map((group) => ({
             ...group,
@@ -261,9 +270,13 @@ export function TopNav() {
                 <Link
                   href={buildNavHref(item.href, selectedPatientId)}
                   title={item.title}
+                  aria-label={label}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "group relative flex w-24 shrink-0 flex-col items-center gap-1 rounded-lg px-1.5 py-1.5 transition-all",
+                    "group relative flex shrink-0 flex-col items-center rounded-lg transition-all",
+                    toolbarCompact
+                      ? "w-12 gap-0 px-1.5 py-1"
+                      : "w-24 gap-1 px-1.5 py-1.5",
                     active
                       ? "bg-ring/10 text-ring shadow-sm ring-2 ring-ring/50"
                       : "hover:bg-accent/60"
@@ -279,21 +292,27 @@ export function TopNav() {
                   )}
                   <Icon
                     className={cn(
-                      "h-7 w-7 shrink-0 transition-transform group-hover:scale-110",
+                      "shrink-0 transition-transform group-hover:scale-110",
+                      toolbarCompact ? "h-5 w-5" : "h-7 w-7",
                       active ? "scale-110" : "",
                       iconColor
                     )}
                   />
-                  <span
-                    className={cn(
-                      "w-full text-center text-[11px] leading-tight",
-                      active
-                        ? "font-bold text-ring"
-                        : "font-semibold text-foreground/80"
-                    )}
-                  >
-                    {label}
-                  </span>
+                  {/* Labels are hidden in compact mode, leaving icon-only
+                      buttons; the full title stays available via the Link's
+                      `title` tooltip and `aria-label`. */}
+                  {!toolbarCompact && (
+                    <span
+                      className={cn(
+                        "w-full text-center text-[11px] leading-tight",
+                        active
+                          ? "font-bold text-ring"
+                          : "font-semibold text-foreground/80"
+                      )}
+                    >
+                      {label}
+                    </span>
+                  )}
                 </Link>
                 </Fragment>
               );
