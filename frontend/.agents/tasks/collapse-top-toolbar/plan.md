@@ -168,3 +168,66 @@ Implemented per the plan. Summary for the reviewer:
 - No dev server started. No automated test framework exists in `frontend/`
   (package.json defines only dev/build/start/lint/type-check), consistent with
   how the sibling toggles ship.
+
+## Implementation note (compact mode — final)
+
+Requirement changed mid-iteration: do NOT hide any rows. Instead the top
+toolbar gains a COMPACT mode — the quick-access toolbar (Row 2) stays fully
+visible but its icons shrink and text labels are hidden. Nothing is unmounted.
+
+**Files changed/created (final state):**
+- `src/components/layout-provider.tsx` — state is `toolbarCompact` with
+  `setToolbarCompact` / `toggleToolbarCompact`, persisted under localStorage key
+  `centerport-toolbar-compact` via `useSyncExternalStore` + dispatched
+  `StorageEvent` (copied from the `fullWidth` implementation). A `useEffect`
+  keeps `data-toolbar-compact` on `<html>` in sync. There are ZERO remaining
+  references to `toolbarCollapsed` / `toggleToolbarCollapsed` anywhere in
+  `src/` (grepped — no matches).
+- `src/components/layout/toolbar-collapse-toggle.tsx` — ghost icon `Button` in a
+  `Tooltip`, same shape as `full-width-toggle.tsx`. `Shrink` icon = enter compact
+  (normal state); `Expand` icon = restore (compact state). `aria-label` +
+  tooltip = "Compact toolbar" / "Expand toolbar"; `aria-pressed={toolbarCompact}`.
+  (Component filename kept as `toolbar-collapse-toggle.tsx` to match the plan's
+  path; it exports `ToolbarCollapseToggle`.)
+- `src/components/layout/top-nav.tsx` — renders `<ToolbarCollapseToggle />` first
+  in the Row 1 right-side controls; pulls `toolbarCompact` from `useLayout()`.
+  Row 2 is NEVER hidden. In compact mode: row padding tightens
+  (`py-0.5` vs `py-1.5`); each tile narrows (`w-12` vs `w-24`, `gap-0` vs
+  `gap-1`); the icon shrinks to `h-5 w-5` (20px) from `h-7 w-7` (28px) — about
+  71%, a gentle reduction per the "~75-80%, comfortably clickable" adjustment,
+  NOT half; and the text label `<span>` is not rendered (icon-only). The Link
+  keeps `title` + a new `aria-label={label}` so icon-only buttons stay
+  accessible. `data-toolbar-quick-access` + `suppressHydrationWarning` remain on
+  the Row 2 container for the anti-flash hook.
+- `src/app/layout.tsx` — blocking `<script>` sets `data-toolbar-compact="true"`
+  on `<html>` from localStorage before paint.
+- `src/app/globals.css` — `@layer base` rule that, under
+  `html[data-toolbar-compact="true"]`, tightens `[data-toolbar-quick-access]`
+  vertical padding pre-hydration to roughly match the compact look and limit the
+  resize flash. (It does NOT hide the row — compact keeps it visible.)
+
+**Behavior / persistence / portal decisions:**
+- ReferenceError resolved: the old `toolbarCollapsed && "hidden"` on the Row 2
+  className is gone; the symbol no longer exists and is not referenced anywhere.
+- Portal target intact: no rows are hidden, so Row 3 (`#app-header-actions`, the
+  FormToolbar portal target) is always mounted when its existing `showActionBar`
+  gating allows — CRUD buttons/search are never affected by compact mode.
+- Persistence identical to `fullWidth`: key `centerport-toolbar-compact`, read
+  via `useSyncExternalStore`, written with a dispatched `StorageEvent`
+  (same-tab + cross-tab). Survives reload.
+- Anti-flash: the server + first-client snapshot is `false`, so hydration stays
+  consistent; the blocking script sets `data-toolbar-compact` before paint and
+  the CSS fallback tightens the row padding so the compact size does not
+  noticeably flash. The precise half-step icon/label styling is driven by the
+  React `toolbarCompact` flag post-hydration (a small, acceptable size settle on
+  first paint — labels/icon utility classes are too dynamic to fully replicate in
+  static CSS without brittleness).
+- navMode = sidebar: `TopNav` (and the toggle) render only in topbar mode, so the
+  toggle is absent in sidebar mode by construction — a no-op needing no extra
+  guarding, matching how the sibling toggles rely on their render location.
+- Toggle stays visible in compact mode (it lives in Row 1, which is unchanged).
+
+**Verification (run from `frontend/`):**
+- `npm run type-check` → `tsc --noEmit`, exit 0, no errors.
+- `npm run lint` → `eslint`, no findings (empty output), clean.
+- No dev server started.

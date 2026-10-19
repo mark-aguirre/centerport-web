@@ -194,7 +194,7 @@
      only its icons shrink and labels hide — so we tighten the row's vertical
      padding here to roughly match the hydrated compact look and limit the
      resize flash. The React `toolbarCompact` flag drives the full compact
-     styling (half-size icons, hidden labels) once hydrated. */
+     styling (reduced-size icons, hidden labels) once hydrated. */
   html[data-toolbar-compact="true"] [data-toolbar-quick-access] {
     padding-top: 0.125rem;
     padding-bottom: 0.125rem;
