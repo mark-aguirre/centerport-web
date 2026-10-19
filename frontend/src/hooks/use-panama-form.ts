@@ -171,6 +171,11 @@ export interface UsePanamaFormResult extends UseEntityFormResult<PanamaCertifica
 export function usePanamaForm(): UsePanamaFormResult {
   const form = useEntityForm(panamaConfig);
   const { data, setData, existingRecord } = form;
+  // Capture the inherited new/reset handlers so our wrappers below can run the
+  // original behavior first and then layer the Seabase import on top.
+  const baseHandleNew = form.handleNew;
+  const baseConfirmCreateRecord = form.confirmCreateRecord;
+  const baseHandleSelectResult = form.handleSelectResult;
 
   // Latest medical (Seabase) record for the current seafarer, if any.
   const medicalRef = useRef<MedicalExam | null>(null);
@@ -248,6 +253,112 @@ export function usePanamaForm(): UsePanamaFormResult {
   }, [existingRecord]);
 
   // -------------------------------------------------------------------------
+  // Medical -> Panama import for freshly-built / reset records
+  // -------------------------------------------------------------------------
+  //
+  // The silent auto-refresh effect above only imports Seabase data once per
+  // profile (guarded by syncedProfileRef). When a BRAND-NEW Panama record is
+  // started for a patient — via New, the "create one?" prompt, or picking a
+  // seafarer with no existing certificate — the inherited handler rebuilds the
+  // form from EMPTY_CERTIFICATE + normal defaults (+ personal info), which
+  // discards any Seabase fields the auto-refresh had merged in. Because the
+  // profile id is unchanged, the auto-refresh effect does not re-run. These
+  // wrappers re-apply the latest medical exam through applyMedicalToPanama so a
+  // new certificate inherits the overlapping Seabase data just like a loaded
+  // one does.
+
+  /**
+   * Resolve the latest medical (Seabase) exam for a profile. Reuses the already
+   * fetched `medicalRef` when it corresponds to this profile (per
+   * `syncedProfileRef`) to avoid a redundant request; otherwise fetches it and
+   * caches it so later syncs/change-detection use the same record.
+   */
+  const ensureMedicalFor = useCallback(
+    async (profileId: string | undefined): Promise<MedicalExam | null> => {
+      if (!profileId) return null;
+      // Already fetched for this exact profile — use the cached record.
+      if (syncedProfileRef.current === profileId) {
+        return medicalRef.current;
+      }
+      try {
+        // listByProfile returns most-recent-first; the latest is the target.
+        const records = await api.entities.MedicalExam.listByProfile(profileId);
+        const latest = records.length > 0 ? records[0] : null;
+        medicalRef.current = latest;
+        syncedProfileRef.current = profileId;
+        return latest;
+      } catch (error: unknown) {
+        // A failed import must not block the Panama form; log and carry on.
+        console.warn(
+          "Failed to import Seabase (medical) data:",
+          error instanceof Error ? error.message : error
+        );
+        return null;
+      }
+    },
+    []
+  );
+
+  /**
+   * Resolve the patient attached to the freshly-built record, fetch their
+   * latest Seabase exam, and merge it into the current form.
+   *
+   * The attached profile id is read from the just-set form data via the
+   * functional setData updater (the inherited handler sets it synchronously in
+   * the same tick, so a direct read of `data` would be stale). The medical
+   * fetch is async, so a second functional setData applies the merge once the
+   * record resolves. applyMedicalToPanama is fill-safe, so this never
+   * destructively overwrites user-entered fields.
+   */
+  const importMedicalForNewRecord = useCallback(() => {
+    void (async () => {
+      // Read the attached patient from the record the inherited handler just
+      // built. A Promise resolver captures it out of the functional updater
+      // without mutating state.
+      let resolveProfileId: (id: string | undefined) => void;
+      const profileIdPromise = new Promise<string | undefined>((resolve) => {
+        resolveProfileId = resolve;
+      });
+      setData((prev) => {
+        resolveProfileId((prev as PanamaCertificate).seafarer_profile_id);
+        return prev;
+      });
+
+      const profileId = await profileIdPromise;
+      const medical = await ensureMedicalFor(profileId);
+      if (!medical) return;
+
+      // Merge the latest Seabase data on top of the current form data.
+      setData((prev) => {
+        const merged = applyMedicalToPanama(prev, medical);
+        baselineRef.current = merged;
+        return merged;
+      });
+    })();
+  }, [setData, ensureMedicalFor]);
+
+  /** New record: start fresh, then re-import Seabase data for any attached patient. */
+  const handleNew = useCallback(() => {
+    baseHandleNew();
+    importMedicalForNewRecord();
+  }, [baseHandleNew, importMedicalForNewRecord]);
+
+  /** "Create one?" confirm: pre-fill a new record, then import Seabase data. */
+  const confirmCreateRecord = useCallback(() => {
+    baseConfirmCreateRecord();
+    importMedicalForNewRecord();
+  }, [baseConfirmCreateRecord, importMedicalForNewRecord]);
+
+  /** Select a seafarer: apply personal info, then import their Seabase data. */
+  const handleSelectResult = useCallback(
+    (profile: SeafarerProfile) => {
+      baseHandleSelectResult(profile);
+      importMedicalForNewRecord();
+    },
+    [baseHandleSelectResult, importMedicalForNewRecord]
+  );
+
+  // -------------------------------------------------------------------------
   // Save (Panama only — Seabase sync disabled)
   // -------------------------------------------------------------------------
 
@@ -266,6 +377,12 @@ export function usePanamaForm(): UsePanamaFormResult {
 
   return {
     ...form,
+    // Override the inherited new/reset handlers with the Seabase-importing
+    // wrappers so a freshly-created Panama record inherits the latest medical
+    // (Seabase) data for its patient.
+    handleNew,
+    confirmCreateRecord,
+    handleSelectResult,
     handleSave,
     seabaseConfirmOpen: false,
     seabaseConfirmMessage: SEABASE_SYNC_PROMPT,
