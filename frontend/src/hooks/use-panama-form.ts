@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useEffect, useRef } from "react";
 
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
@@ -18,11 +17,7 @@ import {
   sanitizePayload,
   type RawPanamaResponse,
 } from "@/components/panama/utils";
-import {
-  applyMedicalToPanama,
-  applyPanamaToMedical,
-  hasSyncedChanges,
-} from "@/lib/panama-seabase-sync";
+import { applyMedicalToPanama } from "@/lib/panama-seabase-sync";
 
 // ---------------------------------------------------------------------------
 // Panama-specific configuration
@@ -35,6 +30,9 @@ const panamaConfig: EntityFormConfig<PanamaCertificate> = {
   // When the Panama page opens with a carried-over selected patient who has no
   // Panama certificate yet, prompt (Yes/No) to create one.
   promptCreateOnLoad: true,
+  // Panama shares the selected patient with Seabase (the only sharing pair), so
+  // opening one after the other shows the same seafarer.
+  shareSelectedPatient: true,
 
   flattenResponse: (raw) => flattenProfileIntoRecord(raw as RawPanamaResponse),
   stripSystemFields,
@@ -183,11 +181,6 @@ export function usePanamaForm(): UsePanamaFormResult {
   // redundant fetches on every keystroke.
   const syncedProfileRef = useRef<string | undefined>(undefined);
 
-  const [seabaseConfirmOpen, setSeabaseConfirmOpen] = useState(false);
-  const [seabaseSyncing, setSeabaseSyncing] = useState(false);
-  // Holds the pending save resolution while the confirmation dialog is open.
-  const pendingResolveRef = useRef<((updateSeabase: boolean) => void) | null>(null);
-
   // -------------------------------------------------------------------------
   // Medical -> Panama silent auto-refresh
   // -------------------------------------------------------------------------
@@ -255,115 +248,29 @@ export function usePanamaForm(): UsePanamaFormResult {
   }, [existingRecord]);
 
   // -------------------------------------------------------------------------
-  // Guarded save (Panama -> Medical prompt)
+  // Save (Panama only — Seabase sync disabled)
   // -------------------------------------------------------------------------
 
-  /** Persist the current Panama-linked medical record with synced fields. */
-  const writeSeabase = useCallback(async () => {
-    const medical = medicalRef.current;
-    if (!medical?.id) return;
-    try {
-      const synced = applyPanamaToMedical(data);
-      // Merge the condition patch onto the existing history so Seabase
-      // conditions Panama doesn't cover are preserved rather than dropped.
-      const mergedHistory = synced.medical_history
-        ? { ...(medical.medical_history ?? {}), ...synced.medical_history }
-        : medical.medical_history;
-      // Merge the additional-questions patch onto the existing questionnaire
-      // map so Seabase question details/comments (and the unmapped food-allergy
-      // question) are preserved rather than dropped.
-      const mergedQuestionnaire = synced.questionnaire
-        ? { ...(medical.questionnaire ?? {}), ...synced.questionnaire }
-        : medical.questionnaire;
-      // Merge each physical-examination findings/remarks column onto the
-      // existing map so Seabase body systems Panama doesn't cover (and prior
-      // remarks) are preserved rather than dropped.
-      const mergeFindings = <T>(
-        key:
-          | "findings_a"
-          | "findings_b"
-          | "findings_c"
-          | "findings_a_remarks"
-          | "findings_b_remarks"
-          | "findings_c_remarks"
-      ): Record<string, T> | undefined => {
-        const patch = synced[key] as Record<string, T> | undefined;
-        if (!patch) return medical[key] as Record<string, T> | undefined;
-        return { ...((medical[key] as Record<string, T>) ?? {}), ...patch };
-      };
-      const payload: Partial<MedicalExam> = {
-        ...synced,
-        medical_history: mergedHistory,
-        questionnaire: mergedQuestionnaire,
-        findings_a: mergeFindings<boolean>("findings_a"),
-        findings_b: mergeFindings<boolean>("findings_b"),
-        findings_c: mergeFindings<boolean>("findings_c"),
-        findings_a_remarks: mergeFindings<string>("findings_a_remarks"),
-        findings_b_remarks: mergeFindings<string>("findings_b_remarks"),
-        findings_c_remarks: mergeFindings<string>("findings_c_remarks"),
-        seafarer_profile_id: medical.seafarer_profile_id ?? data.seafarer_profile_id,
-      };
-      const updated = await api.entities.MedicalExam.update(medical.id, payload);
-      medicalRef.current = updated;
-      toast.success("Seabase record updated successfully");
-    } catch (error: unknown) {
-      toast.error("Panama saved, but updating the Seabase record failed");
-      console.warn(
-        "Failed to update Seabase (medical) record:",
-        error instanceof Error ? error.message : error
-      );
-    }
-  }, [data]);
-
   const handleSave = useCallback(async () => {
-    const medical = medicalRef.current;
-    const affectsSeabase =
-      !!medical?.id && hasSyncedChanges(baselineRef.current, data);
+    // Seabase sync disabled: save to Panama only. The Panama -> Medical
+    // confirmation prompt and cross-system write are intentionally skipped so
+    // a save never touches the Seabase (medical) record.
+    await form.handleSave();
+    baselineRef.current = data;
+  }, [data, form]);
 
-    // No linked medical record or no synced field changed: save Panama only,
-    // silently. (Requirement: only prompt when the change affects Seabase.)
-    if (!affectsSeabase) {
-      await form.handleSave();
-      baselineRef.current = data;
-      return;
-    }
-
-    // Ask the user whether to propagate the change to Seabase.
-    const decision = await new Promise<boolean>((resolve) => {
-      pendingResolveRef.current = resolve;
-      setSeabaseConfirmOpen(true);
-    });
-
-    setSeabaseSyncing(true);
-    try {
-      // Always persist Panama first.
-      await form.handleSave();
-      if (decision) {
-        await writeSeabase();
-      }
-      baselineRef.current = data;
-    } finally {
-      setSeabaseSyncing(false);
-      setSeabaseConfirmOpen(false);
-      pendingResolveRef.current = null;
-    }
-  }, [data, form, writeSeabase]);
-
-  const confirmSeabaseSync = useCallback(() => {
-    pendingResolveRef.current?.(true);
-  }, []);
-
-  const declineSeabaseSync = useCallback(() => {
-    pendingResolveRef.current?.(false);
-  }, []);
+  // Seabase confirmation controls are retained as inert no-ops so the page's
+  // ConfirmDialog wiring stays valid; the dialog never opens because
+  // seabaseConfirmOpen is always false.
+  const noop = useCallback(() => {}, []);
 
   return {
     ...form,
     handleSave,
-    seabaseConfirmOpen,
+    seabaseConfirmOpen: false,
     seabaseConfirmMessage: SEABASE_SYNC_PROMPT,
-    seabaseSyncing,
-    confirmSeabaseSync,
-    declineSeabaseSync,
+    seabaseSyncing: false,
+    confirmSeabaseSync: noop,
+    declineSeabaseSync: noop,
   };
 }

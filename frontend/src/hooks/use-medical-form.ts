@@ -430,7 +430,19 @@ export const PANAMA_SYNC_PROMPT =
  *
  * @returns Object with form state, action handlers, and Panama sync controls
  */
-export function useMedicalForm(): UseMedicalFormResult {
+export function useMedicalForm(
+  options?: {
+    /**
+     * When true, this form participates in the Seabase <-> Panama shared
+     * selected-patient group. The Seabase page passes true; the standalone
+     * Medical page leaves it false so it never shares a patient with any other
+     * module.
+     */
+    shareSelectedPatient?: boolean;
+  }
+): UseMedicalFormResult {
+  const shareSelectedPatient = options?.shareSelectedPatient ?? false;
+
   // Assigned Super Admin defaults for the Seabase module (Authorized Physician
   // + Medical Director). These are the sole source for the signatory fields on
   // a new record, and the backend only returns ACTIVE personnel — a deactivated
@@ -442,6 +454,7 @@ export function useMedicalForm(): UseMedicalFormResult {
   const config = useMemo<EntityFormConfig<MedicalExam>>(
     () => ({
       ...medicalConfig,
+      shareSelectedPatient,
       getNewRecordDefaults: () => {
         const assigned = mapEntriesToFields<MedicalExam>(entriesRef.current, {
           // Medical Certification No. is manual user input on the Seabase form,
@@ -457,7 +470,7 @@ export function useMedicalForm(): UseMedicalFormResult {
         };
       },
     }),
-    [entriesRef]
+    [entriesRef, shareSelectedPatient]
   );
 
   const form = useEntityForm(config);

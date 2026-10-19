@@ -26,7 +26,9 @@ const SECTIONS: SectionEntry<MedicalExam>[] = [
  * Seabase Medical Examination form content with full CRUD button behavior.
  */
 function SeabaseFormContent() {
-  const form = useMedicalForm();
+  // Seabase shares its selected patient only with Panama; see
+  // PATIENT_AWARE_ROUTES. The standalone Medical page omits this flag.
+  const form = useMedicalForm({ shareSelectedPatient: true });
 
   const preSections = (
     <SectionReveal index={0}>

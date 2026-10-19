@@ -145,6 +145,19 @@ export interface EntityFormConfig<T> {
   promptCreateOnLoad?: boolean;
 
   /**
+   * When true, this module participates in the cross-page "selected patient"
+   * sharing group. Opening the page reads the shared selected patient (so a
+   * seafarer opened on a sibling module loads here too), and selecting/saving
+   * a seafarer here writes the shared selection so a sibling module picks it up.
+   *
+   * Only the Seabase and Panama modules enable this, so the shared patient
+   * flows strictly between those two. Every other module leaves it false and
+   * neither reads nor writes the shared selection — a patient opened there, or
+   * anywhere else, never carries over. Defaults to false.
+   */
+  shareSelectedPatient?: boolean;
+
+  /**
    * Stable per-entity key used to persist an in-progress draft so unsaved
    * work survives a page reload (e.g. "landbase", "medical").
    *
@@ -265,6 +278,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     recordLabel = "record",
     draftKey,
     promptCreateOnLoad = false,
+    shareSelectedPatient = false,
   } = config;
 
   const searchParams = useSearchParams();
@@ -349,9 +363,14 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         // "selected patient"). In that case we must NOT fall back to a
         // different patient's record — if this module has no record for them,
         // we show their personal info on an empty form instead.
+        //
+        // The shared selected-patient store is only consulted for modules in
+        // the sharing group (Seabase/Panama). Every other module ignores it, so
+        // a patient opened elsewhere never carries in. A URL `?profileId=` deep
+        // link still scopes the load for any module.
         const targetProfileId = editId
           ? null
-          : profileIdParam ?? loadSelectedPatientId();
+          : profileIdParam ?? (shareSelectedPatient ? loadSelectedPatientId() : null);
 
         if (editId) {
           // Deep-link to a specific record of this module.
@@ -417,9 +436,10 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
             setIsExistingRecord(true);
             // Remember this record as the page's last-viewed state.
             if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
-            // Remember this seafarer as the cross-page selected patient so the
-            // same person carries into other medical modules.
-            if (profileId) saveSelectedPatientId(profileId);
+            // In the sharing group, remember this seafarer as the cross-page
+            // selected patient so the sibling module (Seabase <-> Panama) opens
+            // the same person.
+            if (shareSelectedPatient && profileId) saveSelectedPatientId(profileId);
           }
         } else if (targetProfileId && !draftRestoredRef.current) {
           // The selected patient has no record for this module yet. Keep the
@@ -439,8 +459,8 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
               setExistingRecord(null);
               setIsExistingRecord(false);
               setProfileRecords([]);
-              // The patient stays selected for continued cross-page carry-over.
-              saveSelectedPatientId(targetProfileId);
+              // Keep the patient selected for continued sharing-group carry-over.
+              if (shareSelectedPatient) saveSelectedPatientId(targetProfileId);
               // No record of this type exists to remember as last-state.
               if (draftKey) clearLastRecordId(draftKey);
               // Ask whether to create a record for this patient now (opt-in per
@@ -485,7 +505,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     return () => {
       cancelled = true;
     };
-  }, [editId, profileIdParam, entityApi, flattenResponse, getProfileId, getRecordId, fetchProfileRecords, draftKey, recordLabel, buildPersonalData, emptyRecord, promptCreateOnLoad]);
+  }, [editId, profileIdParam, entityApi, flattenResponse, getProfileId, getRecordId, fetchProfileRecords, draftKey, recordLabel, buildPersonalData, emptyRecord, promptCreateOnLoad, shareSelectedPatient]);
 
   // -------------------------------------------------------------------------
   // Draft persistence (survive page reload)
@@ -599,8 +619,9 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
       const newProfileId = getProfileId(flattened);
       if (newProfileId) {
         fetchProfileRecords(newProfileId);
-        // Keep the cross-page selected patient in sync with the saved record.
-        saveSelectedPatientId(newProfileId);
+        // In the sharing group, keep the cross-page selected patient in sync
+        // with the saved record.
+        if (shareSelectedPatient) saveSelectedPatientId(newProfileId);
       }
     } catch (error) {
       handleSaveError(error);
@@ -611,6 +632,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     data, isExistingRecord, existingRecord, validate, getProfileId,
     getRecordId, entityApi, flattenResponse, stripSystemFields,
     sanitizePayload, successMessages, fetchProfileRecords, draftKey,
+    shareSelectedPatient,
   ]);
 
   /** Trigger browser print dialog. */
@@ -634,13 +656,14 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         draftRestoredRef.current = false;
         // Remember the switched-to record as the page's last-viewed state.
         if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
-        // Keep the cross-page selected patient in sync with the record shown.
-        saveSelectedPatientId(getProfileId(flattened));
+        // In the sharing group, keep the cross-page selected patient in sync
+        // with the record shown.
+        if (shareSelectedPatient) saveSelectedPatientId(getProfileId(flattened));
       }
     } catch {
       toast.error("Failed to load the selected record");
     }
-  }, [entityApi, flattenResponse, getRecordId, getProfileId, draftKey]);
+  }, [entityApi, flattenResponse, getRecordId, getProfileId, draftKey, shareSelectedPatient]);
 
   // -------------------------------------------------------------------------
   // Profile search result selection
@@ -657,9 +680,10 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     (profile: SeafarerProfile) => {
       const personalData = buildPersonalData(profile);
 
-      // The seafarer the user just picked becomes the cross-page selected
-      // patient, so opening another medical module shows the same person.
-      if (profile.id) saveSelectedPatientId(profile.id);
+      // In the sharing group, the seafarer the user just picked becomes the
+      // cross-page selected patient so the sibling module (Seabase <-> Panama)
+      // shows the same person.
+      if (shareSelectedPatient && profile.id) saveSelectedPatientId(profile.id);
 
       // Fill only the personal/patient info fields (used while the user is
       // actively building a new record and attaching a seafarer to it).
@@ -739,7 +763,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     },
     [editing, clearSearch, entityApi, emptyRecord, buildPersonalData,
      flattenResponse, getRecordId, getBusinessId, getCreatedDate,
-     recordLabel, draftKey]
+     recordLabel, draftKey, shareSelectedPatient]
   );
 
   // -------------------------------------------------------------------------
@@ -773,10 +797,11 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     setProfileRecords([]);
     // A patient is already attached, so no further selection is required.
     setNeedsPatientSelection(false);
-    if (profile.id) saveSelectedPatientId(profile.id);
+    // In the sharing group, keep the sibling module in sync with this patient.
+    if (shareSelectedPatient && profile.id) saveSelectedPatientId(profile.id);
 
     pendingCreateProfileRef.current = null;
-  }, [config, buildPersonalData, emptyRecord, draftKey]);
+  }, [config, buildPersonalData, emptyRecord, draftKey, shareSelectedPatient]);
 
   /** Dismiss the "create a new record?" prompt and leave the page untouched. */
   const cancelCreateRecord = useCallback(() => {

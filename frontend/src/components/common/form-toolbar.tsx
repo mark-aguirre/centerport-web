@@ -141,6 +141,11 @@ export function FormToolbar({
 }: FormToolbarProps) {
   const resolvedSaveLabel = saveLabel ?? (isExistingRecord ? "Update" : "Save");
 
+  // Hide the search field when editing an existing record. In New mode the
+  // form is also "editing" but no existing record is loaded, so the search
+  // stays visible to let the user find/switch records.
+  const hideSearch = editing && isExistingRecord;
+
   const [searchValue, setSearchValue] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -276,7 +281,7 @@ export function FormToolbar({
    * search sits next to the CRUD buttons in the toolbar rather than the form.
    */
   const renderSearch = (className?: string, active = true) =>
-    onSearch ? (
+    onSearch && !hideSearch ? (
       <div
         ref={active ? containerRef : undefined}
         className={cn("relative min-w-64", className)}

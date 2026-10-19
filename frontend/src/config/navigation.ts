@@ -62,27 +62,24 @@ export function groupNavigation(items: NavigationItem[]): NavigationGroup[] {
 }
 
 /**
- * Routes that are per-seafarer medical modules. These share a single "selected
- * patient" so opening one after another (e.g. Seabase -> Panama) shows the same
- * seafarer. A patient-carrying `?profileId=` param is appended to these hrefs
- * while a patient is selected; other routes are left untouched.
+ * Routes that share a single "selected patient" so opening one after another
+ * shows the same seafarer. Scoped strictly to Seabase <-> Panama: navigating
+ * between these two carries the selected patient via a `?profileId=` param.
+ * Every other route (Landbase, Laboratory, MLC, Psychology, etc.) is omitted,
+ * so a patient never carries into or out of them.
  */
 export const PATIENT_AWARE_ROUTES: ReadonlySet<string> = new Set([
   "/seabase",
-  "/laboratory",
-  "/mlc",
   "/panama",
-  "/landbase",
-  "/psychology",
 ]);
 
 /**
  * Build the href to use for a navigation item, carrying the currently selected
- * patient into per-seafarer medical modules.
+ * patient only between the sharing-group routes (Seabase <-> Panama).
  *
- * For patient-aware routes with a selected patient, appends `?profileId=<id>`
- * so a hard navigation (or a shared link) opens the same seafarer. Non-medical
- * routes, and the case where no patient is selected, return the plain href.
+ * For a sharing-group route with a selected patient, appends `?profileId=<id>`
+ * so navigating there opens the same seafarer. Every other route, and the case
+ * where no patient is selected, returns the plain href.
  *
  * @param href - The route's base href.
  * @param selectedProfileId - The currently selected seafarer id, or null.
