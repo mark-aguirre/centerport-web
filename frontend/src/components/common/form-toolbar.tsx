@@ -113,7 +113,7 @@ export interface FormToolbarProps {
 /**
  * Shared form toolbar with CRUD action buttons, record metadata, and search.
  *
- * In edit mode: shows Save and Cancel buttons.
+ * In edit mode (New or Edit): shows Save and Cancel buttons only.
  * In view mode: shows Edit, New, and Print buttons.
  * Only renders buttons whose handlers are provided.
  *
@@ -413,29 +413,32 @@ export function FormToolbar({
             <span>New</span>
           </Button>
         )}
-        {printMenu ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  size="sm"
-                  variant="outline"
-                  aria-label="Print Preview"
-                  className="cursor-pointer gap-1.5 text-violet-500"
-                />
-              }
-            >
-              <Printer />
-              <span>Print</span>
-            </DropdownMenuTrigger>
-            {printMenu}
-          </DropdownMenu>
-        ) : (
-          onPrint &&
-          iconAction("print", "Print", <Printer />, onPrint, {
-            iconColor: "text-violet-500",
-          })
-        )}
+        {/* Print is only available in view mode. It stays hidden while the
+            form is active (both New and Edit mode). */}
+        {!editing &&
+          (printMenu ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    aria-label="Print Preview"
+                    className="cursor-pointer gap-1.5 text-violet-500"
+                  />
+                }
+              >
+                <Printer />
+                <span>Print</span>
+              </DropdownMenuTrigger>
+              {printMenu}
+            </DropdownMenu>
+          ) : (
+            onPrint &&
+            iconAction("print", "Print", <Printer />, onPrint, {
+              iconColor: "text-violet-500",
+            })
+          ))}
       </div>
   );
 
