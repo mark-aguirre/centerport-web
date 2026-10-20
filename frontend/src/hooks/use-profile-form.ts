@@ -71,6 +71,15 @@ export function useProfileForm(): UseProfileFormResult {
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
+  // Snapshot of the record that was loaded before the user entered New mode,
+  // so Cancel can restore the previously selected patient instead of leaving
+  // the form empty. Null when New was not entered from a loaded record.
+  const preNewSnapshot = useRef<{
+    data: SeafarerProfile;
+    existingRecord: SeafarerProfile | null;
+    isExistingRecord: boolean;
+  } | null>(null);
+
   // --- Search (reusable hook) ---
   const { searchResults, searchLoading, handleSearch, clearSearch } = useProfileSearch();
 
@@ -120,6 +129,8 @@ export function useProfileForm(): UseProfileFormResult {
 
   /** Clear form, enter edit mode for a new record. */
   const handleNew = useCallback(() => {
+    // Remember the currently loaded record so Cancel can restore it.
+    preNewSnapshot.current = { data, existingRecord, isExistingRecord };
     setData(EMPTY_PROFILE);
     setOriginalData(null);
     setEditing(true);
@@ -129,7 +140,7 @@ export function useProfileForm(): UseProfileFormResult {
     clearLastRecordId(PROFILE_PAGE_KEY);
     // Focus first field after render
     setTimeout(() => firstFieldRef.current?.focus(), 0);
-  }, []);
+  }, [data, existingRecord, isExistingRecord]);
 
   /** Enter edit mode, snapshot current data for cancel/restore. */
   const handleEdit = useCallback(() => {
@@ -140,10 +151,22 @@ export function useProfileForm(): UseProfileFormResult {
   /** Discard changes and return to view mode. */
   const handleCancel = useCallback(() => {
     if (isExistingRecord && originalData) {
+      // Cancelling an edit of an existing record: restore the snapshot.
       setData(originalData);
+    } else if (preNewSnapshot.current) {
+      // Cancelling New mode: restore the record that was loaded before New,
+      // so the previously selected patient reappears instead of an empty form.
+      const snapshot = preNewSnapshot.current;
+      setData(snapshot.data);
+      setExistingRecord(snapshot.existingRecord);
+      setIsExistingRecord(snapshot.isExistingRecord);
+      if (snapshot.existingRecord?.id) {
+        saveLastRecordId(PROFILE_PAGE_KEY, snapshot.existingRecord.id);
+      }
     } else {
       setData(EMPTY_PROFILE);
     }
+    preNewSnapshot.current = null;
     setOriginalData(null);
     setEditing(false);
   }, [isExistingRecord, originalData]);
@@ -179,6 +202,7 @@ export function useProfileForm(): UseProfileFormResult {
         saveLastRecordId(PROFILE_PAGE_KEY, persisted.id);
         toast.success("Patient record created successfully");
       }
+      preNewSnapshot.current = null;
       setOriginalData(null);
       setEditing(false);
     } catch (error) {
@@ -213,6 +237,7 @@ export function useProfileForm(): UseProfileFormResult {
       setEditing(false);
     }
     setOriginalData(null);
+    preNewSnapshot.current = null;
     // Remember the selected profile as the page's last-viewed state.
     saveLastRecordId(PROFILE_PAGE_KEY, profile.id);
     clearSearch();
