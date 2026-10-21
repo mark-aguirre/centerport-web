@@ -29,6 +29,7 @@ const ROUTE_ROLES: Record<string, Role[]> = {
   "/seabase": ["RELEASING"],
   "/laboratory": ["LABORATORY"],
   "/immunology": ["LABORATORY"],
+  "/hiv": ["LABORATORY"],
   "/mlc": ["RELEASING"],
   "/panama": ["RELEASING"],
   "/landbase": ["RELEASING"],

@@ -10,6 +10,7 @@ import {
   Brain,
   Users,
   TestTube,
+  ShieldPlus,
   type LucideIcon,
 } from "lucide-react";
 
@@ -143,6 +144,13 @@ export const navigation: NavigationItem[] = [
     subtitle: "Immunology / Serology Report",
     href: "/immunology",
     icon: TestTube,
+    group: "Medical Examination",
+  },
+  {
+    title: "HIV",
+    subtitle: "Human Immunodeficiency Virus (HIV) Screening",
+    href: "/hiv",
+    icon: ShieldPlus,
     group: "Medical Examination",
   },
   {

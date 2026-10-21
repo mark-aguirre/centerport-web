@@ -11,6 +11,7 @@ import { httpClient } from "./http-client";
 import type { LandbasePeme } from "@/components/landbase/types";
 import type { LaboratoryReport } from "@/components/laboratory/types";
 import type { ImmunologyReport } from "@/components/immunology/types";
+import type { HivReport } from "@/components/hiv/types";
 import type { MedicalExam } from "@/components/medical/types";
 import type { MlcRecord } from "@/components/mlc/types";
 import type { PanamaCertificate } from "@/components/panama/types";
@@ -738,6 +739,65 @@ export const api = {
       async listByProfile(profileId: string): Promise<ImmunologyReport[]> {
         return httpClient.get<ImmunologyReport[]>(
           `/api/immunology-reports/by-profile/${profileId}`
+        );
+      },
+    },
+
+    HivReport: {
+      /**
+       * Filter HIV reports. When `id` is provided, fetches a single record by UUID.
+       * Otherwise returns all records (first page, up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<HivReport[]> {
+        return fetchFiltered<HivReport>("/api/hiv-reports", filters);
+      },
+
+      /**
+       * List HIV reports with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-created_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<HivReport[]> {
+        return fetchPagedList<HivReport>("/api/hiv-reports", orderBy, limit, {
+          report_id: "reportId",
+        });
+      },
+
+      /** Create a new HIV report. Returns the persisted record with server-generated fields. */
+      async create(data: HivReport): Promise<HivReport> {
+        return httpClient.post<HivReport>("/api/hiv-reports", data);
+      },
+
+      /** Update an existing HIV report by UUID. Returns the updated record. */
+      async update(
+        id: string,
+        data: Partial<HivReport>
+      ): Promise<HivReport> {
+        return httpClient.put<HivReport>(`/api/hiv-reports/${id}`, data);
+      },
+
+      /**
+       * Search HIV reports by keyword (matches patient name or report ID).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       * @returns matching records sorted by most recently updated first
+       */
+      async search(keyword: string, limit: number = 10): Promise<HivReport[]> {
+        return fetchSearchResults<HivReport>("/api/hiv-reports", keyword, limit);
+      },
+
+      /**
+       * Fetch all HIV reports linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of HIV reports for that profile
+       */
+      async listByProfile(profileId: string): Promise<HivReport[]> {
+        return httpClient.get<HivReport[]>(
+          `/api/hiv-reports/by-profile/${profileId}`
         );
       },
     },

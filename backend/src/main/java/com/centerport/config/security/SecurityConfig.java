@@ -114,6 +114,8 @@ public class SecurityConfig {
                                 Roles.ADMIN, Roles.LABORATORY)
                         .requestMatchers("/api/immunology-reports/**").hasAnyRole(
                                 Roles.ADMIN, Roles.LABORATORY)
+                        .requestMatchers("/api/hiv-reports/**").hasAnyRole(
+                                Roles.ADMIN, Roles.LABORATORY)
                         .requestMatchers("/api/medical-exams/**").hasAnyRole(
                                 Roles.ADMIN, Roles.RELEASING)
                         .requestMatchers("/api/mlc-records/**").hasAnyRole(
