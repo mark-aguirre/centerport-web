@@ -184,6 +184,7 @@ export default function CertificateDetailsSection({
         onSelect={handleSelectPhysician}
         title="Select Examining Physician"
         description="Search and select an examining physician for this certificate."
+        role="AUTHORIZED_PHYSICIAN"
       />
       <MedicalPersonnelDialog
         open={directorDialogOpen}
@@ -191,6 +192,7 @@ export default function CertificateDetailsSection({
         onSelect={handleSelectDirector}
         title="Select Medical Director"
         description="Search and select a medical director for this certificate."
+        role="MEDICAL_DIRECTOR"
       />
     </div>
   );

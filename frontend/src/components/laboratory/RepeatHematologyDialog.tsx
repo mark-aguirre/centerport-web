@@ -359,6 +359,7 @@ export function RepeatHematologyDialog({
             ? "Select Medical Technologist"
             : "Select Pathologist"
         }
+        role={personnel.target === "med_tech" ? "MED_TECH" : "PATHOLOGIST"}
       />
 
       <PdfPreviewDialog

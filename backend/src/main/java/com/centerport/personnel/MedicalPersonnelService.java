@@ -110,14 +110,20 @@ public class MedicalPersonnelService {
      * Used by the medical personnel selection dialog for quick lookup.
      *
      * @param search optional keyword to filter by name, license, or specialization
+     * @param page   optional module filter — restrict to personnel assigned to this page
+     * @param role   optional role filter — restrict to personnel of this role only
      * @return list of matching active personnel DTOs
      */
     @Cacheable(cacheNames = RedisCacheConfig.MEDICAL_PERSONNEL_CACHE,
-            key = "'search:' + (#search == null ? '' : #search) + ':' + (#page == null ? '' : #page)")
-    public List<MedicalPersonnelDto> search(String search, PersonnelModule page) {
+            key = "'search:' + (#search == null ? '' : #search) + ':' + (#page == null ? '' : #page)"
+                    + " + ':' + (#role == null ? '' : #role)")
+    public List<MedicalPersonnelDto> search(String search, PersonnelModule page, PersonnelRole role) {
         Specification<MedicalPersonnel> spec = activeSpec().and(buildSearchSpec(search));
         if (page != null) {
             spec = spec.and(assignedToPageSpec(page));
+        }
+        if (role != null) {
+            spec = spec.and(roleSpec(role));
         }
         List<MedicalPersonnel> results = repository.findAll(spec);
         return results.stream()
@@ -313,6 +319,10 @@ public class MedicalPersonnelService {
      */
     private Specification<MedicalPersonnel> assignedToPageSpec(PersonnelModule page) {
         return (root, query, cb) -> cb.isMember(page, root.get("assignedPages"));
+    }
+
+    private Specification<MedicalPersonnel> roleSpec(PersonnelRole role) {
+        return (root, query, cb) -> cb.equal(root.get("role"), role);
     }
 
     /**

@@ -301,6 +301,7 @@ export function FitnessAssessmentSection({
         onSelect={selectPhysician}
         title="Select Authorized Physician"
         description="Search and select an authorized physician."
+        role="AUTHORIZED_PHYSICIAN"
       />
       <MedicalPersonnelDialog
         open={directorDialogOpen}
@@ -308,6 +309,7 @@ export function FitnessAssessmentSection({
         onSelect={selectDirector}
         title="Select Medical Director"
         description="Search and select a medical director."
+        role="MEDICAL_DIRECTOR"
       />
     </div>
   );

@@ -86,9 +86,11 @@ public class MedicalPersonnelController {
             @Parameter(description = "Search keyword — matches name, license number, or specialization")
             @RequestParam(required = false) String keyword,
             @Parameter(description = "Restrict to personnel assigned to this page/module (e.g. IMMUNOLOGY). Omit for all.")
-            @RequestParam(required = false) PersonnelModule page) {
+            @RequestParam(required = false) PersonnelModule page,
+            @Parameter(description = "Restrict to personnel of this role (e.g. MED_TECH, PATHOLOGIST). Omit for all roles.")
+            @RequestParam(required = false) PersonnelRole role) {
 
-        List<MedicalPersonnelDto> results = service.search(keyword, page);
+        List<MedicalPersonnelDto> results = service.search(keyword, page, role);
         return ResponseEntity.ok(ApiResponse.success(results));
     }
 

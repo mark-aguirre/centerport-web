@@ -361,6 +361,7 @@ export default function FitnessAssessmentSection({ data, onChange, disabled, upT
         onSelect={handleSelectPhysician}
         title="Select Physician"
         description="Search and select a physician for this certificate."
+        role="AUTHORIZED_PHYSICIAN"
       />
       </>)}
     </div>

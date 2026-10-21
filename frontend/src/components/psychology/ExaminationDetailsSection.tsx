@@ -219,6 +219,7 @@ export default function ExaminationDetailsSection({
         onSelect={handleSelectPsychometrician}
         title="Select Psychometrician"
         description="Search and select a psychometrician for this evaluation."
+        role="PSYCHOMETRICIAN"
       />
       <MedicalPersonnelDialog
         open={psychologistDialogOpen}
@@ -226,6 +227,7 @@ export default function ExaminationDetailsSection({
         onSelect={handleSelectPsychologist}
         title="Select Psychologist"
         description="Search and select a psychologist for this evaluation."
+        role="PSYCHOLOGIST"
       />
     </section>
   );

@@ -71,6 +71,13 @@ interface MedicalPersonnelDialogProps {
    * signatories appear.
    */
   page?: PersonnelModuleCode;
+  /**
+   * Optional role filter. When set, only personnel whose structured role
+   * matches are returned — e.g. the Med. Tech field passes {@code "MED_TECH"}
+   * so a Psychologist or Physician never appears in that picker. Composes with
+   * {@link page} when both are provided.
+   */
+  role?: PersonnelRoleCode;
 }
 
 // ---------------------------------------------------------------------------
@@ -112,6 +119,7 @@ export function MedicalPersonnelDialog({
   title = "Select Medical Personnel",
   description = "Search by name, license number, or specialization.",
   page,
+  role,
 }: MedicalPersonnelDialogProps) {
   const [keyword, setKeyword] = useState("");
   const [results, setResults] = useState<MedicalPersonnel[]>([]);
@@ -141,6 +149,9 @@ export function MedicalPersonnelDialog({
       if (page) {
         params.page = page;
       }
+      if (role) {
+        params.role = role;
+      }
 
       const data = await httpClient.get<MedicalPersonnel[]>(
         "/api/medical-personnel/search",
@@ -153,7 +164,7 @@ export function MedicalPersonnelDialog({
     } finally {
       setSearching(false);
     }
-  }, [page]);
+  }, [page, role]);
 
   // Reset the search field and load all personnel each time the dialog opens.
   // The keyword reset is deferred into the async fetch callback to avoid a
