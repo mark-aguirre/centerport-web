@@ -106,10 +106,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/visits/**").hasAnyRole(
                                 Roles.ADMIN, Roles.INFORMATION)
                         .requestMatchers("/api/profiles/**").hasAnyRole(
-                                Roles.ADMIN, Roles.INFORMATION, Roles.RELEASING)
+                                Roles.ADMIN, Roles.INFORMATION, Roles.RELEASING,
+                                Roles.LABORATORY)
                         .requestMatchers("/api/psychology-evaluations/**").hasAnyRole(
                                 Roles.ADMIN, Roles.PSYCHOLOGY)
                         .requestMatchers("/api/laboratory-reports/**").hasAnyRole(
+                                Roles.ADMIN, Roles.LABORATORY)
+                        .requestMatchers("/api/immunology-reports/**").hasAnyRole(
                                 Roles.ADMIN, Roles.LABORATORY)
                         .requestMatchers("/api/medical-exams/**").hasAnyRole(
                                 Roles.ADMIN, Roles.RELEASING)

@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import { httpClient } from "./http-client";
 import type { LandbasePeme } from "@/components/landbase/types";
 import type { LaboratoryReport } from "@/components/laboratory/types";
+import type { ImmunologyReport } from "@/components/immunology/types";
 import type { MedicalExam } from "@/components/medical/types";
 import type { MlcRecord } from "@/components/mlc/types";
 import type { PanamaCertificate } from "@/components/panama/types";
@@ -678,6 +679,65 @@ export const api = {
       async listByProfile(profileId: string): Promise<LaboratoryReport[]> {
         return httpClient.get<LaboratoryReport[]>(
           `/api/laboratory-reports/by-profile/${profileId}`
+        );
+      },
+    },
+
+    ImmunologyReport: {
+      /**
+       * Filter immunology reports. When `id` is provided, fetches a single record by UUID.
+       * Otherwise returns all records (first page, up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<ImmunologyReport[]> {
+        return fetchFiltered<ImmunologyReport>("/api/immunology-reports", filters);
+      },
+
+      /**
+       * List immunology reports with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-created_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<ImmunologyReport[]> {
+        return fetchPagedList<ImmunologyReport>("/api/immunology-reports", orderBy, limit, {
+          report_id: "reportId",
+        });
+      },
+
+      /** Create a new immunology report. Returns the persisted record with server-generated fields. */
+      async create(data: ImmunologyReport): Promise<ImmunologyReport> {
+        return httpClient.post<ImmunologyReport>("/api/immunology-reports", data);
+      },
+
+      /** Update an existing immunology report by UUID. Returns the updated record. */
+      async update(
+        id: string,
+        data: Partial<ImmunologyReport>
+      ): Promise<ImmunologyReport> {
+        return httpClient.put<ImmunologyReport>(`/api/immunology-reports/${id}`, data);
+      },
+
+      /**
+       * Search immunology reports by keyword (matches patient name or report ID).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       * @returns matching records sorted by most recently updated first
+       */
+      async search(keyword: string, limit: number = 10): Promise<ImmunologyReport[]> {
+        return fetchSearchResults<ImmunologyReport>("/api/immunology-reports", keyword, limit);
+      },
+
+      /**
+       * Fetch all immunology reports linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of immunology reports for that profile
+       */
+      async listByProfile(profileId: string): Promise<ImmunologyReport[]> {
+        return httpClient.get<ImmunologyReport[]>(
+          `/api/immunology-reports/by-profile/${profileId}`
         );
       },
     },

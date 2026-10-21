@@ -25,9 +25,10 @@ export type Role =
 const ROUTE_ROLES: Record<string, Role[]> = {
   "/dashboard": ["INFORMATION", "PSYCHOLOGY", "LABORATORY", "RELEASING"],
   "/visit": ["INFORMATION"],
-  "/profile": ["INFORMATION", "RELEASING"],
+  "/profile": ["INFORMATION", "RELEASING", "LABORATORY"],
   "/seabase": ["RELEASING"],
   "/laboratory": ["LABORATORY"],
+  "/immunology": ["LABORATORY"],
   "/mlc": ["RELEASING"],
   "/panama": ["RELEASING"],
   "/landbase": ["RELEASING"],

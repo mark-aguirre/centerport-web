@@ -9,6 +9,7 @@ import {
   CalendarCheck,
   Brain,
   Users,
+  TestTube,
   type LucideIcon,
 } from "lucide-react";
 
@@ -135,6 +136,13 @@ export const navigation: NavigationItem[] = [
     title: "Laboratory",
     href: "/laboratory",
     icon: FlaskConical,
+    group: "Medical Examination",
+  },
+  {
+    title: "Immunology",
+    subtitle: "Immunology / Serology Report",
+    href: "/immunology",
+    icon: TestTube,
     group: "Medical Examination",
   },
   {
