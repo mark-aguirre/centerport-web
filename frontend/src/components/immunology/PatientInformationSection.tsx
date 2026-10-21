@@ -212,6 +212,7 @@ export default function PatientInformationSection({
         onOpenChange={setMedTechDialogOpen}
         title="Select Medical Technologist"
         description="Search and select a medical technologist for this report."
+        page="IMMUNOLOGY"
       />
       <MedicalPersonnelDialog
         onSelect={handleSelectPathologist}
@@ -219,6 +220,7 @@ export default function PatientInformationSection({
         onOpenChange={setPathologistDialogOpen}
         title="Select Pathologist"
         description="Search and select a pathologist for this report."
+        page="IMMUNOLOGY"
       />
     </div>
   );

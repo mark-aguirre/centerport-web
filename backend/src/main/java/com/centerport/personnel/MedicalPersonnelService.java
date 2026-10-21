@@ -6,6 +6,8 @@ import com.centerport.common.exception.NotFoundException;
 import com.centerport.common.util.BusinessIdGenerator;
 import com.centerport.config.RedisCacheConfig;
 import com.centerport.config.security.CurrentUserProvider;
+import com.centerport.personnel.assignment.PersonnelAssignmentRepository;
+import com.centerport.personnel.assignment.PersonnelModule;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +48,7 @@ public class MedicalPersonnelService {
     private final BusinessIdGenerator businessIdGenerator;
     private final CurrentUserProvider currentUserProvider;
     private final PersonnelReferenceChecker referenceChecker;
+    private final PersonnelAssignmentRepository assignmentRepository;
 
     // === Queries ===
 
@@ -110,9 +113,12 @@ public class MedicalPersonnelService {
      * @return list of matching active personnel DTOs
      */
     @Cacheable(cacheNames = RedisCacheConfig.MEDICAL_PERSONNEL_CACHE,
-            key = "'search:' + (#search == null ? '' : #search)")
-    public List<MedicalPersonnelDto> search(String search) {
+            key = "'search:' + (#search == null ? '' : #search) + ':' + (#page == null ? '' : #page)")
+    public List<MedicalPersonnelDto> search(String search, PersonnelModule page) {
         Specification<MedicalPersonnel> spec = activeSpec().and(buildSearchSpec(search));
+        if (page != null) {
+            spec = spec.and(assignedToPageSpec(page));
+        }
         List<MedicalPersonnel> results = repository.findAll(spec);
         return results.stream()
                 .map(mapper::toDto)
@@ -229,26 +235,40 @@ public class MedicalPersonnelService {
      * report records (not FK-linked), the reference check scans those tables for
      * a matching name or license number. When a match exists the delete is
      * rejected with a {@link ConflictException} and the caller should deactivate
-     * instead.
+     * instead — unless {@code force} is {@code true}, in which case the record is
+     * deleted anyway. Historical reports retain their denormalized signatory text
+     * either way, so forcing a delete never alters past report content.
      *
-     * @param id the personnel UUID
+     * @param id    the personnel UUID
+     * @param force delete even when referenced by existing reports
      * @throws NotFoundException if no personnel exists with the given ID
-     * @throws ConflictException if the personnel is referenced by existing reports
+     * @throws ConflictException if referenced by existing reports and {@code force} is false
      */
     @Transactional
     @CacheEvict(cacheNames = RedisCacheConfig.MEDICAL_PERSONNEL_CACHE, allEntries = true)
-    public void delete(UUID id) {
+    public void delete(UUID id, boolean force) {
         MedicalPersonnel existing = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("MedicalPersonnel", id));
 
-        if (referenceChecker.isReferenced(existing.getName(), existing.getLicenseNo())) {
+        if (!force && referenceChecker.isReferenced(existing.getName(), existing.getLicenseNo())) {
             throw new ConflictException(
                     "This personnel is referenced by existing reports and cannot be deleted. "
                             + "Deactivate the record instead.");
         }
 
+        boolean wasReferenced =
+                referenceChecker.isReferenced(existing.getName(), existing.getLicenseNo());
+
+        // The personnel_assignments FK has no ON DELETE cascade, so any
+        // default-signatory assignments for this person must be removed first
+        // or the delete fails with a constraint violation. (The assigned-pages
+        // join table cascades on its own; the assignment audit log has no FK and
+        // is preserved as history.)
+        long clearedAssignments = assignmentRepository.deleteByPersonnelId(id);
+
         repository.delete(existing);
-        log.info("Medical personnel deleted — personnelId: {}, id: {}", existing.getPersonnelId(), id);
+        log.info("Medical personnel deleted — personnelId: {}, id: {}, force: {}, wasReferenced: {}, clearedAssignments: {}",
+                existing.getPersonnelId(), id, force, wasReferenced, clearedAssignments);
     }
 
     // === Helpers ===
@@ -284,6 +304,15 @@ public class MedicalPersonnelService {
      */
     private Specification<MedicalPersonnel> activeSpec() {
         return (root, query, cb) -> cb.equal(root.get("active"), true);
+    }
+
+    /**
+     * Builds a specification matching personnel whose {@code assignedPages}
+     * collection contains the given page/module. Uses {@code isMember} so the
+     * element-collection join is expressed correctly without duplicating rows.
+     */
+    private Specification<MedicalPersonnel> assignedToPageSpec(PersonnelModule page) {
+        return (root, query, cb) -> cb.isMember(page, root.get("assignedPages"));
     }
 
     /**

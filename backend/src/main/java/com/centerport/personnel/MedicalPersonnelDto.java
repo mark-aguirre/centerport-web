@@ -1,11 +1,14 @@
 package com.centerport.personnel;
 
+import com.centerport.personnel.assignment.PersonnelModule;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -43,6 +46,12 @@ public class MedicalPersonnelDto {
 
     /** Structured role/category (e.g. MED_TECH, PATHOLOGIST). */
     private PersonnelRole role;
+
+    /**
+     * Pages/modules this person is assigned to (serialized as
+     * {@code assigned_pages}). Independent of the default-signatory matrix.
+     */
+    private Set<PersonnelModule> assignedPages = new LinkedHashSet<>();
 
     private String title;
 

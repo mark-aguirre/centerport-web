@@ -23,9 +23,12 @@ export const ROLE_LABELS: Record<PersonnelRoleCode, string> = {
 /** Human-readable label for each module code. */
 export const MODULE_LABELS: Record<PersonnelModuleCode, string> = {
   LABORATORY: "Laboratory",
+  IMMUNOLOGY: "Immunology",
+  HIV: "HIV",
   SEABASE: "Seabase",
   MLC: "MLC",
   LANDBASE: "Landbase",
+  PANAMA: "Panama",
   PSYCHOLOGY: "Psychology",
 };
 
@@ -42,9 +45,12 @@ export const ALL_ROLES: PersonnelRoleCode[] = [
 /** All module codes, in display order. */
 export const ALL_MODULES: PersonnelModuleCode[] = [
   "LABORATORY",
+  "IMMUNOLOGY",
+  "HIV",
   "SEABASE",
   "MLC",
   "LANDBASE",
+  "PANAMA",
   "PSYCHOLOGY",
 ];
 
@@ -56,9 +62,12 @@ export const ALL_MODULES: PersonnelModuleCode[] = [
  */
 export const MODULE_ROLES: Record<PersonnelModuleCode, PersonnelRoleCode[]> = {
   LABORATORY: ["MED_TECH", "PATHOLOGIST"],
+  IMMUNOLOGY: ["MED_TECH", "PATHOLOGIST"],
+  HIV: ["MED_TECH", "PATHOLOGIST", "AUTHORIZED_PHYSICIAN"],
   SEABASE: ["AUTHORIZED_PHYSICIAN", "MEDICAL_DIRECTOR"],
   MLC: ["AUTHORIZED_PHYSICIAN", "MEDICAL_DIRECTOR"],
   LANDBASE: ["AUTHORIZED_PHYSICIAN", "MEDICAL_DIRECTOR"],
+  PANAMA: ["AUTHORIZED_PHYSICIAN", "MEDICAL_DIRECTOR"],
   PSYCHOLOGY: ["PSYCHOMETRICIAN", "PSYCHOLOGIST"],
 };
 

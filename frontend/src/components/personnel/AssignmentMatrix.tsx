@@ -72,17 +72,17 @@ export function AssignmentMatrix({
   const [audit, setAudit] = useState<PersonnelAssignmentAuditRecord[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
 
-  // Loads assignments and updates state. State updates happen inside this async
-  // function (not synchronously in the effect body) to avoid cascading renders.
+  // Silently refetches assignments and updates state WITHOUT toggling the
+  // full-screen `loading` flag. Used after a save so the matrix stays on
+  // screen and only the affected cell updates — flipping `loading` here would
+  // blank the whole UI behind the spinner on every selection. The per-cell
+  // `savingCell` spinner already conveys the in-flight state for a save.
   const loadAssignments = useCallback(async () => {
-    setLoading(true);
     try {
       const data = await api.PersonnelAssignment.list();
       setAssignments(data);
     } catch {
       toast.error("Failed to load assignments");
-    } finally {
-      setLoading(false);
     }
   }, []);
 

@@ -20,6 +20,9 @@ import java.util.Set;
  *   <tr><td>MLC</td><td>Authorized Physician, Medical Director</td></tr>
  *   <tr><td>Landbase</td><td>Authorized Physician, Medical Director</td></tr>
  *   <tr><td>Psychology</td><td>Psychometrician, Psychologist</td></tr>
+ *   <tr><td>Immunology</td><td>Medical Technologist, Pathologist</td></tr>
+ *   <tr><td>Panama</td><td>Authorized Physician, Medical Director</td></tr>
+ *   <tr><td>HIV</td><td>Medical Technologist, Pathologist, Authorized Physician</td></tr>
  * </table>
  *
  * <p>Serialized as stable upper-snake codes ({@code "LABORATORY"}, ...).
@@ -34,7 +37,13 @@ public enum PersonnelModule {
     LANDBASE("LANDBASE", "Landbase",
             List.of(PersonnelRole.AUTHORIZED_PHYSICIAN, PersonnelRole.MEDICAL_DIRECTOR)),
     PSYCHOLOGY("PSYCHOLOGY", "Psychology",
-            List.of(PersonnelRole.PSYCHOMETRICIAN, PersonnelRole.PSYCHOLOGIST));
+            List.of(PersonnelRole.PSYCHOMETRICIAN, PersonnelRole.PSYCHOLOGIST)),
+    IMMUNOLOGY("IMMUNOLOGY", "Immunology",
+            List.of(PersonnelRole.MED_TECH, PersonnelRole.PATHOLOGIST)),
+    PANAMA("PANAMA", "Panama",
+            List.of(PersonnelRole.AUTHORIZED_PHYSICIAN, PersonnelRole.MEDICAL_DIRECTOR)),
+    HIV("HIV", "HIV",
+            List.of(PersonnelRole.MED_TECH, PersonnelRole.PATHOLOGIST, PersonnelRole.AUTHORIZED_PHYSICIAN));
 
     private final String code;
     private final String label;

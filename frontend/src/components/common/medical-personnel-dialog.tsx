@@ -11,10 +11,36 @@ import {
 } from "@/components/ui/dialog";
 import { Search, Loader2, Stethoscope } from "lucide-react";
 import { httpClient } from "@/lib/http-client";
+import type { PersonnelModuleCode } from "@/lib/api";
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+/** Structured role/category codes returned by the API. */
+export type PersonnelRoleCode =
+  | "MED_TECH"
+  | "PATHOLOGIST"
+  | "AUTHORIZED_PHYSICIAN"
+  | "MEDICAL_DIRECTOR"
+  | "PSYCHOMETRICIAN"
+  | "PSYCHOLOGIST";
+
+/** Human-readable labels for each personnel role code. */
+const ROLE_LABELS: Record<PersonnelRoleCode, string> = {
+  MED_TECH: "Medical Technologist",
+  PATHOLOGIST: "Pathologist",
+  AUTHORIZED_PHYSICIAN: "Authorized Physician",
+  MEDICAL_DIRECTOR: "Medical Director",
+  PSYCHOMETRICIAN: "Psychometrician",
+  PSYCHOLOGIST: "Psychologist",
+};
+
+/** Returns the display label for a role code, falling back to the raw value. */
+function roleLabel(role?: string): string | undefined {
+  if (!role) return undefined;
+  return ROLE_LABELS[role as PersonnelRoleCode] ?? role;
+}
 
 /** Medical personnel record returned from the API. */
 export interface MedicalPersonnel {
@@ -22,6 +48,8 @@ export interface MedicalPersonnel {
   name: string;
   license_no: string;
   specialization?: string;
+  /** Structured role/category (e.g. MED_TECH, PATHOLOGIST). */
+  role?: PersonnelRoleCode | string;
   title?: string;
 }
 
@@ -36,6 +64,13 @@ interface MedicalPersonnelDialogProps {
   title?: string;
   /** Optional description override. */
   description?: string;
+  /**
+   * Optional page/module filter. When set, only personnel assigned to this
+   * page (via the Personnel roster's "Pages" column) are returned — e.g. the
+   * Immunology report passes {@code "IMMUNOLOGY"} so only its assigned
+   * signatories appear.
+   */
+  page?: PersonnelModuleCode;
 }
 
 // ---------------------------------------------------------------------------
@@ -76,6 +111,7 @@ export function MedicalPersonnelDialog({
   onSelect,
   title = "Select Medical Personnel",
   description = "Search by name, license number, or specialization.",
+  page,
 }: MedicalPersonnelDialogProps) {
   const [keyword, setKeyword] = useState("");
   const [results, setResults] = useState<MedicalPersonnel[]>([]);
@@ -102,6 +138,9 @@ export function MedicalPersonnelDialog({
       if (trimmed) {
         params.keyword = trimmed;
       }
+      if (page) {
+        params.page = page;
+      }
 
       const data = await httpClient.get<MedicalPersonnel[]>(
         "/api/medical-personnel/search",
@@ -114,7 +153,7 @@ export function MedicalPersonnelDialog({
     } finally {
       setSearching(false);
     }
-  }, []);
+  }, [page]);
 
   // Reset the search field and load all personnel each time the dialog opens.
   // The keyword reset is deferred into the async fetch callback to avoid a
@@ -192,9 +231,16 @@ export function MedicalPersonnelDialog({
                     <Stethoscope className="h-4 w-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {person.name}
-                    </p>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {person.name}
+                      </p>
+                      {roleLabel(person.role) && (
+                        <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">
+                          {roleLabel(person.role)}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">
                       {[person.license_no, person.specialization]
                         .filter(Boolean)

@@ -1,13 +1,21 @@
 package com.centerport.personnel;
 
 import com.centerport.common.entity.BaseEntity;
+import com.centerport.personnel.assignment.PersonnelModule;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Medical personnel entity representing doctors, psychologists, psychometricians,
@@ -62,6 +70,21 @@ public class MedicalPersonnel extends BaseEntity {
     /** URL of the uploaded signature image, if any (nullable). */
     @Column(name = "signature_url")
     private String signatureUrl;
+
+    /**
+     * Pages/modules this person is assigned to serve on. Independent of the
+     * default-signatory matrix ({@link com.centerport.personnel.assignment.PersonnelAssignment}):
+     * this is a direct, multi-valued per-person assignment managed from the
+     * Personnel roster. Stored as upper-snake {@link PersonnelModule} codes in a
+     * join table.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "medical_personnel_assigned_pages",
+            joinColumns = @JoinColumn(name = "personnel_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "page", length = 40, nullable = false)
+    private Set<PersonnelModule> assignedPages = new LinkedHashSet<>();
 
     @Column(name = "active", nullable = false)
     private Boolean active = true;

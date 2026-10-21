@@ -337,6 +337,11 @@ export interface MedicalPersonnelRecord {
   specialization?: string;
   /** Structured role/category (drives module assignment eligibility). */
   role?: PersonnelRoleCode | null;
+  /**
+   * Pages/modules this person is assigned to serve on. Independent of the
+   * default-signatory matrix on the Assignments tab.
+   */
+  assigned_pages?: PersonnelModuleCode[];
   title?: string;
   /** URL of the uploaded signature image, if any. */
   signature_url?: string | null;
@@ -366,7 +371,10 @@ export type PersonnelModuleCode =
   | "SEABASE"
   | "MLC"
   | "LANDBASE"
-  | "PSYCHOLOGY";
+  | "PSYCHOLOGY"
+  | "IMMUNOLOGY"
+  | "PANAMA"
+  | "HIV";
 
 /**
  * A configured default-signatory assignment (module + role -> personnel).
@@ -1356,9 +1364,14 @@ export const api = {
       );
     },
 
-    /** Hard-delete a personnel record (409 if referenced by existing reports). */
-    async remove(id: string): Promise<void> {
-      return httpClient.delete<void>(`/api/medical-personnel/${id}`);
+    /**
+     * Hard-delete a personnel record. Returns 409 if referenced by existing
+     * reports; pass {@code force} to delete anyway (historical reports keep
+     * their denormalized signatory text regardless).
+     */
+    async remove(id: string, force = false): Promise<void> {
+      const qs = force ? "?force=true" : "";
+      return httpClient.delete<void>(`/api/medical-personnel/${id}${qs}`);
     },
   },
 

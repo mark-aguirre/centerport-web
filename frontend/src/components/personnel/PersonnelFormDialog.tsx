@@ -24,14 +24,20 @@ import {
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import { ApiError } from "@/lib/http-client";
-import type { MedicalPersonnelRecord, PersonnelRoleCode } from "@/lib/api";
+import type {
+  MedicalPersonnelRecord,
+  PersonnelModuleCode,
+  PersonnelRoleCode,
+} from "@/lib/api";
 import { ALL_ROLES, ROLE_LABELS } from "@/lib/personnel";
+import { PagesMultiSelect } from "./PagesMultiSelect";
 
 /** Fields the admin can edit for a personnel record. */
 interface PersonnelFormState {
   name: string;
   license_no: string;
   role: PersonnelRoleCode | "";
+  assigned_pages: PersonnelModuleCode[];
   title: string;
   signature_url: string;
   active: boolean;
@@ -41,6 +47,7 @@ const EMPTY_FORM: PersonnelFormState = {
   name: "",
   license_no: "",
   role: "",
+  assigned_pages: [],
   title: "",
   signature_url: "",
   active: true,
@@ -87,6 +94,7 @@ export function PersonnelFormDialog({
             name: record.name ?? "",
             license_no: record.license_no ?? "",
             role: record.role ?? "",
+            assigned_pages: record.assigned_pages ?? [],
             title: record.title ?? "",
             signature_url: record.signature_url ?? "",
             active: record.active ?? true,
@@ -117,6 +125,7 @@ export function PersonnelFormDialog({
       name: form.name.trim(),
       license_no: form.license_no.trim(),
       role: form.role || null,
+      assigned_pages: form.assigned_pages,
       title: form.title.trim() || undefined,
       signature_url: form.signature_url.trim() || null,
       active: form.active,
@@ -225,6 +234,17 @@ export function PersonnelFormDialog({
             </Select>
             <p className="text-[11px] text-muted-foreground italic">
               The role determines which modules this person can be assigned to.
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <Label className={labelClass}>Assigned Pages</Label>
+            <PagesMultiSelect
+              value={form.assigned_pages}
+              onChange={(pages) => update("assigned_pages", pages)}
+            />
+            <p className="text-[11px] text-muted-foreground italic">
+              Pages this person is assigned to serve on.
             </p>
           </div>
 

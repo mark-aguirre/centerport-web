@@ -124,7 +124,18 @@ async function proxy(
   // Relay session / OAuth cookies (re-scoped to the proxy path).
   relaySetCookies(upstream, responseHeaders);
 
-  const bodyBuffer = await upstream.arrayBuffer();
+  // "Null body status" responses (204 No Content, 205 Reset Content, 304 Not
+  // Modified) MUST NOT carry a body per the Fetch spec. Passing any body —
+  // even an empty ArrayBuffer — to the Response constructor with one of these
+  // statuses throws `TypeError: Invalid response status code 204`, which Next
+  // then surfaces as a 500. A successful DELETE returns 204, so relay these
+  // with a null body to preserve the real status.
+  const isNullBodyStatus =
+    upstream.status === 204 ||
+    upstream.status === 205 ||
+    upstream.status === 304;
+
+  const bodyBuffer = isNullBodyStatus ? null : await upstream.arrayBuffer();
   return new NextResponse(bodyBuffer, {
     status: upstream.status,
     statusText: upstream.statusText,

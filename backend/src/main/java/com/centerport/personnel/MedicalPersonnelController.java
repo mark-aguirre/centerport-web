@@ -2,6 +2,7 @@ package com.centerport.personnel;
 
 import com.centerport.common.dto.ApiResponse;
 import com.centerport.common.dto.PagedResponse;
+import com.centerport.personnel.assignment.PersonnelModule;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -83,9 +84,11 @@ public class MedicalPersonnelController {
     })
     public ResponseEntity<ApiResponse<List<MedicalPersonnelDto>>> search(
             @Parameter(description = "Search keyword — matches name, license number, or specialization")
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @Parameter(description = "Restrict to personnel assigned to this page/module (e.g. IMMUNOLOGY). Omit for all.")
+            @RequestParam(required = false) PersonnelModule page) {
 
-        List<MedicalPersonnelDto> results = service.search(keyword);
+        List<MedicalPersonnelDto> results = service.search(keyword, page);
         return ResponseEntity.ok(ApiResponse.success(results));
     }
 
@@ -198,14 +201,20 @@ public class MedicalPersonnelController {
      * @return 204 No Content on success
      */
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a medical personnel record (blocked if referenced)")
+    @Operation(summary = "Delete a medical personnel record",
+               description = "Blocked with 409 if the person is referenced by existing reports, unless "
+                       + "force=true is supplied to delete anyway. Historical reports keep their "
+                       + "denormalized signatory text regardless.")
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "Personnel deleted"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Personnel not found"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Personnel referenced by existing reports")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Personnel referenced by existing reports (retry with force=true to override)")
     })
-    public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        service.delete(id);
+    public ResponseEntity<Void> delete(
+            @PathVariable UUID id,
+            @Parameter(description = "Delete even when referenced by existing reports.")
+            @RequestParam(required = false, defaultValue = "false") boolean force) {
+        service.delete(id, force);
         return ResponseEntity.noContent().build();
     }
 }

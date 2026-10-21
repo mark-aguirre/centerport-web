@@ -37,10 +37,12 @@ import { api } from "@/lib/api";
 import { ApiError } from "@/lib/http-client";
 import type {
   MedicalPersonnelRecord,
+  PersonnelModuleCode,
   PersonnelRoleCode,
 } from "@/lib/api";
 import { ALL_ROLES, roleLabel, ROLE_LABELS } from "@/lib/personnel";
 import { PersonnelFormDialog } from "./PersonnelFormDialog";
+import { PagesMultiSelect } from "./PagesMultiSelect";
 
 /** Sortable column keys mapped to backend sort fields. */
 type SortField = "name" | "license_no" | "role" | "updated_date";
@@ -84,8 +86,13 @@ export function PersonnelTable({ onPersonnelChanged }: PersonnelTableProps) {
   const [confirm, setConfirm] = useState<{
     kind: "deactivate" | "delete";
     record: MedicalPersonnelRecord;
+    /** True once the user has been warned the person is referenced by reports. */
+    force?: boolean;
   } | null>(null);
   const [confirmBusy, setConfirmBusy] = useState(false);
+
+  // Id of the row whose page assignment is currently being persisted.
+  const [savingPagesId, setSavingPagesId] = useState<string | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -161,6 +168,44 @@ export function PersonnelTable({ onPersonnelChanged }: PersonnelTableProps) {
     }
   };
 
+  const handlePagesChange = async (
+    record: MedicalPersonnelRecord,
+    pages: PersonnelModuleCode[]
+  ) => {
+    // Optimistically reflect the new selection while the save is in flight.
+    setRecords((prev) =>
+      prev.map((r) => (r.id === record.id ? { ...r, assigned_pages: pages } : r))
+    );
+    setSavingPagesId(record.id);
+    try {
+      // The update endpoint validates the full DTO (name + license_no are
+      // required), so send the existing record merged with the new pages
+      // rather than a pages-only patch.
+      await api.MedicalPersonnel.update(record.id, {
+        name: record.name,
+        license_no: record.license_no,
+        specialization: record.specialization,
+        role: record.role ?? null,
+        title: record.title,
+        signature_url: record.signature_url ?? null,
+        active: record.active,
+        assigned_pages: pages,
+      });
+      toast.success(`${record.name} — pages updated`);
+      void load();
+    } catch (error) {
+      if (error instanceof ApiError) {
+        toast.error(error.message);
+      } else {
+        toast.error("Failed to update pages");
+      }
+      // Roll back the optimistic change on failure.
+      void load();
+    } finally {
+      setSavingPagesId(null);
+    }
+  };
+
   const runConfirm = async () => {
     if (!confirm) return;
     setConfirmBusy(true);
@@ -169,14 +214,21 @@ export function PersonnelTable({ onPersonnelChanged }: PersonnelTableProps) {
         await api.MedicalPersonnel.deactivate(confirm.record.id);
         toast.success(`${confirm.record.name} deactivated`);
       } else {
-        await api.MedicalPersonnel.remove(confirm.record.id);
+        await api.MedicalPersonnel.remove(confirm.record.id, confirm.force);
         toast.success(`${confirm.record.name} deleted`);
       }
       setConfirm(null);
       void load();
     } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
-        toast.error(error.message);
+      // A referenced personnel returns 409 on a non-forced delete. Rather than
+      // dead-ending, re-prompt with an explicit "delete anyway" confirmation.
+      if (
+        error instanceof ApiError &&
+        error.status === 409 &&
+        confirm.kind === "delete" &&
+        !confirm.force
+      ) {
+        setConfirm({ kind: "delete", record: confirm.record, force: true });
       } else if (error instanceof ApiError) {
         toast.error(error.message);
       } else {
@@ -285,6 +337,9 @@ export function PersonnelTable({ onPersonnelChanged }: PersonnelTableProps) {
               {renderSortableHead("name", "Name")}
               {renderSortableHead("license_no", "License No.")}
               {renderSortableHead("role", "Role")}
+              <TableHead className="text-[11px] font-bold text-primary/70 uppercase tracking-wider w-64">
+                Pages
+              </TableHead>
               <TableHead className="text-[11px] font-bold text-primary/70 uppercase tracking-wider">
                 Signature
               </TableHead>
@@ -314,6 +369,14 @@ export function PersonnelTable({ onPersonnelChanged }: PersonnelTableProps) {
                       Unassigned
                     </span>
                   )}
+                </TableCell>
+                <TableCell className="text-xs text-foreground/80 w-64">
+                  <PagesMultiSelect
+                    value={r.assigned_pages ?? []}
+                    onChange={(pages) => handlePagesChange(r, pages)}
+                    saving={savingPagesId === r.id}
+                    disabled={savingPagesId === r.id}
+                  />
                 </TableCell>
                 <TableCell className="text-xs text-foreground/80">
                   {r.signature_url ? (
@@ -391,17 +454,29 @@ export function PersonnelTable({ onPersonnelChanged }: PersonnelTableProps) {
         open={!!confirm}
         title={
           confirm?.kind === "delete"
-            ? "Delete personnel record?"
+            ? confirm.force
+              ? "Delete anyway?"
+              : "Delete personnel record?"
             : "Deactivate personnel record?"
         }
         message={
           confirm?.kind === "delete" ? (
-            <>
-              This permanently deletes{" "}
-              <strong>{confirm?.record.name}</strong>. If the person is
-              referenced by existing reports, deletion is blocked — deactivate
-              instead to preserve historical signatures.
-            </>
+            confirm.force ? (
+              <>
+                <strong>{confirm.record.name}</strong> is referenced by existing
+                reports. Deleting is permanent and cannot be undone. Past reports
+                keep their printed signatory details, but this person will be
+                removed from the roster entirely. Deactivating instead preserves
+                the record. Delete anyway?
+              </>
+            ) : (
+              <>
+                This permanently deletes{" "}
+                <strong>{confirm.record.name}</strong>. If the person is
+                referenced by existing reports, you&apos;ll be asked to confirm
+                again before the delete goes through.
+              </>
+            )
           ) : (
             <>
               <strong>{confirm?.record.name}</strong> will no longer appear in
@@ -410,7 +485,13 @@ export function PersonnelTable({ onPersonnelChanged }: PersonnelTableProps) {
             </>
           )
         }
-        confirmLabel={confirm?.kind === "delete" ? "Delete" : "Deactivate"}
+        confirmLabel={
+          confirm?.kind === "delete"
+            ? confirm.force
+              ? "Delete anyway"
+              : "Delete"
+            : "Deactivate"
+        }
         confirmVariant="destructive"
         icon={confirm?.kind === "delete" ? Trash2 : Ban}
         busy={confirmBusy}
