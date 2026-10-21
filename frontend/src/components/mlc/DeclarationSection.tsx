@@ -7,7 +7,7 @@ import { RADIO_OPTION_LABEL_CLASS } from "@/lib/form-styles";
 import { ClipboardCheck } from "lucide-react";
 
 import type { MlcRecord, MlcSectionProps, VisualAid, YesNo } from "./types";
-import { createFieldUpdater } from "./utils";
+import { createFieldUpdater, displayToIsoDate, isoToDisplayDate } from "./utils";
 
 /** Questions included in the authorized physician declaration. */
 const DECLARATION_CONDITIONS: { field: keyof MlcRecord; label: string }[] = [
@@ -191,9 +191,12 @@ export default function DeclarationSection({
 
           <FormField
             label="Date of Last Colour Vision Test (DD/MM/YYYY)"
-            value={data.date_colour_vision_test}
-            onChange={(value) => updateField("date_colour_vision_test", value)}
-            type="date"
+            value={isoToDisplayDate(data.date_colour_vision_test)}
+            onChange={(value) =>
+              updateField("date_colour_vision_test", displayToIsoDate(value))
+            }
+            type="text"
+            placeholder="DD/MM/YYYY"
             disabled={disabled}
           />
         </div>

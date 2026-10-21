@@ -327,6 +327,16 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
+  // Snapshot of the record that was loaded before the user entered New mode,
+  // so Cancel can restore the previously selected record/patient instead of
+  // leaving the form empty. Null when New was not entered from a loaded record.
+  const preNewSnapshot = useRef<{
+    data: T;
+    existingRecord: T | null;
+    isExistingRecord: boolean;
+    profileRecords: RecordSummary[];
+  } | null>(null);
+
   // -------------------------------------------------------------------------
   // Helpers
   // -------------------------------------------------------------------------
@@ -529,6 +539,8 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
   /** Clear form, enter edit mode for a new record. */
   const handleNew = useCallback(() => {
     const defaults = config.getNewRecordDefaults?.() ?? {};
+    // Remember the currently loaded record so Cancel can restore it.
+    preNewSnapshot.current = { data, existingRecord, isExistingRecord, profileRecords };
     // Drop any restored draft: New starts a fresh, empty record. The persist
     // effect will begin writing a new draft as the user types.
     if (draftKey) clearDraft(draftKey);
@@ -542,7 +554,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     setExistingRecord(null);
     setProfileRecords([]);
     setNeedsPatientSelection(true);
-  }, [emptyRecord, config, draftKey]);
+  }, [emptyRecord, config, draftKey, data, existingRecord, isExistingRecord, profileRecords]);
 
   /** Enter edit mode, snapshot current data for cancel/restore. */
   const handleEdit = useCallback(() => {
@@ -556,16 +568,30 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
       setData(originalData);
     } else if (isExistingRecord && existingRecord) {
       setData(existingRecord);
+    } else if (preNewSnapshot.current) {
+      // Cancelling New mode: restore the record that was loaded before New,
+      // so the previously selected record/patient reappears instead of an
+      // empty form.
+      const snapshot = preNewSnapshot.current;
+      setData(snapshot.data);
+      setExistingRecord(snapshot.existingRecord);
+      setIsExistingRecord(snapshot.isExistingRecord);
+      setProfileRecords(snapshot.profileRecords);
+      if (draftKey && snapshot.isExistingRecord) {
+        const restoredId = getRecordId(snapshot.data);
+        if (restoredId) saveLastRecordId(draftKey, restoredId);
+      }
     } else {
       setData(emptyRecord);
     }
+    preNewSnapshot.current = null;
     setOriginalData(null);
     setEditing(false);
     setNeedsPatientSelection(false);
     // Discarding changes also discards the persisted draft.
     if (draftKey) clearDraft(draftKey);
     draftRestoredRef.current = false;
-  }, [isExistingRecord, originalData, existingRecord, emptyRecord, draftKey]);
+  }, [isExistingRecord, originalData, existingRecord, emptyRecord, draftKey, getRecordId]);
 
   /** Validate, persist via API, and return to view mode. */
   const handleSave = useCallback(async () => {
@@ -606,6 +632,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
       const flattened = flattenResponse(persisted);
       setData(flattened);
       setExistingRecord(flattened);
+      preNewSnapshot.current = null;
       setOriginalData(null);
       setEditing(false);
 
@@ -651,6 +678,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
         setIsExistingRecord(true);
         setEditing(false);
         setOriginalData(null);
+        preNewSnapshot.current = null;
         // Switching to a saved record in view mode discards any pending draft.
         if (draftKey) clearDraft(draftKey);
         draftRestoredRef.current = false;
@@ -742,6 +770,7 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
             setNeedsPatientSelection(false);
             setEditing(false);
             setOriginalData(null);
+            preNewSnapshot.current = null;
             if (draftKey) saveLastRecordId(draftKey, getRecordId(flattened));
           } else if (editing) {
             // Building a new record: keep the dropdown and fill personal info.
@@ -795,6 +824,9 @@ export function useEntityForm<T>(config: EntityFormConfig<T>): UseEntityFormResu
     setIsExistingRecord(false);
     setExistingRecord(null);
     setProfileRecords([]);
+    // This is a deliberate create-for-searched-patient flow, not New-from-a-
+    // loaded-record; don't let Cancel restore a stale pre-New record.
+    preNewSnapshot.current = null;
     // A patient is already attached, so no further selection is required.
     setNeedsPatientSelection(false);
     // In the sharing group, keep the sibling module in sync with this patient.

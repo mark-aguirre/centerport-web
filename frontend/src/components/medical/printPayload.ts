@@ -43,6 +43,8 @@ const DETAILED_PRESERVE_CASE_KEYS = new Set<string>([
   "position_applied_for",
   "authorized_physician",
   "medical_director",
+  "medical_certificate_no",
+  "reference_no",
 ]);
 
 /**
@@ -536,6 +538,8 @@ export async function buildSeabaseDetailedPayload(
     valid_until: data.valid_until ?? "",
     authorized_physician: data.authorized_physician ?? "",
     medical_director: data.medical_director ?? "",
+    medical_certificate_no: data.medical_certification_no ?? "",
+    reference_no: data.exam_id ? `Ref. no. : ${data.exam_id}` : "",
   };
 
   // Lowercase mapped token values for the template's expected tokens, but keep

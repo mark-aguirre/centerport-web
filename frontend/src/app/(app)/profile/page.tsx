@@ -76,6 +76,7 @@ function ProfileFormContent() {
           createdDate: existingRecord?.created_date,
           updatedDate: existingRecord?.updated_date,
         }}
+        hideSearchInNewMode
         onSave={handleSave}
         onCancel={handleCancel}
         onEdit={handleEdit}

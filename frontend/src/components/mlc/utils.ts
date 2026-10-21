@@ -103,6 +103,38 @@ export function sanitizePayload(record: Partial<MlcRecord>): Partial<MlcRecord> 
   return genericSanitize(record);
 }
 
+/**
+ * Format an ISO date string (`yyyy-mm-dd`) as `DD/MM/YYYY` for display.
+ *
+ * The underlying form value is kept in ISO so it stays consistent with the
+ * other date fields (e.g. Date of Fitness) and the print payload; this helper
+ * only affects what the user sees in the Colour Vision Test input.
+ *
+ * Returns the input unchanged when it is empty or not a plain ISO date, so
+ * partially typed text is never silently discarded.
+ */
+export function isoToDisplayDate(iso: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso ?? "");
+  if (!match) return iso ?? "";
+  const [, year, month, day] = match;
+  return `${day}/${month}/${year}`;
+}
+
+/**
+ * Parse a user-entered `DD/MM/YYYY` string back into an ISO date
+ * (`yyyy-mm-dd`) for storage. Returns an empty string once the field is
+ * cleared, and otherwise returns the raw input while it is still incomplete so
+ * typing is not interrupted.
+ */
+export function displayToIsoDate(display: string): string {
+  const value = (display ?? "").trim();
+  if (value === "") return "";
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+  if (!match) return value;
+  const [, day, month, year] = match;
+  return `${year}-${month}-${day}`;
+}
+
 /** Create a field updater for MLC section components. */
 export function createFieldUpdater(
   data: MlcRecord,

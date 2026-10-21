@@ -24,6 +24,7 @@ const FITNESS_OPTIONS = [
  *
  * - Fitness determination: "Fit for Sea Duty"
  * - Date of Initial PEME and Date of Fitness: today
+ * - Date of Last Colour Vision Test: same as Date of Fitness (today)
  * - Valid Until: two years after today (keeps validity in sync)
  *
  * Dates are stored as ISO (`yyyy-mm-dd`); the native `type="date"` inputs
@@ -46,6 +47,8 @@ export function buildFinalRecommendationNormalDefaults(): Partial<MlcRecord> {
     fitness_determination: "Fit for Sea Duty",
     date_initial_peme: todayIso,
     date_of_fitness: todayIso,
+    // Default the colour vision test date to match Date of Fitness.
+    date_colour_vision_test: todayIso,
     valid_until_date: toIso(validUntil),
   };
 }

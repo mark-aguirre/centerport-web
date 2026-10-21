@@ -99,6 +99,13 @@ export interface FormToolbarProps {
   /** Custom label for the save button (overrides default "Save"/"Update"). */
   saveLabel?: string;
 
+  /**
+   * When true, the search field is also hidden in New mode (not just when
+   * editing an existing record). Defaults to false, so by default New mode
+   * keeps the search visible for finding/switching records. Opt in per page.
+   */
+  hideSearchInNewMode?: boolean;
+
   // Search props
   /** Callback fired on every search input change. */
   onSearch?: (keyword: string) => void;
@@ -134,6 +141,7 @@ export function FormToolbar({
   onPrint,
   printMenu,
   saveLabel,
+  hideSearchInNewMode = false,
   onSearch,
   searchResults = [],
   searchLoading = false,
@@ -141,10 +149,11 @@ export function FormToolbar({
 }: FormToolbarProps) {
   const resolvedSaveLabel = saveLabel ?? (isExistingRecord ? "Update" : "Save");
 
-  // Hide the search field whenever the form is active (both Edit mode on an
-  // existing record and New mode). The search is only meant for finding/
-  // switching records from view mode, so it stays hidden while editing.
-  const hideSearch = editing;
+  // Hide the search field when editing an existing record. In New mode the
+  // form is also "editing" but no existing record is loaded; by default the
+  // search stays visible there so the user can find/switch records. Pages that
+  // opt in via `hideSearchInNewMode` also hide it in New mode.
+  const hideSearch = editing && (isExistingRecord || hideSearchInNewMode);
 
   const [searchValue, setSearchValue] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);

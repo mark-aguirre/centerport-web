@@ -179,15 +179,26 @@ export function useLocalStorageForm<
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
+  // Snapshot of the record that was loaded before the user entered New mode,
+  // so Cancel can restore the previously selected record instead of leaving
+  // the form empty. Null when New was not entered from a loaded record.
+  const preNewSnapshot = useRef<{
+    data: T;
+    existingRecord: T | null;
+    isExistingRecord: boolean;
+  } | null>(null);
+
   /** Clear form, enter edit mode for a new record. */
   const handleNew = useCallback(() => {
+    // Remember the currently loaded record so Cancel can restore it.
+    preNewSnapshot.current = { data, existingRecord, isExistingRecord };
     setData(emptyRecord);
     setOriginalData(null);
     setEditing(true);
     setIsExistingRecord(false);
     setExistingRecord(null);
     setTimeout(() => firstFieldRef.current?.focus(), 0);
-  }, [emptyRecord]);
+  }, [emptyRecord, data, existingRecord, isExistingRecord]);
 
   /** Enter edit mode, snapshot current data for cancel/restore. */
   const handleEdit = useCallback(() => {
@@ -199,9 +210,17 @@ export function useLocalStorageForm<
   const handleCancel = useCallback(() => {
     if (isExistingRecord && originalData) {
       setData(originalData);
+    } else if (preNewSnapshot.current) {
+      // Cancelling New mode: restore the record that was loaded before New,
+      // so the previously selected record reappears instead of an empty form.
+      const snapshot = preNewSnapshot.current;
+      setData(snapshot.data);
+      setExistingRecord(snapshot.existingRecord);
+      setIsExistingRecord(snapshot.isExistingRecord);
     } else {
       setData(emptyRecord);
     }
+    preNewSnapshot.current = null;
     setOriginalData(null);
     setEditing(false);
   }, [isExistingRecord, originalData, emptyRecord]);
@@ -248,6 +267,7 @@ export function useLocalStorageForm<
         setIsExistingRecord(true);
         toast.success(successCreateMessage);
       }
+      preNewSnapshot.current = null;
       setOriginalData(null);
       setEditing(false);
     } catch {
