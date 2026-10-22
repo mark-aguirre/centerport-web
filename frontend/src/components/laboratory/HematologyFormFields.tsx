@@ -6,6 +6,7 @@
 
 import { useId } from "react";
 import { cn } from "@/lib/utils";
+import { useLaboratoryReferenceDefaults } from "@/hooks/use-laboratory-reference-defaults";
 import {
   DiffNormalValuesHeader,
   DiffRow,
@@ -88,6 +89,24 @@ function formatReferenceRange(min: string, max: string, unit: string): string {
   return unit;
 }
 
+/**
+ * Formats a raw configured range such as `"50-80"` into a displayed differential
+ * reference like `"50 - 80 %"`. A single value becomes `"<value> %"`, and a
+ * blank config falls back to the bare unit so the column still reads `"%"`.
+ */
+function formatDifferentialRange(raw: string | undefined, unit: string): string {
+  const value = (raw ?? "").trim();
+  if (!value) return unit;
+
+  const separator = value.indexOf("-", 1);
+  if (separator === -1) return `${value} ${unit}`;
+
+  const min = value.slice(0, separator).trim();
+  const max = value.slice(separator + 1).trim();
+  if (min && max) return `${min} - ${max} ${unit}`;
+  return `${min || max} ${unit}`;
+}
+
 function formatEsrReference(male: string, female: string): string {
   const maleReference = male.trim();
   const femaleReference = female.trim();
@@ -110,6 +129,12 @@ export function HematologyFormFields({
   disabled,
 }: HematologyFormFieldsProps) {
   const resultDateId = useId();
+
+  // Differential-count reference ranges (Segmenters, Eosinophils, Monocytes,
+  // Myelocytes, Juveniles, Basophils, Others) have no persisted min/max fields,
+  // so they are displayed from the configured Default Values at all times.
+  const { defaults } = useLaboratoryReferenceDefaults();
+  const diff = defaults.differential;
 
   return (
     <>
@@ -246,35 +271,35 @@ export function HematologyFormFields({
                 label="Segmenters:"
                 value={data.segmenters}
                 onValueChange={(value) => onFieldChange("segmenters", value)}
-                normalRange="%"
+                normalRange={formatDifferentialRange(diff.segmenters, "%")}
                 disabled={disabled}
               />
               <DiffRow
                 label="Eosinophils:"
                 value={data.eosinophils}
                 onValueChange={(value) => onFieldChange("eosinophils", value)}
-                normalRange="%"
+                normalRange={formatDifferentialRange(diff.eosinophils, "%")}
                 disabled={disabled}
               />
               <DiffRow
                 label="Monocytes:"
                 value={data.monocytes}
                 onValueChange={(value) => onFieldChange("monocytes", value)}
-                normalRange="%"
+                normalRange={formatDifferentialRange(diff.monocytes, "%")}
                 disabled={disabled}
               />
               <DiffRow
                 label="Myelocytes:"
                 value={data.myelocytes}
                 onValueChange={(value) => onFieldChange("myelocytes", value)}
-                normalRange="%"
+                normalRange={formatDifferentialRange(diff.myelocytes, "%")}
                 disabled={disabled}
               />
               <DiffRow
                 label="Juveniles:"
                 value={data.juveniles}
                 onValueChange={(value) => onFieldChange("juveniles", value)}
-                normalRange="%"
+                normalRange={formatDifferentialRange(diff.juveniles, "%")}
                 disabled={disabled}
               />
             </div>
@@ -296,14 +321,14 @@ export function HematologyFormFields({
                 label="Basophils:"
                 value={data.basophils}
                 onValueChange={(value) => onFieldChange("basophils", value)}
-                normalRange="%"
+                normalRange={formatDifferentialRange(diff.basophils, "%")}
                 disabled={disabled}
               />
               <DiffRow
                 label="Others:"
                 value={data.others_diff}
                 onValueChange={(value) => onFieldChange("others_diff", value)}
-                normalRange="%"
+                normalRange={formatDifferentialRange(diff.others, "%")}
                 disabled={disabled}
               />
             </div>

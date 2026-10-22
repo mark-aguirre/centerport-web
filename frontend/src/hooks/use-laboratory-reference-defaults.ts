@@ -33,6 +33,26 @@ export type HematologyReferenceDefaults = Pick<
 >;
 
 /**
+ * Raw differential-count reference ranges that have no dedicated `_normal_min`/
+ * `_normal_max` fields on the Laboratory Report model. They are displayed from
+ * the configured Default Values at all times (never persisted per report), so
+ * the hook surfaces them verbatim as the range strings entered on the Default
+ * Values page (for example `"50-80"`, `"1-4"`, `"0-1"`).
+ *
+ * Lymphocytes and Stab Cells are intentionally excluded — those keep dedicated
+ * persisted min/max fields and flow through {@link HematologyReferenceDefaults}.
+ */
+export interface DifferentialReferenceRanges {
+  segmenters: string;
+  eosinophils: string;
+  monocytes: string;
+  myelocytes: string;
+  juveniles: string;
+  basophils: string;
+  others: string;
+}
+
+/**
  * Resolved laboratory reference ("Normal Values" / "Reference Range") defaults,
  * split by section so each consumer applies the part its model needs:
  *   - `hematology` — flat `_normal_min`/`_normal_max` + ESR fields, merged into
@@ -40,17 +60,22 @@ export type HematologyReferenceDefaults = Pick<
  *   - `chemistry` — per-row range strings used as the `reference` prop of
  *     {@link ChemistryFormFields} (the chemistry repeat model has no reference
  *     fields of its own).
- *   - `report` — both sets combined, for seeding a Laboratory Report record.
+ *   - `differential` — raw ranges for the differential rows that have no
+ *     persisted min/max fields, displayed from config at all times.
+ *   - `report` — both persisted sets combined, for seeding a Laboratory Report
+ *     record.
  */
 export interface LaboratoryReferenceDefaults {
   hematology: Partial<HematologyReferenceDefaults>;
   chemistry: Partial<ChemistryReferenceValues>;
+  differential: Partial<DifferentialReferenceRanges>;
   report: Partial<LaboratoryReport>;
 }
 
 const EMPTY_DEFAULTS: LaboratoryReferenceDefaults = {
   hematology: {},
   chemistry: {},
+  differential: {},
   report: {},
 };
 
@@ -93,9 +118,11 @@ export function useLaboratoryReferenceDefaults() {
 
       const hema = mapHematologyDefaults(hematology[0]);
       const chem = mapChemistryDefaults(chemistry[0]);
+      const diff = mapDifferentialDefaults(hematology[0]);
       const resolved: LaboratoryReferenceDefaults = {
         hematology: hema,
         chemistry: chem,
+        differential: diff,
         report: { ...hema, ...chemistryToReportFields(chem) },
       };
       defaultsRef.current = resolved;
@@ -163,6 +190,28 @@ function mapHematologyDefaults(
     lymphocytes_normal_max: lymphocytesMax,
     stab_cells_normal_min: stabMin,
     stab_cells_normal_max: stabMax,
+  };
+}
+
+/**
+ * Maps a hematology default-values record onto the raw differential-count
+ * ranges that are displayed from config but not persisted per report.
+ */
+function mapDifferentialDefaults(
+  source: DefaultValues | undefined
+): Partial<DifferentialReferenceRanges> {
+  if (!source) return {};
+
+  const clean = (value: string | undefined | null) => (value ?? "").trim();
+
+  return {
+    segmenters: clean(source.segmenters),
+    eosinophils: clean(source.eosinophils),
+    monocytes: clean(source.monocytes),
+    myelocytes: clean(source.myelocytes),
+    juveniles: clean(source.juveniles),
+    basophils: clean(source.basophils),
+    others: clean(source.others),
   };
 }
 

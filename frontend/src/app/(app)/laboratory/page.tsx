@@ -9,18 +9,18 @@ import type { LaboratoryReport } from "@/components/laboratory/types";
 
 import { ReportMenu } from "@/components/laboratory/ReportMenu";
 import PatientInformationSection from "@/components/laboratory/PatientInformationSection";
-import HematologySection from "@/components/laboratory/HematologySection";
-import ClinicalChemistrySection from "@/components/laboratory/ClinicalChemistrySection";
-import UrinalysisSection from "@/components/laboratory/UrinalysisSection";
-import FecalysisSection from "@/components/laboratory/FecalysisSection";
+import LaboratoryReportTabs from "@/components/laboratory/LaboratoryReportTabs";
 
-/** Ordered list of section components rendered on the laboratory form page. */
+/**
+ * Ordered list of section components rendered on the laboratory form page.
+ *
+ * Patient Information stays at the top; the four laboratory result sections
+ * (Hematology, Clinical Chemistry & Serology/Immunology, Urinalysis, and
+ * Fecalysis) are grouped into a tabbed interface below it.
+ */
 const SECTIONS: SectionEntry<LaboratoryReport>[] = [
   { component: PatientInformationSection, key: "patient-info" },
-  { component: HematologySection, key: "hematology" },
-  { component: ClinicalChemistrySection, key: "clinical-chemistry" },
-  { component: UrinalysisSection, key: "urinalysis" },
-  { component: FecalysisSection, key: "fecalysis" },
+  { component: LaboratoryReportTabs, key: "laboratory-report-tabs" },
 ];
 
 /** Laboratory Report page with full CRUD form. */
