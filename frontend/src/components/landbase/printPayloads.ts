@@ -599,6 +599,7 @@ export async function buildDetailedPayload(data: LandbasePeme): Promise<Record<s
     date_of_fitness: data.date_of_fitness ?? "",
     valid_until: data.valid_until ?? "",
     authorized_physician: data.authorized_physician ?? "",
+    medical_certificate_no: data.medical_certification_no ?? "",
     medical_director: data.medical_director ?? "",
   };
 }
