@@ -45,9 +45,38 @@ export type ChemistryFormValues = Pick<
   ChemistryFieldName
 >;
 
+/**
+ * Per-row reference range strings (configured via the Clinical Chemistry
+ * default-values page) that populate the "Reference Range" S.I. and
+ * Conventional columns. Each value is the range alone (e.g. `"3.8 - 5.8"`); the
+ * unit is appended by the row.
+ */
+export interface ChemistryReferenceValues {
+  fbs_si: string;
+  fbs_conv: string;
+  bun_si: string;
+  bun_conv: string;
+  creatinine_si: string;
+  creatinine_conv: string;
+  cholesterol_si: string;
+  cholesterol_conv: string;
+  triglycerides_si: string;
+  triglycerides_conv: string;
+  uric_acid_si: string;
+  uric_acid_conv: string;
+  sgot_si: string;
+  sgpt_si: string;
+  alk_phos_si: string;
+}
+
 export interface ChemistryFormFieldsProps {
   /** Chemistry values shared by parent and repeat records. */
   data: ChemistryFormValues;
+  /**
+   * Configured reference ranges shown in the "Reference Range" columns. When a
+   * row's value is blank the column falls back to the plain unit label.
+   */
+  reference?: Partial<ChemistryReferenceValues>;
   /** Date value mapped by the consuming record. */
   resultDate: string;
   /** Optional persisted HbA1c reference; defaults to `4.0-6.0%`. */
@@ -71,6 +100,7 @@ const headerCellClassName =
  */
 export function ChemistryFormFields({
   data,
+  reference,
   resultDate,
   hba1cReference,
   onResultDateChange,
@@ -79,6 +109,15 @@ export function ChemistryFormFields({
 }: ChemistryFormFieldsProps) {
   const resultDateId = useId();
   const hba1cReferenceText = hba1cReference?.trim() || "4.0-6.0%";
+
+  /**
+   * Builds a reference-range cell: the configured range plus its unit (e.g.
+   * `"3.8 - 5.8 mmol/L"`), or just the unit when no range is configured.
+   */
+  const refCell = (range: string | undefined, unit: string): string => {
+    const value = range?.trim();
+    return value ? `${value} ${unit}` : unit;
+  };
 
   return (
     <>
@@ -155,8 +194,8 @@ export function ChemistryFormFields({
           <tbody>
             <ChemRow
               label="FBS:"
-              siUnit="mmol/L"
-              convUnit="mg/dL"
+              siUnit={refCell(reference?.fbs_si, "mmol/L")}
+              convUnit={refCell(reference?.fbs_conv, "mg/dL")}
               resultSi={data.fbs_result_si}
               onResultSiChange={(value) => onFieldChange("fbs_result_si", value)}
               resultConv={data.fbs_result_conv}
@@ -171,8 +210,8 @@ export function ChemistryFormFields({
             />
             <ChemRow
               label="BUN:"
-              siUnit="mmol/L"
-              convUnit="mg/dL"
+              siUnit={refCell(reference?.bun_si, "mmol/L")}
+              convUnit={refCell(reference?.bun_conv, "mg/dL")}
               resultSi={data.bun_result_si}
               onResultSiChange={(value) => onFieldChange("bun_result_si", value)}
               resultConv={data.bun_result_conv}
@@ -187,8 +226,8 @@ export function ChemistryFormFields({
             />
             <ChemRow
               label="Creatinine:"
-              siUnit="mmol/L"
-              convUnit="mg/dL"
+              siUnit={refCell(reference?.creatinine_si, "mmol/L")}
+              convUnit={refCell(reference?.creatinine_conv, "mg/dL")}
               resultSi={data.creatinine_result_si}
               onResultSiChange={(value) =>
                 onFieldChange("creatinine_result_si", value)
@@ -205,8 +244,8 @@ export function ChemistryFormFields({
             />
             <ChemRow
               label="Cholesterol:"
-              siUnit="mmol/L"
-              convUnit="mg/dL"
+              siUnit={refCell(reference?.cholesterol_si, "mmol/L")}
+              convUnit={refCell(reference?.cholesterol_conv, "mg/dL")}
               resultSi={data.cholesterol_result_si}
               onResultSiChange={(value) =>
                 onFieldChange("cholesterol_result_si", value)
@@ -223,8 +262,8 @@ export function ChemistryFormFields({
             />
             <ChemRow
               label="Triglycerides:"
-              siUnit="mmol/L"
-              convUnit="mg/dL"
+              siUnit={refCell(reference?.triglycerides_si, "mmol/L")}
+              convUnit={refCell(reference?.triglycerides_conv, "mg/dL")}
               resultSi={data.triglycerides_result_si}
               onResultSiChange={(value) =>
                 onFieldChange("triglycerides_result_si", value)
@@ -243,8 +282,8 @@ export function ChemistryFormFields({
             />
             <ChemRow
               label="Uric Acid:"
-              siUnit="mmol/L"
-              convUnit="mg/dL"
+              siUnit={refCell(reference?.uric_acid_si, "mmol/L")}
+              convUnit={refCell(reference?.uric_acid_conv, "mg/dL")}
               resultSi={data.uric_acid_result_si}
               onResultSiChange={(value) =>
                 onFieldChange("uric_acid_result_si", value)
@@ -261,7 +300,7 @@ export function ChemistryFormFields({
             />
             <ChemRowSimple
               label="SGOT:"
-              siUnit="IU/L"
+              siUnit={refCell(reference?.sgot_si, "IU/L")}
               resultSi={data.sgot_result_si}
               onResultSiChange={(value) => onFieldChange("sgot_result_si", value)}
               resultConv={data.sgot_result_conv}
@@ -276,7 +315,7 @@ export function ChemistryFormFields({
             />
             <ChemRowSimple
               label="SGPT:"
-              siUnit="IU/L"
+              siUnit={refCell(reference?.sgpt_si, "IU/L")}
               resultSi={data.sgpt_result_si}
               onResultSiChange={(value) => onFieldChange("sgpt_result_si", value)}
               resultConv={data.sgpt_result_conv}
@@ -291,7 +330,7 @@ export function ChemistryFormFields({
             />
             <ChemRowSimple
               label="Alk. Phos:"
-              siUnit="IU/L"
+              siUnit={refCell(reference?.alk_phos_si, "IU/L")}
               resultSi={data.alk_phos_result_si}
               onResultSiChange={(value) =>
                 onFieldChange("alk_phos_result_si", value)

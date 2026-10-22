@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { api, type SeafarerProfile } from "@/lib/api";
 import { useEntityForm, type EntityFormConfig, type UseEntityFormResult } from "./use-entity-form";
 import { useModuleDefaults, mapEntriesToFields } from "./use-module-defaults";
+import { useLaboratoryReferenceDefaults } from "./use-laboratory-reference-defaults";
 import { EMPTY_REPORT, type LaboratoryReport } from "@/components/laboratory/types";
 import {
   flattenProfileIntoRecord,
@@ -112,6 +113,11 @@ export function useLaboratoryForm(): UseEntityFormResult<LaboratoryReport> {
   // always reflects the current assignments.
   const { entriesRef } = useModuleDefaults("LABORATORY");
 
+  // Configured hematology + clinical-chemistry reference ("Normal Values" /
+  // "Reference Range") defaults, seeded onto new reports only.
+  const { defaultsRef: referenceDefaultsRef, defaults: referenceDefaults } =
+    useLaboratoryReferenceDefaults();
+
   const config = useMemo<EntityFormConfig<LaboratoryReport>>(
     () => ({
       ...laboratoryConfig,
@@ -126,10 +132,14 @@ export function useLaboratoryForm(): UseEntityFormResult<LaboratoryReport> {
             },
           }
         );
-        return { ...personnelDefaultsRef.current, ...assigned };
+        return {
+          ...referenceDefaultsRef.current.report,
+          ...personnelDefaultsRef.current,
+          ...assigned,
+        };
       },
     }),
-    [entriesRef]
+    [entriesRef, referenceDefaultsRef]
   );
 
   const form = useEntityForm(config);
@@ -139,6 +149,47 @@ export function useLaboratoryForm(): UseEntityFormResult<LaboratoryReport> {
       personnelDefaultsRef.current = getPersonnelDefaults(form.existingRecord);
     }
   }, [form.existingRecord]);
+
+  // Fill the configured reference ("Normal Values" / "Reference Range") fields
+  // on whatever report is in view — new or existing — whenever a reference
+  // field is still blank. This makes the configured defaults display at all
+  // times, including on older reports saved before these values were
+  // configured. Only blank reference fields are filled, so values a report was
+  // actually saved with (or that the user has typed) are never overwritten.
+  //
+  // The reference values are configuration, not patient results, so surfacing
+  // the current defaults on an existing report is intended. Saving the report
+  // then persists the shown ranges onto that record.
+  // Re-run whenever the configured defaults arrive or a different record is
+  // loaded/switched (existingRecord changes on load, record-switch, and save).
+  const { setData } = form;
+  const existingRecord = form.existingRecord;
+  const reportDefaults = referenceDefaults.report;
+  useEffect(() => {
+    const keys = Object.keys(reportDefaults) as (keyof LaboratoryReport)[];
+    if (keys.length === 0) return;
+
+    // Defer to a macrotask so the setState does not run synchronously within
+    // the effect body (react-hooks/set-state-in-effect).
+    const handle = window.setTimeout(() => {
+      setData((prev) => {
+        // Only touch blank reference fields; bail out if nothing needs filling
+        // so we don't trigger a needless re-render / state churn.
+        let changed = false;
+        const next = { ...prev };
+        for (const key of keys) {
+          if (!next[key] && reportDefaults[key]) {
+            (next[key] as LaboratoryReport[typeof key]) = reportDefaults[
+              key
+            ] as LaboratoryReport[typeof key];
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    }, 0);
+    return () => window.clearTimeout(handle);
+  }, [reportDefaults, existingRecord, setData]);
 
   return form;
 }

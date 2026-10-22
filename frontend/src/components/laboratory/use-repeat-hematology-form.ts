@@ -12,6 +12,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { httpClient } from "@/lib/http-client";
 import { toast } from "sonner";
+import { useLaboratoryReferenceDefaults } from "@/hooks/use-laboratory-reference-defaults";
 import type { HematologyRepeatTest, RepeatTestSummary } from "./repeat-hematology-types";
 import { EMPTY_HEMATOLOGY_REPEAT } from "./repeat-hematology-types";
 
@@ -118,6 +119,10 @@ export function useRepeatHematologyForm({
   const [personnelDialogOpen, setPersonnelDialogOpen] = useState(false);
   const [personnelTarget, setPersonnelTarget] = useState<"med_tech" | "pathologist" | null>(null);
 
+  // Configured hematology reference ("Normal Values") defaults, displayed on
+  // every repeat record (new or existing) by filling blank reference fields.
+  const { defaults: referenceDefaults } = useLaboratoryReferenceDefaults();
+
   const basePath = `/api/laboratory-reports/${laboratoryReportId}/hematology-repeat-tests`;
 
   // -------------------------------------------------------------------------
@@ -184,12 +189,47 @@ export function useRepeatHematologyForm({
     }
   }, [open, laboratoryReportId, fetchPreviousExams, loadRepeatTest]);
 
+  // Fill blank hematology reference ("Normal Values") fields with the
+  // configured defaults so they display on every repeat record. Runs when the
+  // defaults arrive, the dialog opens, or a different record is loaded. Only
+  // blank fields are touched, so values a record was saved with (or that the
+  // user has typed) are never overwritten.
+  //
+  // The update is deferred to a macrotask so the setState does not run
+  // synchronously within the effect body (react-hooks/set-state-in-effect),
+  // matching the deferred-load pattern used elsewhere in these forms.
+  const hematologyDefaults = referenceDefaults.hematology;
+  useEffect(() => {
+    if (!open) return;
+    const keys = Object.keys(
+      hematologyDefaults
+    ) as (keyof HematologyRepeatTest)[];
+    if (keys.length === 0) return;
+
+    const handle = window.setTimeout(() => {
+      setData((prev) => {
+        let changed = false;
+        const next = { ...prev };
+        for (const key of keys) {
+          const value =
+            hematologyDefaults[key as keyof typeof hematologyDefaults];
+          if (!next[key] && value) {
+            next[key] = value;
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
+    }, 0);
+    return () => window.clearTimeout(handle);
+  }, [hematologyDefaults, open, selectedId]);
+
   // -------------------------------------------------------------------------
   // CRUD handlers
   // -------------------------------------------------------------------------
 
   const handleNew = () => {
-    setData({ ...EMPTY_HEMATOLOGY_REPEAT });
+    setData({ ...EMPTY_HEMATOLOGY_REPEAT, ...hematologyDefaults });
     setSelectedId(null);
     setEditing(true);
   };

@@ -12,6 +12,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { httpClient } from "@/lib/http-client";
 import { toast } from "sonner";
+import { useLaboratoryReferenceDefaults } from "@/hooks/use-laboratory-reference-defaults";
+import type { ChemistryReferenceValues } from "./ChemistryFormFields";
 import type { ChemistryRepeatTest, ChemistryRepeatTestSummary } from "./repeat-chemistry-types";
 import { EMPTY_CHEMISTRY_REPEAT } from "./repeat-chemistry-types";
 
@@ -42,6 +44,13 @@ export interface UseRepeatChemistryFormResult {
   previousExams: ChemistryRepeatTestSummary[];
   /** Whether the previous exams list is loading. */
   loadingExams: boolean;
+
+  /**
+   * Configured "Reference Range" defaults shown in the chemistry table. The
+   * repeat-test model has no reference fields of its own, so these come from
+   * the clinical-chemistry default-values set.
+   */
+  chemistryReference: Partial<ChemistryReferenceValues>;
 
   /** Update a single form field. */
   updateField: (field: keyof ChemistryRepeatTest, value: string | boolean) => void;
@@ -113,6 +122,11 @@ export function useRepeatChemistryForm({
   // Medical personnel dialog
   const [personnelDialogOpen, setPersonnelDialogOpen] = useState(false);
   const [personnelTarget, setPersonnelTarget] = useState<"med_tech" | "pathologist" | null>(null);
+
+  // Configured clinical-chemistry "Reference Range" defaults. The repeat-test
+  // model carries only result fields, so the reference ranges are supplied to
+  // the chemistry table via this prop rather than stored on the record.
+  const { defaults: referenceDefaults } = useLaboratoryReferenceDefaults();
 
   const basePath = `/api/laboratory-reports/${laboratoryReportId}/chemistry-repeat-tests`;
 
@@ -276,6 +290,8 @@ export function useRepeatChemistryForm({
 
     previousExams,
     loadingExams,
+
+    chemistryReference: referenceDefaults.chemistry,
 
     updateField,
     loadRepeatTest,

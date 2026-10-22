@@ -114,6 +114,23 @@ export default function ClinicalChemistrySection({
 
       <ChemistryFormFields
         data={data}
+        reference={{
+          fbs_si: data.fbs_si,
+          fbs_conv: data.fbs_conv,
+          bun_si: data.bun_si,
+          bun_conv: data.bun_conv,
+          creatinine_si: data.creatinine_si,
+          creatinine_conv: data.creatinine_conv,
+          cholesterol_si: data.cholesterol_si,
+          cholesterol_conv: data.cholesterol_conv,
+          triglycerides_si: data.triglycerides_si,
+          triglycerides_conv: data.triglycerides_conv,
+          uric_acid_si: data.uric_acid_si,
+          uric_acid_conv: data.uric_acid_conv,
+          sgot_si: data.sgot_si,
+          sgpt_si: data.sgpt_si,
+          alk_phos_si: data.alk_phos_si,
+        }}
         resultDate={data.chemistry_result_date}
         hba1cReference={data.hba1c_normal}
         onResultDateChange={(value) =>

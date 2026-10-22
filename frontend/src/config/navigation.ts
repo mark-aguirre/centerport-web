@@ -11,6 +11,7 @@ import {
   Users,
   TestTube,
   ShieldPlus,
+  SlidersHorizontal,
   type LucideIcon,
 } from "lucide-react";
 
@@ -176,6 +177,13 @@ export const navigation: NavigationItem[] = [
     href: "/psychology",
     icon: Brain,
     group: "Medical Examination",
+  },
+  {
+    title: "Default Values",
+    subtitle: "Laboratory Report Reference Values — Hematology & Clinical Chemistry",
+    href: "/default-values",
+    icon: SlidersHorizontal,
+    group: "Setting",
   },
   {
     title: "Medical Personnel",

@@ -97,6 +97,7 @@ export function RepeatChemistryDialog({
     disabled,
     previousExams,
     loadingExams,
+    chemistryReference,
     updateField,
     loadRepeatTest,
     handleNew,
@@ -247,6 +248,7 @@ export function RepeatChemistryDialog({
 
               <ChemistryFormFields
                 data={data}
+                reference={chemistryReference}
                 resultDate={data.result_date}
                 onResultDateChange={(value) => updateField("result_date", value)}
                 onFieldChange={(field, value) => updateField(field, value)}

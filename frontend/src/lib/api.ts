@@ -17,6 +17,9 @@ import type { MlcRecord } from "@/components/mlc/types";
 import type { PanamaCertificate } from "@/components/panama/types";
 import type { PsychologyRecord } from "@/components/psychology/types";
 import type { Item } from "@/components/listing/types";
+import type { DefaultValues } from "@/components/default-values/types";
+import type { ClinicalChemistry } from "@/components/clinical-chemistry/types";
+import type { TumorImmunology } from "@/components/tumor-immunology/types";
 import type {
   Customer,
   Product,
@@ -1157,6 +1160,160 @@ export const api = {
        */
       async search(keyword: string, limit: number = 10): Promise<Item[]> {
         return fetchSearchResults<Item>("/api/items", keyword, limit);
+      },
+    },
+
+    /**
+     * Default Values — named sets of laboratory (hematology) reference /
+     * "normal value" strings maintained by Laboratory staff through the
+     * Default Values page. A standard CRUD entity with no seafarer profile
+     * link. Backed by `/api/default-values` (ADMIN + LABORATORY only).
+     */
+    DefaultValues: {
+      /**
+       * Filter default-value sets. When `id` is provided, fetches a single
+       * record by UUID. Otherwise returns the first page (up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<DefaultValues[]> {
+        return fetchFiltered<DefaultValues>("/api/default-values", filters);
+      },
+
+      /**
+       * List default-value sets with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-updated_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<DefaultValues[]> {
+        return fetchPagedList<DefaultValues>("/api/default-values", orderBy, limit);
+      },
+
+      /** Create a new default-value set. Returns the persisted record. */
+      async create(data: Partial<DefaultValues>): Promise<DefaultValues> {
+        return httpClient.post<DefaultValues>("/api/default-values", data);
+      },
+
+      /** Update an existing default-value set by UUID. Returns the updated record. */
+      async update(id: string, data: Partial<DefaultValues>): Promise<DefaultValues> {
+        return httpClient.put<DefaultValues>(`/api/default-values/${id}`, data);
+      },
+
+      /** Delete a default-value set by UUID. */
+      async remove(id: string): Promise<void> {
+        return httpClient.delete<void>(`/api/default-values/${id}`);
+      },
+
+      /**
+       * Search default-value sets by keyword (matches the name label).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       */
+      async search(keyword: string, limit: number = 10): Promise<DefaultValues[]> {
+        return fetchSearchResults<DefaultValues>("/api/default-values", keyword, limit);
+      },
+    },
+
+    /**
+     * Clinical Chemistry — named sets of Clinical Chemistry &
+     * Serology/Immunology reference / "normal value" strings maintained by
+     * Laboratory staff through the Clinical Chemistry page. A standard CRUD
+     * entity with no seafarer profile link. Backed by `/api/clinical-chemistry`
+     * (ADMIN + LABORATORY only).
+     */
+    ClinicalChemistry: {
+      /**
+       * Filter clinical-chemistry sets. When `id` is provided, fetches a single
+       * record by UUID. Otherwise returns the first page (up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<ClinicalChemistry[]> {
+        return fetchFiltered<ClinicalChemistry>("/api/clinical-chemistry", filters);
+      },
+
+      /**
+       * List clinical-chemistry sets with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-updated_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<ClinicalChemistry[]> {
+        return fetchPagedList<ClinicalChemistry>("/api/clinical-chemistry", orderBy, limit);
+      },
+
+      /** Create a new clinical-chemistry set. Returns the persisted record. */
+      async create(data: Partial<ClinicalChemistry>): Promise<ClinicalChemistry> {
+        return httpClient.post<ClinicalChemistry>("/api/clinical-chemistry", data);
+      },
+
+      /** Update an existing clinical-chemistry set by UUID. Returns the updated record. */
+      async update(id: string, data: Partial<ClinicalChemistry>): Promise<ClinicalChemistry> {
+        return httpClient.put<ClinicalChemistry>(`/api/clinical-chemistry/${id}`, data);
+      },
+
+      /** Delete a clinical-chemistry set by UUID. */
+      async remove(id: string): Promise<void> {
+        return httpClient.delete<void>(`/api/clinical-chemistry/${id}`);
+      },
+
+      /**
+       * Search clinical-chemistry sets by keyword (matches the name label).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       */
+      async search(keyword: string, limit: number = 10): Promise<ClinicalChemistry[]> {
+        return fetchSearchResults<ClinicalChemistry>("/api/clinical-chemistry", keyword, limit);
+      },
+    },
+
+    /**
+     * Tumor / Immunology — named sets of "FORM LAB 33" reference values (Tumor
+     * Marker + Immunological Test) maintained by Laboratory staff through the
+     * Default Values page. A standard CRUD entity with no seafarer profile
+     * link. Backed by `/api/tumor-immunology` (ADMIN + LABORATORY only).
+     */
+    TumorImmunology: {
+      /**
+       * Filter tumor/immunology sets. When `id` is provided, fetches a single
+       * record by UUID. Otherwise returns the first page (up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<TumorImmunology[]> {
+        return fetchFiltered<TumorImmunology>("/api/tumor-immunology", filters);
+      },
+
+      /**
+       * List tumor/immunology sets with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-updated_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<TumorImmunology[]> {
+        return fetchPagedList<TumorImmunology>("/api/tumor-immunology", orderBy, limit);
+      },
+
+      /** Create a new tumor/immunology set. Returns the persisted record. */
+      async create(data: Partial<TumorImmunology>): Promise<TumorImmunology> {
+        return httpClient.post<TumorImmunology>("/api/tumor-immunology", data);
+      },
+
+      /** Update an existing tumor/immunology set by UUID. Returns the updated record. */
+      async update(id: string, data: Partial<TumorImmunology>): Promise<TumorImmunology> {
+        return httpClient.put<TumorImmunology>(`/api/tumor-immunology/${id}`, data);
+      },
+
+      /** Delete a tumor/immunology set by UUID. */
+      async remove(id: string): Promise<void> {
+        return httpClient.delete<void>(`/api/tumor-immunology/${id}`);
+      },
+
+      /**
+       * Search tumor/immunology sets by keyword (matches the name label).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       */
+      async search(keyword: string, limit: number = 10): Promise<TumorImmunology[]> {
+        return fetchSearchResults<TumorImmunology>("/api/tumor-immunology", keyword, limit);
       },
     },
 

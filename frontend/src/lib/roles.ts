@@ -30,6 +30,7 @@ const ROUTE_ROLES: Record<string, Role[]> = {
   "/laboratory": ["LABORATORY"],
   "/immunology": ["LABORATORY"],
   "/hiv": ["LABORATORY"],
+  "/default-values": ["LABORATORY"],
   "/mlc": ["RELEASING"],
   "/panama": ["RELEASING"],
   "/landbase": ["RELEASING"],
