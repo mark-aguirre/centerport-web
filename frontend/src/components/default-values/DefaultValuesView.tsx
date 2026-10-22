@@ -86,43 +86,43 @@ export function DefaultValuesView() {
     );
   }
 
+  const headerActions = editing ? (
+    <div className="flex gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        className="cursor-pointer"
+        onClick={cancel}
+        disabled={saving}
+      >
+        <X className="w-4 h-4 mr-1" />
+        Cancel
+      </Button>
+      <Button size="sm" className="cursor-pointer" onClick={save} disabled={saving}>
+        {saving ? (
+          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+        ) : (
+          <Save className="w-4 h-4 mr-1" />
+        )}
+        Save
+      </Button>
+    </div>
+  ) : (
+    <Button size="sm" className="cursor-pointer" onClick={edit}>
+      <Pencil className="w-4 h-4 mr-1" />
+      Edit
+    </Button>
+  );
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-end gap-2">
-        {editing ? (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="cursor-pointer"
-              onClick={cancel}
-              disabled={saving}
-            >
-              <X className="w-4 h-4 mr-1" />
-              Cancel
-            </Button>
-            <Button size="sm" className="cursor-pointer" onClick={save} disabled={saving}>
-              {saving ? (
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4 mr-1" />
-              )}
-              Save
-            </Button>
-          </>
-        ) : (
-          <Button size="sm" className="cursor-pointer" onClick={edit}>
-            <Pencil className="w-4 h-4 mr-1" />
-            Edit
-          </Button>
-        )}
-      </div>
-
       <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10">
         <SectionHeader
           title="Laboratory Report (Hematology)"
           icon={SlidersHorizontal}
           subtitle="Normal / reference values"
+          banner
+          action={headerActions}
         />
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
