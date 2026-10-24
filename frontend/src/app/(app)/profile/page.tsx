@@ -5,34 +5,22 @@ import { Loader2 } from "lucide-react";
 
 import { FormToolbar } from "@/components/common/form-toolbar";
 import { SectionReveal } from "@/components/common/section-reveal";
-import PersonalInfoSection from "@/components/profile/PersonalInfoSection";
-import EmploymentSection from "@/components/profile/EmploymentSection";
-import FamilyDataSection from "@/components/profile/FamilyDataSection";
-import EducationSection from "@/components/profile/EducationSection";
-import WorkExperienceSection from "@/components/profile/WorkExperienceSection";
+import { ProfileHero } from "@/components/profile/profile-hero";
+import { ProfileNav } from "@/components/profile/profile-nav";
+import { CollapsibleSection } from "@/components/profile/collapsible-section";
+import { PROFILE_SECTIONS } from "@/components/profile/section-config";
 import { useProfileForm } from "@/hooks/use-profile-form";
 import { PageContainer } from "@/components/common/page-container";
-import type { ProfileSectionProps } from "@/components/profile/types";
-
-type SectionEntry = {
-  component: React.ComponentType<ProfileSectionProps>;
-  key: string;
-};
-
-const SECTIONS: SectionEntry[] = [
-  { component: PersonalInfoSection, key: "personal" },
-  { component: EmploymentSection, key: "employment" },
-  { component: FamilyDataSection, key: "family" },
-  { component: EducationSection, key: "education" },
-  { component: WorkExperienceSection, key: "work" },
-];
 
 /**
  * Patient form content with full CRUD button behavior.
  *
  * Uses `useProfileForm` hook for state management including
  * New/Edit/Save/Cancel/Print actions and view/edit mode transitions.
- * Renders animated section cards with fields disabled in view mode.
+ *
+ * Layout mirrors the patient profile mock: a summary hero header (photo,
+ * name, status pills, quick-info chips) on top, a sticky section navigator
+ * on the left, and the color-themed, collapsible form sections on the right.
  *
  * @see useProfileForm — state, persistence, and CRUD logic
  */
@@ -64,8 +52,10 @@ function ProfileFormContent() {
     );
   }
 
+  const setPhoto = (url: string) => setData({ ...data, photo_url: url });
+
   return (
-    <PageContainer>
+    <PageContainer className="overflow-visible">
       <FormToolbar
         editing={editing}
         saving={saving}
@@ -88,12 +78,36 @@ function ProfileFormContent() {
         onSelectResult={handleSelectResult as (result: import("@/components/common/form-toolbar").SearchResultItem) => void}
       />
 
-      <div className="space-y-3">
-        {SECTIONS.map(({ component: Section, key }, index) => (
-          <SectionReveal key={key} index={index}>
-            <Section data={data} onChange={setData} disabled={!editing} />
-          </SectionReveal>
-        ))}
+      <SectionReveal index={0}>
+        <ProfileHero data={data} onPhotoChange={setPhoto} disabled={!editing} />
+      </SectionReveal>
+
+      <div className="mt-3 flex flex-col gap-3 lg:flex-row lg:items-start">
+        {/* Left rail: section navigator (sticky on large screens). */}
+        <aside className="lg:w-56 lg:shrink-0">
+          <ProfileNav />
+        </aside>
+
+        {/* Right column: collapsible form sections. On large screens this
+            column scrolls on its own (the hero and left nav stay put), with
+            the scrollbar hidden via `scrollbar-hide`. The height is bounded to
+            the viewport minus the chrome above it (app header + hero + page
+            padding). */}
+        <div className="min-w-0 flex-1 space-y-3 lg:max-h-[calc(100vh-19rem)] lg:overflow-y-auto lg:pr-1 scrollbar-hide">
+          {PROFILE_SECTIONS.map((section, index) => {
+            const Body = section.component;
+            return (
+              <SectionReveal key={section.key} index={index + 1}>
+                <CollapsibleSection
+                  section={section}
+                  defaultOpen={section.key === "personal"}
+                >
+                  <Body data={data} onChange={setData} disabled={!editing} />
+                </CollapsibleSection>
+              </SectionReveal>
+            );
+          })}
+        </div>
       </div>
     </PageContainer>
   );

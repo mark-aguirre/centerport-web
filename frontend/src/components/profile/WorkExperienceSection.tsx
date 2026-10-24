@@ -1,9 +1,7 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { FormAutocomplete } from "@/components/common/form-autocomplete";
-import { Briefcase } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -25,13 +23,7 @@ export default function WorkExperienceSection({
   const update = createFieldUpdater(data, onChange);
 
   return (
-    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
-      <SectionHeader
-        title="Previous Work Experience (Last Vessel Only)"
-        icon={Briefcase}
-        banner
-      />
-      <div className="space-y-2">
+    <div className="space-y-2">
         <div className="grid grid-cols-5 gap-2">
           <FormField
             label="Date Started"
@@ -97,7 +89,6 @@ export default function WorkExperienceSection({
             )}
           />
         </div>
-      </div>
     </div>
   );
 }

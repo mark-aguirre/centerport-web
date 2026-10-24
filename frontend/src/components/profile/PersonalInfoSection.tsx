@@ -1,11 +1,8 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { FormAutocomplete } from "@/components/common/form-autocomplete";
 import { FormSelect } from "@/components/common/form-select";
-import PhotoUpload from "./PhotoUpload";
-import { User } from "lucide-react";
 import { NATIONALITIES, RELIGIONS, CITIES } from "@/lib/suggestions";
 import type { SeafarerProfile } from "@/lib/api";
 import { createFieldUpdater } from "./utils";
@@ -39,16 +36,8 @@ export default function PersonalInfoSection({
   };
 
   return (
-    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
-      <SectionHeader title="Personal Information" icon={User} banner />
-      <div className="flex gap-4">
-        <PhotoUpload
-          photoUrl={data.photo_url}
-          onPhotoChange={(url) => update("photo_url", url)}
-          disabled={disabled}
-        />
-        <div className="flex-1 space-y-1.5">
-          <div className="grid grid-cols-3 gap-2">
+    <div className="space-y-1.5">
+      <div className="grid grid-cols-3 gap-2">
             <FormField
               label="Last Name"
               value={data.last_name}
@@ -159,8 +148,6 @@ export default function PersonalInfoSection({
               size="sm"
             />
           </div>
-        </div>
-      </div>
     </div>
   );
 }

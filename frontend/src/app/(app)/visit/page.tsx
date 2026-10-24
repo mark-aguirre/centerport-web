@@ -6,14 +6,15 @@ import { Loader2, Users } from "lucide-react";
 import { PageBanner } from "@/components/common/page-banner";
 import { PageContainer } from "@/components/common/page-container";
 import { VisitList } from "@/components/visit/VisitList";
+import { PatientListPanel } from "@/components/visit/PatientListPanel";
 import { PatientSearchDialog } from "@/components/visit/PatientSearchDialog";
+import { AddVisitDialog } from "@/components/visit/AddVisitDialog";
+import { VisitFormHeader } from "@/components/visit/VisitFormHeader";
 import { VisitRegistrationForm } from "@/components/visit/VisitRegistrationForm";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { useVisit } from "@/hooks/use-visit";
 
@@ -21,18 +22,25 @@ import { useVisit } from "@/hooks/use-visit";
  * Visit page content.
  *
  * Flow:
- * 1. Today's list is always visible
+ * 1. Today's list and the patient directory are always visible
  * 2. "New Patient" opens the search dialog
- * 3. From search: select existing patient or register new
+ * 3. From search, or from a directory row: select existing patient or register new
  * 4. Registration form opens in a separate dialog
  */
 function VisitPageContent() {
   const {
     searchDialogOpen,
-    openSearchDialog,
     closeSearchDialog,
     formDialogOpen,
     closeFormDialog,
+    addVisitOpen,
+    addVisitPatient,
+    addVisitPurpose,
+    setAddVisitPurpose,
+    addVisitSaving,
+    handleAddVisit,
+    closeAddVisit,
+    handleCreateVisit,
     todayVisits,
     listLoading,
     refreshList,
@@ -45,7 +53,9 @@ function VisitPageContent() {
     setPurposeOfVisit,
     sirb,
     setSirb,
+    showVisitDetails,
     handleSelectPatient,
+    handleViewPatient,
     handleRegisterNew,
     handleEdit,
     handleCancel,
@@ -67,13 +77,37 @@ function VisitPageContent() {
         icon={Users}
       />
 
-      {/* Today's visits list */}
-      <VisitList
-        visits={todayVisits}
-        loading={listLoading}
-        onRefresh={refreshList}
-        onNewPatient={openSearchDialog}
-        onSelectVisit={handleSelectVisit}
+      {/* Patient directory beside today's visits. The 12-column split only
+          applies from `lg` up — below that the panels stack, directory first,
+          because on a narrow screen finding a patient is the more common task
+          than scanning a wide table. */}
+      <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-12">
+        <div className="lg:col-span-3">
+          <PatientListPanel
+            onAddVisit={handleAddVisit}
+            onViewDetails={handleViewPatient}
+            onRegisterNew={handleRegisterNew}
+          />
+        </div>
+        <div className="lg:col-span-9">
+          <VisitList
+            visits={todayVisits}
+            loading={listLoading}
+            onRefresh={refreshList}
+            onSelectVisit={handleSelectVisit}
+          />
+        </div>
+      </div>
+
+      {/* Directory row action: book a visit for a patient already on file */}
+      <AddVisitDialog
+        open={addVisitOpen}
+        patient={addVisitPatient}
+        purpose={addVisitPurpose}
+        onPurposeChange={setAddVisitPurpose}
+        saving={addVisitSaving}
+        onSubmit={handleCreateVisit}
+        onCancel={closeAddVisit}
       />
 
       {/* Step 1: Patient search dialog */}
@@ -86,31 +120,32 @@ function VisitPageContent() {
 
       {/* Step 2: Registration form dialog */}
       <Dialog open={formDialogOpen} onOpenChange={(open) => { if (!open) closeFormDialog(); }}>
-        <DialogContent className="max-h-[90vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0">
-          <DialogHeader className="border-b border-border px-5 py-4 pr-14">
-            <DialogTitle className="text-lg">
-              {isExistingRecord ? "Patient Record" : "New Patient Registration"}
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              {isExistingRecord
-                ? "View or edit the patient's registration details."
-                : "Fill in the patient's information to register a new visit."}
-            </DialogDescription>
+        {/* The corner close button is hidden because the header's own Cancel /
+            Close owns the right edge; two dismiss affordances stacked in the
+            same corner read as a bug. Escape and a backdrop click still close
+            the dialog through `onOpenChange`. */}
+        <DialogContent className="max-h-[90vh] max-w-5xl grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 [&_[data-slot=dialog-close-button]]:hidden">
+          <DialogHeader className="border-b border-border px-5 py-3">
+            <VisitFormHeader
+              isExistingRecord={isExistingRecord}
+              profileId={data.profile_id}
+              editing={editing}
+              saving={saving}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              onEdit={handleEdit}
+              onClose={closeFormDialog}
+            />
           </DialogHeader>
           <VisitRegistrationForm
             data={data}
             onChange={setData}
             editing={editing}
-            saving={saving}
-            isExistingRecord={isExistingRecord}
             purposeOfVisit={purposeOfVisit}
             onPurposeChange={setPurposeOfVisit}
             sirb={sirb}
             onSirbChange={setSirb}
-            onSave={handleSave}
-            onCancel={handleCancel}
-            onEdit={handleEdit}
-            onNew={openSearchDialog}
+            showVisitDetails={showVisitDetails}
             firstFieldRef={firstFieldRef}
           />
         </DialogContent>

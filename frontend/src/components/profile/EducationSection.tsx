@@ -1,9 +1,7 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { FormAutocomplete } from "@/components/common/form-autocomplete";
-import { GraduationCap } from "lucide-react";
 import { COURSES } from "@/lib/suggestions";
 import { createFieldUpdater } from "./utils";
 import type { ProfileSectionProps } from "./types";
@@ -22,9 +20,7 @@ export default function EducationSection({
   const update = createFieldUpdater(data, onChange);
 
   return (
-    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
-      <SectionHeader title="Educational History" icon={GraduationCap} banner />
-      <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-2 gap-2">
         <FormField
           label="Elementary"
           value={data.elementary}
@@ -62,7 +58,6 @@ export default function EducationSection({
           disabled={disabled}
           size="sm"
         />
-      </div>
     </div>
   );
 }

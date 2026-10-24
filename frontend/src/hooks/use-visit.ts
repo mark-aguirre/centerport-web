@@ -61,6 +61,16 @@ export interface UseVisitResult {
   formDialogOpen: boolean;
   closeFormDialog: () => void;
 
+  // --- Add Visit dialog ---
+  addVisitOpen: boolean;
+  addVisitPatient: SeafarerProfile | null;
+  addVisitPurpose: string;
+  setAddVisitPurpose: (v: string) => void;
+  addVisitSaving: boolean;
+  handleAddVisit: (profile: SeafarerProfile) => void;
+  closeAddVisit: () => void;
+  handleCreateVisit: () => Promise<void>;
+
   // --- List ---
   todayVisits: PatientVisitRecord[];
   listLoading: boolean;
@@ -76,9 +86,18 @@ export interface UseVisitResult {
   setPurposeOfVisit: (v: string) => void;
   sirb: string;
   setSirb: (v: string) => void;
+  /**
+   * Whether the form's "Visit Details" section applies to the open record.
+   *
+   * False only for the directory's "View Details" flow, which is a look at the
+   * patient's profile with no visit attached. Every other way into the dialog
+   * either opens an existing visit or is on its way to creating one.
+   */
+  showVisitDetails: boolean;
 
   // --- Actions ---
   handleSelectPatient: (profile: SeafarerProfile) => void;
+  handleViewPatient: (profile: SeafarerProfile) => void;
   handleRegisterNew: () => void;
   handleEdit: () => void;
   handleCancel: () => void;
@@ -117,10 +136,23 @@ export function useVisit(): UseVisitResult {
   // When set, saves update that visit instead of creating a duplicate.
   const [currentVisitId, setCurrentVisitId] = useState<string | null>(null);
 
+  // Compact "Add Visit" dialog, driven from the patient directory. Kept in its
+  // own slice of state so opening it never disturbs the registration form.
+  const [addVisitOpen, setAddVisitOpen] = useState(false);
+  const [addVisitPatient, setAddVisitPatient] = useState<SeafarerProfile | null>(null);
+  const [addVisitPurpose, setAddVisitPurpose] = useState("");
+  const [addVisitSaving, setAddVisitSaving] = useState(false);
+
   const [purposeOfVisit, setPurposeOfVisit] = useState("");
   const [sirb, setSirb] = useState("");
   const [savedPurposeOfVisit, setSavedPurposeOfVisit] = useState("");
   const [savedSirb, setSavedSirb] = useState("");
+
+  // Whether the open record has a visit in play. Set by each entry point
+  // rather than derived from `currentVisitId`, which is null both for a
+  // profile-only look and for a session that is about to create its first
+  // visit — two cases that need opposite answers.
+  const [showVisitDetails, setShowVisitDetails] = useState(true);
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
@@ -144,6 +176,64 @@ export function useVisit(): UseVisitResult {
 
     return () => window.clearTimeout(timeoutId);
   }, [refreshList]);
+
+  // --- Add Visit dialog ---
+
+  /**
+   * Opens the compact "Add Visit" dialog for a patient already on file.
+   *
+   * Separate from the registration dialog on purpose: the patient exists, so
+   * the only thing missing is why they are here today. Re-using the full form
+   * for this meant showing forty read-only demographic fields to capture one
+   * value.
+   */
+  const handleAddVisit = useCallback((profile: SeafarerProfile) => {
+    setAddVisitPatient(profile);
+    setAddVisitPurpose("");
+    setAddVisitOpen(true);
+  }, []);
+
+  const closeAddVisit = useCallback(() => {
+    setAddVisitOpen(false);
+  }, []);
+
+  /**
+   * Creates the visit, then closes and refreshes today's list.
+   *
+   * The dialog stays open on failure so the typed purpose is not lost.
+   */
+  const handleCreateVisit = useCallback(async () => {
+    const purpose = addVisitPurpose.trim();
+    if (!purpose) {
+      toast.error("Purpose of Visit is required");
+      return;
+    }
+
+    const profileId = addVisitPatient?.id;
+    if (!profileId) {
+      toast.error("Unable to add a visit because the patient record has no ID");
+      return;
+    }
+
+    setAddVisitSaving(true);
+    try {
+      await api.entities.PatientVisit.create({
+        seafarer_profile_id: profileId,
+        purpose_of_visit: purpose,
+      });
+      toast.success("Visit added");
+      setAddVisitOpen(false);
+      await refreshList();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to add the visit");
+      }
+    } finally {
+      setAddVisitSaving(false);
+    }
+  }, [addVisitPurpose, addVisitPatient, refreshList]);
 
   // --- Dialog controls ---
   const openSearchDialog = useCallback(() => {
@@ -169,6 +259,32 @@ export function useVisit(): UseVisitResult {
     setIsExistingRecord(true);
     setEditing(true); // Enable editing so they can fill purpose/SIRB and save
     setCurrentVisitId(null); // Fresh session — first save creates one visit
+    setShowVisitDetails(true);
+    setPurposeOfVisit("");
+    setSirb("");
+    setSavedPurposeOfVisit("");
+    setSavedSirb("");
+    setFormDialogOpen(true);
+  }, []);
+
+  /**
+   * User wants to read an existing patient's record without starting a visit.
+   *
+   * Same record as {@link handleSelectPatient} loads, but opened read-only and
+   * with no visit session attached, so nothing is written unless the user
+   * explicitly hits Edit and Save. That is the whole difference between the
+   * directory's two row actions: "Add Visit" lands in edit mode ready to
+   * capture purpose and SIRB, "View Details" just shows what is on file.
+   */
+  const handleViewPatient = useCallback((profile: SeafarerProfile) => {
+    const completeProfile = { ...EMPTY_PROFILE, ...profile };
+    setData(completeProfile);
+    setSelectedProfile(completeProfile);
+    setIsExistingRecord(true);
+    setEditing(false);
+    setCurrentVisitId(null);
+    // Profile-only view: there is no visit to show details for.
+    setShowVisitDetails(false);
     setPurposeOfVisit("");
     setSirb("");
     setSavedPurposeOfVisit("");
@@ -183,6 +299,7 @@ export function useVisit(): UseVisitResult {
     setIsExistingRecord(false);
     setSelectedProfile(null);
     setCurrentVisitId(null); // Fresh session — first save creates one visit
+    setShowVisitDetails(true);
     setPurposeOfVisit("");
     setSirb("");
     setSavedPurposeOfVisit("");
@@ -317,6 +434,7 @@ export function useVisit(): UseVisitResult {
       setSelectedProfile(profile);
       setIsExistingRecord(true);
       setCurrentVisitId(visit.id);
+      setShowVisitDetails(true);
       setPurposeOfVisit(visit.purpose_of_visit ?? "");
       setSirb(visit.sirb ?? "");
       setSavedPurposeOfVisit(visit.purpose_of_visit ?? "");
@@ -333,6 +451,14 @@ export function useVisit(): UseVisitResult {
     closeSearchDialog,
     formDialogOpen,
     closeFormDialog,
+    addVisitOpen,
+    addVisitPatient,
+    addVisitPurpose,
+    setAddVisitPurpose,
+    addVisitSaving,
+    handleAddVisit,
+    closeAddVisit,
+    handleCreateVisit,
     todayVisits,
     listLoading,
     refreshList,
@@ -345,7 +471,9 @@ export function useVisit(): UseVisitResult {
     setPurposeOfVisit,
     sirb,
     setSirb,
+    showVisitDetails,
     handleSelectPatient,
+    handleViewPatient,
     handleRegisterNew,
     handleEdit,
     handleCancel,

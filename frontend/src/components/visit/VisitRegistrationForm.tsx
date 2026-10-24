@@ -5,61 +5,50 @@ import { FormField } from "@/components/common/form-field";
 import { FormSelect } from "@/components/common/form-select";
 import { SectionHeader } from "@/components/common/section-header";
 import PhotoUpload from "@/components/profile/PhotoUpload";
-import { Button } from "@/components/ui/button";
 import type { SeafarerProfile } from "@/lib/api";
 import {
   CITIES,
+  COUNTRIES,
   DESIGNATIONS,
   NATIONALITIES,
   POSITIONS,
   RELIGIONS,
 } from "@/lib/suggestions";
 import { useEmployers } from "@/hooks/use-employers";
-import {
-  BriefcaseBusiness,
-  ClipboardList,
-  Loader2,
-  Pencil,
-  Plus,
-  Save,
-  UserRound,
-  X,
-} from "lucide-react";
+import { BriefcaseBusiness, ClipboardList, UserRound } from "lucide-react";
 
 interface VisitRegistrationFormProps {
   data: SeafarerProfile;
   onChange: React.Dispatch<React.SetStateAction<SeafarerProfile>>;
   editing: boolean;
-  saving: boolean;
-  isExistingRecord: boolean;
   purposeOfVisit: string;
   onPurposeChange: (v: string) => void;
   sirb: string;
   onSirbChange: (v: string) => void;
-  onSave: () => void;
-  onCancel: () => void;
-  onEdit: () => void;
-  onNew: () => void;
+  /**
+   * Renders the "Visit Details" section. False when the dialog is showing a
+   * profile with no visit attached, i.e. the directory's "View Details".
+   */
+  showVisitDetails: boolean;
   firstFieldRef: React.RefObject<HTMLInputElement | null>;
 }
 
 /**
  * Organized patient registration form for the Visit dialog.
+ *
+ * Fields only. The record's identity chips and the Save / Cancel / Edit / New
+ * actions live in {@link VisitFormHeader} on the dialog's header row, so they
+ * stay put while this panel scrolls.
  */
 export function VisitRegistrationForm({
   data,
   onChange,
   editing,
-  saving,
-  isExistingRecord,
   purposeOfVisit,
   onPurposeChange,
   sirb,
   onSirbChange,
-  onSave,
-  onCancel,
-  onEdit,
-  onNew,
+  showVisitDetails,
 }: VisitRegistrationFormProps) {
   const update = (field: keyof SeafarerProfile, value: string) =>
     onChange((prev) => ({ ...prev, [field]: value }));
@@ -83,88 +72,25 @@ export function VisitRegistrationForm({
 
   return (
     <div className="h-full min-h-0 space-y-3 overflow-y-auto p-4">
-      <div className="sticky top-0 z-10 flex flex-col gap-2 rounded-lg border border-primary/10 bg-background/95 px-3 py-2 shadow-sm backdrop-blur-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          {isExistingRecord && data.profile_id ? (
-            <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary">
-              Patient ID: {data.profile_id}
-            </span>
-          ) : (
-            <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary">
-              New patient
-            </span>
-          )}
-          <span className="text-xs text-foreground/70">
-            {editing ? "Editing details" : "Viewing patient record"}
-          </span>
+      {/* Each section uses the visit page's panel treatment: an
+          `overflow-hidden rounded-lg border-primary/20` card whose band is a
+          `banner` SectionHeader at `bannerInset="p-3"`, wrapped in `px-3 pt-3`
+          so the inset's negative margins bleed it to the card edge, with the
+          body in a matching `px-3 pb-3`. Keep the wrapper padding and the
+          inset in step — `p-4` here with a `p-3` inset leaves the band short
+          of the corners. */}
+      <section className="overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm">
+        <div className="px-3 pt-3">
+          <SectionHeader
+            title="Identity & Contact"
+            icon={UserRound}
+            subtitle="Personal and contact information"
+            banner
+            bannerInset="p-3"
+          />
         </div>
 
-        <div className="flex items-center gap-2 self-end sm:self-auto">
-          {editing ? (
-            <>
-              <Button
-                type="button"
-                size="sm"
-                className="cursor-pointer"
-                onClick={onSave}
-                disabled={saving}
-              >
-                {saving ? (
-                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-1 h-4 w-4" />
-                )}
-                {isExistingRecord ? "Update" : "Save"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="cursor-pointer"
-                onClick={onCancel}
-                disabled={saving}
-              >
-                <X className="mr-1 h-4 w-4" />
-                Cancel
-              </Button>
-            </>
-          ) : (
-            <>
-              {/* Edit is only available when an active patient is selected. */}
-              {isExistingRecord && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="cursor-pointer"
-                  onClick={onEdit}
-                >
-                  <Pencil className="mr-1 h-4 w-4" />
-                  Edit
-                </Button>
-              )}
-              <Button
-                type="button"
-                size="sm"
-                className="cursor-pointer"
-                onClick={onNew}
-              >
-                <Plus className="mr-1 h-4 w-4" />
-                New
-              </Button>
-            </>
-          )}
-        </div>
-      </div>
-
-      <section className="rounded-lg border border-primary/10 bg-card p-4 shadow-sm">
-        <SectionHeader
-          title="Identity & Contact"
-          icon={UserRound}
-          subtitle="Personal and contact information"
-        />
-
-        <div className="grid gap-4 md:grid-cols-[auto_minmax(0,1fr)]">
+        <div className="grid gap-4 px-3 pb-3 md:grid-cols-[auto_minmax(0,1fr)]">
           <PhotoUpload
             photoUrl={data.photo_url}
             onPhotoChange={(url) => update("photo_url", url)}
@@ -200,35 +126,52 @@ export function VisitRegistrationForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-primary/10 bg-card p-4 shadow-sm">
-        <SectionHeader
-          title="Employment & Documents"
-          icon={BriefcaseBusiness}
-          subtitle="Current work assignment and identification"
-        />
+      <section className="overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm">
+        <div className="px-3 pt-3">
+          <SectionHeader
+            title="Employment & Documents"
+            icon={BriefcaseBusiness}
+            subtitle="Current work assignment and identification"
+            banner
+            bannerInset="p-3"
+          />
+        </div>
 
-        <div className="grid gap-2 md:grid-cols-12">
-          <FormAutocomplete label="Designation" value={data.designation} onChange={(v) => update("designation", v)} suggestions={DESIGNATIONS} disabled={!editing} className="md:col-span-3" size="sm" />
-          <FormAutocomplete label="Position" value={data.position} onChange={(v) => update("position", v)} suggestions={POSITIONS} disabled={!editing} className="md:col-span-3" size="sm" />
-          <FormAutocomplete label="Employer" value={data.employer} onChange={(v) => update("employer", v)} suggestions={employers} disabled={!editing} className="md:col-span-6" size="sm" />
-          <FormField label="Passport No." value={data.passport_no} onChange={(v) => update("passport_no", v)} disabled={!editing} className="md:col-span-6" size="sm" />
-          <FormField label="Seaman's Book No." value={data.seamans_book_no} onChange={(v) => update("seamans_book_no", v)} disabled={!editing} className="md:col-span-6" size="sm" />
+        {/* Two even rows of three: assignment on top, the documents that
+            identify the seafarer below. */}
+        <div className="grid gap-2 px-3 pb-3 md:grid-cols-12">
+          <FormAutocomplete label="Designation" value={data.designation} onChange={(v) => update("designation", v)} suggestions={DESIGNATIONS} disabled={!editing} className="md:col-span-4" size="sm" />
+          <FormAutocomplete label="Position" value={data.position} onChange={(v) => update("position", v)} suggestions={POSITIONS} disabled={!editing} className="md:col-span-4" size="sm" />
+          <FormAutocomplete label="Employer" value={data.employer} onChange={(v) => update("employer", v)} suggestions={employers} disabled={!editing} className="md:col-span-4" size="sm" />
+          <FormField label="Passport No." value={data.passport_no} onChange={(v) => update("passport_no", v)} disabled={!editing} className="md:col-span-4" size="sm" />
+          <FormField label="Seaman's Book No." value={data.seamans_book_no} onChange={(v) => update("seamans_book_no", v)} disabled={!editing} className="md:col-span-4" size="sm" />
+          <FormAutocomplete label="Country of Destination" value={data.country_of_destination} onChange={(v) => update("country_of_destination", v)} suggestions={COUNTRIES} disabled={!editing} className="md:col-span-4" size="sm" />
         </div>
       </section>
 
-      <section className="rounded-lg border border-primary/10 bg-card p-4 shadow-sm">
-        <SectionHeader
-          title="Visit Details"
-          icon={ClipboardList}
-          subtitle="Information for the current clinic visit"
-        />
+      {/* Only meaningful when a visit is in play — opened from Today's Visits,
+          or on its way to being created. The directory's "View Details" is a
+          look at the profile alone, where SIRB and purpose belong to no
+          particular visit. */}
+      {showVisitDetails ? (
+        <section className="overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm">
+          <div className="px-3 pt-3">
+            <SectionHeader
+              title="Visit Details"
+              icon={ClipboardList}
+              subtitle="Information for the current clinic visit"
+              banner
+              bannerInset="p-3"
+            />
+          </div>
 
-        <div className="grid gap-2 md:grid-cols-12">
-          <FormField label="SIRB" value={sirb} onChange={onSirbChange} disabled={!editing} className="md:col-span-4" size="sm" />
-          <FormField label="Remarks" value={data.remark} onChange={(v) => update("remark", v)} disabled={!editing} className="md:col-span-8" size="sm" />
-          <FormField label="Purpose of Visit" value={purposeOfVisit} onChange={onPurposeChange} disabled={!editing} className="md:col-span-12" size="sm" />
-        </div>
-      </section>
+          <div className="grid gap-2 px-3 pb-3 md:grid-cols-12">
+            <FormField label="SIRB" value={sirb} onChange={onSirbChange} disabled={!editing} className="md:col-span-4" size="sm" />
+            <FormField label="Purpose of Visit" value={purposeOfVisit} onChange={onPurposeChange} disabled={!editing} className="md:col-span-4" size="sm" />
+            <FormField label="Remarks" value={data.remark} onChange={(v) => update("remark", v)} disabled={!editing} className="md:col-span-4" size="sm" />
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

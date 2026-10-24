@@ -1,8 +1,6 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
-import { Users } from "lucide-react";
 import { createFieldUpdater } from "./utils";
 import type { ProfileSectionProps } from "./types";
 
@@ -20,9 +18,7 @@ export default function FamilyDataSection({
   const update = createFieldUpdater(data, onChange);
 
   return (
-    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
-      <SectionHeader title="Family Data" icon={Users} banner />
-      <div className="space-y-2">
+    <div className="space-y-2">
         <div className="grid grid-cols-4 gap-2">
           <FormField
             label="Father's Name"
@@ -109,7 +105,6 @@ export default function FamilyDataSection({
           disabled={disabled}
           size="sm"
         />
-      </div>
     </div>
   );
 }

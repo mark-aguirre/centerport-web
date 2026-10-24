@@ -2,9 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { differenceInYears, isValid, parseISO } from "date-fns";
-import { ChevronRight, Loader2, Search, Users, X } from "lucide-react";
+import {
+  CalendarPlus,
+  ChevronRight,
+  FileText,
+  Loader2,
+  Search,
+  UserPlus,
+  Users,
+  X,
+} from "lucide-react";
 
 import { CompactPager } from "@/components/common/compact-pager";
+import { SectionHeader } from "@/components/common/section-header";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { api, type Paged, type SeafarerProfile } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -16,8 +33,12 @@ const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 interface PatientListPanelProps {
-  /** Called when a patient row is clicked. */
-  onSelectPatient: (profile: SeafarerProfile) => void;
+  /** Row action: open the record ready to capture a new visit. */
+  onAddVisit: (profile: SeafarerProfile) => void;
+  /** Row action: open the record read-only, without starting a visit. */
+  onViewDetails: (profile: SeafarerProfile) => void;
+  /** Called by the header's add button; opens the registration form directly. */
+  onRegisterNew: () => void;
 }
 
 /**
@@ -63,8 +84,12 @@ function describe(profile: SeafarerProfile): string {
  *
  * Browses every profile on file a page at a time, with the backend's
  * case-insensitive keyword search (last name, first name, or profile ID)
- * narrowing the same list. Clicking a row opens that patient's record in the
- * visit dialog, the same destination as picking them from the search dialog.
+ * narrowing the same list.
+ *
+ * Clicking a row offers the two things a clerk does with a patient already on
+ * file: "Add Visit" opens the record ready to capture today's purpose and
+ * SIRB, "View Details" opens it read-only and writes nothing. The add button
+ * in the header opens the same dialog empty, as "New Patient Registration".
  *
  * Paging is server-side because the directory runs to hundreds of rows: the
  * panel asks for one {@link PAGE_SIZE}-row page and keeps the envelope so the
@@ -76,7 +101,11 @@ function describe(profile: SeafarerProfile): string {
  * `react-hooks/set-state-in-effect` rejects the direct form. Same pattern as
  * `useVisit`'s list load.
  */
-export function PatientListPanel({ onSelectPatient }: PatientListPanelProps) {
+export function PatientListPanel({
+  onAddVisit,
+  onViewDetails,
+  onRegisterNew,
+}: PatientListPanelProps) {
   const [keyword, setKeyword] = useState("");
   const [term, setTerm] = useState("");
   const [page, setPage] = useState(0);
@@ -127,9 +156,12 @@ export function PatientListPanel({ onSelectPatient }: PatientListPanelProps) {
     setPage(0);
   };
 
-  const handleSelect = (profile: SeafarerProfile) => {
+  const handleRowAction = (
+    profile: SeafarerProfile,
+    action: (profile: SeafarerProfile) => void
+  ) => {
     setSelectedId(profile.id ?? null);
-    onSelectPatient(profile);
+    action(profile);
   };
 
   const patients = result?.content ?? [];
@@ -138,17 +170,45 @@ export function PatientListPanel({ onSelectPatient }: PatientListPanelProps) {
   const lastRow = Math.min(total, page * PAGE_SIZE + patients.length);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border bg-card shadow-sm">
-      {/* Panel header */}
-      <div className="flex items-center gap-3 px-4 py-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-          <Users className="h-5 w-5 text-primary" />
-        </div>
-        <h2 className="text-lg font-semibold text-foreground">Patients</h2>
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-primary/20 bg-card shadow-sm">
+      {/* Panel header — same banded SectionHeader the form cards use, so the
+          visit page reads as part of the same app as the medical forms. The
+          `px-3 pt-3` wrapper plus `bannerInset="p-3"` is the pairing from
+          `personal-info-section.tsx`: the inset's negative margins bleed the
+          band back out to the card edge. */}
+      <div className="px-3 pt-3">
+        <SectionHeader
+          title="Patients"
+          icon={Users}
+          banner
+          bannerInset="p-3"
+          action={
+            /* Shortcut straight to the registration form, skipping the search
+               dialog. The search step exists to stop duplicate profiles, so
+               this is not a replacement for it — the save path still looks the
+               person up by last name + first name + birthdate and updates the
+               existing profile rather than creating a second one.
+
+               Labelled rather than icon-only: the icon alone needed a tooltip
+               to say what it did, which is a hover the primary way into
+               registering a patient should not depend on. The text is its own
+               accessible name, so the tooltip is gone. */
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={onRegisterNew}
+              className="cursor-pointer"
+            >
+              <UserPlus aria-hidden="true" />
+              New Patient
+            </Button>
+          }
+        />
       </div>
 
       {/* Search */}
-      <div className="px-4 pb-3">
+      <div className="px-3 pb-3">
         <div className="relative">
           <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -179,7 +239,7 @@ export function PatientListPanel({ onSelectPatient }: PatientListPanelProps) {
             <Loader2 className="h-5 w-5 animate-spin text-primary" />
           </div>
         ) : patients.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-4 py-16 text-center">
+          <div className="flex flex-col items-center justify-center px-3 py-16 text-center">
             <Users className="mb-3 h-10 w-10 text-muted-foreground/40" />
             <p className="text-sm text-muted-foreground">
               {term ? "No patient matches that search." : "No patients on file yet."}
@@ -191,38 +251,68 @@ export function PatientListPanel({ onSelectPatient }: PatientListPanelProps) {
               const selected = Boolean(profile.id) && profile.id === selectedId;
               return (
                 <li key={profile.id ?? profile.profile_id}>
-                  <button
-                    type="button"
-                    onClick={() => handleSelect(profile)}
-                    aria-current={selected ? "true" : undefined}
-                    className={cn(
-                      "flex w-full items-center gap-3 border-b border-border/60 px-4 py-2.5 text-left transition-colors",
-                      selected ? "bg-primary/10" : "hover:bg-primary/5"
-                    )}
-                  >
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
-                      {initialsOf(profile)}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-xs font-semibold text-foreground uppercase">
-                        {[profile.last_name, profile.first_name]
-                          .filter(Boolean)
-                          .join(", ") || "—"}
-                      </span>
-                      <span className="block truncate text-[11px] text-muted-foreground">
-                        {profile.profile_id || "—"}
-                      </span>
-                      <span className="block truncate text-[11px] text-muted-foreground">
-                        {describe(profile) || "\u00A0"}
-                      </span>
-                    </span>
-                    <ChevronRight
-                      className={cn(
-                        "h-4 w-4 shrink-0",
-                        selected ? "text-primary" : "text-muted-foreground/60"
-                      )}
+                  {/* The whole row is the menu trigger rather than carrying a
+                      separate kebab: a row click is ambiguous on its own now
+                      that it leads to two different places, and the menu is
+                      how the user picks. Keyboard users get it from Enter on
+                      the focused row for free. */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={
+                        <button
+                          type="button"
+                          aria-current={selected ? "true" : undefined}
+                          className={cn(
+                            "flex w-full items-center gap-3 border-b border-border/60 px-3 py-2.5 text-left transition-colors",
+                            selected
+                              ? "bg-primary/10"
+                              : "hover:bg-primary/5 aria-expanded:bg-primary/5"
+                          )}
+                        >
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                            {initialsOf(profile)}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-xs font-semibold text-foreground uppercase">
+                              {[profile.last_name, profile.first_name]
+                                .filter(Boolean)
+                                .join(", ") || "—"}
+                            </span>
+                            <span className="block truncate text-[11px] text-muted-foreground">
+                              {profile.profile_id || "—"}
+                            </span>
+                            <span className="block truncate text-[11px] text-muted-foreground">
+                              {describe(profile) || "\u00A0"}
+                            </span>
+                          </span>
+                          <ChevronRight
+                            className={cn(
+                              "h-4 w-4 shrink-0",
+                              selected
+                                ? "text-primary"
+                                : "text-muted-foreground/60"
+                            )}
+                          />
+                        </button>
+                      }
                     />
-                  </button>
+                    <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => handleRowAction(profile, onAddVisit)}
+                      >
+                        <CalendarPlus aria-hidden="true" />
+                        <span>Add Visit</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="cursor-pointer"
+                        onClick={() => handleRowAction(profile, onViewDetails)}
+                      >
+                        <FileText aria-hidden="true" />
+                        <span>View Details</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </li>
               );
             })}
@@ -231,7 +321,7 @@ export function PatientListPanel({ onSelectPatient }: PatientListPanelProps) {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2.5">
+      <div className="flex items-center justify-between gap-2 border-t border-border px-3 py-2.5">
         <span className="text-xs text-muted-foreground">
           {total === 0
             ? "No patients"

@@ -22,6 +22,14 @@ interface FormFieldProps {
   /** Disables the input */
   disabled?: boolean;
   /**
+   * Focuses the input on mount.
+   *
+   * For single-field dialogs: without it the dialog's first focusable element
+   * is whatever comes first in the DOM, which is a header button when the
+   * actions sit in the header.
+   */
+  autoFocus?: boolean;
+  /**
    * Visual size variant:
    * - `"sm"` — compact (h-7), used in profile forms
    * - `"md"` — standard (h-8), used in landbase PEME forms
@@ -61,6 +69,7 @@ export function FormField({
   className,
   disabled,
   size = "md",
+  autoFocus,
 }: FormFieldProps) {
   return (
     <div className={cn("space-y-0.5", className)}>
@@ -74,6 +83,7 @@ export function FormField({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         readOnly={disabled}
+        autoFocus={autoFocus}
         tabIndex={disabled ? -1 : undefined}
         className={cn(sizeStyles[size], disabled && "pointer-events-none")}
       />

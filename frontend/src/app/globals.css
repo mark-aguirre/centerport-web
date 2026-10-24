@@ -301,3 +301,20 @@ label[for],
 
 /* ------------------------------------------------------------------ */
 
+
+/* ------------------------------------------------------------------ */
+/* Hidden scrollbar utility                                           */
+/*                                                                    */
+/* Keeps an element scrollable (wheel, trackpad, touch, keyboard)     */
+/* while hiding the visible scrollbar across engines. Used by the     */
+/* profile page's section column so it scrolls independently of the   */
+/* hero + left nav without showing a track.                           */
+/* ------------------------------------------------------------------ */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and legacy Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge (WebKit/Blink) */
+}

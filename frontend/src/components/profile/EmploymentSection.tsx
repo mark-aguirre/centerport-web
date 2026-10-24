@@ -1,9 +1,7 @@
 "use client";
 
-import { SectionHeader } from "@/components/common/section-header";
 import { FormField } from "@/components/common/form-field";
 import { FormAutocomplete } from "@/components/common/form-autocomplete";
-import { Anchor } from "lucide-react";
 import { POSITIONS, COUNTRIES, DESIGNATIONS } from "@/lib/suggestions";
 import { useEmployers } from "@/hooks/use-employers";
 import { createFieldUpdater } from "./utils";
@@ -24,9 +22,7 @@ export default function EmploymentSection({
   const employers = useEmployers();
 
   return (
-    <div className="bg-card rounded-xl p-4 border border-primary/10 shadow-sm transition-shadow hover:shadow-md">
-      <SectionHeader title="Employment Details" icon={Anchor} banner />
-      <div className="space-y-2">
+    <div className="space-y-2">
         <div className="grid grid-cols-2 gap-2">
           <FormAutocomplete
             label="Employer"
@@ -86,7 +82,6 @@ export default function EmploymentSection({
           disabled={disabled}
           size="sm"
         />
-      </div>
     </div>
   );
 }
