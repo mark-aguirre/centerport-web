@@ -551,6 +551,38 @@ export const api = {
       },
 
       /**
+       * Fetch one page of profiles, keeping the pagination metadata.
+       *
+       * This is the directory-browsing counterpart to {@link search}, which
+       * returns a bare array capped at a limit. A pager needs `total_elements`
+       * and `total_pages`, so this returns the envelope untouched.
+       *
+       * The optional `search` term is the same case-insensitive keyword the
+       * backend matches against last name, first name, and profile ID, so one
+       * call serves both the browse and the filtered view.
+       *
+       * @param opts.page   zero-based page index (default `0`)
+       * @param opts.size   rows per page (default `10`)
+       * @param opts.search optional keyword; omitted when blank
+       * @param opts.sort   sort expression (default `"lastName,asc"`)
+       */
+      async page(opts: {
+        page?: number;
+        size?: number;
+        search?: string;
+        sort?: string;
+      } = {}): Promise<Paged<SeafarerProfile>> {
+        const params: Record<string, string | number | undefined> = {
+          page: opts.page ?? 0,
+          size: opts.size ?? 10,
+          sort: opts.sort ?? "lastName,asc",
+        };
+        const keyword = opts.search?.trim();
+        if (keyword) params.search = keyword;
+        return httpClient.get<Paged<SeafarerProfile>>("/api/profiles", params);
+      },
+
+      /**
        * Fetch profiles created today (for the Visit page "today's encoded" list).
        * Uses the createdDate filter on the backend with today's date.
        */

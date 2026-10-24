@@ -28,7 +28,11 @@ export interface NavigationItem {
   icon: LucideIcon;
   /**
    * Optional group label. Consecutive items sharing the same group are
-   * rendered under a single section header (e.g. "Accounting").
+   * rendered under a single section header in the sidebar (e.g. "Laboratory")
+   * and as one divider-separated cluster in the top navigation strip.
+   *
+   * Items are grouped by adjacency, so an item only joins a group when it sits
+   * next to its peers in this list — reordering the list regroups the UI.
    */
   group?: string;
 }
@@ -120,13 +124,16 @@ export const navigation: NavigationItem[] = [
     icon: User,
     group: "Patient",
   },
+  // Medical Certificate — the four certificate modules, kept adjacent so the
+  // toolbar renders them as one cluster. MLC and Panama belong here rather
+  // than beside the diagnostics they cite.
   {
     title: "Seafarer's Medical Examination Certificate",
     shortTitle: "Seabase",
     subtitle: "Seafarer's Medical Examination — ILO/WHO",
     href: "/seabase",
     icon: HeartPulse,
-    group: "Medical Examination",
+    group: "Medical Certificate",
   },
   {
     title: "Overseas Land-Based Workers Medical Certificate",
@@ -134,41 +141,7 @@ export const navigation: NavigationItem[] = [
     subtitle: "POEA/DMW Medical Examination — Land-Based OFW",
     href: "/landbase",
     icon: Building2,
-    group: "Medical Examination",
-  },
-  {
-    title: "Laboratory",
-    href: "/laboratory",
-    icon: FlaskConical,
-    group: "Medical Examination",
-  },
-  {
-    title: "Immunology",
-    subtitle: "Immunology / Serology Report",
-    href: "/immunology",
-    icon: TestTube,
-    group: "Medical Examination",
-  },
-  {
-    title: "HIV",
-    subtitle: "Human Immunodeficiency Virus (HIV) Screening",
-    href: "/hiv",
-    icon: ShieldPlus,
-    group: "Medical Examination",
-  },
-  {
-    title: "Ultrasound",
-    subtitle: "Ultrasound Result — Radiology",
-    href: "/ultrasound",
-    icon: Waves,
-    group: "Medical Examination",
-  },
-  {
-    title: "X-Ray",
-    subtitle: "X-Ray Result — Radiology",
-    href: "/xray",
-    icon: ScanLine,
-    group: "Medical Examination",
+    group: "Medical Certificate",
   },
   {
     title: "Seafarer's Medical Examination Certificate",
@@ -176,7 +149,7 @@ export const navigation: NavigationItem[] = [
     subtitle: "Seafarer's Medical Examination — MLC Convention",
     href: "/mlc",
     icon: ClipboardCheck,
-    group: "Medical Examination",
+    group: "Medical Certificate",
   },
   {
     title: "Panama Medical Certificate",
@@ -184,15 +157,57 @@ export const navigation: NavigationItem[] = [
     subtitle: "Seafarer's Medical Examination — Panama Registry",
     href: "/panama",
     icon: Globe,
-    group: "Medical Examination",
+    group: "Medical Certificate",
   },
+
+  // Laboratory — the LABORATORY role's diagnostic modules.
+  {
+    title: "Laboratory",
+    href: "/laboratory",
+    icon: FlaskConical,
+    group: "Laboratory",
+  },
+  {
+    title: "Immunology",
+    subtitle: "Immunology / Serology Report",
+    href: "/immunology",
+    icon: TestTube,
+    group: "Laboratory",
+  },
+  {
+    title: "HIV",
+    subtitle: "Human Immunodeficiency Virus (HIV) Screening",
+    href: "/hiv",
+    icon: ShieldPlus,
+    group: "Laboratory",
+  },
+
+  // Radiology — owned by the RADIOLOGY role, not LABORATORY (see lib/roles.ts).
+  {
+    title: "Ultrasound",
+    subtitle: "Ultrasound Result — Radiology",
+    href: "/ultrasound",
+    icon: Waves,
+    group: "Radiology",
+  },
+  {
+    title: "X-Ray",
+    subtitle: "X-Ray Result — Radiology",
+    href: "/xray",
+    icon: ScanLine,
+    group: "Radiology",
+  },
+
+  // Psychology stands alone. Deliberately ungrouped: a one-item group would
+  // put a "PSYCHOLOGY" section header above a single "Psychology" link in the
+  // sidebar. Without a group it still starts its own toolbar cluster, since
+  // groupNavigation gives an ungrouped item its own headerless group.
   {
     title: "Psychological Evaluation",
     shortTitle: "Psychology",
     subtitle: "Seafarer Psychological Fitness Assessment",
     href: "/psychology",
     icon: Brain,
-    group: "Medical Examination",
   },
   {
     title: "Default Values",
@@ -210,3 +225,13 @@ export const navigation: NavigationItem[] = [
     group: "Setting",
   },
 ];
+
+/**
+ * Module icon by route href, built once at module load.
+ *
+ * Lets any component render a route's icon without searching `navigation` on
+ * every render — which would also create the component value during render.
+ */
+export const NAV_ICON_BY_HREF: Record<string, LucideIcon> = Object.fromEntries(
+  navigation.map((item) => [item.href, item.icon])
+);

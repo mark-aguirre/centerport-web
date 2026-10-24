@@ -1,8 +1,9 @@
 "use client";
 
 import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Users } from "lucide-react";
 
+import { PageBanner } from "@/components/common/page-banner";
 import { PageContainer } from "@/components/common/page-container";
 import { VisitList } from "@/components/visit/VisitList";
 import { PatientSearchDialog } from "@/components/visit/PatientSearchDialog";
@@ -54,7 +55,18 @@ function VisitPageContent() {
   } = useVisit();
 
   return (
-    <PageContainer>
+    // `/visit` is one of the zero-gutter routes in AppLayout so that PageBanner
+    // can run edge to edge. The content below it still needs breathing room, so
+    // the gutter lives here instead — in px, because the banner cancels it with
+    // a matching negative margin and `html` sits at 90% font size. Keep
+    // `px-[24px]` here and `-mx-[24px]` in PageBanner in step.
+    <PageContainer className="space-y-3 px-[24px]">
+      <PageBanner
+        title="Visit Management"
+        subtitle="View patients and manage today's clinic visits."
+        icon={Users}
+      />
+
       {/* Today's visits list */}
       <VisitList
         visits={todayVisits}

@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const themes: { id: AppTheme; label: string; colors: [string, string] }[] = [
+  { id: "clinic", label: "Clinic", colors: ["#1a74d4", "#f3f7fc"] },
   { id: "sand", label: "Sand", colors: ["#f1eeea", "#f8f6f4"] },
   { id: "ocean", label: "Ocean", colors: ["#1e3a5f", "#f5f6f8"] },
 ];

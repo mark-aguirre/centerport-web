@@ -56,6 +56,44 @@
   --radius: 0.625rem;
 }
 
+/* Clinic theme — bright clinical blue on a cool off-white page.
+   This is the default theme and the basis of the current UI design: white
+   cards, soft blue tints for accents, and a vivid blue primary used for
+   active navigation, links, and key actions. */
+[data-theme="clinic"] {
+  --background: oklch(0.975 0.008 250);
+  --foreground: oklch(0.26 0.045 255);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.26 0.045 255);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.26 0.045 255);
+  --primary: oklch(0.55 0.17 255);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.96 0.012 250);
+  --secondary-foreground: oklch(0.36 0.09 255);
+  --muted: oklch(0.96 0.012 250);
+  --muted-foreground: oklch(0.58 0.032 250);
+  --accent: oklch(0.95 0.025 250);
+  --accent-foreground: oklch(0.4 0.12 255);
+  --destructive: oklch(0.58 0.21 25);
+  --border: oklch(0.92 0.014 252);
+  --input: oklch(0.92 0.014 252);
+  --ring: oklch(0.64 0.14 250);
+  --chart-1: oklch(0.55 0.17 255);
+  --chart-2: oklch(0.66 0.14 215);
+  --chart-3: oklch(0.72 0.13 170);
+  --chart-4: oklch(0.78 0.14 75);
+  --chart-5: oklch(0.63 0.2 20);
+  --sidebar-background: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.26 0.045 255);
+  --sidebar-primary: oklch(0.55 0.17 255);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0.025 250);
+  --sidebar-accent-foreground: oklch(0.4 0.12 255);
+  --sidebar-border: oklch(0.92 0.014 252);
+  --sidebar-ring: oklch(0.64 0.14 250);
+}
+
 [data-theme="sand"] {
   /* Warm beige/cream palette */
   --background: #f1eeea;
@@ -188,16 +226,13 @@
     @apply bg-background text-foreground;
   }
 
-  /* Compact mode anti-flash: before hydration, the blocking script in
-     layout.tsx sets data-toolbar-compact on <html> from localStorage. The
-     quick-access toolbar (TopNav Row 2) stays fully visible in compact mode —
-     only its icons shrink and labels hide — so we tighten the row's vertical
-     padding here to roughly match the hydrated compact look and limit the
-     resize flash. The React `toolbarCompact` flag drives the full compact
-     styling (reduced-size icons, hidden labels) once hydrated. */
-  html[data-toolbar-compact="true"] [data-toolbar-quick-access] {
-    padding-top: 0.125rem;
-    padding-bottom: 0.125rem;
+  /* Compact navigation: hides the text labels under the top-nav icons,
+     leaving icon-only tiles so more modules fit on narrow screens.
+     Driven purely by the `data-toolbar-compact` attribute on <html> — set
+     before hydration by the blocking script in layout.tsx and kept in sync by
+     LayoutProvider — so labels never flash in or out during hydration. */
+  html[data-toolbar-compact="true"] [data-nav-label] {
+    display: none;
   }
 
   html {

@@ -97,3 +97,30 @@ export function hasAnyRole(
   }
   return required.some((role) => roles.includes(role));
 }
+
+/** Display names for the realm roles, in the order they should win as "primary". */
+const ROLE_LABELS: ReadonlyArray<readonly [Role, string]> = [
+  ["ADMIN", "Administrator"],
+  ["INFORMATION", "Information"],
+  ["RELEASING", "Releasing"],
+  ["LABORATORY", "Laboratory"],
+  ["RADIOLOGY", "Radiology"],
+  ["PSYCHOLOGY", "Psychology"],
+  ["ACCOUNTING", "Accounting"],
+];
+
+/**
+ * A short, human-readable label for the user's main role, shown next to their
+ * name in the header.
+ *
+ * A user can hold several realm roles; the first match in {@link ROLE_LABELS}
+ * wins so the most privileged one is displayed. Users with no recognised role
+ * fall back to the generic "Medical Staff".
+ *
+ * @param roles - The user's realm roles.
+ * @returns The display label for the user's primary role.
+ */
+export function primaryRoleLabel(roles: readonly string[]): string {
+  const match = ROLE_LABELS.find(([role]) => roles.includes(role));
+  return match ? match[1] : "Medical Staff";
+}

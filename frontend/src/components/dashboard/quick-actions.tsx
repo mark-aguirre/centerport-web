@@ -1,100 +1,83 @@
 "use client";
 
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { FlaskConical, User, Ship, Landmark, FileText, CalendarCheck } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ChevronRight, Zap } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
+import { DashboardCard } from "@/components/dashboard/dashboard-card";
+import { accentForHref } from "@/config/module-theme";
+import { NAV_ICON_BY_HREF } from "@/config/navigation";
+import { cn } from "@/lib/utils";
 
+/** A shortcut tile: the label staff use for the task, and where it goes. */
 interface QuickAction {
-  title: string;
-  icon: LucideIcon;
+  label: string;
   href: string;
-  description: string;
 }
 
-const actions: QuickAction[] = [
-  {
-    title: "Visit",
-    description: "Record a patient visit",
-    icon: CalendarCheck,
-    href: "/visit",
-  },
-  {
-    title: "Lab Test",
-    description: "Order or record results",
-    icon: FlaskConical,
-    href: "/laboratory",
-  },
-  {
-    title: "Patient Profile",
-    description: "Register or update crew member",
-    icon: User,
-    href: "/profile",
-  },
-  {
-    title: "Seabase Log",
-    description: "Port call or vessel activity",
-    icon: Ship,
-    href: "/seabase",
-  },
-  {
-    title: "Landbase",
-    description: "Shore-based examination",
-    icon: Landmark,
-    href: "/landbase",
-  },
-  {
-    title: "MLC Report",
-    description: "Maritime Labour Convention",
-    icon: FileText,
-    href: "/mlc",
-  },
+/**
+ * The tasks that start a working day, in the order they are usually done:
+ * register the visit, order the labs, then fill in the certificates.
+ */
+const ACTIONS: QuickAction[] = [
+  { label: "New Visit", href: "/visit" },
+  { label: "Lab Test", href: "/laboratory" },
+  { label: "Patient Profile", href: "/profile" },
+  { label: "Medical Examination", href: "/seabase" },
+  { label: "Land-Base", href: "/landbase" },
+  { label: "MLC Report", href: "/mlc" },
+  { label: "Panama Certificate", href: "/panama" },
+  { label: "Default Values", href: "/default-values" },
 ];
 
 /**
- * Navigation shortcuts to common workflows.
- * Compact rows with descriptions — not icon-only buttons.
+ * Shortcuts to the common workflows.
  *
  * Actions are filtered to the routes the signed-in user's roles permit, using
- * the same `canRoute` check that gates the sidebar/top-nav (which mirrors the
+ * the same `canRoute` check that gates the navigation (which mirrors the
  * backend authorization rules). This is UX only — the backend still enforces
  * access and returns 403 for any forbidden endpoint. If no actions remain for
- * the user's role, the section is hidden entirely.
+ * the user's role, the card is hidden entirely.
  */
 export function QuickActions() {
   const { canRoute } = useAuth();
-  const visibleActions = actions.filter((action) => canRoute(action.href));
+  const visible = ACTIONS.filter((action) => canRoute(action.href));
 
-  if (visibleActions.length === 0) {
-    return null;
-  }
+  if (visible.length === 0) return null;
 
   return (
-    <section>
-      <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
-        Quick Actions
-      </h2>
-      <div className="space-y-1">
-        {visibleActions.map((action) => (
-          <Link
-            key={action.title}
-            href={action.href}
-            className={cn(
-              "flex items-center gap-3 rounded-md px-3 py-2.5",
-              "transition-colors hover:bg-accent"
-            )}
-          >
-            <action.icon className="h-4 w-4 text-muted-foreground shrink-0" />
-            <div className="min-w-0">
-              <p className="text-sm font-medium leading-none">{action.title}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {action.description}
-              </p>
-            </div>
-          </Link>
-        ))}
+    <DashboardCard
+      title="Quick actions"
+      subtitle="Common tasks at your fingertips"
+      icon={Zap}
+    >
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {visible.map((action) => {
+          const Icon = NAV_ICON_BY_HREF[action.href];
+          const accent = accentForHref(action.href);
+          return (
+            <Link
+              key={action.label}
+              href={action.href}
+              className="group flex items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2 transition-colors hover:border-primary/40 hover:bg-accent/40"
+            >
+              {Icon && (
+                <span
+                  className={cn(
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+                    accent.bg
+                  )}
+                >
+                  <Icon className={cn("h-4 w-4", accent.fg)} />
+                </span>
+              )}
+              <span className="min-w-0 flex-1 truncate text-xs font-semibold">
+                {action.label}
+              </span>
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+            </Link>
+          );
+        })}
       </div>
-    </section>
+    </DashboardCard>
   );
 }

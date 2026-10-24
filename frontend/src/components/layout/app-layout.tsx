@@ -29,7 +29,19 @@ export function AppLayout({ children }: AppLayoutProps) {
   // sidebar and use the full content width. This is derived from the route, so
   // the sidebar reappears automatically once the user navigates away.
   const immersive = pathname === "/sale";
-  const expanded = immersive || fullWidth;
+  // Routes that open with a full-bleed PageBanner band. They are data-heavy
+  // overviews rather than forms, so they always use the full content width —
+  // the 8% gutters would squeeze the dashboard's three-column grid and the
+  // visit list's wide table into unreadable columns.
+  const wideRoute = pathname === "/dashboard" || pathname === "/visit";
+  const expanded = immersive || wideRoute || fullWidth;
+
+  // Side gutter for the content area. The banner routes take none at all: a
+  // full-bleed band has to meet the left and right edges of the window, and a
+  // gutter here cannot be cancelled from inside the page. Their content gets
+  // breathing room from the page's own `px-[24px]` on PageContainer instead,
+  // which the banner cancels with a matching negative margin.
+  const gutter = wideRoute ? "0px" : expanded ? "1rem" : "8%";
 
   // On mobile/tablet, collapse by default
   useEffect(() => {
@@ -58,10 +70,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <TopNav />
         <main
           className="flex-1 overflow-auto bg-background"
-          style={{
-            paddingLeft: expanded ? "1rem" : "8%",
-            paddingRight: expanded ? "1rem" : "8%",
-          }}
+          style={{ paddingLeft: gutter, paddingRight: gutter }}
           suppressHydrationWarning
         >
           {children}
@@ -93,7 +102,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           style={
             immersive
               ? undefined
-              : { paddingLeft: expanded ? "1rem" : "8%", paddingRight: expanded ? "1rem" : "8%" }
+              : { paddingLeft: gutter, paddingRight: gutter }
           }
           suppressHydrationWarning
         >

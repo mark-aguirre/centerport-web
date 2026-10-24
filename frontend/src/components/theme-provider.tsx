@@ -2,7 +2,11 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
-export type AppTheme = "sand" | "ocean";
+/** Selectable colour themes. `clinic` is the default clinical-blue palette. */
+export type AppTheme = "clinic" | "sand" | "ocean";
+
+/** Every valid theme id, used to validate the persisted preference. */
+const THEMES: readonly AppTheme[] = ["clinic", "sand", "ocean"];
 
 interface ThemeContextValue {
   theme: AppTheme;
@@ -18,12 +22,12 @@ interface ThemeProviderProps {
   defaultTheme?: AppTheme;
 }
 
-export function ThemeProvider({ children, defaultTheme = "ocean" }: ThemeProviderProps) {
+export function ThemeProvider({ children, defaultTheme = "clinic" }: ThemeProviderProps) {
   // Resolve initial theme from localStorage synchronously to avoid FOUC.
   const [theme, setThemeState] = useState<AppTheme>(() => {
     if (typeof window === "undefined") return defaultTheme;
     const saved = localStorage.getItem(STORAGE_KEY) as AppTheme | null;
-    if (saved && (saved === "sand" || saved === "ocean")) return saved;
+    if (saved && THEMES.includes(saved)) return saved;
     return defaultTheme;
   });
 
