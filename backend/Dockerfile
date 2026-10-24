@@ -15,6 +15,17 @@ RUN mvn -B -q clean package -DskipTests
 FROM eclipse-temurin:21-jre-jammy AS runtime
 WORKDIR /app
 
+# Pin the container timezone so server-side LocalDate.now() matches the clinic's
+# local day. Without this the container runs in UTC, and visits saved in the
+# morning get stamped with the previous (UTC) calendar date, so they drop out of
+# the frontend's "today" list. Overridable at runtime via the TZ env var.
+ENV TZ=Asia/Singapore
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && rm -rf /var/lib/apt/lists/*
+
 # Run as a non-root user.
 RUN groupadd --system app && useradd --system --gid app --home /app app
 
@@ -30,4 +41,4 @@ EXPOSE 8080
 # Container-internal port stays 8080; host port is mapped in docker-compose.
 ENV SERVER_PORT=8080
 
-ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]
+ENTRYPOINT ["sh", "-c", "java -XX:MaxRAMPercentage=75.0 -Duser.timezone=$TZ -jar /app/app.jar"]
