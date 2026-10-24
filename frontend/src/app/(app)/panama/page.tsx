@@ -1,8 +1,11 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 
+import { PatientRailCard } from "@/components/common/patient-rail-card";
+import { SectionNav, type SectionNavItem } from "@/components/common/section-nav";
+import { usePatientPhoto } from "@/hooks/use-patient-photo";
 import GeneralInfoSection from "@/components/panama/GeneralInfoSection";
 import PersonalDeclarationSection from "@/components/panama/PersonalDeclarationSection";
 import StatementSection from "@/components/panama/StatementSection";
@@ -13,7 +16,7 @@ import { usePanamaForm } from "@/hooks/use-panama-form";
 import { FormPage } from "@/components/common/form-page";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { ReportMenu } from "@/components/panama/ReportMenu";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { SectionReveal } from "@/components/common/section-reveal";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -45,72 +48,26 @@ interface PanamaTabsBodyProps {
   onChange: (data: PanamaCertificate) => void;
   editing: boolean;
   activeTab: TabValue;
-  onTabChange: (tab: TabValue) => void;
 }
 
+/**
+ * Body of the Panama form — the eight steps of the paper certificate.
+ *
+ * The step list lives in the page's left rail (see `SectionNav` in
+ * `PanamaFormContent`), so this renders the tab panels only, with no tab
+ * strip of its own.
+ */
 function PanamaTabsBody({
   data,
   onChange,
   editing,
   activeTab,
-  onTabChange,
 }: PanamaTabsBodyProps) {
   const disabled = !editing;
   const sectionProps: PanamaSectionProps = { data, onChange, disabled };
 
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(v) => onTabChange(v as TabValue)}
-      className="w-full"
-    >
-      {/* Stepper-style tab nav — single line, compact and readable */}
-      <TabsList className="mb-5 flex h-auto w-full items-stretch gap-1 border-b border-border bg-transparent p-0">
-        {TABS.map((tab, index) => {
-          const isActive = activeTab === tab.value;
-          const isPast   = TABS.findIndex((t) => t.value === activeTab) > index;
-          return (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              title={tab.sub}
-              className={[
-                "relative flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-2 px-2 py-3 text-center transition-colors",
-                "focus-visible:ring-2 focus-visible:ring-[#0a5fc0]/50",
-                "data-[state=active]:bg-[#0a5fc0]/10 data-[state=active]:shadow-none",
-                "after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:transition-colors",
-                isActive
-                  ? "bg-[#0a5fc0]/10 after:bg-[#0a5fc0]"
-                  : "after:bg-transparent hover:bg-muted/40",
-              ].join(" ")}
-            >
-              {/* Circle number */}
-              <span
-                className={[
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-base font-bold transition-colors",
-                  isActive
-                    ? "bg-[#0a5fc0] text-white shadow-sm"
-                    : isPast
-                    ? "bg-[#0a5fc0]/15 text-[#0a5fc0]"
-                    : "bg-muted text-muted-foreground",
-                ].join(" ")}
-              >
-                {index + 1}
-              </span>
-              {/* Label */}
-              <span
-                className={[
-                  "truncate text-sm font-semibold leading-snug",
-                  isActive ? "text-[#0a5fc0]" : isPast ? "text-foreground" : "text-foreground/70",
-                ].join(" ")}
-              >
-                {tab.label}
-              </span>
-            </TabsTrigger>
-          );
-        })}
-      </TabsList>
-
+    <Tabs value={activeTab} className="w-full">
       {/* Tab 1 — General Information + partial Personal Declaration (items 1–8 and 22–29) */}
       <TabsContent value="general" keepMounted={false}>
         <div className="space-y-3">
@@ -264,16 +221,53 @@ function PanamaFormContent() {
   const form = usePanamaForm();
   const [activeTab, setActiveTab] = useState<TabValue>("general");
 
+  // The rail shows the paper form's page numbers (1–8) rather than icons, the
+  // way the old stepper's circled numbers did.
+  const navItems = useMemo<SectionNavItem[]>(
+    () => TABS.map(({ value, label }, index) => ({
+      key: value,
+      label,
+      step: index + 1,
+    })),
+    []
+  );
+
+  const { data } = form;
+
+  // The Panama record stores only the seafarer's profile UUID, so the rail
+  // card's photo comes from the profile rather than the certificate.
+  const patientPhoto = usePatientPhoto(data.seafarer_profile_id);
+
   return (
     <>
       <FormPage
         form={form}
         sections={[]}
         getBusinessId={(record) => record?.panama_id}
-        editGuard={(data) => !!data.full_name}
+        editGuard={(record) => !!record.full_name}
         printMenu={<ReportMenu data={form.existingRecord ?? form.data} />}
         metadataSlot={
           <TabStepNavigator activeTab={activeTab} onTabChange={setActiveTab} />
+        }
+        navRail={
+          /* Patient summary above the step navigator. The steps are mutually
+             exclusive tabs rather than anchors in one scrolling column, so
+             SectionNav runs in controlled mode and switches the active tab. */
+          <div className="space-y-3">
+            <PatientRailCard
+              photoUrl={patientPhoto}
+              name={data.full_name}
+              recordId={form.existingRecord?.panama_id}
+              gender={data.sex}
+            />
+            <SectionNav
+              items={navItems}
+              ariaLabel="Certificate steps"
+              activeKey={activeTab}
+              onSelect={(key) => setActiveTab(key as TabValue)}
+              className="static"
+            />
+          </div>
         }
         preSections={
           <PanamaTabsBody
@@ -281,7 +275,6 @@ function PanamaFormContent() {
             onChange={form.setData}
             editing={form.editing}
             activeTab={activeTab}
-            onTabChange={setActiveTab}
           />
         }
       />

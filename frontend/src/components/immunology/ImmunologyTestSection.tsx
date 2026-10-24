@@ -21,6 +21,22 @@ import type { ImmunologyReport, ImmunologySectionProps } from "./types";
 /** Reactive-state options shared by the immunology radio rows. */
 const REACTIVITY_OPTIONS = ["Non Reactive", "Reactive"] as const;
 
+/** Scroll-anchor id for one of this card's test groups. */
+export function immunologyGroupAnchorId(key: string): string {
+  return `immunology-group-${key}`;
+}
+
+/**
+ * The card's test groups, in order.
+ *
+ * Exported so the page's left-rail navigator can jump to them without
+ * keeping a second copy of the labels.
+ */
+export const IMMUNOLOGY_GROUPS = [
+  { key: "tumor-marker", label: "Tumor Marker" },
+  { key: "immunology-test", label: "Immunology Test" },
+] as const;
+
 export default function ImmunologyTestSection({
   data,
   onChange,
@@ -56,7 +72,7 @@ export default function ImmunologyTestSection({
       </div>
 
       {/* ---------------- TUMOR MARKER ---------------- */}
-      <div className="mt-3">
+      <div id={immunologyGroupAnchorId("tumor-marker")} className="mt-3 scroll-mt-4">
         <h3 className="text-[11px] font-bold text-foreground/70 uppercase tracking-wider mb-2">
           Tumor Marker
         </h3>
@@ -110,7 +126,7 @@ export default function ImmunologyTestSection({
       </div>
 
       {/* ---------------- IMMUNOLOGY TEST ---------------- */}
-      <div className="mt-5">
+      <div id={immunologyGroupAnchorId("immunology-test")} className="mt-5 scroll-mt-4">
         <h3 className="text-[11px] font-bold text-foreground/70 uppercase tracking-wider mb-2">
           Immunology Test
         </h3>

@@ -4,12 +4,14 @@
  * Shared Urinalysis form body used by the parent report and repeat modal.
  */
 
-import { useId, type ReactNode } from "react";
+import { useId } from "react";
+import { Atom, Droplet, FlaskConical, Gem, Microscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   InlineField,
   InlineSelect,
   LabFieldWithUnit,
+  LabGroupCard,
   LabSelectWithUnit,
 } from "./laboratory-field-helpers";
 import type { UrinalysisRepeatTest } from "./repeat-urinalysis-types";
@@ -58,6 +60,11 @@ export interface UrinalysisFormFieldsProps {
   onFieldChange: (field: UrinalysisFieldName, value: string) => void;
   /** Makes all controls read-only. */
   disabled?: boolean;
+  /**
+   * Hides the built-in Result Date row for callers that render the date
+   * themselves (the repeat dialog puts it in its own header strip).
+   */
+  hideResultDate?: boolean;
 }
 
 const COLOR_OPTIONS = [
@@ -103,22 +110,13 @@ const PH_OPTIONS = [
   "9.0",
 ];
 
-function UrinalysisGroup({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <fieldset className="min-w-0 rounded-md border border-primary/15 bg-muted/5 px-3 pb-3">
-      <legend className="px-1 text-xs font-bold uppercase tracking-widest text-primary">
-        {title}
-      </legend>
-      <div className="mt-1">{children}</div>
-    </fieldset>
-  );
-}
+/**
+ * One titled group of urinalysis fields.
+ *
+ * Alias of the shared {@link LabGroupCard} so the hematology body and the
+ * repeat dialogs render identical group cards.
+ */
+const UrinalysisGroup = LabGroupCard;
 
 /**
  * Renders Result Date and the complete grouped Urinalysis form.
@@ -129,12 +127,13 @@ export function UrinalysisFormFields({
   onResultDateChange,
   onFieldChange,
   disabled,
+  hideResultDate,
 }: UrinalysisFormFieldsProps) {
   const resultDateId = useId();
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-3">
+      <div className={cn("mb-4 flex items-center gap-3", hideResultDate && "hidden")}>
         <label
           htmlFor={resultDateId}
           className="text-[11px] font-bold uppercase tracking-wide text-primary/70"
@@ -156,7 +155,11 @@ export function UrinalysisFormFields({
 
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,3fr)_minmax(22rem,2fr)]">
         <div className="min-w-0 space-y-4">
-          <UrinalysisGroup title="Macroscopic">
+          <UrinalysisGroup
+            title="Macroscopic"
+            subtitle="Physical characteristics of the urine sample"
+            icon={Droplet}
+          >
             <div className="max-w-xl space-y-2">
               <InlineSelect
                 label="Color"
@@ -177,7 +180,11 @@ export function UrinalysisFormFields({
             </div>
           </UrinalysisGroup>
 
-          <UrinalysisGroup title="Chemical">
+          <UrinalysisGroup
+            title="Chemical"
+            subtitle="Chemical analysis parameters"
+            icon={FlaskConical}
+          >
             <div className="grid gap-4 md:grid-cols-2">
               <div className="min-w-0 space-y-2">
                 <InlineSelect
@@ -268,7 +275,11 @@ export function UrinalysisFormFields({
         </div>
 
         <div className="min-w-0 space-y-4">
-          <UrinalysisGroup title="Microscopic">
+          <UrinalysisGroup
+            title="Microscopic"
+            subtitle="Microscopic examination of urine sediment"
+            icon={Microscope}
+          >
             <div className="space-y-2">
               <LabFieldWithUnit
                 label="Red Blood Cells"
@@ -336,7 +347,11 @@ export function UrinalysisFormFields({
             </div>
           </UrinalysisGroup>
 
-          <UrinalysisGroup title="Crystals">
+          <UrinalysisGroup
+            title="Crystals"
+            subtitle="Crystalline elements found in urine"
+            icon={Gem}
+          >
             <div className="space-y-2">
               <LabSelectWithUnit
                 label="Uric Acid"
@@ -368,7 +383,11 @@ export function UrinalysisFormFields({
             </div>
           </UrinalysisGroup>
 
-          <UrinalysisGroup title="Cast">
+          <UrinalysisGroup
+            title="Cast"
+            subtitle="Casts found in urine sediment"
+            icon={Atom}
+          >
             <div className="space-y-2">
               <LabSelectWithUnit
                 label="Fine Granular"

@@ -17,7 +17,19 @@ import { MedicalPersonnelDialog } from "@/components/common/medical-personnel-di
 import { PdfPreviewDialog } from "@/components/common/pdf-preview-dialog";
 import { fetchPrintPdf } from "@/lib/print-request";
 import { cn } from "@/lib/utils";
-import { Loader2, Printer } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  FileText,
+  Loader2,
+  NotebookPen,
+  Pencil,
+  Plus,
+  Printer,
+  RefreshCw,
+  Save,
+  TestTube,
+} from "lucide-react";
 import { toast } from "sonner";
 import { UrinalysisFormFields } from "./UrinalysisFormFields";
 import { useRepeatUrinalysisForm } from "./use-repeat-urinalysis-form";
@@ -65,6 +77,7 @@ export function RepeatUrinalysisDialog({
 
   const [printing, setPrinting] = useState(false);
   const [previewBlob, setPreviewBlob] = useState<Blob | null>(null);
+  const [labInfoOpen, setLabInfoOpen] = useState(false);
 
   const handlePrint = async () => {
     setPrinting(true);
@@ -93,25 +106,32 @@ export function RepeatUrinalysisDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[90vh] w-[calc(100vw-2rem)] max-w-[960px] flex-col overflow-hidden p-0 [&>[data-slot=dialog-close-button]]:top-2.5 [&>[data-slot=dialog-close-button]]:text-white [&>[data-slot=dialog-close-button]]:opacity-90 [&>[data-slot=dialog-close-button]]:hover:opacity-100">
-          <div className="shrink-0 rounded-t-lg bg-gradient-to-r from-primary/90 to-primary/70 px-5 py-2">
-            <DialogHeader>
-              <DialogTitle className="text-base font-bold tracking-wide text-white">
-                Repeat Test - URINALYSIS
-              </DialogTitle>
-              <DialogDescription className="sr-only">
-                Manage urinalysis repeat test results for this laboratory report.
-              </DialogDescription>
+        <DialogContent className="flex max-h-[92vh] w-[calc(100vw-2rem)] max-w-[1100px] flex-col overflow-hidden p-0 [&>[data-slot=dialog-close-button]]:top-4 [&>[data-slot=dialog-close-button]]:text-foreground/60 [&>[data-slot=dialog-close-button]]:hover:text-foreground">
+          {/* Header: soft icon chip, title, and a one-line description of what
+              the dialog is for. */}
+          <div className="shrink-0 rounded-t-lg border-b border-border bg-card px-5 py-3.5">
+            <DialogHeader className="flex-row items-center gap-3 space-y-0">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <TestTube className="h-5 w-5" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <DialogTitle className="truncate text-lg font-semibold text-foreground">
+                  Repeat Test - Urinalysis
+                </DialogTitle>
+                <DialogDescription className="truncate text-xs">
+                  Encode the urinalysis results for the selected examination.
+                </DialogDescription>
+              </div>
             </DialogHeader>
           </div>
 
-          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-primary/10 bg-muted/30 px-5 py-2">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border bg-card px-5 py-3">
             <div className="flex items-center gap-2">
               <label
                 htmlFor="repeat-urinalysis-record"
-                className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-primary/70"
+                className="shrink-0 text-sm font-semibold text-foreground"
               >
-                Previous Exams:
+                Previous Exams
               </label>
               <select
                 id="repeat-urinalysis-record"
@@ -121,7 +141,7 @@ export function RepeatUrinalysisDialog({
                 }}
                 disabled={loadingExams}
                 className={cn(
-                  "h-8 min-w-[240px] cursor-pointer rounded-md border border-primary/20 bg-white px-2 text-xs shadow-sm focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/40 dark:bg-input/30 disabled:cursor-not-allowed",
+                  "h-10 min-w-[240px] cursor-pointer rounded-md border border-primary/20 bg-white px-2 text-xs shadow-sm focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/40 dark:bg-input/30 disabled:cursor-not-allowed",
                   loadingExams && "opacity-50"
                 )}
               >
@@ -140,45 +160,49 @@ export function RepeatUrinalysisDialog({
               </select>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            {/* Full-size actions, matching the patient registration dialog:
+                h-10 with a leading icon and a text label. */}
+            <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={handleNew}
                 disabled={saving}
-                className="cursor-pointer"
+                className="h-10 cursor-pointer px-5"
               >
+                <Plus aria-hidden="true" />
                 New
               </Button>
               {editing ? (
                 <Button
-                  size="sm"
                   onClick={handleSave}
                   disabled={saving}
-                  className="cursor-pointer"
+                  className="h-10 cursor-pointer px-5"
                 >
-                  {saving && <Loader2 className="animate-spin" />}
+                  {saving ? (
+                    <Loader2 className="animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Save aria-hidden="true" />
+                  )}
                   Save
                 </Button>
               ) : (
                 <Button
-                  size="sm"
                   onClick={handleEdit}
                   disabled={!selectedId}
-                  className="cursor-pointer"
+                  className="h-10 cursor-pointer px-5"
                 >
+                  <Pencil aria-hidden="true" />
                   Edit
                 </Button>
               )}
               <Button
                 variant="outline"
-                size="sm"
                 onClick={handlePrint}
                 disabled={!selectedId || editing || printing}
-                className="cursor-pointer"
+                className="h-10 cursor-pointer px-5"
               >
                 {printing ? (
-                  <Loader2 className="animate-spin" />
+                  <Loader2 className="animate-spin" aria-hidden="true" />
                 ) : (
                   <Printer aria-hidden="true" />
                 )}
@@ -186,31 +210,112 @@ export function RepeatUrinalysisDialog({
               </Button>
               <Button
                 variant="outline"
-                size="sm"
                 onClick={handleRefresh}
                 disabled={saving}
-                className="cursor-pointer"
+                className="h-10 cursor-pointer px-5"
               >
+                <RefreshCw aria-hidden="true" />
                 Refresh
               </Button>
             </div>
           </div>
 
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5">
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold uppercase tracking-wide text-primary/80">
-                Urinalysis
-              </h3>
+            {/* Examination-level fields, above the result groups. */}
+            <div className="flex flex-col gap-3 rounded-lg border border-primary/15 bg-muted/20 p-3 lg:flex-row lg:items-center">
+              <div className="flex shrink-0 items-center gap-2.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <CalendarDays className="h-4 w-4" aria-hidden />
+                </span>
+                <label
+                  htmlFor="repeat-urinalysis-result-date"
+                  className="text-sm font-semibold text-foreground"
+                >
+                  Result Date
+                </label>
+                <input
+                  id="repeat-urinalysis-result-date"
+                  type="date"
+                  value={data.result_date}
+                  onChange={(event) =>
+                    updateField("result_date", event.target.value)
+                  }
+                  readOnly={disabled}
+                  className={cn(
+                    "h-9 w-44 rounded-md border border-primary/20 bg-white px-2 text-sm shadow-sm focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30",
+                    disabled && "pointer-events-none bg-muted/30"
+                  )}
+                />
+              </div>
 
+              <div className="flex min-w-0 flex-1 items-center gap-2.5 lg:border-l lg:border-primary/15 lg:pl-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <NotebookPen className="h-4 w-4" aria-hidden />
+                </span>
+                <label
+                  htmlFor="repeat-urinalysis-remarks"
+                  className="shrink-0 text-sm font-semibold leading-tight text-foreground"
+                >
+                  Examination Notes
+                  <span className="block text-[11px] font-normal text-muted-foreground">
+                    (Optional)
+                  </span>
+                </label>
+                <input
+                  id="repeat-urinalysis-remarks"
+                  type="text"
+                  value={data.remarks}
+                  onChange={(event) => updateField("remarks", event.target.value)}
+                  readOnly={disabled}
+                  placeholder="Add notes about this examination..."
+                  className={cn(
+                    "h-9 min-w-0 flex-1 rounded-md border border-primary/20 bg-white px-2 text-sm shadow-sm focus:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/20 dark:bg-input/30",
+                    disabled && "pointer-events-none bg-muted/30"
+                  )}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
               <UrinalysisFormFields
                 data={data}
                 resultDate={data.result_date}
                 onResultDateChange={(value) => updateField("result_date", value)}
                 onFieldChange={(field, value) => updateField(field, value)}
                 disabled={disabled}
+                hideResultDate
               />
 
-              <div className="space-y-2 border-t border-primary/10 pt-3">
+              {/* Laboratory Information — collapsible, closed by default so the
+                  results stay the focus. */}
+              <section className="overflow-hidden rounded-lg border border-primary/15 bg-card shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setLabInfoOpen((value) => !value)}
+                  aria-expanded={labInfoOpen}
+                  className="flex w-full cursor-pointer items-center gap-2.5 border-b border-primary/10 bg-muted/20 px-3 py-2 text-left"
+                >
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <FileText className="h-4 w-4" aria-hidden />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-semibold leading-tight text-foreground">
+                      Laboratory Information
+                    </h4>
+                    <p className="text-[11px] leading-tight text-muted-foreground">
+                      Details of personnel and reference information
+                    </p>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-foreground/60 transition-transform",
+                      labInfoOpen && "rotate-180"
+                    )}
+                    aria-hidden
+                  />
+                </button>
+
+                <div className={cn("space-y-2 p-3", !labInfoOpen && "hidden")}>
                 <div className="flex items-center gap-2">
                   <label
                     htmlFor="repeat-urinalysis-laboratory-number"
@@ -325,25 +430,11 @@ export function RepeatUrinalysisDialog({
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <label
-                    htmlFor="repeat-urinalysis-remarks"
-                    className={cn(metadataLabelClassName, "w-28 text-right")}
-                  >
-                    Remarks:
-                  </label>
-                  <input
-                    id="repeat-urinalysis-remarks"
-                    type="text"
-                    value={data.remarks}
-                    onChange={(event) => updateField("remarks", event.target.value)}
-                    readOnly={disabled}
-                    className={cn(inputClassName, "min-w-0 flex-1")}
-                  />
                 </div>
-              </div>
+              </section>
             </div>
           </div>
+
         </DialogContent>
       </Dialog>
 

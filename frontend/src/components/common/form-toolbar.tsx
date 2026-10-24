@@ -106,6 +106,17 @@ export interface FormToolbarProps {
    */
   hideSearchInNewMode?: boolean;
 
+  /**
+   * Whether the form is still waiting for the user to pick a patient. In New
+   * mode this starts true and flips to false once a seafarer is selected.
+   *
+   * The search is how the user finds that patient, so it must stay visible
+   * while this is true. Once a patient is attached (`false`), the record is
+   * "owned" by that patient and the search is hidden — matching the behaviour
+   * in Edit mode, where an existing record already has its patient.
+   */
+  needsPatientSelection?: boolean;
+
   // Search props
   /** Callback fired on every search input change. */
   onSearch?: (keyword: string) => void;
@@ -142,6 +153,7 @@ export function FormToolbar({
   printMenu,
   saveLabel,
   hideSearchInNewMode = false,
+  needsPatientSelection = false,
   onSearch,
   searchResults = [],
   searchLoading = false,
@@ -149,11 +161,14 @@ export function FormToolbar({
 }: FormToolbarProps) {
   const resolvedSaveLabel = saveLabel ?? (isExistingRecord ? "Update" : "Save");
 
-  // Hide the search field when editing an existing record. In New mode the
-  // form is also "editing" but no existing record is loaded; by default the
-  // search stays visible there so the user can find/switch records. Pages that
-  // opt in via `hideSearchInNewMode` also hide it in New mode.
-  const hideSearch = editing && (isExistingRecord || hideSearchInNewMode);
+  // Hide the search field whenever the active form already has a patient. That
+  // is true when editing an existing record, and in New mode once a seafarer
+  // has been selected (`needsPatientSelection` flips to false). While New mode
+  // still needs a patient the search stays visible — it is how the patient is
+  // found. `hideSearchInNewMode` keeps forcing it hidden throughout New mode.
+  const patientSelected = !needsPatientSelection;
+  const hideSearch =
+    editing && (isExistingRecord || hideSearchInNewMode || patientSelected);
 
   const [searchValue, setSearchValue] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);

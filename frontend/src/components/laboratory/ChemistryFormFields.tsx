@@ -5,7 +5,9 @@
  */
 
 import { useId } from "react";
+import { FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LabGroupCard } from "./laboratory-field-helpers";
 import { ChemRow, ChemRowSimple } from "./chemistry-row-helpers";
 import type { ChemistryRepeatTest } from "./repeat-chemistry-types";
 
@@ -90,6 +92,11 @@ export interface ChemistryFormFieldsProps {
   ) => void;
   /** Makes all controls read-only. */
   disabled?: boolean;
+  /**
+   * Hides the built-in Result Date row for callers that render the date
+   * themselves (the repeat dialog puts it in its own header strip).
+   */
+  hideResultDate?: boolean;
 }
 
 const headerCellClassName =
@@ -106,6 +113,7 @@ export function ChemistryFormFields({
   onResultDateChange,
   onFieldChange,
   disabled,
+  hideResultDate,
 }: ChemistryFormFieldsProps) {
   const resultDateId = useId();
   const hba1cReferenceText = hba1cReference?.trim() || "4.0-6.0%";
@@ -121,7 +129,12 @@ export function ChemistryFormFields({
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-3">
+      <div
+        className={cn(
+          "mb-4 flex items-center gap-3",
+          hideResultDate && "hidden"
+        )}
+      >
         <label
           htmlFor={resultDateId}
           className="text-[11px] font-bold uppercase tracking-wide text-primary/70"
@@ -141,7 +154,13 @@ export function ChemistryFormFields({
         />
       </div>
 
-      <div className="overflow-x-auto rounded-md border border-primary/20">
+      <LabGroupCard
+        title="Clinical Chemistry and Serology"
+        subtitle="Blood chemistry, serology, and immunology results"
+        icon={FlaskConical}
+        bodyClassName="p-0"
+      >
+        <div className="overflow-x-auto">
         <table className="w-full min-w-[860px] table-fixed border-collapse text-xs">
           <caption className="sr-only">
             Clinical chemistry reference units and examination results
@@ -390,7 +409,8 @@ export function ChemistryFormFields({
             </tr>
           </tbody>
         </table>
-      </div>
+        </div>
+      </LabGroupCard>
     </>
   );
 }

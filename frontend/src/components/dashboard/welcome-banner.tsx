@@ -79,18 +79,18 @@ export function WelcomeBanner() {
         className="pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-card/20 via-card/55 to-card/85 md:block"
       />
 
-      <div className="relative flex flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:gap-6 md:pl-[19%]">
+      <div className="relative flex flex-col gap-4 px-5 py-12 md:flex-row md:items-center md:gap-6 md:pl-[19%]">
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-muted-foreground">Welcome back,</p>
-          <h1 className="truncate text-2xl font-semibold tracking-tight">
+          <p className="text-sm text-muted-foreground">Welcome back,</p>
+          <h1 className="truncate text-3xl font-semibold tracking-tight">
             {displayName}
           </h1>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             Here is what is happening at CenterPort today.
           </p>
         </div>
 
-        <p className="hidden shrink-0 flex-col items-center text-center text-xs font-semibold text-primary/85 italic lg:flex">
+        <p className="hidden shrink-0 flex-col items-center text-center text-sm font-semibold text-primary/85 italic lg:flex">
           <span>&ldquo;{MOTTO[0]}</span>
           {MOTTO.slice(1, -1).map((line) => (
             <span key={line}>{line}</span>
@@ -99,12 +99,12 @@ export function WelcomeBanner() {
         </p>
 
         <div className="flex shrink-0 items-center gap-2.5 md:border-l md:border-border/60 md:pl-5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-card/80 shadow-sm">
-            <CalendarDays className="h-4 w-4 text-primary" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-card/80 shadow-sm">
+            <CalendarDays className="h-5 w-5 text-primary" />
           </span>
           <span className="flex flex-col leading-tight">
-            <span className="text-xs font-semibold">{today ?? "\u00A0"}</span>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-sm font-semibold">{today ?? "\u00A0"}</span>
+            <span className="text-xs text-muted-foreground">
               Have a productive day
             </span>
           </span>

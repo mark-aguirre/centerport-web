@@ -1,6 +1,8 @@
 "use client";
 
-import PersonalInfoSection from "@/components/common/personal-info-section";
+import PersonalInfoSection, {
+  NotEditableBadge,
+} from "@/components/common/personal-info-section";
 import type { RowConfig } from "@/components/common/personal-info-section";
 import type { LandbaseSectionProps } from "./types";
 
@@ -64,6 +66,7 @@ export default function LandbasePersonalInfoSection({
       rows={LANDBASE_PERSONAL_ROWS}
       gridOverrides={LANDBASE_GRID_OVERRIDES}
       disabled={true}
+      headerAction={<NotEditableBadge />}
     />
   );
 }

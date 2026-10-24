@@ -4,8 +4,62 @@
  * Shared compact field controls for laboratory section layouts.
  */
 
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/**
+ * Titled card wrapping one group of laboratory fields.
+ *
+ * Icon chip, group name, and a one-line description of what the group covers,
+ * so a long result form stays scannable. Shared by the result sections and
+ * their repeat dialogs.
+ */
+export function LabGroupCard({
+  title,
+  subtitle,
+  icon: Icon,
+  className,
+  bodyClassName,
+  children,
+}: {
+  /** Group name. */
+  title: string;
+  /** One-line description of what the group covers. */
+  subtitle: string;
+  /** Leading icon shown in the chip. */
+  icon: LucideIcon;
+  /** Extra classes for the card element. */
+  className?: string;
+  /** Extra classes for the body wrapper, e.g. `"p-0"` for a full-bleed table. */
+  bodyClassName?: string;
+  /** The group's fields. */
+  children: ReactNode;
+}) {
+  return (
+    <fieldset
+      className={cn(
+        "min-w-0 overflow-hidden rounded-lg border border-primary/15 bg-card shadow-sm",
+        className
+      )}
+    >
+      <div className="flex items-center gap-2.5 border-b border-primary/10 bg-muted/20 px-3 py-2">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <Icon className="h-4 w-4" aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <h4 className="text-sm font-semibold leading-tight text-foreground">
+            {title}
+          </h4>
+          <p className="text-[11px] leading-tight text-muted-foreground">
+            {subtitle}
+          </p>
+        </div>
+      </div>
+      <div className={cn("p-3", bodyClassName)}>{children}</div>
+    </fieldset>
+  );
+}
 
 const fieldRowClassName = "flex min-w-0 items-center gap-2";
 const fieldLabelClassName =

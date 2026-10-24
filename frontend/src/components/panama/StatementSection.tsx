@@ -57,7 +57,7 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
         !last && "border-b border-primary/30"
       )}
     >
-      <div className="border-primary/30 px-3 py-2 text-sm font-bold text-foreground sm:border-r">
+      <div className="border-primary/30 px-3 py-2 text-sm text-foreground sm:border-r">
         {label}
       </div>
       <div className="flex items-center px-3 py-2">{children}</div>
@@ -80,7 +80,7 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
         !last && "border-b border-primary/30"
       )}
     >
-      <div className="border-primary/30 px-3 py-2 text-sm font-bold text-foreground sm:border-r">
+      <div className="border-primary/30 px-3 py-2 text-sm text-foreground sm:border-r">
         {label}
       </div>
       <div className="grid grid-cols-3 items-end gap-2 px-3 py-2">
@@ -158,7 +158,7 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
       />
 
       {/* Intro text */}
-      <p className="mb-3 text-sm font-bold text-foreground">
+      <p className="mb-3 text-sm text-foreground">
         I hereby certify that the personal declaration above is a true statement to the best of my knowledge.
       </p>
 
@@ -184,7 +184,7 @@ export default function StatementSection({ data, onChange, disabled }: PanamaSec
 
       {/* Authorization line with the inline "Dr." release field, followed by
           the "(The approved medical practitioner)" note on the same sentence. */}
-      <p className="mt-4 text-sm font-bold leading-7 text-foreground">
+      <p className="mt-4 text-sm leading-7 text-foreground">
         I hereby authorize the release of all my previous medical records from
         any health professionals, health, institutions, and public authorities
         to Dr.

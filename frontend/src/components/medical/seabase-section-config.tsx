@@ -12,6 +12,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import PersonalInfoSection, {
+  NotEditableBadge,
   STANDARD_PERSONAL_INFO_ROWS,
 } from "@/components/common/personal-info-section";
 
@@ -72,6 +73,7 @@ function PersonalInfoGroup({ data, onChange }: MedicalSectionProps) {
         onChange={onChange}
         rows={STANDARD_PERSONAL_INFO_ROWS}
         disabled={true}
+        headerAction={<NotEditableBadge />}
       />
     </div>
   );

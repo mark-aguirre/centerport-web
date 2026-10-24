@@ -5,11 +5,13 @@
  */
 
 import { useId } from "react";
+import { Droplet, Microscope } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   InlineFieldWithUnit,
   InlineSelect,
   InlineSelectWithUnit,
+  LabGroupCard,
 } from "./laboratory-field-helpers";
 import type { FecalysisRepeatTest } from "./repeat-fecalysis-types";
 
@@ -37,6 +39,11 @@ export interface FecalysisFormFieldsProps {
   onResultDateChange: (value: string) => void;
   /** Called when a shared Fecalysis field changes. */
   onFieldChange: (field: FecalysisFieldName, value: string) => void;
+  /**
+   * Hides the built-in Result Date row for callers that render the date
+   * themselves (the repeat dialog puts it in its own header strip).
+   */
+  hideResultDate?: boolean;
   /** Makes all controls read-only. */
   disabled?: boolean;
 }
@@ -74,12 +81,18 @@ export function FecalysisFormFields({
   onResultDateChange,
   onFieldChange,
   disabled,
+  hideResultDate,
 }: FecalysisFormFieldsProps) {
   const resultDateId = useId();
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-3">
+      <div
+        className={cn(
+          "mb-4 flex items-center gap-3",
+          hideResultDate && "hidden"
+        )}
+      >
         <label
           htmlFor={resultDateId}
           className="text-[11px] font-bold uppercase tracking-wide text-primary/70"
@@ -99,26 +112,38 @@ export function FecalysisFormFields({
         />
       </div>
 
-      <div className="max-w-2xl space-y-2">
-        <InlineSelect
-          label="Color"
-          labelWidth="w-36"
-          value={data.fecal_color}
-          onChange={(value) => onFieldChange("fecal_color", value)}
-          options={COLOR_OPTIONS}
-          disabled={disabled}
-        />
-        <InlineSelect
-          label="Consistency"
-          labelWidth="w-36"
-          value={data.fecal_consistency}
-          onChange={(value) => onFieldChange("fecal_consistency", value)}
-          options={CONSISTENCY_OPTIONS}
-          disabled={disabled}
-        />
-      </div>
+      <LabGroupCard
+        title="Macroscopic"
+        subtitle="Physical characteristics of the stool sample"
+        icon={Droplet}
+      >
+        <div className="max-w-2xl space-y-2">
+          <InlineSelect
+            label="Color"
+            labelWidth="w-36"
+            value={data.fecal_color}
+            onChange={(value) => onFieldChange("fecal_color", value)}
+            options={COLOR_OPTIONS}
+            disabled={disabled}
+          />
+          <InlineSelect
+            label="Consistency"
+            labelWidth="w-36"
+            value={data.fecal_consistency}
+            onChange={(value) => onFieldChange("fecal_consistency", value)}
+            options={CONSISTENCY_OPTIONS}
+            disabled={disabled}
+          />
+        </div>
+      </LabGroupCard>
 
-      <div className="mt-3 grid gap-x-10 gap-y-2 lg:grid-cols-2">
+      <LabGroupCard
+        title="Microscopic"
+        subtitle="Microscopic examination of the stool sample"
+        icon={Microscope}
+        className="mt-3"
+      >
+      <div className="grid gap-x-10 gap-y-2 lg:grid-cols-2">
         <div className="min-w-0 space-y-2">
           <InlineSelectWithUnit
             label="Red Blood Cells"
@@ -177,6 +202,7 @@ export function FecalysisFormFields({
           />
         </div>
       </div>
+      </LabGroupCard>
     </>
   );
 }

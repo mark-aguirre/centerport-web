@@ -5,8 +5,10 @@
  */
 
 import { useId } from "react";
+import { Droplet, PieChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLaboratoryReferenceDefaults } from "@/hooks/use-laboratory-reference-defaults";
+import { LabGroupCard } from "./laboratory-field-helpers";
 import {
   DiffNormalValuesHeader,
   DiffRow,
@@ -78,6 +80,11 @@ export interface HematologyFormFieldsProps {
   onFieldChange: (field: HematologyFieldName, value: string) => void;
   /** Makes all controls read-only. */
   disabled?: boolean;
+  /**
+   * Hides the built-in Result Date row for callers that render the date
+   * themselves (the repeat dialog puts it in its own header strip).
+   */
+  hideResultDate?: boolean;
 }
 
 function formatReferenceRange(min: string, max: string, unit: string): string {
@@ -127,6 +134,7 @@ export function HematologyFormFields({
   onResultDateChange,
   onFieldChange,
   disabled,
+  hideResultDate,
 }: HematologyFormFieldsProps) {
   const resultDateId = useId();
 
@@ -138,7 +146,12 @@ export function HematologyFormFields({
 
   return (
     <>
-      <div className="mb-5 flex items-center gap-3">
+      <div
+        className={cn(
+          "mb-5 flex items-center gap-3",
+          hideResultDate && "hidden"
+        )}
+      >
         <label
           htmlFor={resultDateId}
           className="text-[11px] font-bold uppercase tracking-wide text-primary/70"
@@ -158,8 +171,13 @@ export function HematologyFormFields({
         />
       </div>
 
-      <div className="grid items-start gap-8 xl:grid-cols-3">
-        <section aria-label="Complete blood count" className="min-w-0 space-y-1.5">
+      <div className="grid items-start gap-4 xl:grid-cols-3">
+        <LabGroupCard
+          title="Complete Blood Count"
+          subtitle="Cell counts, hemoglobin, and blood type"
+          icon={Droplet}
+        >
+          <div className="min-w-0 space-y-1.5">
           <HemaNormalValuesHeader />
           <HemaRow
             label="Hemoglobin:"
@@ -240,19 +258,15 @@ export function HematologyFormFields({
             )}
             disabled={disabled}
           />
-        </section>
+          </div>
+        </LabGroupCard>
 
-        <section
-          aria-labelledby={`${resultDateId}-differential-count`}
-          className="min-w-0 xl:col-span-2"
+        <LabGroupCard
+          title="Differential Count"
+          subtitle="Distribution of the white blood cell types"
+          icon={PieChart}
+          className="xl:col-span-2"
         >
-          <h3
-            id={`${resultDateId}-differential-count`}
-            className="mb-2 text-center text-sm font-bold uppercase tracking-widest text-foreground"
-          >
-            Differential Count:
-          </h3>
-
           <div className="grid items-start gap-6 md:grid-cols-2">
             <div className="min-w-0 space-y-1.5">
               <DiffNormalValuesHeader />
@@ -333,7 +347,7 @@ export function HematologyFormFields({
               />
             </div>
           </div>
-        </section>
+        </LabGroupCard>
       </div>
     </>
   );

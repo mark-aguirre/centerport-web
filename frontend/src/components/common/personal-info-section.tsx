@@ -4,7 +4,7 @@ import { Fragment } from "react";
 import { SectionHeader } from "@/components/common/section-header";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User } from "lucide-react";
+import { Lock, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -101,6 +101,27 @@ export interface PersonalInfoSectionProps<T extends object = Record<string, stri
   showNameLabel?: boolean;
   /** When true, all fields in this section are read-only (view mode) */
   disabled?: boolean;
+  /**
+   * Optional slot rendered at the right end of the header band, e.g.
+   * {@link NotEditableBadge} on modules where personal info is read-only.
+   */
+  headerAction?: React.ReactNode;
+}
+
+/**
+ * Header badge marking a section as read-only.
+ *
+ * Used by the module forms (Sea-Base, Land-Base) whose personal information
+ * is sourced from the patient record: it is shown there but can only be
+ * changed on the patient's profile page.
+ */
+export function NotEditableBadge() {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+      <Lock className="h-3 w-3" aria-hidden />
+      This section is not editable
+    </span>
+  );
 }
 
 /**
@@ -116,6 +137,7 @@ export function PersonalInfoSection<T extends object = Record<string, string>>({
   rows,
   showNameLabel = true,
   disabled,
+  headerAction,
 }: PersonalInfoSectionProps<T>) {
   const update = (field: PersonalInfoField, value: string) =>
     onChange({ ...data, [field]: value } as T);
@@ -168,6 +190,7 @@ export function PersonalInfoSection<T extends object = Record<string, string>>({
           title="Personal Information"
           icon={User}
           subtitle={subtitle}
+          action={headerAction}
           banner
           bannerInset="p-3"
         />

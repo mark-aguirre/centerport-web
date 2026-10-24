@@ -240,6 +240,7 @@ function FormPageContent<T>({
         onNew={onNew}
         onPrint={handlePrint}
         printMenu={printMenu}
+        needsPatientSelection={needsPatientSelection}
         onSearch={handleSearch}
         searchResults={searchResults}
         searchLoading={searchLoading}
