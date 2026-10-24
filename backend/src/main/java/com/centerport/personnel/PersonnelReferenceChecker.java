@@ -59,7 +59,13 @@ public class PersonnelReferenceChecker {
                     List.of()),
             new ReferenceSource("psychology_evaluations",
                     List.of("psychometrician", "psychologist"),
-                    List.of("psychometrician_license_no", "psychologist_license_no"))
+                    List.of("psychometrician_license_no", "psychologist_license_no")),
+            new ReferenceSource("ultrasound_reports",
+                    List.of("xray_tech", "radiologist"),
+                    List.of("xray_tech_license_no", "radiologist_license_no")),
+            new ReferenceSource("xray_reports",
+                    List.of("xray_tech", "radiologist"),
+                    List.of("xray_tech_license_no", "radiologist_license_no"))
     );
 
     /**

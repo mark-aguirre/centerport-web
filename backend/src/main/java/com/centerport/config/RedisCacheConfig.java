@@ -61,6 +61,8 @@ public class RedisCacheConfig implements CachingConfigurer {
     public static final String LAB_REPORT_CACHE = "labReport";
     public static final String IMMUNOLOGY_REPORT_CACHE = "immunologyReport";
     public static final String HIV_REPORT_CACHE = "hivReport";
+    public static final String ULTRASOUND_REPORT_CACHE = "ultrasoundReport";
+    public static final String XRAY_REPORT_CACHE = "xrayReport";
     public static final String MEDICAL_EXAM_CACHE = "medicalExam";
     public static final String LANDBASE_PEME_CACHE = "landbasePeme";
     public static final String MLC_RECORD_CACHE = "mlcRecord";
@@ -85,6 +87,7 @@ public class RedisCacheConfig implements CachingConfigurer {
      */
     private static final String[] DOMAIN_CACHES = {
             LAB_REPORT_CACHE, IMMUNOLOGY_REPORT_CACHE, HIV_REPORT_CACHE, MEDICAL_EXAM_CACHE, LANDBASE_PEME_CACHE,
+            ULTRASOUND_REPORT_CACHE, XRAY_REPORT_CACHE,
             MLC_RECORD_CACHE, PANAMA_CERT_CACHE, PSYCH_EVAL_CACHE,
             SEAFARER_PROFILE_CACHE, MEDICAL_PERSONNEL_CACHE, EMPLOYER_CACHE, PATIENT_VISIT_CACHE,
             ITEM_CACHE,

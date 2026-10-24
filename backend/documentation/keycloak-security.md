@@ -129,11 +129,15 @@ URL rules in `SecurityConfig` (matched to real controller paths):
 
 | Endpoint(s)                       | Roles                                                 |
 |-----------------------------------|-------------------------------------------------------|
-| `/api/dashboard/**`               | ADMIN, INFORMATION, PSYCHOLOGY, LABORATORY, RELEASING |
-| `/api/visits/**`                  | ADMIN, INFORMATION                                    |
-| `/api/profiles/**`                | ADMIN, INFORMATION, RELEASING                         |
+| `/api/dashboard/**`               | ADMIN, INFORMATION, PSYCHOLOGY, LABORATORY, RELEASING, RADIOLOGY |
+| `/api/visits/**`                  | ADMIN, INFORMATION, RADIOLOGY                         |
+| `/api/profiles/**`                | ADMIN, INFORMATION, RELEASING, LABORATORY, RADIOLOGY  |
 | `/api/psychology-evaluations/**`  | ADMIN, PSYCHOLOGY                                     |
 | `/api/laboratory-reports/**`      | ADMIN, LABORATORY                                    |
+| `/api/immunology-reports/**`      | ADMIN, LABORATORY                                    |
+| `/api/hiv-reports/**`             | ADMIN, LABORATORY                                    |
+| `/api/ultrasound-reports/**`      | ADMIN, RADIOLOGY                                      |
+| `/api/xray-reports/**`            | ADMIN, RADIOLOGY                                      |
 | `/api/medical-exams/**`           | ADMIN, RELEASING                                     |
 | `/api/mlc-records/**`             | ADMIN, RELEASING                                     |
 | `/api/landbase-pemes/**`          | ADMIN, RELEASING                                     |
@@ -157,7 +161,12 @@ the backend remains authoritative (403 on insufficient role).
 
 ### Realm roles
 Create in `centerport-realm` → Realm roles:
-`ADMIN`, `INFORMATION`, `PSYCHOLOGY`, `LABORATORY`, `RELEASING`, `ACCOUNTING`.
+`ADMIN`, `INFORMATION`, `PSYCHOLOGY`, `LABORATORY`, `RELEASING`, `ACCOUNTING`,
+`RADIOLOGY`.
+
+`RADIOLOGY` covers the Ultrasound and X-Ray result pages plus the patient
+context those pages need (Dashboard, Visit, Patient/Profile). It is separate
+from `LABORATORY`, which does not reach the radiology endpoints.
 
 ### Client `centerport-web` (confidential)
 - **Client authentication: ON** (a secret is issued — put it in the backend

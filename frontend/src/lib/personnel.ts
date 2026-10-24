@@ -18,6 +18,8 @@ export const ROLE_LABELS: Record<PersonnelRoleCode, string> = {
   MEDICAL_DIRECTOR: "Medical Director",
   PSYCHOMETRICIAN: "Psychometrician",
   PSYCHOLOGIST: "Psychologist",
+  XRAY_TECH: "X-Ray Technologist",
+  RADIOLOGIST: "Radiologist",
 };
 
 /** Human-readable label for each module code. */
@@ -25,6 +27,8 @@ export const MODULE_LABELS: Record<PersonnelModuleCode, string> = {
   LABORATORY: "Laboratory",
   IMMUNOLOGY: "Immunology",
   HIV: "HIV",
+  ULTRASOUND: "Ultrasound",
+  XRAY: "X-Ray",
   SEABASE: "Seabase",
   MLC: "MLC",
   LANDBASE: "Landbase",
@@ -40,6 +44,8 @@ export const ALL_ROLES: PersonnelRoleCode[] = [
   "MEDICAL_DIRECTOR",
   "PSYCHOMETRICIAN",
   "PSYCHOLOGIST",
+  "XRAY_TECH",
+  "RADIOLOGIST",
 ];
 
 /** All module codes, in display order. */
@@ -47,6 +53,8 @@ export const ALL_MODULES: PersonnelModuleCode[] = [
   "LABORATORY",
   "IMMUNOLOGY",
   "HIV",
+  "ULTRASOUND",
+  "XRAY",
   "SEABASE",
   "MLC",
   "LANDBASE",
@@ -64,6 +72,8 @@ export const MODULE_ROLES: Record<PersonnelModuleCode, PersonnelRoleCode[]> = {
   LABORATORY: ["MED_TECH", "PATHOLOGIST"],
   IMMUNOLOGY: ["MED_TECH", "PATHOLOGIST"],
   HIV: ["MED_TECH", "PATHOLOGIST", "AUTHORIZED_PHYSICIAN"],
+  ULTRASOUND: ["XRAY_TECH", "RADIOLOGIST"],
+  XRAY: ["XRAY_TECH", "RADIOLOGIST"],
   SEABASE: ["AUTHORIZED_PHYSICIAN", "MEDICAL_DIRECTOR"],
   MLC: ["AUTHORIZED_PHYSICIAN", "MEDICAL_DIRECTOR"],
   LANDBASE: ["AUTHORIZED_PHYSICIAN", "MEDICAL_DIRECTOR"],

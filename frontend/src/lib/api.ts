@@ -12,6 +12,8 @@ import type { LandbasePeme } from "@/components/landbase/types";
 import type { LaboratoryReport } from "@/components/laboratory/types";
 import type { ImmunologyReport } from "@/components/immunology/types";
 import type { HivReport } from "@/components/hiv/types";
+import type { UltrasoundReport } from "@/components/ultrasound/types";
+import type { XrayReport } from "@/components/xray/types";
 import type { MedicalExam } from "@/components/medical/types";
 import type { MlcRecord } from "@/components/mlc/types";
 import type { PanamaCertificate } from "@/components/panama/types";
@@ -366,7 +368,9 @@ export type PersonnelRoleCode =
   | "AUTHORIZED_PHYSICIAN"
   | "MEDICAL_DIRECTOR"
   | "PSYCHOMETRICIAN"
-  | "PSYCHOLOGIST";
+  | "PSYCHOLOGIST"
+  | "XRAY_TECH"
+  | "RADIOLOGIST";
 
 /** Module/facility codes. Mirror the backend {@code PersonnelModule} enum. */
 export type PersonnelModuleCode =
@@ -377,7 +381,9 @@ export type PersonnelModuleCode =
   | "PSYCHOLOGY"
   | "IMMUNOLOGY"
   | "PANAMA"
-  | "HIV";
+  | "HIV"
+  | "ULTRASOUND"
+  | "XRAY";
 
 /**
  * A configured default-signatory assignment (module + role -> personnel).
@@ -809,6 +815,124 @@ export const api = {
       async listByProfile(profileId: string): Promise<HivReport[]> {
         return httpClient.get<HivReport[]>(
           `/api/hiv-reports/by-profile/${profileId}`
+        );
+      },
+    },
+
+    UltrasoundReport: {
+      /**
+       * Filter ultrasound reports. When `id` is provided, fetches a single record by UUID.
+       * Otherwise returns all records (first page, up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<UltrasoundReport[]> {
+        return fetchFiltered<UltrasoundReport>("/api/ultrasound-reports", filters);
+      },
+
+      /**
+       * List ultrasound reports with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-created_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<UltrasoundReport[]> {
+        return fetchPagedList<UltrasoundReport>("/api/ultrasound-reports", orderBy, limit, {
+          report_id: "reportId",
+        });
+      },
+
+      /** Create a new ultrasound report. Returns the persisted record with server-generated fields. */
+      async create(data: UltrasoundReport): Promise<UltrasoundReport> {
+        return httpClient.post<UltrasoundReport>("/api/ultrasound-reports", data);
+      },
+
+      /** Update an existing ultrasound report by UUID. Returns the updated record. */
+      async update(
+        id: string,
+        data: Partial<UltrasoundReport>
+      ): Promise<UltrasoundReport> {
+        return httpClient.put<UltrasoundReport>(`/api/ultrasound-reports/${id}`, data);
+      },
+
+      /**
+       * Search ultrasound reports by keyword (matches patient name or report ID).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       * @returns matching records sorted by most recently updated first
+       */
+      async search(keyword: string, limit: number = 10): Promise<UltrasoundReport[]> {
+        return fetchSearchResults<UltrasoundReport>("/api/ultrasound-reports", keyword, limit);
+      },
+
+      /**
+       * Fetch all ultrasound reports linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of ultrasound reports for that profile
+       */
+      async listByProfile(profileId: string): Promise<UltrasoundReport[]> {
+        return httpClient.get<UltrasoundReport[]>(
+          `/api/ultrasound-reports/by-profile/${profileId}`
+        );
+      },
+    },
+
+    XrayReport: {
+      /**
+       * Filter x-ray reports. When `id` is provided, fetches a single record by UUID.
+       * Otherwise returns all records (first page, up to 100).
+       */
+      async filter(filters: { id?: string }): Promise<XrayReport[]> {
+        return fetchFiltered<XrayReport>("/api/xray-reports", filters);
+      },
+
+      /**
+       * List x-ray reports with ordering and limit.
+       *
+       * @param orderBy  sort field prefixed with `-` for DESC (e.g. "-created_date")
+       * @param limit    max number of results
+       */
+      async list(orderBy: string, limit: number): Promise<XrayReport[]> {
+        return fetchPagedList<XrayReport>("/api/xray-reports", orderBy, limit, {
+          report_id: "reportId",
+        });
+      },
+
+      /** Create a new x-ray report. Returns the persisted record with server-generated fields. */
+      async create(data: XrayReport): Promise<XrayReport> {
+        return httpClient.post<XrayReport>("/api/xray-reports", data);
+      },
+
+      /** Update an existing x-ray report by UUID. Returns the updated record. */
+      async update(
+        id: string,
+        data: Partial<XrayReport>
+      ): Promise<XrayReport> {
+        return httpClient.put<XrayReport>(`/api/xray-reports/${id}`, data);
+      },
+
+      /**
+       * Search x-ray reports by keyword (matches patient name or report ID).
+       *
+       * @param keyword  the search term (case-insensitive partial match)
+       * @param limit    max results to return (default: 10)
+       * @returns matching records sorted by most recently updated first
+       */
+      async search(keyword: string, limit: number = 10): Promise<XrayReport[]> {
+        return fetchSearchResults<XrayReport>("/api/xray-reports", keyword, limit);
+      },
+
+      /**
+       * Fetch all x-ray reports linked to a specific seafarer profile.
+       * Returns records sorted by creation date descending (most recent first).
+       *
+       * @param profileId  the seafarer profile UUID
+       * @returns list of x-ray reports for that profile
+       */
+      async listByProfile(profileId: string): Promise<XrayReport[]> {
+        return httpClient.get<XrayReport[]>(
+          `/api/xray-reports/by-profile/${profileId}`
         );
       },
     },

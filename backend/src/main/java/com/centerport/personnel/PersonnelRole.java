@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
  *   <li>Laboratory — {@link #MED_TECH}, {@link #PATHOLOGIST}</li>
  *   <li>Seabase / MLC / Landbase — {@link #AUTHORIZED_PHYSICIAN}, {@link #MEDICAL_DIRECTOR}</li>
  *   <li>Psychology — {@link #PSYCHOMETRICIAN}, {@link #PSYCHOLOGIST}</li>
+ *   <li>Ultrasound / X-Ray — {@link #XRAY_TECH}, {@link #RADIOLOGIST}</li>
  * </ul>
  */
 public enum PersonnelRole {
@@ -25,7 +26,9 @@ public enum PersonnelRole {
     AUTHORIZED_PHYSICIAN("AUTHORIZED_PHYSICIAN", "Authorized Physician"),
     MEDICAL_DIRECTOR("MEDICAL_DIRECTOR", "Medical Director"),
     PSYCHOMETRICIAN("PSYCHOMETRICIAN", "Psychometrician"),
-    PSYCHOLOGIST("PSYCHOLOGIST", "Psychologist");
+    PSYCHOLOGIST("PSYCHOLOGIST", "Psychologist"),
+    XRAY_TECH("XRAY_TECH", "X-Ray Technologist"),
+    RADIOLOGIST("RADIOLOGIST", "Radiologist");
 
     private final String code;
     private final String label;

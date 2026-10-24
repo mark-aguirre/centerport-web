@@ -25,4 +25,5 @@ public final class Roles {
     public static final String LABORATORY = "LABORATORY";
     public static final String RELEASING = "RELEASING";
     public static final String ACCOUNTING = "ACCOUNTING";
+    public static final String RADIOLOGY = "RADIOLOGY";
 }

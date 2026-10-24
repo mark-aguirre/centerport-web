@@ -24,7 +24,9 @@ export type PersonnelRoleCode =
   | "AUTHORIZED_PHYSICIAN"
   | "MEDICAL_DIRECTOR"
   | "PSYCHOMETRICIAN"
-  | "PSYCHOLOGIST";
+  | "PSYCHOLOGIST"
+  | "XRAY_TECH"
+  | "RADIOLOGIST";
 
 /** Human-readable labels for each personnel role code. */
 const ROLE_LABELS: Record<PersonnelRoleCode, string> = {
@@ -34,6 +36,8 @@ const ROLE_LABELS: Record<PersonnelRoleCode, string> = {
   MEDICAL_DIRECTOR: "Medical Director",
   PSYCHOMETRICIAN: "Psychometrician",
   PSYCHOLOGIST: "Psychologist",
+  XRAY_TECH: "X-Ray Technologist",
+  RADIOLOGIST: "Radiologist",
 };
 
 /** Returns the display label for a role code, falling back to the raw value. */

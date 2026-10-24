@@ -23,6 +23,8 @@ import java.util.Set;
  *   <tr><td>Immunology</td><td>Medical Technologist, Pathologist</td></tr>
  *   <tr><td>Panama</td><td>Authorized Physician, Medical Director</td></tr>
  *   <tr><td>HIV</td><td>Medical Technologist, Pathologist, Authorized Physician</td></tr>
+ *   <tr><td>Ultrasound</td><td>X-Ray Technologist, Radiologist</td></tr>
+ *   <tr><td>X-Ray</td><td>X-Ray Technologist, Radiologist</td></tr>
  * </table>
  *
  * <p>Serialized as stable upper-snake codes ({@code "LABORATORY"}, ...).
@@ -43,7 +45,11 @@ public enum PersonnelModule {
     PANAMA("PANAMA", "Panama",
             List.of(PersonnelRole.AUTHORIZED_PHYSICIAN, PersonnelRole.MEDICAL_DIRECTOR)),
     HIV("HIV", "HIV",
-            List.of(PersonnelRole.MED_TECH, PersonnelRole.PATHOLOGIST, PersonnelRole.AUTHORIZED_PHYSICIAN));
+            List.of(PersonnelRole.MED_TECH, PersonnelRole.PATHOLOGIST, PersonnelRole.AUTHORIZED_PHYSICIAN)),
+    ULTRASOUND("ULTRASOUND", "Ultrasound",
+            List.of(PersonnelRole.XRAY_TECH, PersonnelRole.RADIOLOGIST)),
+    XRAY("XRAY", "X-Ray",
+            List.of(PersonnelRole.XRAY_TECH, PersonnelRole.RADIOLOGIST));
 
     private final String code;
     private final String label;

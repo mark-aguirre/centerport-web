@@ -12,6 +12,8 @@ import {
   TestTube,
   ShieldPlus,
   SlidersHorizontal,
+  Waves,
+  ScanLine,
   type LucideIcon,
 } from "lucide-react";
 
@@ -152,6 +154,20 @@ export const navigation: NavigationItem[] = [
     subtitle: "Human Immunodeficiency Virus (HIV) Screening",
     href: "/hiv",
     icon: ShieldPlus,
+    group: "Medical Examination",
+  },
+  {
+    title: "Ultrasound",
+    subtitle: "Ultrasound Result — Radiology",
+    href: "/ultrasound",
+    icon: Waves,
+    group: "Medical Examination",
+  },
+  {
+    title: "X-Ray",
+    subtitle: "X-Ray Result — Radiology",
+    href: "/xray",
+    icon: ScanLine,
     group: "Medical Examination",
   },
   {

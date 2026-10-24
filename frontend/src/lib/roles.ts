@@ -15,7 +15,8 @@ export type Role =
   | "PSYCHOLOGY"
   | "LABORATORY"
   | "RELEASING"
-  | "ACCOUNTING";
+  | "ACCOUNTING"
+  | "RADIOLOGY";
 
 /**
  * Maps a top-level route (by its `href` in navigation.ts) to the roles that may
@@ -23,14 +24,17 @@ export type Role =
  * {@link canAccessRoute}, so it is omitted here.
  */
 const ROUTE_ROLES: Record<string, Role[]> = {
-  "/dashboard": ["INFORMATION", "PSYCHOLOGY", "LABORATORY", "RELEASING"],
-  "/visit": ["INFORMATION"],
-  "/profile": ["INFORMATION", "RELEASING", "LABORATORY"],
+  "/dashboard": ["INFORMATION", "PSYCHOLOGY", "LABORATORY", "RELEASING", "RADIOLOGY"],
+  "/visit": ["INFORMATION", "RADIOLOGY"],
+  "/profile": ["INFORMATION", "RELEASING", "LABORATORY", "RADIOLOGY"],
   "/seabase": ["RELEASING"],
   "/laboratory": ["LABORATORY"],
   "/immunology": ["LABORATORY"],
   "/hiv": ["LABORATORY"],
   "/default-values": ["LABORATORY"],
+  // Radiology section: owned by RADIOLOGY, not LABORATORY.
+  "/ultrasound": ["RADIOLOGY"],
+  "/xray": ["RADIOLOGY"],
   "/mlc": ["RELEASING"],
   "/panama": ["RELEASING"],
   "/landbase": ["RELEASING"],

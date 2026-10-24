@@ -102,12 +102,12 @@ public class SecurityConfig {
                         // --- Module access rules (matched to real endpoints) ---
                         .requestMatchers("/api/dashboard/**").hasAnyRole(
                                 Roles.ADMIN, Roles.INFORMATION, Roles.PSYCHOLOGY,
-                                Roles.LABORATORY, Roles.RELEASING)
+                                Roles.LABORATORY, Roles.RELEASING, Roles.RADIOLOGY)
                         .requestMatchers("/api/visits/**").hasAnyRole(
-                                Roles.ADMIN, Roles.INFORMATION)
+                                Roles.ADMIN, Roles.INFORMATION, Roles.RADIOLOGY)
                         .requestMatchers("/api/profiles/**").hasAnyRole(
                                 Roles.ADMIN, Roles.INFORMATION, Roles.RELEASING,
-                                Roles.LABORATORY)
+                                Roles.LABORATORY, Roles.RADIOLOGY)
                         .requestMatchers("/api/psychology-evaluations/**").hasAnyRole(
                                 Roles.ADMIN, Roles.PSYCHOLOGY)
                         .requestMatchers("/api/laboratory-reports/**").hasAnyRole(
@@ -116,6 +116,12 @@ public class SecurityConfig {
                                 Roles.ADMIN, Roles.LABORATORY)
                         .requestMatchers("/api/hiv-reports/**").hasAnyRole(
                                 Roles.ADMIN, Roles.LABORATORY)
+                        // --- Radiology: the Ultrasound and X-Ray result pages are
+                        //     owned by the Radiology section, not the Laboratory. ---
+                        .requestMatchers("/api/ultrasound-reports/**").hasAnyRole(
+                                Roles.ADMIN, Roles.RADIOLOGY)
+                        .requestMatchers("/api/xray-reports/**").hasAnyRole(
+                                Roles.ADMIN, Roles.RADIOLOGY)
                         .requestMatchers("/api/default-values/**").hasAnyRole(
                                 Roles.ADMIN, Roles.LABORATORY)
                         .requestMatchers("/api/clinical-chemistry/**").hasAnyRole(
