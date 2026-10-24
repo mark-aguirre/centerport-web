@@ -37,21 +37,30 @@ repeat runs.
 
 ## Prerequisites
 
-Python 3.10+ and `psycopg2`. A virtualenv already exists one level up and is
-shared with the patient migration:
+Python 3.10+ and `psycopg2`. The virtualenv lives in **`backend\migration\.venv`**
+— one level above this folder — and is shared with the patient migration. It
+already exists; recreate it only if it is missing:
 
 ```powershell
 cd backend\migration
-python -m venv .venv                     # only if it does not exist yet
+python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r results-migration\requirements.txt
 ```
 
-## Configure the connection
+## Run
 
-Settings come from environment variables. Only `PG_PASSWORD` is mandatory —
-the script refuses to run without it rather than guessing.
+Run everything from **`backend\migration`**, not from this folder. That keeps
+the venv path a simple `.\.venv` and matches where the sibling
+`patient-migration` scripts are driven from. The loader resolves the CSVs
+relative to its own file, so the working directory does not affect what it
+reads.
+
+Set the connection first. Only `PG_PASSWORD` is mandatory; the script exits
+rather than guessing a password. The rest default to the values below.
 
 ```powershell
+cd backend\migration
+
 $env:PG_HOST = "192.168.100.46"
 $env:PG_PORT = "5432"
 $env:PG_DB   = "centerport"
@@ -59,22 +68,26 @@ $env:PG_USER = "postgres"
 $env:PG_PASSWORD = "..."
 ```
 
-## Run
+Then:
 
 ```powershell
-cd backend\migration\results-migration
-
 # 1. Dry run everything and read the report.
-..\.venv\Scripts\python.exe migrate_results.py
+.\.venv\Scripts\python.exe results-migration\migrate_results.py
 
 # 2. Dry run one module, with the first prepared row printed in full.
-..\.venv\Scripts\python.exe migrate_results.py --module panama --show-sample
+.\.venv\Scripts\python.exe results-migration\migrate_results.py --module panama --show-sample
 
 # 3. Load one module.
-..\.venv\Scripts\python.exe migrate_results.py --module xray --execute
+.\.venv\Scripts\python.exe results-migration\migrate_results.py --module xray --execute
 
 # 4. Load everything.
-..\.venv\Scripts\python.exe migrate_results.py --execute
+.\.venv\Scripts\python.exe results-migration\migrate_results.py --execute
+```
+
+Or as a single copy-pasteable line, connection included:
+
+```powershell
+$env:PG_HOST='192.168.100.46'; $env:PG_PORT='5432'; $env:PG_DB='centerport'; $env:PG_USER='postgres'; $env:PG_PASSWORD='postgres'; .\.venv\Scripts\python.exe results-migration\migrate_results.py --module xray --execute
 ```
 
 | Flag | Effect |
@@ -88,6 +101,41 @@ cd backend\migration\results-migration
 Each module runs in its own transaction and commits only after its inserts
 succeed. A failure rolls that module back and the run continues with the next
 one, so a bad module never leaves a half-loaded table.
+
+### If the command is not recognized
+
+```
+..\.venv\Scripts\python.exe : The term '..\.venv\Scripts\python.exe' is not recognized
+```
+
+You are inside `results-migration` instead of `backend\migration`, so
+`..\.venv` resolves to `backend\.venv`, which does not exist. Move up one
+level and use `.\.venv`:
+
+```powershell
+cd ..
+.\.venv\Scripts\python.exe results-migration\migrate_results.py --module xray
+```
+
+### If it exits immediately with a password error
+
+```
+ERROR  PG_PASSWORD is not set; refusing to guess a database password
+```
+
+Environment variables last only for the current shell session, so set
+`PG_PASSWORD` again after opening a new terminal.
+
+## Suggested order
+
+1. Dry run all ten and read the reports.
+2. Load one small module first — `--module xray --execute` writes 3,533 rows —
+   then open an x-ray record in the UI and confirm it renders.
+3. Load the rest.
+
+Re-running a module that already loaded will insert a second copy of every
+row; the business IDs continue from the sequence, so nothing collides and
+nothing warns you. Roll back first (see below) if you need to reload.
 
 ## Reading the dry-run report
 
