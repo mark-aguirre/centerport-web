@@ -1,13 +1,14 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { Loader2 } from "lucide-react";
 
-import PersonalInfoSection, {
-  STANDARD_PERSONAL_INFO_ROWS,
-} from "@/components/common/personal-info-section";
-import { SectionReveal } from "@/components/common/section-reveal";
-import PhysicalExaminationSection from "@/components/medical/PhysicalExaminationSection";
+import { PatientRailCard } from "@/components/common/patient-rail-card";
+import { SectionNav, type SectionNavItem } from "@/components/common/section-nav";
+import {
+  SEABASE_SECTIONS,
+  seabaseAnchorId,
+} from "@/components/medical/seabase-section-config";
 import { useMedicalForm } from "@/hooks/use-medical-form";
 import { FormPage, type SectionEntry } from "@/components/common/form-page";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
@@ -18,28 +19,38 @@ import type { MedicalExam } from "@/components/medical/types";
 // Sections
 // ---------------------------------------------------------------------------
 
-const SECTIONS: SectionEntry<MedicalExam>[] = [
-  { component: PhysicalExaminationSection, key: "physical-exam" },
-];
+/**
+ * Section groups rendered in the content column.
+ *
+ * Each entry is one anchored group from {@link SEABASE_SECTIONS}, so the
+ * left-rail navigator and the content column stay in sync from one source.
+ */
+const SECTIONS: SectionEntry<MedicalExam>[] = SEABASE_SECTIONS.map(
+  ({ key, component }) => ({ key, component })
+);
 
 /**
  * Seabase Medical Examination form content with full CRUD button behavior.
+ *
+ * Laid out like the patient profile page: a sticky section navigator on the
+ * left and the form's section cards on the right. Clicking an entry jumps to
+ * that part of the long PEME form, and the entry for the section currently in
+ * view stays highlighted.
  */
 function SeabaseFormContent() {
   // Seabase shares its selected patient only with Panama; see
   // PATIENT_AWARE_ROUTES. The standalone Medical page omits this flag.
   const form = useMedicalForm({ shareSelectedPatient: true });
 
-  const preSections = (
-    <SectionReveal index={0}>
-      <PersonalInfoSection
-        data={form.data}
-        onChange={form.setData}
-        rows={STANDARD_PERSONAL_INFO_ROWS}
-        disabled={true}
-      />
-    </SectionReveal>
+  const navItems = useMemo<SectionNavItem[]>(
+    () => SEABASE_SECTIONS.map(({ key, label, icon }) => ({ key, label, icon })),
+    []
   );
+
+  const { data } = form;
+  const patientName = [data.last_name, data.first_name]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <>
@@ -48,7 +59,28 @@ function SeabaseFormContent() {
         sections={SECTIONS}
         getBusinessId={(record) => record?.exam_id}
         editGuard={(data) => !!data.last_name}
-        preSections={preSections}
+        navRail={
+          /* Patient summary above the section navigator. The rail sits outside
+             the scrolling column, so nothing here needs `sticky` — hence
+             SectionNav's own sticky positioning is cancelled with `static`. */
+          <div className="space-y-3">
+            <PatientRailCard
+              photoUrl={data.photo_url}
+              name={patientName}
+              recordId={form.existingRecord?.exam_id}
+              gender={data.gender}
+              age={data.age}
+              nationality={data.nationality}
+              religion={data.religion}
+            />
+            <SectionNav
+              items={navItems}
+              anchorId={seabaseAnchorId}
+              ariaLabel="Medical examination sections"
+              className="static"
+            />
+          </div>
+        }
         printMenu={
           <ReportMenu
             examId={form.existingRecord?.id}

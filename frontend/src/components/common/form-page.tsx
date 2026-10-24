@@ -94,6 +94,18 @@ export interface FormPageProps<T> {
    * content (e.g. a list of report types). See {@link FormToolbarProps.printMenu}.
    */
   printMenu?: React.ReactNode;
+
+  /**
+   * Optional left-rail content, typically a {@link SectionNav} jump list.
+   *
+   * When provided the page switches from a single column to a two-column
+   * layout on `md` and up: the rail on the left, the sections on the right.
+   * The page then fills the shell's content area and does not scroll itself —
+   * the sections column owns the scroll, so the rail is fixed in place without
+   * needing `sticky`. Below `md` the columns stack and the page scrolls
+   * normally.
+   */
+  navRail?: React.ReactNode;
 }
 
 // ---------------------------------------------------------------------------
@@ -129,6 +141,7 @@ function FormPageContent<T>({
   actionsPortalId = "app-header-actions",
   metadataSlot,
   printMenu,
+  navRail,
 }: FormPageProps<T>) {
   const {
     data,
@@ -189,8 +202,27 @@ function FormPageContent<T>({
     ) : undefined
   );
 
+  // Section stack, shared by the one- and two-column layouts.
+  const sectionStack = (
+    <>
+      {preSections}
+
+      {sections.map(({ component: Section, key }, index) => (
+        <SectionReveal key={key} index={preSections ? index + 1 : index}>
+          <Section data={data} onChange={setData} disabled={!editing} />
+        </SectionReveal>
+      ))}
+    </>
+  );
+
   return (
-    <PageContainer>
+    // With a rail, the page fills the shell's content area exactly and never
+    // scrolls as a whole: the toolbar stays put, the rail stays put, and only
+    // the sections column scrolls (see the two-column branch below). Below
+    // `md` the columns stack and the container scrolls normally again.
+    <PageContainer
+      className={navRail ? "flex flex-col md:h-full md:overflow-hidden" : undefined}
+    >
       <FormToolbar
         editing={editing}
         saving={saving}
@@ -231,16 +263,23 @@ function FormPageContent<T>({
             Use the search bar above to find a seafarer by name
           </p>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {preSections}
+      ) : navRail ? (
+        <div className="mt-3 flex flex-col gap-3 md:min-h-0 md:flex-1 md:flex-row">
+          {/* Left rail: patient details + section navigator. Fixed in place —
+              it is not inside the scrolling column. The `overflow-y-auto` is
+              only a safety valve for a rail taller than the viewport. */}
+          <aside className="scrollbar-hide md:w-52 md:shrink-0 md:overflow-y-auto lg:w-56">
+            {navRail}
+          </aside>
 
-          {sections.map(({ component: Section, key }, index) => (
-            <SectionReveal key={key} index={preSections ? index + 1 : index}>
-              <Section data={data} onChange={setData} disabled={!editing} />
-            </SectionReveal>
-          ))}
+          {/* Right column: the only part of the page that scrolls, with its
+              scrollbar visible so the scroll affordance is obvious. */}
+          <div className="min-w-0 space-y-3 md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-1">
+            {sectionStack}
+          </div>
         </div>
+      ) : (
+        <div className="space-y-3">{sectionStack}</div>
       )}
 
       {/* "No record found — create one?" prompt, shown when a searched
