@@ -1,6 +1,7 @@
 "use client";
 
-import { Building2, Leaf, Loader2, Phone, User, UserPlus } from "lucide-react";
+import { useState } from "react";
+import { Building2, Leaf, List, Loader2, Phone, User, UserPlus } from "lucide-react";
 
 import {
   Dialog,
@@ -18,6 +19,7 @@ import {
   POS_FIELD_LABEL,
 } from "@/components/transaction/pos/PosFormControls";
 import { PosDialogMark } from "@/components/transaction/pos/PosDialogMark";
+import { EmployerPickerDialog } from "@/components/transaction/EmployerPickerDialog";
 import { posArt } from "@/components/transaction/pos/pos-theme";
 import { useEmployers } from "@/hooks/use-employers";
 import type { OutPatientDraft } from "@/hooks/use-add-out-patient";
@@ -59,6 +61,10 @@ export function AddOutPatientDialog({
   // field stays optional: FormAutocomplete is a free-text input with
   // suggestions, so the cashier can pick an existing employer or leave it blank.
   const employers = useEmployers();
+
+  // "Browse" opens a full searchable list of employers so the cashier can pick
+  // one without remembering the exact name. Typing in the field still works.
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -131,20 +137,40 @@ export function AddOutPatientDialog({
               onChange={(v) => onUpdate("contact_no", v)}
               placeholder="Enter contact number"
             />
-            <FormAutocomplete
-              label="Employer / Agency"
-              value={draft.employer}
-              onChange={(v) => onUpdate("employer", v)}
-              suggestions={employers}
-              placeholder="Enter employer or agency (optional)"
-              icon={Building2}
-              className="space-y-1.5"
-              labelClassName={POS_FIELD_LABEL}
-              inputClassName={POS_FIELD_INPUT}
-              optionClassName="text-sm py-2"
-            />
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className={POS_FIELD_LABEL}>Employer / Agency</span>
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold text-[#0f7a4d] transition-colors cursor-pointer hover:bg-[#118a57]/10"
+                >
+                  <List className="h-3.5 w-3.5" />
+                  Browse list
+                </button>
+              </div>
+              <FormAutocomplete
+                label="Employer / Agency"
+                value={draft.employer}
+                onChange={(v) => onUpdate("employer", v)}
+                suggestions={employers}
+                placeholder="Enter employer or agency (optional)"
+                icon={Building2}
+                className="space-y-0"
+                labelClassName="sr-only"
+                inputClassName={POS_FIELD_INPUT}
+                optionClassName="text-sm py-2"
+              />
+            </div>
           </div>
         </div>
+
+        <EmployerPickerDialog
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          selected={draft.employer}
+          onSelect={(name) => onUpdate("employer", name)}
+        />
 
         <DialogFooter className="relative items-center gap-3 overflow-hidden border-t border-[#0f4435]/8 bg-[#f1f8f4] px-7 py-5 sm:justify-between">
           {/* Clinic line, with a leaf bleeding out of the bottom-left corner.
