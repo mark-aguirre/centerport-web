@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
+import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,27 @@ interface FormAutocompleteProps {
    * easier-to-read list.
    */
   optionClassName?: string;
+  /**
+   * Icon drawn inside the input's left edge. The caller is responsible for
+   * leaving room for it via `inputClassName` (e.g. `pl-11`).
+   */
+  icon?: LucideIcon;
+  /**
+   * Classes appended to the input, after the size variant. Use to restyle the
+   * field for a different context — e.g. the taller, icon-bearing fields in the
+   * POS dialogs.
+   */
+  inputClassName?: string;
+  /** Replaces the default label classes outright when provided. */
+  labelClassName?: string;
+  /**
+   * Focuses the input on mount, which also opens the suggestion list.
+   *
+   * Use when the field appears in response to a deliberate action (e.g. an
+   * inline "Change" toggle), so the available options are on screen without the
+   * user having to click into the field first.
+   */
+  autoFocus?: boolean;
 }
 
 const sizeStyles: Record<FormAutocompleteSize, string> = {
@@ -76,6 +98,10 @@ export function FormAutocomplete({
   size = "md",
   maxSuggestions = 8,
   optionClassName,
+  icon: Icon,
+  inputClassName,
+  labelClassName,
+  autoFocus = false,
 }: FormAutocompleteProps) {
   const [open, setOpen] = React.useState(false);
   const [highlightedIndex, setHighlightedIndex] = React.useState(-1);
@@ -221,11 +247,22 @@ export function FormAutocomplete({
       className={cn("space-y-0.5 relative", className)}
       onBlur={handleBlur}
     >
-      <Label className="text-[10px] font-semibold text-primary/60 uppercase tracking-wider">
+      <Label
+        className={
+          labelClassName ??
+          "text-[10px] font-semibold text-primary/60 uppercase tracking-wider"
+        }
+      >
         {label}
         {required && <span className="text-destructive ml-0.5">*</span>}
       </Label>
-      <div ref={inputWrapRef}>
+      <div ref={inputWrapRef} className="relative">
+        {Icon && (
+          <Icon
+            aria-hidden="true"
+            className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-[#0f4435]/35"
+          />
+        )}
         <Input
           value={inputValue}
           onChange={handleInputChange}
@@ -233,7 +270,8 @@ export function FormAutocomplete({
           onFocus={handleFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className={sizeStyles[size]}
+          autoFocus={autoFocus}
+          className={cn(sizeStyles[size], inputClassName)}
           role="combobox"
           aria-expanded={showDropdown}
           aria-autocomplete="list"

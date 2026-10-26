@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Loader2, Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,11 @@ interface SearchSelectProps<T extends Option> {
   autoFocus?: boolean;
 }
 
+/** Result list height cap, matching `max-h-64`. */
+const DROPDOWN_MAX_HEIGHT = 256;
+/** Gap between the field and the list, in px. */
+const GAP = 4;
+
 /**
  * Reusable searchable async selector for the transaction workspace.
  *
@@ -41,6 +47,13 @@ interface SearchSelectProps<T extends Option> {
  * of results. Used for both the customer selector (single pick) and the product
  * selector (repeated picks with `clearOnSelect`). Loads data through the `api`
  * client via the caller-supplied `onSearch`.
+ *
+ * The result list is rendered in a portal, positioned to the field with fixed
+ * coordinates. An absolutely-positioned child would be clipped by any ancestor
+ * with `overflow-hidden` — which is exactly what happens on the New Sale hero,
+ * whose photo backdrop is clipped to its rounded corners. The list re-measures
+ * on scroll and resize, and flips above the field when there is not enough room
+ * below it.
  */
 export function SearchSelect<T extends Option>({
   onSearch,
@@ -59,7 +72,17 @@ export function SearchSelect<T extends Option>({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const inputWrapRef = useRef<HTMLDivElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const listRef = useRef<HTMLUListElement | null>(null);
+
+  // Fixed-position coordinates for the portaled list.
+  const [dropdownPos, setDropdownPos] = useState<{
+    left: number;
+    top: number;
+    width: number;
+    placement: "bottom" | "top";
+  } | null>(null);
 
   // Keep the latest onSearch in a ref so the debounced effect doesn't restart
   // (and cancel its in-flight request) every time the parent re-renders with a
@@ -167,16 +190,54 @@ export function SearchSelect<T extends Option>({
     };
   }, [query]);
 
-  // Close the dropdown when clicking outside.
+  // Close the dropdown when clicking outside. The list lives in a portal, so it
+  // is not inside `containerRef` — it has to be excluded separately or the
+  // mousedown would close the list before a click on an option could land.
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (dropdownRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", handleClick);
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
+
+  // Measure the field and place the list against it, flipping above when the
+  // space below is too tight (e.g. a field near the bottom of the viewport).
+  const updatePosition = useCallback(() => {
+    const el = inputWrapRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const placeAbove =
+      spaceBelow < DROPDOWN_MAX_HEIGHT + GAP && spaceAbove > spaceBelow;
+
+    setDropdownPos({
+      left: rect.left,
+      width: rect.width,
+      top: placeAbove ? rect.top - GAP : rect.bottom + GAP,
+      placement: placeAbove ? "top" : "bottom",
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+
+    // Measure on the next frame so the field has laid out, then keep the list
+    // anchored while the user scrolls or resizes. `capture` catches scrolls on
+    // any ancestor (the hero's scroll container, the page), not just window.
+    const raf = requestAnimationFrame(updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener("resize", updatePosition);
+    };
+  }, [open, results.length, loading, updatePosition]);
 
   const handleSelect = (item: T) => {
     onSelect(item);
@@ -189,7 +250,7 @@ export function SearchSelect<T extends Option>({
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="relative">
+      <div ref={inputWrapRef} className="relative">
         <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
@@ -210,46 +271,63 @@ export function SearchSelect<T extends Option>({
         )}
       </div>
 
-      {open && (
-        <div
-          className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-primary/20 bg-popover shadow-lg"
-          role="listbox"
-        >
-          {results.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-muted-foreground">
-              {loading ? "Searching..." : "No results"}
-            </p>
-          ) : (
-            <ul ref={listRef} className="max-h-64 overflow-auto py-1">
-              {results.map((item, index) => (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    data-option
-                    role="option"
-                    aria-selected={false}
-                    className={cn(
-                      "flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left cursor-pointer",
-                      "hover:bg-primary/5 focus:bg-primary/5 focus:outline-none"
-                    )}
-                    onClick={() => handleSelect(item)}
-                    onKeyDown={(e) => handleOptionKeyDown(e, index)}
-                  >
-                    <span className="text-sm font-medium text-foreground/90">
-                      {renderPrimary(item)}
-                    </span>
-                    {renderSecondary && (
-                      <span className="text-xs text-muted-foreground">
-                        {renderSecondary(item)}
+      {open &&
+        dropdownPos &&
+        createPortal(
+          <div
+            ref={dropdownRef}
+            role="listbox"
+            style={{
+              position: "fixed",
+              left: dropdownPos.left,
+              width: dropdownPos.width,
+              top: dropdownPos.top,
+              ...(dropdownPos.placement === "top"
+                ? { transform: "translateY(-100%)" }
+                : null),
+            }}
+            className="z-50 overflow-hidden rounded-md border border-primary/20 bg-popover shadow-lg"
+          >
+            {results.length === 0 ? (
+              <p className="px-3 py-2 text-sm text-muted-foreground">
+                {loading ? "Searching..." : "No results"}
+              </p>
+            ) : (
+              <ul
+                ref={listRef}
+                className="overflow-auto py-1"
+                style={{ maxHeight: DROPDOWN_MAX_HEIGHT }}
+              >
+                {results.map((item, index) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      data-option
+                      role="option"
+                      aria-selected={false}
+                      className={cn(
+                        "flex w-full flex-col items-start gap-0.5 px-3 py-1.5 text-left cursor-pointer",
+                        "hover:bg-primary/5 focus:bg-primary/5 focus:outline-none"
+                      )}
+                      onClick={() => handleSelect(item)}
+                      onKeyDown={(e) => handleOptionKeyDown(e, index)}
+                    >
+                      <span className="text-sm font-medium text-foreground/90">
+                        {renderPrimary(item)}
                       </span>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+                      {renderSecondary && (
+                        <span className="text-xs text-muted-foreground">
+                          {renderSecondary(item)}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

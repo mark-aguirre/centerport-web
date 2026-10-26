@@ -225,11 +225,15 @@ export interface ActivityItem {
 /**
  * Today's date as a `yyyy-MM-dd` string in the runtime's local timezone.
  *
- * Used for the "today's records" queries. Uses local time rather than
- * `Date.toISOString()` (which is UTC) so the calendar date matches the
- * clinic's local day even in the hours around midnight.
+ * Used for the "today's records" queries and for date filters that default to
+ * today. Uses local time rather than `Date.toISOString()` (which is UTC) so the
+ * calendar date matches the clinic's local day even in the hours around
+ * midnight.
+ *
+ * Exported so callers outside this module default to the same day boundary this
+ * client queries with, rather than each deriving its own.
  */
-function localToday(): string {
+export function localToday(): string {
   return format(new Date(), "yyyy-MM-dd");
 }
 

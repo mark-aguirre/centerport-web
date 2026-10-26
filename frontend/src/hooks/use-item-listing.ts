@@ -144,8 +144,14 @@ export function useItemListing(): UseItemListingResult {
       toast.error("Item name is required");
       return;
     }
-    if (editingItem.price < 0 || editingItem.professional_fee < 0) {
-      toast.error("Price and professional fee cannot be negative");
+    // Price is a required field in the dialog (the label carries an asterisk),
+    // so a billable item cannot be saved at zero.
+    if (!(editingItem.price > 0)) {
+      toast.error("Price is required");
+      return;
+    }
+    if (editingItem.professional_fee < 0) {
+      toast.error("Professional fee cannot be negative");
       return;
     }
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import { api } from "@/lib/api";
+import { api, localToday } from "@/lib/api";
 import { ApiError } from "@/lib/http-client";
 import type { TransactionSummary } from "@/components/transaction/types";
 
@@ -15,12 +15,26 @@ export interface TransactionHistoryFilters {
   to: string;
 }
 
-const EMPTY_FILTERS: TransactionHistoryFilters = {
-  search: "",
-  status: "All",
-  from: "",
-  to: "",
-};
+/**
+ * The filter state a freshly opened history view starts with.
+ *
+ * `from` defaults to today, so the counter opens on the current day's takings
+ * rather than the whole history; `to` is left open so anything settled later in
+ * the day still appears. Built by a function rather than held as a constant
+ * because the date has to be read when the view opens, not when this module is
+ * first evaluated — a long-lived tab would otherwise keep yesterday's date.
+ *
+ * `localToday` is the same browser-local day boundary `api.ts` queries with, so
+ * the default lines up with how the records are dated.
+ */
+function initialFilters(): TransactionHistoryFilters {
+  return {
+    search: "",
+    status: "All",
+    from: localToday(),
+    to: "",
+  };
+}
 
 /** Return shape of {@link useTransactionHistory}. */
 export interface UseTransactionHistoryResult {
@@ -49,7 +63,8 @@ export interface UseTransactionHistoryResult {
 export function useTransactionHistory(): UseTransactionHistoryResult {
   const [transactions, setTransactions] = useState<TransactionSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<TransactionHistoryFilters>(EMPTY_FILTERS);
+  // Lazy initialiser so "today" is read on the first render of the view.
+  const [filters, setFilters] = useState<TransactionHistoryFilters>(initialFilters);
 
   const [pendingVoid, setPendingVoid] = useState<TransactionSummary | null>(null);
   const [voidReason, setVoidReason] = useState("");

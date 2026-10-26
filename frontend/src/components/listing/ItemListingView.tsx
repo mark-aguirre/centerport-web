@@ -1,11 +1,15 @@
 "use client";
 
-import { Loader2, Package, Plus, RefreshCw } from "lucide-react";
+import { Loader2, Plus, RefreshCw, Search } from "lucide-react";
 
-import { SearchBar } from "@/components/common/search-bar";
-import { SectionHeader } from "@/components/common/section-header";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  PosFilterGroup,
+  POS_SEARCH_CONTROL,
+  POS_SEARCH_ICON,
+} from "@/components/transaction/pos/PosFilterGroup";
 import { ItemList } from "@/components/listing/ItemList";
 import { ItemEditDialog } from "@/components/listing/ItemEditDialog";
 import { useItemListing } from "@/hooks/use-item-listing";
@@ -13,7 +17,7 @@ import { useItemListing } from "@/hooks/use-item-listing";
 interface ItemListingViewProps {
   /**
    * Renders the Refresh / Add Item action buttons. Receives the wired button
-   * elements so the caller can place them (e.g. in a page header or inline).
+   * elements so the caller can place them (e.g. in a page banner or inline).
    * When omitted, the actions render inline above the list.
    */
   renderActions?: (actions: React.ReactNode) => React.ReactNode;
@@ -23,9 +27,11 @@ interface ItemListingViewProps {
  * Item listing view — search, list, and the add/edit and delete dialogs.
  *
  * Owns its search and grid state through {@link useItemListing}, so it can be
- * dropped into any container: the standalone Item Listing page or the POS
- * workspace's embedded view. Renders only content (no page title or outer page
- * container). The Refresh / Add Item actions can be relocated via
+ * dropped into any container; it renders only content (no page title or outer
+ * page container). Currently that container is the POS workspace's embedded
+ * view, so the styling follows the POS zone's clinical greens and the same
+ * two-band shape as the transactions and receivable views: a filter bar over a
+ * results table. The Refresh / Add Item actions can be relocated via
  * {@link ItemListingViewProps.renderActions}.
  */
 export function ItemListingView({ renderActions }: ItemListingViewProps) {
@@ -56,20 +62,22 @@ export function ItemListingView({ renderActions }: ItemListingViewProps) {
     <div className="flex items-center gap-2">
       <Button
         variant="outline"
-        size="sm"
-        className="cursor-pointer"
+        className="h-11 cursor-pointer border-[#0f4435]/15 bg-white px-4 text-sm font-semibold text-[#0f4435] hover:bg-[#eef8f2]"
         onClick={refresh}
         disabled={loading}
       >
         {loading ? (
-          <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+          <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
         ) : (
-          <RefreshCw className="w-4 h-4 mr-1" />
+          <RefreshCw className="mr-1.5 h-4 w-4" />
         )}
         Refresh
       </Button>
-      <Button size="sm" className="cursor-pointer" onClick={openAdd}>
-        <Plus className="w-4 h-4 mr-1" />
+      <Button
+        className="h-11 cursor-pointer bg-gradient-to-r from-[#118a57] to-[#0d7349] px-5 text-sm font-semibold text-white shadow-sm hover:from-[#0f7a4d] hover:to-[#0b6440]"
+        onClick={openAdd}
+      >
+        <Plus className="mr-1.5 h-4 w-4" />
         Add Item
       </Button>
     </div>
@@ -77,43 +85,48 @@ export function ItemListingView({ renderActions }: ItemListingViewProps) {
 
   return (
     <div className="space-y-4">
-      {renderActions ? renderActions(actions) : <div className="flex justify-end">{actions}</div>}
+      {renderActions ? (
+        renderActions(actions)
+      ) : (
+        <div className="flex justify-end">{actions}</div>
+      )}
 
-      <div className="bg-card rounded-lg p-4 shadow-sm border border-primary/10 space-y-3">
-        <SectionHeader title="Items" icon={Package} />
-
-        <div className="flex items-center gap-2">
-          <div className="flex-1">
-            <SearchBar
-              value={query}
-              onChange={setQuery}
-              placeholder="Search by name, description, or price..."
-            />
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mb-4 cursor-pointer"
-            onClick={clearSearch}
-            disabled={!query}
-          >
-            Clear
-          </Button>
+      {/* Filters. Only one filter here, so Clear sits beside the field rather
+          than in a column of its own. */}
+      <div className="rounded-xl border border-[#0f4435]/10 bg-white p-4 shadow-sm">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[2fr_1fr_1fr_1fr]">
+          <PosFilterGroup label="Search">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search aria-hidden="true" className={POS_SEARCH_ICON} />
+                <Input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search by name, description, or price..."
+                  aria-label="Search items"
+                  className={POS_SEARCH_CONTROL}
+                />
+              </div>
+              <Button
+                variant="outline"
+                className="h-11 shrink-0 cursor-pointer border-[#0f4435]/15 bg-white px-4 text-sm font-semibold text-[#0f4435] hover:bg-[#eef8f2]"
+                onClick={clearSearch}
+                disabled={!query}
+              >
+                Clear
+              </Button>
+            </div>
+          </PosFilterGroup>
         </div>
-
-        <ItemList
-          items={items}
-          loading={loading}
-          onEdit={openEdit}
-          onDelete={requestDelete}
-        />
-
-        {!loading && (
-          <p className="text-[11px] text-muted-foreground">
-            {items.length} item{items.length !== 1 ? "s" : ""}
-          </p>
-        )}
       </div>
+
+      <ItemList
+        items={items}
+        loading={loading}
+        onEdit={openEdit}
+        onDelete={requestDelete}
+      />
 
       <ItemEditDialog
         open={dialogOpen}

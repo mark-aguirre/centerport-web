@@ -1,7 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { useMemo, type ReactNode } from "react";
+import {
+  CheckCircle2,
+  CreditCard,
+  Leaf,
+  Loader2,
+  Package,
+  UserRound,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 import {
   Dialog,
@@ -12,6 +20,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { PosDialogMark } from "@/components/transaction/pos/PosDialogMark";
+import { posArt } from "@/components/transaction/pos/pos-theme";
 import { formatPeso } from "@/lib/format";
 import {
   computeTransactionTotals,
@@ -30,11 +40,78 @@ interface SettleDialogProps {
 }
 
 /**
+ * One titled block in the settlement summary.
+ *
+ * An icon chip and an uppercase label head the block, with an optional value
+ * aligned opposite it for single-fact sections such as the customer. Detail
+ * rows, when there are any, sit underneath.
+ */
+function SettleSection({
+  icon: Icon,
+  label,
+  value,
+  children,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="overflow-hidden rounded-xl border border-[#0f4435]/8 bg-white">
+      <div className="flex items-center justify-between gap-3 px-4 py-3">
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span
+            aria-hidden="true"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#118a57]/12 text-[#0f7a4d]"
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+          <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#0f4435]">
+            {label}
+          </span>
+        </span>
+        {value !== undefined && (
+          <span className="truncate text-sm font-semibold text-[#0f7a4d]">
+            {value}
+          </span>
+        )}
+      </div>
+      {children && <div className="px-4 pb-4">{children}</div>}
+    </div>
+  );
+}
+
+/** A detail row: description on the left, peso amount on the right. */
+function SummaryRow({
+  label,
+  amount,
+}: {
+  label: ReactNode;
+  amount: number;
+}) {
+  return (
+    <div className="flex justify-between gap-3 py-1">
+      <span className="min-w-0 flex-1 truncate text-sm text-[#2f8f6a]">
+        {label}
+      </span>
+      <span className="shrink-0 text-sm tabular-nums text-[#0f4435]">
+        {formatPeso(amount)}
+      </span>
+    </div>
+  );
+}
+
+/**
  * Settlement confirmation dialog.
  *
- * Summarizes the transaction — customer, item count, totals, and a per-billing-
- * type breakdown — before the user commits to settling. The backend remains the
- * source of truth for the persisted total; this is a review surface.
+ * Summarizes the transaction — customer, the item lines, totals, and a
+ * per-billing-type breakdown — before the user commits to settling. The backend
+ * remains the source of truth for the persisted total; this is a review surface.
+ *
+ * Built from the POS dialog bands (mint header with the clipboard mark, light
+ * review body, mint action footer with the clinic line), so it reads as a
+ * sibling of the Add Out-Patient and Add Item dialogs.
  */
 export function SettleDialog({
   open,
@@ -60,116 +137,134 @@ export function SettleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md gap-0 p-0 overflow-hidden">
-        <DialogHeader className="border-b border-border px-5 py-4 pr-14">
-          <DialogTitle className="text-lg">Confirm Settlement</DialogTitle>
-          <DialogDescription className="text-xs">
-            Review the transaction before settling.
-          </DialogDescription>
+      <DialogContent className="max-w-xl gap-0 overflow-hidden rounded-xl border-[#0f4435]/12 p-0">
+        <DialogHeader className="relative overflow-hidden border-b border-[#0f4435]/8 bg-[#f1f8f4] px-6 py-5 pr-16">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-y-0 right-0 w-1/2 bg-cover bg-right bg-no-repeat opacity-70"
+            style={{ backgroundImage: posArt("leafWash") }}
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#f1f8f4] via-[#f1f8f4]/85 to-transparent"
+          />
+
+          <div className="relative min-w-0">
+            <DialogTitle className="text-2xl text-[#0f4435]">
+              Confirm Settlement
+            </DialogTitle>
+            <DialogDescription className="mt-1 text-sm text-[#0f4435]/70">
+              Review the transaction before settling.
+            </DialogDescription>
+          </div>
+
+          <PosDialogMark className="right-12 h-20 w-28" />
         </DialogHeader>
 
-        <div className="space-y-3 px-5 py-4 text-xs">
-          <div className="flex justify-between">
-            <span className="text-primary/60 font-semibold uppercase tracking-wider text-[11px]">
-              Customer
-            </span>
-            <span className="text-foreground/90">{customerName || "—"}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-primary/60 font-semibold uppercase tracking-wider text-[11px]">
-              Items
-            </span>
-            <span className="text-foreground/90">{items.length}</span>
-          </div>
+        <div className="max-h-[60vh] space-y-3 overflow-y-auto bg-[#f7faf9] px-4 py-4">
+          <SettleSection
+            icon={UserRound}
+            label="Customer"
+            value={customerName || "—"}
+          />
 
-          <div className="border-t border-primary/10 pt-2 space-y-1.5">
-            {items.map((item) => {
-              const lineTotal =
-                ((item.price_snapshot || 0) + (item.professional_fee || 0)) *
-                (item.quantity || 1);
-              return (
-                <div key={item.key} className="flex justify-between gap-3">
-                  <span className="text-foreground/70 min-w-0 flex-1 truncate">
-                    {itemDisplayDescription(
-                      item.description_snapshot,
-                      item.personal_account
-                    )}
-                    {(item.quantity || 1) > 1 && (
-                      <span className="text-foreground/50">
-                        {" "}
-                        × {item.quantity}
-                      </span>
-                    )}
-                  </span>
-                  <span className="tabular-nums text-foreground/90 shrink-0">
-                    {formatPeso(lineTotal)}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          <SettleSection icon={Package} label={`Items (${items.length})`}>
+            <div className="space-y-0.5">
+              {items.map((item) => {
+                const lineTotal =
+                  ((item.price_snapshot || 0) + (item.professional_fee || 0)) *
+                  (item.quantity || 1);
+                return (
+                  <SummaryRow
+                    key={item.key}
+                    amount={lineTotal}
+                    label={
+                      <>
+                        {itemDisplayDescription(
+                          item.description_snapshot,
+                          item.personal_account
+                        )}
+                        {(item.quantity || 1) > 1 && (
+                          <span className="text-[#2f8f6a]/65">
+                            {" "}
+                            × {item.quantity}
+                          </span>
+                        )}
+                      </>
+                    }
+                  />
+                );
+              })}
+            </div>
 
-          <div className="border-t border-primary/10 pt-2 space-y-1">
-            <div className="flex justify-between">
-              <span className="text-foreground/70">Items</span>
-              <span className="tabular-nums text-foreground/90">
-                {formatPeso(totals.itemsTotal)}
-              </span>
+            <div className="mt-2 space-y-0.5 border-t border-dashed border-[#0f4435]/12 pt-2">
+              <SummaryRow label="Items" amount={totals.itemsTotal} />
+              <SummaryRow label="Professional Fees" amount={totals.feesTotal} />
             </div>
-            <div className="flex justify-between">
-              <span className="text-foreground/70">Professional Fees</span>
-              <span className="tabular-nums text-foreground/90">
-                {formatPeso(totals.feesTotal)}
+
+            {/* Total breaks out of the block's padding so the tinted band runs
+                the full width of the card, as the heaviest line in the review. */}
+            <div className="-mx-4 mt-3 flex items-center justify-between gap-3 bg-[#eef4f1] px-4 py-3">
+              <span className="text-xs font-bold uppercase tracking-[0.08em] text-[#0f4435]">
+                Total
               </span>
-            </div>
-            <div className="flex justify-between border-t border-primary/10 pt-1 font-semibold">
-              <span className="text-primary">TOTAL</span>
-              <span className="tabular-nums text-primary">
+              <span className="text-lg font-bold tabular-nums text-[#0f7a4d]">
                 {formatPeso(totals.total)}
               </span>
             </div>
-          </div>
+          </SettleSection>
 
           {byBillingType.length > 0 && (
-            <div className="border-t border-primary/10 pt-2 space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary/60">
-                Billing Types
-              </p>
-              {byBillingType.map(([type, amount]) => (
-                <div key={type} className="flex justify-between">
-                  <span className="text-foreground/70">{type}</span>
-                  <span className="tabular-nums text-foreground/90">
-                    {formatPeso(amount)}
-                  </span>
-                </div>
-              ))}
-            </div>
+            <SettleSection icon={CreditCard} label="Billing Type">
+              <div className="space-y-0.5">
+                {byBillingType.map(([type, amount]) => (
+                  <SummaryRow key={type} label={type} amount={amount} />
+                ))}
+              </div>
+            </SettleSection>
           )}
         </div>
 
-        <DialogFooter className="gap-2 border-t border-border bg-muted/30 px-5 py-4">
-          <Button
-            variant="outline"
-            size="lg"
-            className="cursor-pointer px-6 text-sm"
-            onClick={() => onOpenChange(false)}
-            disabled={settling}
+        <DialogFooter className="relative items-center gap-3 overflow-hidden border-t border-[#0f4435]/8 bg-[#f1f8f4] px-6 py-4 sm:justify-between">
+          {/* Clinic line, with a leaf bleeding out of the bottom-left corner.
+              Decorative, so it is hidden from assistive tech. */}
+          <Leaf
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-3 -left-2 h-20 w-20 -rotate-[20deg] text-[#2f8f6a]/25"
+            strokeWidth={1.25}
+          />
+          <p
+            aria-hidden="true"
+            className="relative hidden flex-col pl-14 text-xs leading-relaxed sm:flex"
           >
-            Back
-          </Button>
-          <Button
-            size="lg"
-            className="cursor-pointer px-6 text-sm"
-            onClick={onConfirm}
-            disabled={settling}
-          >
-            {settling ? (
-              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-            ) : (
-              <CheckCircle2 className="w-4 h-4 mr-1.5" />
-            )}
-            Confirm Settle
-          </Button>
+            <span className="font-bold text-[#0f4435]/80">Care Today.</span>
+            <span className="text-[#2f8f6a]">A Healthier Tomorrow.</span>
+          </p>
+
+          <div className="relative flex gap-3">
+            <Button
+              variant="outline"
+              className="h-12 min-w-28 cursor-pointer border-[#0f4435]/15 bg-white text-base font-bold text-[#0f4435] hover:bg-[#eef8f2]"
+              onClick={() => onOpenChange(false)}
+              disabled={settling}
+            >
+              Back
+            </Button>
+            <Button
+              className="h-12 min-w-44 cursor-pointer bg-gradient-to-r from-[#118a57] to-[#0d7349] text-base font-bold text-white shadow-sm hover:from-[#0f7a4d] hover:to-[#0b6440]"
+              onClick={onConfirm}
+              disabled={settling}
+            >
+              {/* `size-5` rather than `h-5 w-5`: the button's variant forces
+                  `size-4` on any svg whose class does not already set a size. */}
+              {settling ? (
+                <Loader2 className="mr-2 size-5 animate-spin" />
+              ) : (
+                <CheckCircle2 className="mr-2 size-5" />
+              )}
+              Confirm Settle
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

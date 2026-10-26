@@ -1,12 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, ChevronDown, Loader2, Minus, Plus, Trash2, User } from "lucide-react";
+import {
+  ArrowRight,
+  ChevronDown,
+  Loader2,
+  Minus,
+  Plus,
+  Search,
+  ShoppingBag,
+  Trash2,
+  UserRound,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { FormSelect } from "@/components/common/form-select";
-import { SearchSelect } from "@/components/transaction/SearchSelect";
-import { api, type EmployerRecord } from "@/lib/api";
+import { FormAutocomplete } from "@/components/common/form-autocomplete";
+import { useEmployers } from "@/hooks/use-employers";
 import { formatPeso, parsePeso } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
@@ -44,7 +54,7 @@ interface PosCartPanelProps {
   onSettle: () => void;
 }
 
-const detailLabel = "text-[11px] font-bold uppercase tracking-wider text-primary/60";
+const detailLabel = "text-[11px] font-bold uppercase tracking-wider text-[#0f4435]/55";
 
 /**
  * The POS cart / order summary panel.
@@ -52,6 +62,9 @@ const detailLabel = "text-[11px] font-bold uppercase tracking-wider text-primary
  * The fixed right column of the counter POS design: client details at the top,
  * a scrollable list of line items in the middle, and the totals plus the Void /
  * Settle actions pinned at the bottom.
+ *
+ * Styled in the POS zone's clinical greens (see `pos-theme.ts`) rather than the
+ * app-wide primary token, so the panel sits with the rail and the hero.
  *
  * Each line item is individually editable — expand a row to change its billing
  * type and professional fee.
@@ -72,82 +85,144 @@ export function PosCartPanel({
 }: PosCartPanelProps) {
   // Which line item is currently expanded for editing (client key).
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
-  // Toggles the inline agency search/select in the client details block.
+  // Toggles the inline agency picker in the client details block.
   const [editingAgency, setEditingAgency] = useState(false);
+  // The agency as it stood when the picker opened, so Cancel can put it back.
+  // The picker writes through on every change, which is what lets the cashier
+  // pick straight from the list — so an undo value is needed for Cancel to
+  // mean what it says.
+  const [agencyBeforeEdit, setAgencyBeforeEdit] = useState<string | null>(null);
+
+  // Master agency list, shown in full the moment the picker opens.
+  const employers = useEmployers();
+
+  /** Open the agency picker, remembering the current value. */
+  const startEditingAgency = () => {
+    setAgencyBeforeEdit(agency);
+    setEditingAgency(true);
+  };
+
+  /** Close the agency picker, restoring the value it had on open. */
+  const cancelEditingAgency = () => {
+    onChangeAgency(agencyBeforeEdit);
+    setEditingAgency(false);
+  };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden border-l border-primary/15 bg-card">
+    <div className="flex h-full flex-col overflow-hidden border-l border-[#0f4435]/12 bg-card">
       {/* Client details */}
-      <div className="border-b border-primary/10 bg-primary/[0.04] px-4 py-3">
-        <div className="flex items-start justify-between">
-          <span className={detailLabel}>Client Details</span>
-          {customer && (
-            <button
-              type="button"
-              onClick={onEditCustomer}
-              className="cursor-pointer text-[11px] font-semibold text-primary hover:underline"
-            >
-              Edit
-            </button>
-          )}
-        </div>
-        {customer ? (
-          <div className="mt-1">
-            <p className="text-base font-semibold leading-tight text-foreground">
-              {customer.name}
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              {customer.application_no || "—"}
-            </p>
-            <div className="mt-2 rounded-md border border-primary/15 bg-card px-3 py-2">
-              <div className="flex items-center justify-between">
-                <p className={detailLabel}>Agency</p>
+      <div className="border-b border-[#0f4435]/10 bg-[#eef8f2] px-4 py-3.5">
+        <div className="flex items-start gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#118a57]/15 text-[#0f7a4d]">
+            <UserRound className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <span className={detailLabel}>Client Details</span>
+              {customer && (
                 <button
                   type="button"
-                  onClick={() => setEditingAgency((prev) => !prev)}
-                  className="cursor-pointer text-[11px] font-semibold text-primary hover:underline"
+                  onClick={onEditCustomer}
+                  className="cursor-pointer text-[11px] font-semibold text-[#0f7a4d] hover:underline"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+            {customer ? (
+              <>
+                <p className="truncate text-base font-semibold leading-tight text-[#0f4435]">
+                  {customer.name}
+                </p>
+                <p className="text-[11px] text-[#0f4435]/55">
+                  {customer.application_no || "—"}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-[#0f4435]/60">No client selected yet.</p>
+            )}
+          </div>
+        </div>
+
+        {customer && (
+          <div className="mt-2.5 rounded-md border border-[#0f4435]/12 bg-white px-3 py-2">
+            <div className="flex items-center justify-between">
+              <p className={detailLabel}>Agency</p>
+              <div className="flex items-center gap-2">
+                {editingAgency && (
+                  <button
+                    type="button"
+                    onClick={() => setEditingAgency(false)}
+                    className="cursor-pointer text-[11px] font-semibold text-[#0f7a4d] hover:underline"
+                  >
+                    Done
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={
+                    editingAgency ? cancelEditingAgency : startEditingAgency
+                  }
+                  className="cursor-pointer text-[11px] font-semibold text-[#0f4435]/55 hover:underline"
                 >
                   {editingAgency ? "Cancel" : "Change"}
                 </button>
               </div>
-              {editingAgency ? (
-                <div className="mt-1">
-                  <SearchSelect<EmployerRecord>
-                    onSearch={(kw) => api.Employer.search(kw)}
-                    onSelect={(employer) => {
-                      onChangeAgency(employer.name);
-                      setEditingAgency(false);
-                    }}
-                    renderPrimary={(e) => e.name}
-                    placeholder="Search agency..."
-                    ariaLabel="Search agency"
-                  />
-                </div>
-              ) : (
-                <p className="text-xs text-foreground/90">{agency || "—"}</p>
-              )}
             </div>
-          </div>
-        ) : (
-          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-            <User className="h-4 w-4" />
-            No client selected yet.
+            {editingAgency ? (
+              <div className="mt-1">
+                {/* The whole agency list is on screen as soon as the editor
+                    opens — autofocusing the field opens the suggestions, so the
+                    cashier can pick one without typing, and typing narrows the
+                    list. Free text is accepted too: the billed agency is a
+                    display-only override on the draft. */}
+                <FormAutocomplete
+                  label="Agency"
+                  labelClassName="sr-only"
+                  value={agency ?? ""}
+                  onChange={onChangeAgency}
+                  suggestions={employers}
+                  placeholder="Search agency..."
+                  icon={Search}
+                  maxSuggestions={50}
+                  inputClassName="h-10 pl-11 text-xs"
+                  optionClassName="text-xs py-2"
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <p className="text-xs text-foreground/90">{agency || "—"}</p>
+            )}
           </div>
         )}
       </div>
 
-      {/* Line items */}
-      <div className="flex-1 overflow-y-auto px-4 py-2">
+      {/* Line items. The horizontal padding sits on each row rather than this
+          container so a row's hover tint spans the full width of the panel. */}
+      <div className="flex-1 overflow-y-auto py-2">
         {items.length === 0 ? (
-          <div className="flex h-full min-h-32 items-center justify-center text-center text-xs text-muted-foreground">
-            Tap a product to add it to the order.
+          <div className="flex h-full min-h-32 flex-col items-center justify-center gap-4 px-4 text-center">
+            <ShoppingBag
+              aria-hidden="true"
+              className="h-16 w-16 text-[#0f4435]/15"
+              strokeWidth={1.25}
+            />
+            <p className="text-xs text-[#0f4435]/55">
+              Tap a product to add it to the order.
+            </p>
           </div>
         ) : (
-          <ul className="divide-y divide-primary/10">
+          <ul className="divide-y divide-[#0f4435]/8">
             {items.map((item) => {
               const expanded = expandedKey === item.key;
               return (
-                <li key={item.key} className="py-3">
+                <li
+                  key={item.key}
+                  className={cn(
+                    "px-4 py-3 transition-colors hover:bg-[#f4faf7]",
+                    expanded && "bg-[#f4faf7]"
+                  )}
+                >
                   <div className="flex items-start justify-between gap-2">
                     <button
                       type="button"
@@ -266,39 +341,39 @@ export function PosCartPanel({
       </div>
 
       {/* Totals */}
-      <div className="space-y-1 border-t border-primary/10 px-4 py-3 text-sm">
+      <div className="space-y-1 border-t border-[#0f4435]/10 bg-[#f7fbf9] px-4 py-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-foreground/70">Subtotal</span>
-          <span className="tabular-nums text-foreground/90">
+          <span className="text-[#0f4435]/70">Subtotal</span>
+          <span className="tabular-nums text-[#0f4435]/90">
             {formatPeso(totals.itemsTotal)}
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-foreground/70">Professional Fee</span>
-          <span className="tabular-nums text-foreground/90">
+          <span className="text-[#0f4435]/70">Professional Fee</span>
+          <span className="tabular-nums text-[#0f4435]/90">
             {formatPeso(totals.feesTotal)}
           </span>
         </div>
-        <div className="flex items-center justify-between border-t border-primary/10 pt-2">
-          <span className="text-lg font-bold text-foreground">Total</span>
-          <span className="text-lg font-bold tabular-nums text-primary">
+        <div className="flex items-center justify-between border-t border-[#0f4435]/10 pt-2">
+          <span className="text-lg font-bold text-[#0f4435]">Total</span>
+          <span className="text-lg font-bold tabular-nums text-[#0f7a4d]">
             {formatPeso(totals.total)}
           </span>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="grid grid-cols-2 gap-2 border-t border-primary/10 px-4 py-3">
+      <div className="grid grid-cols-2 gap-2 border-t border-[#0f4435]/10 bg-[#f7fbf9] px-4 pt-3">
         <Button
           variant="outline"
-          className="h-12 cursor-pointer"
+          className="h-12 cursor-pointer border-[#0f4435]/15 bg-white text-[#0f4435] hover:bg-[#eef8f2]"
           onClick={onVoid}
           disabled={settling}
         >
           Void
         </Button>
         <Button
-          className="h-12 cursor-pointer bg-emerald-500 text-white hover:bg-emerald-600"
+          className="h-12 cursor-pointer bg-gradient-to-r from-[#118a57] to-[#0d7349] text-white shadow-sm hover:from-[#0f7a4d] hover:to-[#0b6440]"
           onClick={onSettle}
           disabled={!canSettle || settling}
         >
@@ -309,6 +384,16 @@ export function PosCartPanel({
           {!settling && <ArrowRight className="ml-1 h-4 w-4" />}
         </Button>
       </div>
+
+      {/* Closing clinic line. Decorative, so it is hidden from assistive tech. */}
+      <p
+        aria-hidden="true"
+        className="flex items-center justify-center gap-2 bg-[#f7fbf9] px-4 pb-3 pt-3 text-xs italic text-[#0f4435]/45"
+      >
+        <span className="h-px w-5 bg-[#0f4435]/15" />
+        &ldquo;Good Health. Brighter Days.&rdquo;
+        <span className="h-px w-5 bg-[#0f4435]/15" />
+      </p>
     </div>
   );
 }
