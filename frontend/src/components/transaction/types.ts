@@ -109,6 +109,30 @@ export function classifyProduct(product: Pick<Product, "name" | "description">):
 }
 
 /**
+ * Product offering type shown on the POS card.
+ *
+ * A "Package" bundles several services (e.g. "PEME Package"); everything else
+ * is a single "Standard" item. The catalog has no first-class type column, so
+ * this is derived from the product name/description, mirroring the approach
+ * {@link classifyProduct} takes for the category rail.
+ */
+export type ProductType = "Standard" | "Package";
+
+/**
+ * Derives whether a product is a bundled Package or a Standard single item.
+ *
+ * Matching is case-insensitive against the name and description; a product is a
+ * Package when either mentions "package" (or "bundle"). Anything else is
+ * Standard.
+ */
+export function classifyProductType(
+  product: Pick<Product, "name" | "description">
+): ProductType {
+  const haystack = `${product.name} ${product.description ?? ""}`.toLowerCase();
+  return /(package|bundle)/.test(haystack) ? "Package" : "Standard";
+}
+
+/**
  * A single line in a transaction. Stores *snapshots* of the product's price and
  * description at the time it was added, so historical transactions stay accurate
  * even if the product master later changes. See `ToDo/Transaction.md` §14–§15.

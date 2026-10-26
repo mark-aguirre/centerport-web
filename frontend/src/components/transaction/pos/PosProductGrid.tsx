@@ -14,6 +14,7 @@ import { formatPeso } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   classifyProduct,
+  classifyProductType,
   type Product,
   type ProductCategory,
 } from "@/components/transaction/types";
@@ -77,6 +78,7 @@ export function PosProductGrid({
       {products.map((product) => {
         const category = classifyProduct(product);
         const Icon = CATEGORY_ICON[category];
+        const type = classifyProductType(product);
         return (
           <div
             key={product.id}
@@ -99,7 +101,20 @@ export function PosProductGrid({
               {product.name}
             </span>
 
-            <span className="mt-1 text-lg font-bold tabular-nums text-[#0f4435]">
+            {/* Offering type pill: Package (bundled) vs Standard (single item),
+                derived from the name since the catalog has no type column. */}
+            <span
+              className={cn(
+                "mx-auto mt-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide",
+                type === "Package"
+                  ? "bg-[#118a57]/12 text-[#0f7a4d]"
+                  : "bg-[#0f4435]/8 text-[#0f4435]/70"
+              )}
+            >
+              {type}
+            </span>
+
+            <span className="mt-2 text-lg font-bold tabular-nums text-[#0f4435]">
               {formatPeso(product.price)}
             </span>
 

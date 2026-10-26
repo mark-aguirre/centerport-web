@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, type KeyboardEvent, type ReactNode } from "react";
 import {
   CheckCircle2,
   CreditCard,
@@ -123,6 +123,27 @@ export function SettleDialog({
 }: SettleDialogProps) {
   const totals = useMemo(() => computeTransactionTotals(items), [items]);
 
+  // Enter confirms the settlement, matching the primary action; Escape is
+  // handled by the Dialog primitive, which closes on Escape by default (that
+  // calls onOpenChange(false), the same path as "Back").
+  //
+  // This fires regardless of which element holds focus (on open, focus lands on
+  // a button, so a focus-scoped handler would never see Enter). The one
+  // exception is the "Back" button: if the user has tabbed onto it, let its
+  // native click win so Enter there still goes Back. Ignored while settling to
+  // avoid a double submit.
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter" || settling) {
+      return;
+    }
+    const focusedButton = (event.target as HTMLElement).closest("button");
+    if (focusedButton?.dataset.settleAction === "back") {
+      return;
+    }
+    event.preventDefault();
+    onConfirm();
+  };
+
   // Sum item price + fee grouped by billing type for the breakdown.
   const byBillingType = useMemo(() => {
     const map = new Map<BillingType, number>();
@@ -137,7 +158,10 @@ export function SettleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl gap-0 overflow-hidden rounded-xl border-[#0f4435]/12 p-0">
+      <DialogContent
+        className="max-w-xl gap-0 overflow-hidden rounded-xl border-[#0f4435]/12 p-0"
+        onKeyDown={handleKeyDown}
+      >
         <DialogHeader className="relative overflow-hidden border-b border-[#0f4435]/8 bg-[#f1f8f4] px-6 py-5 pr-16">
           <div
             aria-hidden="true"
@@ -244,6 +268,7 @@ export function SettleDialog({
           <div className="relative flex gap-3">
             <Button
               variant="outline"
+              data-settle-action="back"
               className="h-12 min-w-28 cursor-pointer border-[#0f4435]/15 bg-white text-base font-bold text-[#0f4435] hover:bg-[#eef8f2]"
               onClick={() => onOpenChange(false)}
               disabled={settling}

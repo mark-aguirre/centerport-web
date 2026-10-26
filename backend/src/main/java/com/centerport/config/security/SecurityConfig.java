@@ -107,7 +107,7 @@ public class SecurityConfig {
                                 Roles.ADMIN, Roles.INFORMATION, Roles.RADIOLOGY)
                         .requestMatchers("/api/profiles/**").hasAnyRole(
                                 Roles.ADMIN, Roles.INFORMATION, Roles.RELEASING,
-                                Roles.LABORATORY, Roles.RADIOLOGY)
+                                Roles.LABORATORY, Roles.RADIOLOGY, Roles.ACCOUNTING)
                         .requestMatchers("/api/psychology-evaluations/**").hasAnyRole(
                                 Roles.ADMIN, Roles.PSYCHOLOGY)
                         .requestMatchers("/api/laboratory-reports/**").hasAnyRole(
