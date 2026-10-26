@@ -219,7 +219,7 @@ export const navigation: NavigationItem[] = [
   {
     title: "Medical Personnel",
     shortTitle: "Personnel",
-    subtitle: "Super Admin — signatories, roles, and module assignments",
+    subtitle: "Signatories, roles, and module assignments",
     href: "/medical-personnel",
     icon: Users,
     group: "Setting",

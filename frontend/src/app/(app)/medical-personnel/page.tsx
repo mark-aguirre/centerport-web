@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { PageContainer } from "@/components/common/page-container";
 import { PageTitle } from "@/components/common/page-title";
@@ -22,11 +22,12 @@ import { AssignmentMatrix } from "@/components/personnel/AssignmentMatrix";
  *  - Assignments: the module × role matrix whose selections become the default
  *    signatories automatically loaded into report forms.
  *
- * Access is ADMIN-only (enforced by the backend and mirrored here for UX).
+ * Open to every authenticated user: the backend permits
+ * /api/medical-personnel/** and /api/personnel-assignments/** for any
+ * authenticated user, and the route gate in roles.ts leaves it unlisted.
  */
 export default function MedicalPersonnelPage() {
-  const { roles, loading: authLoading } = useAuth();
-  const isAdmin = roles.includes("ADMIN");
+  const { loading: authLoading } = useAuth();
 
   // Personnel are lifted to the page so the assignment matrix pickers reflect
   // the latest roster after any create/edit/deactivate in the table tab.
@@ -43,7 +44,6 @@ export default function MedicalPersonnelPage() {
 
   // Seed the matrix pickers even before the table tab is opened.
   useEffect(() => {
-    if (!isAdmin) return;
     let cancelled = false;
     void (async () => {
       try {
@@ -59,29 +59,13 @@ export default function MedicalPersonnelPage() {
     return () => {
       cancelled = true;
     };
-  }, [isAdmin]);
+  }, []);
 
   if (authLoading) {
     return (
       <div className="flex items-center justify-center py-32">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageContainer className="max-w-7xl">
-        <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
-          <ShieldAlert className="h-10 w-10 text-destructive/60" />
-          <p className="text-sm font-medium text-foreground/70">
-            Administrator access required
-          </p>
-          <p className="text-xs text-muted-foreground">
-            This page is restricted to Super Admin users.
-          </p>
-        </div>
-      </PageContainer>
     );
   }
 

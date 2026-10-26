@@ -43,9 +43,11 @@ const ROUTE_ROLES: Record<string, Role[]> = {
   // /api/receivables, /api/items, /api/customers, /api/products are restricted
   // to ADMIN + ACCOUNTING by the backend). There are no standalone accounting
   // routes to gate here anymore.
-  // Super Admin only: an empty required-role list means no non-ADMIN role
-  // grants access, so only the ADMIN short-circuit in canAccessRoute passes.
-  "/medical-personnel": [],
+  // Medical Personnel is intentionally NOT listed: the console is open to every
+  // authenticated user (the backend permits /api/medical-personnel/** and
+  // /api/personnel-assignments/** for any authenticated user), so it falls
+  // through to the "unlisted routes are visible to any authenticated user"
+  // default in canAccessRoute.
 };
 
 /** True if any of the user's roles grant access to the given route href. */

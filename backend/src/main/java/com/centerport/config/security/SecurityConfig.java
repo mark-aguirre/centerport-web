@@ -159,16 +159,15 @@ public class SecurityConfig {
                         //     all authenticated users (used by signatory pickers);
                         //     management operations (list, create, update, delete,
                         //     deactivate, reactivate) restricted to ADMIN. ---
-                        .requestMatchers(HttpMethod.GET, "/api/medical-personnel/search").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/medical-personnel/{id}").authenticated()
-                        .requestMatchers("/api/medical-personnel/**").hasRole(Roles.ADMIN)
+                        // --- Medical Personnel: the management console is open
+                        //     to all authenticated users — search, lookups, the
+                        //     full roster CRUD, and deactivate/reactivate. ---
+                        .requestMatchers("/api/medical-personnel/**").authenticated()
 
-                        // --- Personnel Assignments: the /defaults endpoint is
-                        //     consumed by report forms to pre-fill signatory fields
-                        //     and is readable by any authenticated user; all other
-                        //     assignment operations are ADMIN-only. ---
-                        .requestMatchers(HttpMethod.GET, "/api/personnel-assignments/defaults/**").authenticated()
-                        .requestMatchers("/api/personnel-assignments/**").hasRole(Roles.ADMIN)
+                        // --- Personnel Assignments: the module × role signatory
+                        //     matrix (and the /defaults lookup consumed by report
+                        //     forms) is open to all authenticated users. ---
+                        .requestMatchers("/api/personnel-assignments/**").authenticated()
 
                         .requestMatchers("/api/files/**").authenticated()
 
