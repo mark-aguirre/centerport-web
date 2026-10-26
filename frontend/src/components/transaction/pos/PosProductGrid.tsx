@@ -1,12 +1,21 @@
 "use client";
 
-import { Loader2, Plus } from "lucide-react";
+import {
+  Box,
+  FlaskConical,
+  Loader2,
+  Plus,
+  ScrollText,
+  Stethoscope,
+  type LucideIcon,
+} from "lucide-react";
 
 import { formatPeso } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   classifyProduct,
   type Product,
+  type ProductCategory,
 } from "@/components/transaction/types";
 
 interface PosProductGridProps {
@@ -21,14 +30,25 @@ interface PosProductGridProps {
 }
 
 /**
+ * Icon shown in each card's badge, keyed by the product's derived category.
+ * A module-level map rather than a render-time lookup so the grid satisfies the
+ * `react-hooks/static-components` rule.
+ */
+const CATEGORY_ICON: Record<ProductCategory, LucideIcon> = {
+  LABS: FlaskConical,
+  MEDICAL: ScrollText,
+  "X-RAY": Stethoscope,
+  OTHER: Box,
+};
+
+/**
  * Product card grid for the POS workspace.
  *
- * Each card is split in two: the product's category, name, and price on the
- * left, and a full-height green add panel on the right. The panel is the whole
- * add target rather than a small icon button — it is sized for a fingertip at
- * the counter, and it is the only thing that adds the item (clicking the card
- * body does nothing). When no customer is selected the cards are dimmed and the
- * panel is disabled.
+ * Each card is a vertical tile: a soft circular icon badge keyed to the
+ * product's category, the product name, its price, and a full-width green
+ * "+ Add" button. The button is the only add target (the card body does
+ * nothing), sized for a fingertip at the counter. When no customer is selected
+ * the cards are dimmed and the button is disabled.
  */
 export function PosProductGrid({
   products,
@@ -53,35 +73,35 @@ export function PosProductGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       {products.map((product) => {
         const category = classifyProduct(product);
+        const Icon = CATEGORY_ICON[category];
         return (
-          // `overflow-hidden` so the add panel is clipped by the card's rounded
-          // corners rather than squaring off its right edge.
           <div
             key={product.id}
             className={cn(
-              "group flex overflow-hidden rounded-xl border border-[#0f4435]/12 bg-card text-left shadow-sm transition-all",
+              "group flex flex-col rounded-xl border border-[#0f4435]/12 bg-card p-4 text-center shadow-sm transition-all",
               disabled
                 ? "opacity-50"
-                : "hover:border-[#118a57]/40 hover:bg-[#f4faf7] hover:shadow-md"
+                : "hover:border-[#118a57]/40 hover:shadow-md"
             )}
           >
-            <div className="flex min-w-0 flex-1 flex-col p-3">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#2f8f6a]">
-                {category}
-              </span>
-              {/* The product name is the card's main read, so it carries the
-                  largest type here. `min-h-10` reserves room for a second line
-                  so prices stay on one baseline across a row of cards. */}
-              <span className="mt-1 min-h-10 text-sm font-bold leading-snug text-[#0f4435]">
-                {product.name}
-              </span>
-              <span className="mt-3 text-sm font-bold tabular-nums text-[#0f4435]">
-                {formatPeso(product.price)}
-              </span>
+            {/* Soft circular badge holding the category icon. */}
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#eaf4ee] text-[#0f7a4d]">
+              <Icon className="h-7 w-7" strokeWidth={1.75} />
             </div>
+
+            {/* The product name is the card's main read. `min-h-10` reserves
+                room for a second line so prices stay on one baseline across a
+                row of cards. */}
+            <span className="mt-3 min-h-10 text-sm font-bold leading-snug text-[#0f4435]">
+              {product.name}
+            </span>
+
+            <span className="mt-1 text-lg font-bold tabular-nums text-[#0f4435]">
+              {formatPeso(product.price)}
+            </span>
 
             <button
               type="button"
@@ -89,13 +109,14 @@ export function PosProductGrid({
               onClick={() => onAdd(product)}
               aria-label={`Add ${product.name}`}
               className={cn(
-                "flex w-20 shrink-0 items-center justify-center self-stretch transition-colors",
+                "mt-4 flex h-11 w-full items-center justify-center gap-1.5 rounded-lg text-sm font-semibold transition-colors",
                 disabled
                   ? "cursor-not-allowed bg-muted text-muted-foreground"
                   : "cursor-pointer bg-[#118a57] text-white hover:bg-[#0f7a4d]"
               )}
             >
-              <Plus className="h-8 w-8" strokeWidth={2.5} />
+              <Plus className="h-4 w-4" strokeWidth={2.5} />
+              Add
             </button>
           </div>
         );

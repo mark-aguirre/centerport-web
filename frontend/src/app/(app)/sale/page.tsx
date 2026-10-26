@@ -187,8 +187,14 @@ export default function NewTransactionPage() {
             padding lives on the product column rather than the outer grid.
             It takes 40% of the width rather than a fixed pixel column, so the
             order summary scales with the counter's screen; the product grid
-            absorbs the rest. */
-        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden lg:grid-cols-[1fr_40%]">
+            absorbs the rest. The cart only exists once a client is chosen, so
+            the welcome stage runs full width and the two-column split kicks in
+            only at stage two. */
+        <div
+          className={`grid min-h-0 flex-1 grid-cols-1 overflow-hidden ${
+            hasCustomer ? "lg:grid-cols-[1fr_40%]" : ""
+          }`}
+        >
           {!hasCustomer ? (
             /* Stage one — welcome screen. The whole column scrolls as one, so
                the hero and the tiles stay with the empty-state panel on short
@@ -258,21 +264,25 @@ export default function NewTransactionPage() {
             </div>
           )}
 
-          {/* Right: cart / order summary */}
-          <PosCartPanel
-            customer={customer}
-            items={transaction.items}
-            onUpdateItem={updateItem}
-            onRemoveItem={removeItem}
-            onEditCustomer={reset}
-            agency={transaction.billed_agency ?? customer?.agency ?? null}
-            onChangeAgency={setAgency}
-            totals={totals}
-            canSettle={canSettle}
-            settling={settling}
-            onVoid={handleVoid}
-            onSettle={() => setSettleOpen(true)}
-          />
+          {/* Right: cart / order summary. Hidden until a client is chosen —
+              there is no order to summarize before then, and the welcome stage
+              needs the full width. */}
+          {hasCustomer && (
+            <PosCartPanel
+              customer={customer}
+              items={transaction.items}
+              onUpdateItem={updateItem}
+              onRemoveItem={removeItem}
+              onEditCustomer={reset}
+              agency={transaction.billed_agency ?? customer?.agency ?? null}
+              onChangeAgency={setAgency}
+              totals={totals}
+              canSettle={canSettle}
+              settling={settling}
+              onVoid={handleVoid}
+              onSettle={() => setSettleOpen(true)}
+            />
+          )}
         </div>
         )}
       </div>
