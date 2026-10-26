@@ -4,7 +4,7 @@
  * Shared compact field controls for laboratory section layouts.
  */
 
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -118,6 +118,111 @@ export function InlineSelect({
           </option>
         ))}
       </select>
+    </div>
+  );
+}
+
+export interface InlineSelectWithOtherProps {
+  /** Field label displayed to the left of the select. */
+  label: string;
+  /** Current value. May be one of `options` or a free-text custom value. */
+  value: string;
+  /** Called when the effective value changes. */
+  onChange: (value: string) => void;
+  /**
+   * Available options; an empty string renders as `Select...`. The `"Other"`
+   * sentinel is appended automatically and should not be included here.
+   */
+  options: string[];
+  /** Makes the control non-interactive. */
+  disabled?: boolean;
+  /** Label width class override. */
+  labelWidth?: string;
+  /** Placeholder for the free-text input shown when `Other` is selected. */
+  otherPlaceholder?: string;
+}
+
+/** Sentinel option label that reveals the free-text input. */
+const OTHER_OPTION = "Other";
+
+/**
+ * Renders a labelled select with an `Other` choice that reveals a free-text
+ * input on the same row.
+ *
+ * The committed `value` is the single source of truth: a value that is not one
+ * of `options` (and is non-empty) is treated as a custom entry, so the select
+ * shows `Other` and the input holds that text. This keeps the stored field a
+ * plain string with no extra flag to persist.
+ */
+export function InlineSelectWithOther({
+  label,
+  value,
+  onChange,
+  options,
+  disabled,
+  labelWidth = "w-24",
+  otherPlaceholder = "Specify color",
+}: InlineSelectWithOtherProps) {
+  const fieldId = useId();
+  const inputId = useId();
+  // A non-empty value outside the known options is a custom ("Other") entry.
+  const valueIsCustom = value !== "" && !options.includes(value);
+  // Keep "Other" selected after the user picks it, even while the custom text
+  // is still empty (empty text alone would otherwise look like a known value).
+  const [otherSelected, setOtherSelected] = useState(valueIsCustom);
+  const isOther = valueIsCustom || otherSelected;
+  const selectValue = isOther ? OTHER_OPTION : value;
+
+  return (
+    <div className={fieldRowClassName}>
+      <label htmlFor={fieldId} className={cn(fieldLabelClassName, labelWidth)}>
+        {label}
+      </label>
+      <select
+        id={fieldId}
+        value={selectValue}
+        onChange={(event) => {
+          const next = event.target.value;
+          if (next === OTHER_OPTION) {
+            // Reveal the free-text input and clear any prior known value.
+            setOtherSelected(true);
+            onChange("");
+            return;
+          }
+          // A real option was chosen: leave "Other" mode and commit it.
+          setOtherSelected(false);
+          onChange(next);
+        }}
+        disabled={disabled}
+        className={cn(
+          fieldControlClassName,
+          "cursor-pointer disabled:cursor-not-allowed",
+          disabled && "bg-muted/30 opacity-70"
+        )}
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option || "Select..."}
+          </option>
+        ))}
+        <option value={OTHER_OPTION}>{OTHER_OPTION}</option>
+      </select>
+      {isOther && (
+        <input
+          id={inputId}
+          type="text"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          readOnly={disabled}
+          placeholder={otherPlaceholder}
+          aria-label={`${label} (other)`}
+          autoFocus={!disabled}
+          className={cn(
+            fieldControlClassName,
+            disabled && "pointer-events-none bg-muted/30"
+          )}
+        />
+      )}
     </div>
   );
 }

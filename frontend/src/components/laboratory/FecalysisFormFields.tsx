@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import {
   InlineFieldWithUnit,
   InlineSelect,
+  InlineSelectWithOther,
   InlineSelectWithUnit,
   LabGroupCard,
 } from "./laboratory-field-helpers";
@@ -118,7 +119,7 @@ export function FecalysisFormFields({
         icon={Droplet}
       >
         <div className="max-w-2xl space-y-2">
-          <InlineSelect
+          <InlineSelectWithOther
             label="Color"
             labelWidth="w-36"
             value={data.fecal_color}

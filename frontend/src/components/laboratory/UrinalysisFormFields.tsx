@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import {
   InlineField,
   InlineSelect,
+  InlineSelectWithOther,
   LabFieldWithUnit,
   LabGroupCard,
   LabSelectWithUnit,
@@ -161,7 +162,7 @@ export function UrinalysisFormFields({
             icon={Droplet}
           >
             <div className="max-w-xl space-y-2">
-              <InlineSelect
+              <InlineSelectWithOther
                 label="Color"
                 labelWidth="w-32"
                 value={data.urine_color}
