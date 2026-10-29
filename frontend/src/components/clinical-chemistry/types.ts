@@ -65,30 +65,30 @@ export const EMPTY_CLINICAL_CHEMISTRY: ClinicalChemistry = {
   // instead of an empty string to avoid a 400 on the initial create.
   name: "Default",
 
-  fbs_si: "3.8 - 5.8",
+  fbs_si: "3.9 - 5.8",
   fbs_conv: "70 - 105",
 
-  bun_si: "2.5 - 6.4",
-  bun_conv: "7 - 18",
+  bun_si: "2.1 - 7.1",
+  bun_conv: "6.0 - 20.0",
 
-  creatinine_si: "80 - 133",
-  creatinine_conv: "0.9 - 1.5",
+  creatinine_si: "80 - 115",
+  creatinine_conv: "0.9 - 1.3",
 
-  cholesterol_si: "3.6 - 6.7",
-  cholesterol_conv: "140 - 260",
+  cholesterol_si: "<5.2",
+  cholesterol_conv: "<200",
 
-  triglycerides_si: "0.4 - 1.86",
-  triglycerides_conv: "36 - 165",
+  triglycerides_si: "<1.70",
+  triglycerides_conv: "<150",
 
-  uric_acid_si: "0.21 - 0.42",
-  uric_acid_conv: "3.5 - 7.2",
+  uric_acid_si: "0.21 - 0.43",
+  uric_acid_conv: "3.4 - 7.2",
 
   sgot_si: "0 - 40",
   sgot_conv: "",
 
-  sgpt_si: "4 - 38",
+  sgpt_si: "0 - 40",
   sgpt_conv: "",
 
-  alk_phos_si: "9 - 45",
+  alk_phos_si: "45 - 135",
   alk_phos_conv: "",
 };

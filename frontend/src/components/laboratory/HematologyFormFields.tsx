@@ -138,11 +138,22 @@ export function HematologyFormFields({
 }: HematologyFormFieldsProps) {
   const resultDateId = useId();
 
-  // Differential-count reference ranges (Segmenters, Eosinophils, Monocytes,
-  // Myelocytes, Juveniles, Basophils, Others) have no persisted min/max fields,
-  // so they are displayed from the configured Default Values at all times.
+  // Reference ("Normal Values") ranges always reflect the live hematology
+  // Default Values page. These ranges are lab configuration (not per-patient
+  // data), so editing the Default Values page must immediately show here.
+  //   - The differential rows (Segmenters, Eosinophils, Monocytes, Myelocytes,
+  //     Juveniles, Basophils, Others) have no persisted fields and come from
+  //     `diff` directly.
+  //   - The remaining rows (Hemoglobin, Hematocrit, RBC, WBC, Platelet,
+  //     Lymphocytes, Stab Cells, ESR) fall back to the report's own stored
+  //     field only when the configured default is blank.
   const { defaults } = useLaboratoryReferenceDefaults();
   const diff = defaults.differential;
+  const hema = defaults.hematology;
+  const refValue = (configured: string | undefined, stored: string) => {
+    const value = configured?.trim();
+    return value ? value : stored;
+  };
 
   return (
     <>
@@ -185,8 +196,8 @@ export function HematologyFormFields({
             onValueChange={(value) => onFieldChange("hemoglobin", value)}
             unit="gm/dl"
             normalRange={formatReferenceRange(
-              data.hemoglobin_normal_min,
-              data.hemoglobin_normal_max,
+              refValue(hema.hemoglobin_normal_min, data.hemoglobin_normal_min),
+              refValue(hema.hemoglobin_normal_max, data.hemoglobin_normal_max),
               "gm/dl"
             )}
             disabled={disabled}
@@ -197,8 +208,8 @@ export function HematologyFormFields({
             onValueChange={(value) => onFieldChange("hematocrit", value)}
             unit="vol%"
             normalRange={formatReferenceRange(
-              data.hematocrit_normal_min,
-              data.hematocrit_normal_max,
+              refValue(hema.hematocrit_normal_min, data.hematocrit_normal_min),
+              refValue(hema.hematocrit_normal_max, data.hematocrit_normal_max),
               "vol%"
             )}
             disabled={disabled}
@@ -209,8 +220,8 @@ export function HematologyFormFields({
             onValueChange={(value) => onFieldChange("rbc_count", value)}
             unit="/cumm"
             normalRange={formatReferenceRange(
-              data.rbc_count_normal_min,
-              data.rbc_count_normal_max,
+              refValue(hema.rbc_count_normal_min, data.rbc_count_normal_min),
+              refValue(hema.rbc_count_normal_max, data.rbc_count_normal_max),
               "m/cumm"
             )}
             disabled={disabled}
@@ -221,8 +232,8 @@ export function HematologyFormFields({
             onValueChange={(value) => onFieldChange("wbc_count", value)}
             unit="/cumm"
             normalRange={formatReferenceRange(
-              data.wbc_count_normal_min,
-              data.wbc_count_normal_max,
+              refValue(hema.wbc_count_normal_min, data.wbc_count_normal_min),
+              refValue(hema.wbc_count_normal_max, data.wbc_count_normal_max),
               "/cumm"
             )}
             disabled={disabled}
@@ -233,8 +244,8 @@ export function HematologyFormFields({
             onValueChange={(value) => onFieldChange("platelet", value)}
             unit="/cumm"
             normalRange={formatReferenceRange(
-              data.platelet_normal_min,
-              data.platelet_normal_max,
+              refValue(hema.platelet_normal_min, data.platelet_normal_min),
+              refValue(hema.platelet_normal_max, data.platelet_normal_max),
               "/cumm"
             )}
             disabled={disabled}
@@ -253,8 +264,8 @@ export function HematologyFormFields({
             onValueChange={(value) => onFieldChange("esr", value)}
             unit="mm/hr"
             normalRange={formatEsrReference(
-              data.esr_normal_male,
-              data.esr_normal_female
+              refValue(hema.esr_normal_male, data.esr_normal_male),
+              refValue(hema.esr_normal_female, data.esr_normal_female)
             )}
             disabled={disabled}
           />
@@ -275,8 +286,14 @@ export function HematologyFormFields({
                 value={data.lymphocytes}
                 onValueChange={(value) => onFieldChange("lymphocytes", value)}
                 normalRange={formatReferenceRange(
-                  data.lymphocytes_normal_min,
-                  data.lymphocytes_normal_max,
+                  refValue(
+                    hema.lymphocytes_normal_min,
+                    data.lymphocytes_normal_min
+                  ),
+                  refValue(
+                    hema.lymphocytes_normal_max,
+                    data.lymphocytes_normal_max
+                  ),
                   "%"
                 )}
                 disabled={disabled}
@@ -325,8 +342,14 @@ export function HematologyFormFields({
                 value={data.stab_cells}
                 onValueChange={(value) => onFieldChange("stab_cells", value)}
                 normalRange={formatReferenceRange(
-                  data.stab_cells_normal_min,
-                  data.stab_cells_normal_max,
+                  refValue(
+                    hema.stab_cells_normal_min,
+                    data.stab_cells_normal_min
+                  ),
+                  refValue(
+                    hema.stab_cells_normal_max,
+                    data.stab_cells_normal_max
+                  ),
                   "%"
                 )}
                 disabled={disabled}
