@@ -492,7 +492,16 @@ export function FormToolbar({
     ) : null;
 
   return (
-    <div className="flex flex-wrap items-center gap-3 mb-4">
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-3",
+        // When actions/search/metadata are portaled into the top bar the
+        // inline wrapper renders empty, so it keeps no bottom margin — that
+        // would otherwise leave a blank gap above the first section. Only the
+        // inline (narrow-screen) toolbar needs the spacing.
+        portalActive ? "lg:mb-0 mb-4" : "mb-4"
+      )}
+    >
       {/* Actions + search stay near the form on narrow screens. When a portal
           target is set (large screens) they render into the layout's action
           strip instead — TopNav Row 3 in topbar mode, or the AppHeader. */}
